@@ -8,36 +8,31 @@ import { UIRowId } from "app/plugin/GristAPI";
 import type { EventObject, TZDate } from "@toast-ui/calendar";
 
 /*
- * The Grist side of the calendar, from a row to a drawn event, in the order the data travels:
+ * The Grist side of the calendar, from a row to a drawn event:
  *
- *  1. `EventRange` / `buildEvent` - what one row means: its span, and the TUI event that shows it.
- *  2. `CalendarSource` - the index: which rows are events at all, and when each one happens.
- *  3. `CalendarRenderer` - the drawing: which of them belong on the grid right now.
+ *  EventRange / buildEvent: what one row means, its span and the TUI event that shows it.
+ *  CalendarSource: which rows are events at all, and when each one happens.
+ *  CalendarRenderer: which of them belong on the grid right now.
  *
  * Nothing here knows how the calendar looks; that is CalendarWrapper's job.
  */
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 
-/** The id of the single TUI "calendar" that every event belongs to. */
+// The id of the single TUI "calendar" that every event belongs to.
 export const CALENDAR_NAME = "standardCalendar";
 
-// TUI's TZDate constructor. The module that loads Toast UI hands it over through setTZDate; it is
-// a load-once cache shared by every calendar section on the page, so it is never cleared — two
-// sections share it, and clearing it when one goes away would break the other.
+// Shared by every calendar section on the page, so it is never cleared: clearing it when one
+// section goes away would break the others.
 let _TZDate: ((date: Date) => TZDate) | null = null;
 
-/** Called by CalendarWrapper once the Toast UI module has loaded. */
 export function setTZDate(make: (date: Date) => TZDate) {
   _TZDate = make;
 }
 
 /**
- * Wraps a Date in TUI's TZDate, which adds the timezone helpers a plain Date lacks.
- *
- * Throws when no calendar has loaded yet. Every caller runs after a calendar exists, so this
- * should be unreachable; it throws rather than returning a wrong date so that an ordering mistake
- * shows up as a stack trace.
+ * Wraps a Date in TUI's TZDate, which adds the timezone helpers a plain Date lacks. Throws when no
+ * calendar has loaded yet, rather than returning a wrong date.
  */
 export function tzDate(date: Date): TZDate {
   if (!_TZDate) { throw new Error("Toast UI Calendar is not loaded"); }
@@ -46,7 +41,7 @@ export function tzDate(date: Date): TZDate {
 
 /**
  * The date columns of one row. Kept separate from CalendarRecord so the index can read three
- * columns per row instead of five: title and type only matter once an event is actually drawn.
+ * columns per row instead of five: title and type only matter once an event is drawn.
  */
 export interface CalendarDates {
   startDate: Date;
@@ -55,8 +50,8 @@ export interface CalendarDates {
 }
 
 /**
- * The rest of one row: what an event needs on top of its span. Read only when an event is really
- * drawn. The dates are deliberately not here, so there is only one way to reach them (EventRange).
+ * The rest of one row: what an event needs on top of its span. Read only when an event is drawn.
+ * The dates are not here, so there is only one way to reach them (EventRange).
  */
 export interface CalendarRecord {
   id: number;
@@ -65,9 +60,8 @@ export interface CalendarRecord {
 }
 
 /**
- * The span an event occupies, after every timezone correction and workaround.
- *
- * Built straight from a row, so nobody can hold a span that was computed some other way.
+ * The span an event occupies, after every timezone correction and workaround. Built straight from
+ * a row, so nobody can hold a span that was computed some other way.
  */
 export class EventRange {
   public readonly start: Date;
@@ -93,7 +87,7 @@ export class EventRange {
     this.isAllDay = Boolean(isAllDay);
   }
 
-  /** True when any part of this span falls inside [fromMs, toMs], both ends included. */
+  // True when any part of this span falls inside [fromMs, toMs], both ends included.
   public overlaps(fromMs: number, toMs: number): boolean {
     const start = this.start.getTime();
     const end = this.end.getTime();
@@ -105,12 +99,8 @@ export class EventRange {
 
 /**
  * Everything the translation needs besides the row itself: the types of the mapped columns, the
- * document timezone, the styling of the "type" column's choices, and TUI's TZDate wrapper.
- *
- * Rebuilt whenever the mapping or a column type changes, so callers can hold it and reuse it
- * across many rows instead of resolving it per row.
- *
- * TZDate is not in here: it is the same object for the whole page, so it lives at module level.
+ * document timezone, and the styling of the "type" column's choices. Rebuilt whenever the mapping
+ * or a column type changes, so callers can reuse it across many rows.
  */
 export interface EventContext {
   startType: string;
@@ -121,14 +111,13 @@ export interface EventContext {
 
 /**
  * Turns one flat record into a TUI event. Takes the span rather than working it out, so the drawn
- * event and the index that decides whether it is visible can never disagree.
+ * event and the index that decides whether it is visible cannot disagree.
  */
 export function buildEvent(
   record: CalendarRecord, range: EventRange, ctx: EventContext,
 ): EventObject {
   const { start, end, isAllDay } = range;
 
-  // Apply colors/styling from the choice options of the "type" column, falling back to defaults.
   // getReadableColorsCombo picks a readable text shade when a choice has a custom fill but no
   // custom text color, so events with a dark fill don't render near-invisible text.
   const style = ctx.choiceOptions[record.type] || {};
@@ -148,30 +137,25 @@ export function buildEvent(
     end,
     isAllday: isAllDay,
     category: isAllDay ? "allday" : "time",
-    // TUI's EventState is "Busy" or "Free". We mark every Grist row as Free, because we do not
-    // track whether a person is busy. We take the type from EventObject["state"] instead of
-    // writing a plain string, so that a rename in TUI becomes a compile error.
+    // Always Free; Grist does not track whether a person is busy.
     state: "Free" satisfies NonNullable<EventObject["state"]>,
     backgroundColor,
     color,
     borderColor: backgroundColor,
     dragBackgroundColor: theme.hover.toString(),
-    // Remember base colors so the selection accent can be undone later (CalendarWrapper._paint).
+    // Base colors, so the selection accent can be undone later (CalendarWrapper._paint).
     raw: { backgroundColor, color },
     customStyle: { fontStyle, fontWeight, textDecoration, textWrap: "auto" },
   } as EventObject;
 }
 
 /**
- * Shifts a UTC-based JS Date so it displays correctly for the given column type.
- *
- * `pureType` must be a pure type ("Date" or "DateTime"), not a raw column type: a stored DateTime
- * type carries its timezone, as in "DateTime:America/New_York", and would not compare equal.
- *
+ * Shifts a UTC-based JS Date so it displays correctly for the given column type. `pureType` must be
+ * a pure type ("Date" or "DateTime"), not a raw one: a stored DateTime type carries its timezone,
+ * as in "DateTime:America/New_York", and would not compare equal.
  */
 function adjust(date: Date, pureType: string, docTz: string): Date {
-  // The `timezone` property exists on TZDate (TUI's wrapper) but not on plain Date; we still
-  // call this with both, so probe the field rather than narrowing the parameter type.
+  // `timezone` exists on TZDate but not on plain Date, and we call this with both.
   const dateTz = (date as Date & { timezone?: string }).timezone;
   if (docTz && docTz !== dateTz && pureType === "DateTime") {
     return tzDate(date).tz(docTz) as unknown as Date;
@@ -183,14 +167,12 @@ function adjust(date: Date, pureType: string, docTz: string): Date {
 }
 
 /**
- * Converts a calendar date (browser-local TZDate) into the seconds value Grist stores.
- *
- * Worked example: if the user is in UTC-5 and the doc is in UTC+2, a picked time of 10:00 must be
- * stored as 03:00, since the doc reads it 7 hours ahead.
+ * Converts a calendar date (browser-local TZDate) into the seconds value Grist stores. If the user
+ * is in UTC-5 and the doc is in UTC+2, a picked time of 10:00 is stored as 03:00.
  */
 export function makeGristDateTime(date: TZDate, pureType: string, docTz: string): number {
   let unixTime = Math.floor(date.valueOf() / 1000);
-  // NOTE: getTimezoneOffset has the opposite sign to what a tz-tagged TZDate returns.
+  // getTimezoneOffset has the opposite sign to what a tz-tagged TZDate returns.
   const localOffsetMin = -date.getTimezoneOffset();
   const docOffsetMin = !docTz ? localOffsetMin : date.tz(docTz).getTimezoneOffset();
   if (isDateOnlyType(pureType)) {
@@ -213,19 +195,15 @@ function buildTextDecoration(style: Record<string, any>): string {
   return parts.length ? parts.join(" ") : "none";
 }
 
-/** Reads the mapped date columns of one row. Returns null when the row has no start date. */
+// Reads the mapped date columns of one row. Returns null when the row has no start date.
 export type ReadDates = (rowId: number) => CalendarDates | null;
 
 /**
  * Keeps the span of every event, so that deciding what is visible costs a number comparison
- * instead of a re-read. Two jobs:
+ * instead of a re-read. Each row with a start date gets an EventRange, worked out once; rows
+ * without one are not events and never reach anything downstream.
  *
- * - **Index.** Each row that has a start date gets an EventRange, worked out once. Without this,
- *   every navigation would redo the timezone arithmetic for every row in the table.
- * - **Membership.** Rows with no start date are not events, and never reach anything downstream,
- *   so nothing further down has to know that a date can be missing.
- *
- * Rebuild it when the mapping or a mapped column's type changes: every span becomes stale.
+ * Rebuild it when the mapping or a mapped column's type changes, since every span becomes stale.
  * `subscribeTo` replays the current rows as adds, so a rebuild needs no separate seeding step.
  */
 export class CalendarSource extends RowListener implements RowSource {
@@ -243,12 +221,11 @@ export class CalendarSource extends RowListener implements RowSource {
     return this._ranges.size;
   }
 
-  /** The span of one event, or undefined when the row is not an event. */
+  // The span of one event, or undefined when the row is not an event.
   public getRange(rowId: UIRowId): EventRange | undefined {
     return typeof rowId === "number" ? this._ranges.get(rowId) : undefined;
   }
 
-  /** True when any part of the row's span falls inside the given window. */
   public isInRange(rowId: UIRowId, fromMs: number, toMs: number): boolean {
     return this.getRange(rowId)?.overlaps(fromMs, toMs) ?? false;
   }
@@ -270,10 +247,8 @@ export class CalendarSource extends RowListener implements RowSource {
   }
 
   /**
-   * Re-reads the changed rows and reports what it means downstream.
-   *
    * A value change can move a row in or out of being an event, so this compares membership before
-   * and after and splits the rows into adds, removes and plain updates — the same shape
+   * and after, and splits the rows into adds, removes and plain updates. That is the same shape
    * BaseFilteredRowSource produces, so listeners can treat both alike.
    */
   public onUpdateRows(rows: RowList) {
@@ -282,13 +257,13 @@ export class CalendarSource extends RowListener implements RowSource {
     const updated: UIRowId[] = [];
     for (const rowId of rows) {
       if (typeof rowId !== "number") { continue; }
-      const was = this._ranges.has(rowId);
-      const is = this._store(rowId);
-      if (is && was) {
+      const wasEvent = this._ranges.has(rowId);
+      const isEvent = this._store(rowId);
+      if (isEvent && wasEvent) {
         updated.push(rowId);
-      } else if (is) {
+      } else if (isEvent) {
         added.push(rowId);
-      } else if (was) {
+      } else if (wasEvent) {
         this._ranges.delete(rowId);
         removed.push(rowId);
       }
@@ -298,7 +273,7 @@ export class CalendarSource extends RowListener implements RowSource {
     if (added.length) { this.trigger("rowChange", "add", added); }
   }
 
-  /** Works out and stores one row's span. Returns false when the row is not an event. */
+  // Works out and stores one row's span. Returns false when the row is not an event.
   private _store(rowId: UIRowId): boolean {
     if (typeof rowId !== "number") { return false; }
     const dates = this._readDates(rowId);
@@ -308,43 +283,30 @@ export class CalendarSource extends RowListener implements RowSource {
   }
 }
 
-/** Reads the mapped columns that are not dates: everything an event needs besides its span. */
+// Reads the mapped columns that are not dates: everything an event needs besides its span.
 export type ReadRecord = (rowId: number) => CalendarRecord;
 
-/**
- * Above this many removals at once, clear the grid and draw it again instead of deleting one by one.
- *
- * Deleting is ~1.6ms per event and drawing a batch is one call, so the crossover sits far below this
- * figure. It is set well above the size of an ordinary edit (a handful of rows leaving the range)
- * and well below a view change on a busy table, so the two paths keep their obvious cases.
- */
+// Above this many removals at once, clear the grid and draw it again instead of deleting one by
+// one. Deleting costs ~1.6ms per event while drawing a batch is a single call.
 const BULK_REMOVE_THRESHOLD = 50;
 
 /**
- * How many events Day and Week draw per day before the rest are left off the grid.
- *
- * Month needs no such cap: TUI stacks what fits in a cell and folds the rest into its own "+N more"
- * counter. Day and Week have no equivalent for timed events, so without a cap they draw every one,
- * which is both unreadable (a day of 270 events is 270 slivers a pixel wide) and slow: 140 events
- * draw in 64ms where 1912 take about 2s.
- *
- * The number is deliberately near what a day can legibly hold rather than what is fast, since past
- * that point extra events cost time to produce a picture nobody can read.
+ * How many events Day and Week draw per day before the rest are left off the grid. Month needs no
+ * cap: TUI stacks what fits in a cell and folds the rest into its own "+N more" counter. Day and
+ * Week have no equivalent for timed events, and a day of 270 events is both unreadable and slow to
+ * draw. The number is closer to what a day can legibly hold than to what is fast.
  */
 const MAX_EVENTS_PER_DAY = 20;
 
 /**
  * Draws the rows it is given, and nothing else. It listens to the filtered set of visible rows, so
- * its work is bounded by what fits on the grid rather than by the size of the table.
- *
- * This is the only place an EventObject is made, and none are kept: TUI holds the drawn events and
- * the index holds the spans, so there is no third copy that could fall behind.
+ * its work is bounded by what fits on the grid rather than by the size of the table. This is the
+ * only place an EventObject is made, and none are kept.
  */
 export class CalendarRenderer extends RowListener {
-  // The rows currently on the grid. A full redraw draws whatever `_visible` holds at that moment,
-  // which is not always the final set: a filter change reports its removals and its additions as
-  // two separate passes, so a redraw during the first pass cannot see the second. Remembering what
-  // was drawn lets the next pass compare instead of guess, and makes a redundant redraw a no-op.
+  // The rows currently on the grid. A filter change reports its removals and its additions as two
+  // separate passes, so a redraw during the first pass cannot see the second; remembering what was
+  // drawn lets the next pass compare instead of guess.
   private _drawn = new Set<number>();
 
   constructor(
@@ -357,24 +319,19 @@ export class CalendarRenderer extends RowListener {
     super();
   }
 
-  // Both checks should always pass, and neither is worth removing. A row with no span never gets
-  // this far, because CalendarSource drops it; and the phantom "new" row is added further down the
-  // chain than the point we tap. They are what the pipeline's own types promise, no more.
   public onAddRows(rows: RowList) {
-    // Anything a previous redraw already put on the grid is not drawn again, so the 'add' that
-    // follows a bulk removal costs nothing when it brings no news.
+    // Skip anything a previous redraw already put on the grid, so the 'add' that follows a bulk
+    // removal costs nothing when it brings no news.
     const fresh = [...rows].filter((rowId): rowId is number =>
       typeof rowId === "number" && !this._drawn.has(rowId));
     if (!fresh.length) { return; }
     // With a cap in force a new event can displace one already drawn, or fall behind the cap
-    // itself, so which events belong on the grid is a property of the whole day rather than of the
-    // row that arrived. Month has no cap and can therefore keep drawing just what came in.
+    // itself, so what belongs on the grid is a property of the whole day and not of the new row.
     if (this._cal.capsEventsPerDay()) { this._redrawAll(); } else { this._drawRows(fresh); }
   }
 
-  // A row update arrives whenever any cell of the row changes, including columns the calendar does
-  // not read. Redrawing costs a TUI state clone per event, so compare what we would draw against
-  // what is already drawn and skip the call when nothing the grid shows has changed.
+  // Updates arrive whenever any cell changes, including columns the calendar does not read, and
+  // redrawing costs a TUI state clone per event. Skip the call when the grid would look the same.
   public onUpdateRows(rows: RowList) {
     for (const rowId of rows) {
       const range = this._source.getRange(rowId);
@@ -386,13 +343,10 @@ export class CalendarRenderer extends RowListener {
   }
 
   /**
-   * Takes events off the grid, either one by one or by redrawing the lot.
-   *
    * Removing one event costs a full TUI state clone and layout pass (Immer `produce` ->
    * `removeFromMatrix` -> `setState`), so the price is per event and not per change: clearing a
-   * month of a busy table measured ~1.6ms x 9651 events = 15s. Drawing, by contrast, is batched, so
-   * a whole month goes on in a single call for ~200ms. Past a few hundred removals it is therefore
-   * cheaper to throw the grid away and draw the new contents in one go.
+   * month of a busy table measured ~1.6ms x 9651 events. Drawing is batched, so past a few dozen
+   * removals it is cheaper to throw the grid away and draw the new contents in one go.
    */
   public onRemoveRows(rows: RowList) {
     const rowIds = [...rows].filter((rowId): rowId is number => typeof rowId === "number");
@@ -406,7 +360,6 @@ export class CalendarRenderer extends RowListener {
     }
   }
 
-  /** Wipes the grid and draws whatever belongs on it now, as one TUI call. */
   private _redrawAll() {
     this._cal.clearEvents();
     this._drawn.clear();
@@ -422,11 +375,9 @@ export class CalendarRenderer extends RowListener {
   }
 
   /**
-   * The events to draw, with Day and Week capped at MAX_EVENTS_PER_DAY per day.
-   *
-   * Ordered by start time first, so a capped day keeps its earliest events rather than whichever
-   * row ids happened to come first. The count of what was left off is reported per day, so the
-   * caller can say how many are hidden without the grid having to hold them.
+   * The events to draw, with Day and Week capped at MAX_EVENTS_PER_DAY per day. Ordered by start
+   * time first, so a capped day keeps its earliest events rather than whichever row ids came
+   * first. What was left off is counted per day, so the caller can report it without holding it.
    */
   private _selectEvents(rows: RowList): { events: EventObject[]; hiddenPerDay: Map<string, number> } {
     const hiddenPerDay = new Map<string, number>();
@@ -461,11 +412,9 @@ export class CalendarRenderer extends RowListener {
 }
 
 /**
- * True when a drawn event already shows what we are about to draw.
- *
- * Colors are compared through `raw`, which keeps the event's own colors before any selection accent
- * (see CalendarWrapper._paint). Reading backgroundColor directly would make a selected event look
- * changed on every update, and redrawing it would drop its accent until the next repaint.
+ * True when a drawn event already shows what we are about to draw. Colors are compared through
+ * `raw`, which keeps the event's own colors before any selection accent (see CalendarWrapper._paint).
+ * Reading backgroundColor directly would make a selected event look changed on every update.
  */
 function sameEvent(drawn: EventObject, next: EventObject): boolean {
   if (!drawn) { return false; }
@@ -485,7 +434,7 @@ function toMs(date: unknown): number {
   return (date as Date | null)?.valueOf() ?? NaN;
 }
 
-/** Groups events by the day they start on. Local time, which is the grid's own reckoning. */
+// Groups events by the day they start on, in local time, which is what the grid uses.
 function dayKey(date: Date): string {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }

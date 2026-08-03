@@ -46,11 +46,11 @@ export class CalendarView extends BaseView implements CalendarHost {
   // The date index, rebuilt whenever the mapping or a mapped column's type changes. Held rather
   // than owned outright, because a rebuild replaces it: creating into a Holder disposes the old one
   // and its subscription with it.
-  private _source = Holder.create<CalendarSource>(this);
+  private _indexingSource = Holder.create<CalendarSource>(this);
 
   // The rows the grid currently shows, filtered out of the index by the visible date range. Lives
   // and dies with _source, which it reads the spans from.
-  private _visible = Holder.create<FilteredRowSource>(this);
+  private _visibleSource = Holder.create<FilteredRowSource>(this);
 
   private _calendarDom: HTMLElement;
   private _titleDom: HTMLElement;
@@ -66,33 +66,25 @@ export class CalendarView extends BaseView implements CalendarHost {
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     super(gristDoc, viewSectionModel);
 
-    // First build the dom that will be added to the dom. For now it will be empty, just elements
-    // we will bind data to it a moment later.
     this.viewPane = this._buildDom();
     this.onDispose(() => {
       dom.domDispose(this.viewPane);
       this.viewPane.remove();
     });
 
-    // Now configure the section reusing some of the custom widget setup.
-    this.viewSection.columnsToMap(getCalendarColumns()); // this will be used in the Right Panel for setup.
-    this.viewSection.allowSelectBy(true); // Allow select by default, reusing custom widget api for that.
+    // Reuses the custom widget setup: columnsToMap drives the Right Panel mapping UI.
+    this.viewSection.columnsToMap(getCalendarColumns());
+    this.viewSection.allowSelectBy(true);
     this.onDispose(() => {
       if (this.viewSection.isDisposed()) { return; }
-      // Tidy up things we changed, probably not needed, but to be clean.
       this.viewSection.columnsToMap(null);
       this.viewSection.allowSelectBy(false);
     });
 
-    // Nothing here listens for rows being added, removed or edited. Those travel the pipeline that
-    // _rebuildSource wires up, which is also what keeps a single cell edit from costing anything
-    // proportional to the size of the table. Only what the pipeline cannot carry is watched here.
-
-    // Rebuild when the mapping changes _or_ when one of the mapped columns' types changes
-    // (Text -> Numeric, Date <-> DateTime, etc.). Mirrors ChartView's per-field type listener.
-    //
-    // A type change is as invalidating as a mapping change: the spans in the index were worked out
-    // under the old types, so both cases rebuild rather than redraw.
+    // Rows added, removed or edited travel the pipeline _rebuildSource wires up; only what the
+    // pipeline cannot carry is watched here. A mapped column's type change (Date <-> DateTime, and
+    // so on) is as invalidating as a mapping change, since every span was worked out under the old
+    // types, so both rebuild rather than redraw. Mirrors ChartView's per-field type listener.
     const typeSubs = Holder.create<MultiHolder>(this);
     const remap = () => this._rebuildSource();
     this.autoDispose(this.viewSection.mappedColumns.subscribe(() => {
@@ -106,18 +98,16 @@ export class CalendarView extends BaseView implements CalendarHost {
     }));
 
     this.autoDispose(this._perspective.addListener(view => this._calendar?.changeView(view)));
-    // Event colors are set to CSS-variable strings, so they re-resolve on theme change with no
-    // data rebuild; we only need to re-apply the calendar chrome theme.
+    // Event colors are CSS-variable strings and re-resolve on their own, so only the calendar
+    // chrome theme needs re-applying.
     this.autoDispose(gristThemeObs().addListener(() => this._calendar?.setTheme()));
 
-    // Reflect the table cursor onto the calendar (selection + navigation).
     this.autoDispose(this.cursor.rowId.subscribe(rowId => this._selectRecord(rowId)));
 
     this.init().catch(reportError);
 
-    // A small, stable handle for nbrowser tests, so they do not have to reach into private fields.
-    // It always points at the newest live view, and we clear it on dispose. Only tests read it,
-    // through window.gristCalendarView (see test/nbrowser/CalendarView.ts).
+    // A stable handle for nbrowser tests, so they need not reach into private fields. Always points
+    // at the newest live view (see test/nbrowser/CalendarView.ts).
     (window as any).gristCalendarView = this._testHook();
     this.onDispose(() => {
       if ((window as any).gristCalendarView?._view === this) {
@@ -141,14 +131,11 @@ export class CalendarView extends BaseView implements CalendarHost {
     // after init when the section becomes a link target. Mirror its current value onto TUI so
     // drag-to-edit and drag-to-create follow the read-only flag.
     this.autoDispose(this.disableEditing.subscribe(() => calendar.setReadOnly(this.isReadOnly())));
-    // Builds the pipeline, which draws the events that fall in the range TUI already shows.
     this._rebuildSource();
-    // The TUI constructor already opened `defaultView` (this._perspective), so there is no view to
-    // change here. Only the toolbar title has not been written yet.
+    // The TUI constructor already opened `defaultView`, so only the title is left to write.
     calendar.updateTitle();
-    // Apply the current cursor now that the calendar and its events exist: the cursor subscription
-    // only fires on later changes, so an event the cursor already sits on (e.g. reopening a view
-    // with a set cursor) wouldn't be highlighted until the cursor next moved.
+    // The cursor subscription only fires on later changes, so a row the cursor already sits on
+    // (reopening a view, say) would not be highlighted until the cursor next moved.
     this._selectRecord(this.cursor.rowId.peek());
   }
 
@@ -168,11 +155,10 @@ export class CalendarView extends BaseView implements CalendarHost {
     this.setCursorPos({ rowId });
   }
 
-  // Opens Grist's Record Card for a specific rowId, independent of the grid cursor. We can't reuse
-  // BaseView.viewSelectedRecordAsCard here: on create the new row isn't in sortedRows yet (rowNotify
-  // is async) so the cursor-derived rowId is stale, and a calendar section has no view fields for the
-  // colRef it reads. The card only needs rowId + the record-card sectionId (see GristDoc), so push
-  // that url hash directly.
+  // Opens the Record Card for a rowId, independent of the grid cursor. BaseView's
+  // viewSelectedRecordAsCard does not fit: on create the new row is not in sortedRows yet (rowNotify
+  // is async) so the cursor-derived rowId is stale, and a calendar section has no view fields for
+  // the colRef it reads. The card only needs rowId plus the record-card sectionId.
   public onOpen(rowId: number) {
     if (this.isRecordCardDisabled()) { return; }
     const sectionId = this.viewSection.tableRecordCard().id();
@@ -192,8 +178,13 @@ export class CalendarView extends BaseView implements CalendarHost {
     this.deleteRows([rowId])?.catch(reportError);
   }
 
+  // Points the filter at the range the grid now shows. FilteredRowSource compares membership before
+  // and after by itself, so it reports what came into view as add and what left as remove.
   public onNavigate() {
-    this._refilter();
+    const source = this._indexingSource.get();
+    const visible = this._visibleSource.get();
+    if (!source || !visible || !this._calendar) { return; }
+    visible.updateFilter(inRange(source, this._calendar));
   }
 
   // The currently-selected event's row, so BaseView's deleteRecords command (bound to the Delete
@@ -259,23 +250,19 @@ export class CalendarView extends BaseView implements CalendarHost {
    *
    *     this.rowSource -> CalendarSource -> FilteredRowSource -> CalendarRenderer -> TUI
    *
-   * Called from init() and whenever the mapping or a mapped column's type changes. Those are the
-   * two things the pipeline itself cannot carry, because both invalidate every span in the index.
-   * Everything else (rows added, removed or edited, and navigation) travels the pipeline.
+   * Called from init() and whenever the mapping or a mapped column's type changes, the two things
+   * the pipeline cannot carry itself since both invalidate every span in the index. It needs a
+   * loaded calendar: spans are worked out with TUI's TZDate, and the first filter needs the range
+   * the grid already shows.
    *
-   * It needs a loaded calendar throughout: a span is worked out with TUI's TZDate, and the first
-   * filter needs the range the grid already shows.
-   *
-   * The chain is built from the far end back, and only joined to the view's rows on the last line,
-   * so the rows arrive once and travel the whole way. subscribeTo replays what is already there as
-   * adds, so nothing needs seeding by hand.
+   * The chain is built from the far end back and joined to the view's rows on the last line, so
+   * the rows arrive once and travel the whole way. subscribeTo replays what is already there.
    */
   private _rebuildSource() {
-    // Take the old chain apart from the far end, so the filter is never left reading an index that
-    // is already gone. Whatever is drawn was built under the old mapping, so the grid is wiped too;
-    // the new chain redraws it.
-    this._visible.clear();
-    this._source.clear();
+    // Taken apart from the far end, so the filter is never left reading an index that is already
+    // gone. Whatever is drawn was built under the old mapping, so the grid is wiped too.
+    this._visibleSource.clear();
+    this._indexingSource.clear();
     this._calendar?.clearEvents();
 
     const ctx = this._context();
@@ -311,24 +298,12 @@ export class CalendarView extends BaseView implements CalendarHost {
       type: type ? asChoice(type.get(rowId)) : "",
     });
 
-    const source = CalendarSource.create(this._source, readDates, ctx);
-    const visible = FilteredRowSource.create(this._visible, inRange(source, cal));
-    // The renderer is owned by the set it draws: the two have exactly the same lifetime, and the
-    // view never needs to reach for the renderer again.
+    const source = CalendarSource.create(this._indexingSource, readDates, ctx);
+    const visible = FilteredRowSource.create(this._visibleSource, inRange(source, cal));
+    // The renderer is owned by the set it draws: the two have the same lifetime.
     CalendarRenderer.create(visible, cal, source, visible, readRecord, ctx).subscribeTo(visible);
     visible.subscribeTo(source);
     source.subscribeTo(this.rowSource);
-  }
-
-  /**
-   * Points the filter at the range the grid now shows. FilteredRowSource compares membership before
-   * and after by itself, so it reports what came into view as add and what left as remove.
-   */
-  private _refilter() {
-    const source = this._source.get();
-    const visible = this._visible.get();
-    if (!source || !visible || !this._calendar) { return; }
-    visible.updateFilter(inRange(source, this._calendar));
   }
 
   private _docTimeZone(): string {
@@ -389,7 +364,7 @@ export class CalendarView extends BaseView implements CalendarHost {
 
     // Bring the row's day into view. The span comes from the index rather than from a drawn event,
     // so this works for a row that is nowhere near the range the grid currently shows.
-    const range = this._source.get()?.getRange(next);
+    const range = this._indexingSource.get()?.getRange(next);
     if (!range) { return; }
     cal.setDate(range.start);
     cal.updateUIAfterNavigation();
@@ -403,8 +378,6 @@ export class CalendarView extends BaseView implements CalendarHost {
 
   // Builds the toolbar and the container the calendar draws into.
   private _buildDom() {
-    // Build all field-bound nodes into locals first, then compose; easier to grep for the
-    // _titleDom / _calendarDom assignments than spotting them inline in a tree literal.
     this._titleDom = cssCalendarTitle(testId("title"));
     this._calendarDom = cssCalendarContainer(testId("widget"));
     const navGroup = cssNavGroup(
@@ -435,27 +408,24 @@ export class CalendarView extends BaseView implements CalendarHost {
     );
   }
 
-  // Test hook, not used by the view itself.
-  //
-  // Gives nbrowser tests one stable place to read the calendar state, instead of reaching into
-  // private fields that a refactor would rename. Written to window.gristCalendarView by the
-  // constructor and cleared on dispose. See test/nbrowser/CalendarView.ts.
+  // One stable place for nbrowser tests to read the calendar state, instead of reaching into
+  // private fields. See test/nbrowser/CalendarView.ts.
   private _testHook() {
     // TZDate carries a timezone tag, so .local() gives back the original moment before .toDate().
-    const getMs = (x: any) =>
-      !x ? null : (x.toDate ? x.local().toDate().getTime() : new Date(x).getTime());
-    const serialize = (ev?: EventObject) => !ev ? null : {
-      title: ev.title, startMs: getMs(ev.start), endMs: getMs(ev.end), isAllDay: Boolean(ev.isAllday),
+    const getMs = (value: any) =>
+      !value ? null : (value.toDate ? value.local().toDate().getTime() : new Date(value).getTime());
+    const serialize = (event?: EventObject) => !event ? null : {
+      title: event.title, startMs: getMs(event.start), endMs: getMs(event.end),
+      isAllDay: Boolean(event.isAllday),
     };
-    // Both lookups go through what is really drawn, so a test that finds an event has also proved
-    // the event reached TUI. Nothing outside the grid can be found this way, which is what we want:
-    // an event off the visible range is not on screen either.
+    // Both lookups go through what is really drawn, so an event found here has also reached TUI.
+    // An event outside the visible range is not findable, which matches what is on screen.
     const drawn = (rowId: number) => this._calendar?.getEvent(rowId) ?? undefined;
     return {
       _view: this,
       getEventByRowId: (rowId: number) => serialize(drawn(rowId)),
       getEventByTitle: (title: string) => {
-        for (const rowId of this._visible.get()?.getAllRows() ?? []) {
+        for (const rowId of this._visibleSource.get()?.getAllRows() ?? []) {
           const event = typeof rowId === "number" ? drawn(rowId) : undefined;
           if (event?.title === title) { return serialize(event); }
         }
@@ -476,11 +446,9 @@ export class CalendarView extends BaseView implements CalendarHost {
 /**
  * One mapped column, resolved for a single rebuild. `colId` and `type` describe the column we write
  * back to; `displayType`, `widgetOptions` and `get` read through its display column, so a Reference
- * surfaces its visible value (e.g. an event title) instead of the foreign row id. For non-Ref
- * columns the two are the same column. Mirrors ChartView's use of `displayColModel`.
- *
- * `get` is a per-column getter (getRowPropFunc), so reading a row is a plain array access rather
- * than a getValue() map lookup, again as ChartView does it.
+ * surfaces its visible value instead of the foreign row id. For non-Ref columns the two are the
+ * same column. `get` is a per-column getter, so reading a row is a plain array access. Both mirror
+ * ChartView.
  */
 interface Field {
   colId: string;
@@ -491,14 +459,9 @@ interface Field {
 }
 
 /**
- * The filter that decides what the grid shows: does this row's span touch the visible range?
- *
- * The range is read once, when the filter is made, and every row then costs two number comparisons
- * against the index. This is why navigating does not re-read a single row.
- *
- * The filter reaches into the index that sits one layer above it in the chain. That works because
- * CalendarSource updates the index before it reports the change, so by the time the filter runs the
- * span it reads is already the new one.
+ * Does this row's span touch the visible range? The range is read once, when the filter is made,
+ * so every row costs two number comparisons against the index and navigating re-reads nothing.
+ * Reaching back into the index is safe because CalendarSource updates it before reporting a change.
  */
 function inRange(source: CalendarSource, cal: CalendarWrapper): RowFilterFunc<UIRowId> {
   const { fromMs, toMs } = cal.getVisibleRange();
@@ -553,11 +516,9 @@ const cssToolbarButtons = `
   }
 `;
 
-// Single row: nav group and perspective group keep their natural width (flex: none) and are never
-// clipped; only the title flexes and truncates under pressure (see cssCalendarTitle). min-width: 0
-// lets the toolbar shrink inside the section; overflow-x: auto is the last-resort escape for the
-// extreme case where the two button groups alone exceed the section width, so the toolbar scrolls
-// internally instead of pushing the whole section sideways.
+// Only the title flexes and truncates under pressure (see cssCalendarTitle); the button groups keep
+// their natural width. overflow-x is the escape hatch for a section too narrow even for those, so
+// the toolbar scrolls internally instead of pushing the whole section sideways.
 const cssToolbar = styled("div", `
   display: flex;
   align-items: center;

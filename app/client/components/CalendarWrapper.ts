@@ -22,45 +22,38 @@ export const PERSPECTIVES: Perspective[] = ["day", "week", "month"];
  * CalendarView implements it.
  */
 export interface CalendarHost extends Disposable {
-  /** True when the section can't be edited (readonly doc, or a link target). */
+  // True when the section can't be edited (readonly doc, or a link target).
   isReadOnly(): boolean;
-  /** The user clicked an event: move the Grist cursor to its row. */
   onSelect(rowId: number): void;
-  /** The user double-clicked an event: open its Record Card. */
+  // Double-click on an event: open its Record Card.
   onOpen(rowId: number): void;
-  /** The user dragged an empty range: create a row, and return its id (or null). */
+  // Drag over an empty range: create a row, and return its id (or null).
   onCreate(start: TZDate, end: TZDate, isAllDay: boolean): Promise<number | null>;
-  /** The user dragged or resized an event: write the changed fields back. */
+  // Drag or resize of an event: write the changed fields back.
   onUpdate(rowId: number, changes: Partial<EventObject>): void;
-  /** The user deleted an event. */
   onDelete(rowId: number): void;
-  /** The grid now shows a different date range, so the host can draw what belongs in it. */
+  // The grid now shows a different date range, so the host can draw what belongs in it.
   onNavigate(): void;
 }
 
 /**
- * The Toast UI Calendar, wrapped.
+ * The Toast UI Calendar, wrapped. Holds the TUI theme, the selection accent, navigation and the
+ * timezone helpers, all carried over from the old bundled calendar widget (grist-widget repo,
+ * calendar/page.js). It knows nothing about Grist and only reports row ids back through
+ * CalendarHost.
  *
- * This holds what we kept from the old bundled calendar widget (grist-widget repo,
- * calendar/page.js): the TUI theme, the selection accent, navigation and the timezone helpers. It
- * knows nothing about Grist. It only reports row ids back through CalendarHost.
+ * It draws what it is told to draw and never decides what belongs on the grid; that is worked out
+ * on the Grist side, where the dates live (see CalendarRenderer). Column mapping, reading rows,
+ * writing user actions and cursor linking live in CalendarView, which owns an instance of this.
  *
- * It draws what it is told to draw, and never decides what belongs on the grid. Which rows are in
- * view is worked out on the Grist side, where the dates live (see CalendarRenderer).
- *
- * The Grist side (column mapping, reading rows, writing user actions, cursor linking) lives in
- * CalendarView, which owns an instance of this class.
- *
- * We did not keep: TUI's form and detail popups with their key handling, the i18next translation
- * code, and a `mouseup` fix for stuck drags that used TUI v1 internals that v2 removed.
+ * Dropped from the old widget: TUI's form and detail popups with their key handling, the i18next
+ * translation code, and a `mouseup` fix for stuck drags that relied on TUI v1 internals.
  */
 export class CalendarWrapper extends Disposable {
   /**
    * Loads the TUI module (imports.js keeps one copy) and builds the calendar inside `container`.
-   * Returns null if the host was disposed while the module was still loading.
-   *
-   * It is called `load`, not `create`, because grainjs Disposable already has a static `create`
-   * with a different signature, and a subclass is not allowed to replace it.
+   * Returns null if the host was disposed while the module was still loading. Named `load` rather
+   * than `create` because grainjs Disposable already has a static `create` with another signature.
    */
   public static async load(
     host: CalendarHost, container: HTMLElement, titleDom: HTMLElement, perspective: Perspective,
@@ -73,13 +66,12 @@ export class CalendarWrapper extends Disposable {
 
   private _calendar: Calendar;
 
-  // The row drawn with the selection accent, if any. TUI has no idea of a selected event, and
-  // drawing an event replaces it, which would quietly drop the accent. Keeping the row here lets
-  // every draw put it back, so the accent survives a redraw without the caller thinking about it.
+  // The row drawn with the selection accent, if any. TUI has no idea of a selected event and
+  // redrawing one would drop the accent, so every draw puts it back from here.
   private _selectedId: number | null = null;
 
-  // Our own labels for the drag selection, one per selected column. We keep and reuse the nodes
-  // between frames. They live on document.body, and _syncSelectionOverlay keeps them in place.
+  // Our own labels for the drag selection, one per selected column, reused between frames. They
+  // live on document.body, and _syncSelectionOverlay keeps them in place.
   private _selectionLabels: HTMLElement[] = [];
 
   // Hour-label format and grid start day follow the browser locale.
@@ -132,7 +124,7 @@ export class CalendarWrapper extends Disposable {
     });
   }
 
-  /** Wraps a Date in TUI's TZDate, which adds the timezone helpers plain Date lacks. */
+  // Wraps a Date in TUI's TZDate, which adds the timezone helpers plain Date lacks.
   public tzDate(date: Date): TZDate {
     return new this._tzDateCtor(date) as unknown as TZDate;
   }
@@ -140,11 +132,9 @@ export class CalendarWrapper extends Disposable {
   public getViewName(): string { return this._calendar.getViewName(); }
 
   /**
-   * True when the caller should limit how many events it draws per day.
-   *
-   * Month folds whatever does not fit a cell into its own "+N more" and so wants every event;
-   * counting on a subset would make that number wrong. Day and Week have no such fold for timed
-   * events and draw all of them, so they need the caller to stop.
+   * True when the caller should limit how many events it draws per day. Month folds whatever does
+   * not fit a cell into its own "+N more" and needs every event, or that number would be wrong.
+   * Day and Week have no such fold for timed events and would draw all of them.
    */
   public capsEventsPerDay(): boolean { return this._calendar.getViewName() !== "month"; }
 
@@ -211,32 +201,27 @@ export class CalendarWrapper extends Disposable {
     this._repaintSelected();
   }
 
-  /** Draws one event again in place, e.g. after its row changed. */
   public updateEvent(rowId: number, event: EventObject) {
     this._calendar.updateEvent(String(rowId), CALENDAR_NAME, event);
     this._repaintSelected();
   }
 
   public deleteEvent(rowId: number) {
-    this._calendar.deleteEvent(String(rowId), CALENDAR_NAME);
+    this._calendar.updateEvent(String(rowId), CALENDAR_NAME, { isVisible: false });
   }
 
-  /** Takes every event off the grid, e.g. when the column mapping changed under us. */
   public clearEvents() {
     this._calendar.clear();
   }
 
-  /** One drawn event, or null when that row is not on the grid right now. */
+  // One drawn event, or null when that row is not on the grid right now.
   public getEvent(rowId: number) {
     return this._calendar.getEvent(String(rowId), CALENDAR_NAME);
   }
 
   /**
-   * Marks one row as the selected one, or none when given null.
-   *
-   * The accent outlives redraws: any draw paints it again, because drawing replaces the event
-   * inside TUI and would otherwise lose it. So the caller says which row is selected and can then
-   * forget about it.
+   * Marks one row as the selected one, or none when given null. The accent outlives redraws: any
+   * draw paints it again, since drawing replaces the event inside TUI and would otherwise lose it.
    */
   public setSelected(rowId: number | null) {
     if (rowId === this._selectedId) { return; }
@@ -247,15 +232,12 @@ export class CalendarWrapper extends Disposable {
   }
 
   /**
-   * Says, under each day of Day/Week, how many of its events were left off the grid.
-   *
-   * Month needs nothing here because TUI writes its own "+N more". Day and Week have no such
-   * counter for timed events, so this writes one into the day header TUI has already drawn. Keyed
-   * by `dayKey` from CalendarRenderer, which is where the counting happens.
+   * Says, under each day of Day/Week, how many of its events were left off the grid. Month needs
+   * nothing here because TUI writes its own "+N more". Keyed by `dayKey` from CalendarRenderer.
    *
    * Written straight to the DOM rather than through a TUI template, because changing a template
-   * means setOptions, and that re-renders the whole grid — the very cost the cap exists to avoid.
-   * The nodes are TUI's, so a redraw wipes these labels; every redraw calls this again.
+   * means setOptions, which re-renders the whole grid: the cost the cap exists to avoid. The nodes
+   * are TUI's, so a redraw wipes these labels, and every redraw calls this again.
    */
   public setHiddenCounts(hiddenPerDay: Map<string, number>) {
     this._hiddenPerDay = hiddenPerDay;
@@ -460,12 +442,8 @@ export class CalendarWrapper extends Disposable {
       start.getDate() === end.getDate();
   }
 
-  /**
-   * Writes the remembered counts into the day headers TUI has drawn.
-   *
-   * Called both when the counts change and from the container's MutationObserver, because these
-   * nodes live inside markup Preact owns and any redraw takes them away.
-   */
+  // Called both when the counts change and from the container's MutationObserver, since these nodes
+  // live inside markup Preact owns and any redraw takes them away.
   private _paintHiddenCounts() {
     const headers = this._container.querySelectorAll(".toastui-calendar-day-name-item");
     if (!headers.length) { return; }
@@ -498,23 +476,16 @@ export class CalendarWrapper extends Disposable {
     this._syncSelectionOverlay();
   }
 
-  // Draws our own guide labels on top of TUI's hidden ones while the user drags.
-  //
-  // TUI makes one selection box (`.toastui-calendar-grid-selection`) per selected column. Each box
-  // holds a `.toastui-calendar-grid-selection-label` with plain text like "HH:MM - HH:MM", or just
-  // "HH:MM" on the later columns of a drag across several days. We keep a small pool of label nodes
-  // on document.body, put each one over its box, and write the time in the user's local format.
-  //
-  // This is safe to call as often as we like: it only reads positions and writes text and styles,
-  // and it reuses the nodes it already made. If the selection gets smaller or goes away, the extra
-  // nodes are removed, so nothing is left behind.
+  // Draws our own guide labels on top of TUI's hidden ones while the user drags. TUI makes one
+  // selection box (`.toastui-calendar-grid-selection`) per selected column, each holding a label
+  // with plain text like "HH:MM - HH:MM". We keep a pool of label nodes on document.body, put each
+  // over its box, and write the time in the user's local format. Safe to call as often as needed.
   private _syncSelectionOverlay() {
-    // We measure the box, not the label. Once the label is hidden its size becomes zero
-    // (see cssCalendarContainer), so it cannot tell us where to draw. The label sits in the top-left
-    // corner of the box, which is where we put our own label too.
+    // Measure the box, not the label: once the label is hidden its size becomes zero (see
+    // cssCalendarContainer). The label sits in the box's top-left corner, where ours goes too.
     const boxes = this._container.querySelectorAll(".toastui-calendar-grid-selection");
-    // `used` counts the labels we really placed this time. We skip any box whose text we don't
-    // recognise, without leaving a gap, so the splice call removes exactly the extra nodes.
+    // Counts the labels really placed this time, skipping unrecognised boxes without leaving a
+    // gap, so the splice below removes exactly the extra nodes.
     let used = 0;
     for (const box of boxes) {
       const label = box.querySelector(".toastui-calendar-grid-selection-label");
