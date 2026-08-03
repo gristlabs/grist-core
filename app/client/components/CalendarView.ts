@@ -1,26 +1,29 @@
 import BaseView from "app/client/components/BaseView";
+import { CalendarDates, EventContext, makeGristDateTime } from "app/client/components/CalendarEvents";
 import {
-  CalendarExt, CalendarHost, CalendarRecord, cssCalendarContainer, getCalendarColumns, Perspective,
-  PERSPECTIVES,
+  CalendarExt, CalendarHost, cssCalendarContainer, getCalendarColumns, Perspective, PERSPECTIVES,
 } from "app/client/components/CalendarExt";
+import { CalendarRenderer, ReadRecord } from "app/client/components/CalendarRenderer";
+import { CalendarSource, ReadDates } from "app/client/components/CalendarSource";
 import { GristDoc } from "app/client/components/GristDoc";
 import { Delay } from "app/client/lib/Delay";
 import { makeT } from "app/client/lib/localization";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
+import { FilteredRowSource } from "app/client/models/rowset";
 import { basicButton, button, cssButton, cssButtonGroup } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { gristThemeObs } from "app/client/ui2018/theme";
 import { CellValue, UserAction } from "app/common/DocActions";
 import { isDateOnlyType } from "app/common/gristTypes";
+import { RowFilterFunc } from "app/common/RowFilterFunc";
 import { WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import { UIRowId } from "app/plugin/GristAPI";
 import { decodeObject } from "app/plugin/objtypes";
 
 import { Computed, dom, fromKo, Holder, makeTestId, MultiHolder, styled } from "grainjs";
-import debounce from "lodash/debounce";
 
 import type { EventObject, TZDate } from "@toast-ui/calendar";
 
@@ -46,18 +49,24 @@ const testId = makeTestId("test-calendar-");
 export class CalendarView extends BaseView implements CalendarHost {
   private _calendar: CalendarExt | null = null;
 
+  // The date index, rebuilt whenever the mapping or a mapped column's type changes. Held rather
+  // than owned outright, because a rebuild replaces it: creating into a Holder disposes the old one
+  // and its subscription with it.
+  private _source = Holder.create<CalendarSource>(this);
+
+  // The rows the grid currently shows, filtered out of the index by the visible date range. Lives
+  // and dies with _source, which it reads the spans from.
+  private _visible = Holder.create<FilteredRowSource>(this);
+
   private _calendarDom: HTMLElement;
   private _titleDom: HTMLElement;
 
-  // All events by Grist rowId, rebuilt by _updateView and handed to CalendarExt to render.
-  private _allEvents = new Map<number, EventObject>();
   private _selectedRecordId: number | null = null;
 
   private _perspective = Computed.create(this,
     fromKo(this.viewSection.optionsObj.prop("calendarViewPerspective")),
     (_use, view) => (view && PERSPECTIVES.includes(view) ? view : "week"));
 
-  private _update = debounce(() => this._updateView(), 0);
   private _resize = this.autoDispose(Delay.untilAnimationFrame(() => this._calendar?.render(), this));
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
@@ -73,7 +82,7 @@ export class CalendarView extends BaseView implements CalendarHost {
 
     // Now configure the section reusing some of the custom widget setup.
     this.viewSection.columnsToMap(getCalendarColumns()); // this will be used in the Right Panel for setup.
-    this.viewSection.allowSelectBy(true); // Allow select by default, reusing custom widget api for that. 
+    this.viewSection.allowSelectBy(true); // Allow select by default, reusing custom widget api for that.
     this.onDispose(() => {
       if (this.viewSection.isDisposed()) { return; }
       // Tidy up things we changed, probably not needed, but to be clean.
@@ -81,21 +90,25 @@ export class CalendarView extends BaseView implements CalendarHost {
       this.viewSection.allowSelectBy(false);
     });
 
-    // Re-render events when data, mapping, perspective or theme change.
-    this.listenTo(this.sortedRows, "rowNotify", this._update);
-    this.autoDispose(this.sortedRows.getKoArray().subscribe(this._update));
+    // Nothing here listens for rows being added, removed or edited. Those travel the pipeline that
+    // _rebuildSource wires up, which is also what keeps a single cell edit from costing anything
+    // proportional to the size of the table. Only what the pipeline cannot carry is watched here.
 
-    // Re-render when the mapping changes _or_ when one of the mapped columns' types changes
+    // Rebuild when the mapping changes _or_ when one of the mapped columns' types changes
     // (Text -> Numeric, Date <-> DateTime, etc.). Mirrors ChartView's per-field type listener.
     // The widget gave up on this ("no good way to know when a column's type is changed").
+    //
+    // A type change is as invalidating as a mapping change: the spans in the index were worked out
+    // under the old types, so both cases rebuild rather than redraw.
     const typeSubs = Holder.create<MultiHolder>(this);
+    const remap = () => this._rebuildSource();
     this.autoDispose(this.viewSection.mappedColumns.subscribe(() => {
-      this._update();
+      remap();
       // Replaces the previous batch: creating into the Holder disposes whatever it held.
       const owner = MultiHolder.create(typeSubs);
       for (const col of this._mappedColumnList()) {
-        owner.autoDispose(col.type.subscribe(this._update));
-        owner.autoDispose(col.displayColModel.peek().type.subscribe(this._update));
+        owner.autoDispose(col.type.subscribe(remap));
+        owner.autoDispose(col.displayColModel.peek().type.subscribe(remap));
       }
     }));
 
@@ -135,9 +148,11 @@ export class CalendarView extends BaseView implements CalendarHost {
     // after init when the section becomes a link target. Mirror its current value onto TUI so
     // drag-to-edit and drag-to-create follow the read-only flag.
     this.autoDispose(this.disableEditing.subscribe(() => calendar.setReadOnly(this.isReadOnly())));
-    // The TUI constructor already opened `defaultView` (this._perspective), so no changeView here;
-    // _updateView renders the events and title.
-    this._updateView();
+    // Builds the pipeline, which draws the events that fall in the range TUI already shows.
+    this._rebuildSource();
+    // The TUI constructor already opened `defaultView` (this._perspective), so there is no view to
+    // change here. Only the toolbar title has not been written yet.
+    calendar.updateTitle();
     // Apply the current cursor now that the calendar and its events exist: the cursor subscription
     // only fires on later changes, so an event the cursor already sits on (e.g. reopening a view
     // with a set cursor) wouldn't be highlighted until the cursor next moved.
@@ -189,12 +204,7 @@ export class CalendarView extends BaseView implements CalendarHost {
   }
 
   public onNavigate() {
-    this._refreshSelectedRecord();
-  }
-
-  protected onTableLoaded() {
-    super.onTableLoaded();
-    this._update();
+    this._refilter();
   }
 
   // The currently-selected event's row, so BaseView's deleteRecords command (bound to the Delete
@@ -238,65 +248,98 @@ export class CalendarView extends BaseView implements CalendarHost {
     return Array.from(new Set(cols));
   }
 
-  private _updateView() {
-    const cal = this._calendar;
-    if (this.isDisposed() || !cal) { return; }
-    this._allEvents = this._buildEvents(cal);
-    cal.setEvents(this._allEvents);
-    cal.updateTitle();
-    this._refreshSelectedRecord();
+  /**
+   * The mapping context: column types, document timezone and choice styling, resolved once rather
+   * than per row. Null when a required column is not mapped, which means there is nothing to show.
+   */
+  private _context(): EventContext | null {
+    const start = this._field("startDate");
+    if (!start || !this._field("title")) { return null; }
+    const end = this._field("endDate");
+    const startType = start.displayType;
+    return {
+      startType,
+      endType: end?.displayType || startType,
+      docTz: this._docTimeZone(),
+      choiceOptions: this._field("type")?.widgetOptions?.choiceOptions || {},
+    };
   }
 
   /**
-   * Reads every row through the current mapping and returns the events by rowId. Empty when the two
-   * required columns (start date and title) are not both mapped.
+   * Builds the whole pipeline that draws the calendar, and points it at the view's rows:
    *
-   * The widget's equivalent (page.js updateCalendar) received already-mapped flat records from the
-   * plugin API and awaited its ColTypesFetcher for types. Here we resolve the columns ourselves,
-   * read values through per-column getters (getRowPropFunc, the approach ChartView uses) and build
-   * synchronously.
+   *     this.rowSource -> CalendarSource -> FilteredRowSource -> CalendarRenderer -> TUI
+   *
+   * Called from init() and whenever the mapping or a mapped column's type changes. Those are the
+   * two things the pipeline itself cannot carry, because both invalidate every span in the index.
+   * Everything else (rows added, removed or edited, and navigation) travels the pipeline.
+   *
+   * It needs a loaded calendar throughout: a span is worked out with TUI's TZDate, and the first
+   * filter needs the range the grid already shows.
+   *
+   * The chain is built from the far end back, and only joined to the view's rows on the last line,
+   * so the rows arrive once and travel the whole way. subscribeTo replays what is already there as
+   * adds, so nothing needs seeding by hand.
    */
-  private _buildEvents(cal: CalendarExt): Map<number, EventObject> {
+  private _rebuildSource() {
+    // Take the old chain apart from the far end, so the filter is never left reading an index that
+    // is already gone. Whatever is drawn was built under the old mapping, so the grid is wiped too;
+    // the new chain redraws it.
+    this._visible.clear();
+    this._source.clear();
+    this._calendar?.clearEvents();
+
+    const ctx = this._context();
+    const cal = this._calendar;
     const start = this._field("startDate");
     const title = this._field("title");
-    if (!start || !title) {
-      cal.setAllDayOnly(false);
-      return new Map();
+    if (!cal || !ctx || !start || !title) {
+      cal?.setAllDayOnly(false);
+      return;
     }
+    // When both mapped date columns are date-only (no time-of-day), every event is all-day, so drop
+    // the empty hour grid in Day/Week and show just the event list. Same condition EventRange uses
+    // to force isAllDay on each event, so the two stay in step.
+    cal.setAllDayOnly(isDateOnlyType(ctx.startType) && isDateOnlyType(ctx.endType));
+
     const end = this._field("endDate");
     const allDay = this._field("isAllDay");
     const type = this._field("type");
-
-    // Resolve column types, choice styling and the doc timezone once, not per row.
-    const startType = start.displayType;
-    const endType = end?.displayType || startType;
-    const choiceOptions = type?.widgetOptions?.choiceOptions || {};
-    const docTz = this._docTimeZone();
-
-    // When both mapped date columns are date-only (no time-of-day), every event is all-day, so drop
-    // the empty hour grid in Day/Week and show just the event list. Same condition that forces
-    // isAllday per row in _buildEvent, so the two stay in step.
-    cal.setAllDayOnly(isDateOnlyType(startType) && isDateOnlyType(endType));
-
-    const events = new Map<number, EventObject>();
-    for (const rowId of this.sortedRows.getKoArray().peek() as number[]) {
-      if (typeof rowId !== "number") { continue; }
+    const readDates: ReadDates = (rowId) => {
       const startDate = numToDate(start.get(rowId));
-      // A row needs a start date to be placed on the grid. Rows without one can't be shown, so we
-      // skip them. (If a row has a start but no title yet, e.g. just created by a drag before the
-      // user fills in the Record Card, we still show it with a placeholder so it doesn't vanish.)
-      if (!startDate) { continue; }
-      const record: CalendarRecord = {
-        id: rowId,
+      if (!startDate) { return null; }
+      return {
         startDate,
         endDate: end ? numToDate(end.get(rowId)) : null,
         isAllDay: allDay ? Boolean(allDay.get(rowId)) : undefined,
-        title: asText(title.get(rowId)) ?? t("New Event"),
-        type: type ? asChoice(type.get(rowId)) : "",
-      };
-      events.set(rowId, cal.buildEvent(record, startType, endType, choiceOptions, docTz));
-    }
-    return events;
+      } satisfies CalendarDates;
+    };
+    // A row created by a drag has no title until the user fills in the Record Card, so it gets a
+    // placeholder rather than vanishing from the grid.
+    const readRecord: ReadRecord = rowId => ({
+      id: rowId,
+      title: asText(title.get(rowId)) ?? t("New Event"),
+      type: type ? asChoice(type.get(rowId)) : "",
+    });
+
+    const source = CalendarSource.create(this._source, readDates, ctx);
+    const visible = FilteredRowSource.create(this._visible, inRange(source, cal));
+    // The renderer is owned by the set it draws: the two have exactly the same lifetime, and the
+    // view never needs to reach for the renderer again.
+    CalendarRenderer.create(visible, cal, source, visible, readRecord, ctx).subscribeTo(visible);
+    visible.subscribeTo(source);
+    source.subscribeTo(this.rowSource);
+  }
+
+  /**
+   * Points the filter at the range the grid now shows. FilteredRowSource compares membership before
+   * and after by itself, so it reports what came into view as add and what left as remove.
+   */
+  private _refilter() {
+    const source = this._source.get();
+    const visible = this._visible.get();
+    if (!source || !visible || !this._calendar) { return; }
+    visible.updateFilter(inRange(source, this._calendar));
   }
 
   private _docTimeZone(): string {
@@ -314,8 +357,8 @@ export class CalendarView extends BaseView implements CalendarHost {
     const title = this._field("title");
     const docTz = this._docTimeZone();
     // Dates are written in the real column's type, not the display column's: a Ref start date is
-    // stored as the reference, while _buildEvents reads it through the visible column.
-    const toGrist = (date: unknown, f: Field) => cal.makeGristDateTime(date as TZDate, f.type, docTz);
+    // stored as the reference, while the readers in _rebuildSource go through the visible column.
+    const toGrist = (date: unknown, f: Field) => makeGristDateTime(date as TZDate, f.type, docTz);
 
     const fields: Record<string, CellValue> = {};
     const identity = (v: unknown, _f: Field) => v as CellValue;
@@ -333,9 +376,9 @@ export class CalendarView extends BaseView implements CalendarHost {
         await this.sendTableAction(["UpdateRecord", rowId, fields] as UserAction);
       } else {
         const newRowId = await this.sendTableAction(["AddRecord", null, fields] as UserAction);
-        // setCursorPos calls _selectRecord with a rowId that is not in _allEvents yet, because
-        // rowNotify arrives later. _selectedRecordId just remembers the row for now, and the next
-        // _updateView (started by rowNotify) draws the highlight in _refreshSelectedRecord.
+        // setCursorPos calls _selectRecord for a row the pipeline has not delivered yet, so the new
+        // event is not on the grid at that moment. Nothing has to be done about it: CalendarExt
+        // remembers which row is selected and accents it as soon as the renderer draws it.
         // The cursor moves to the new row before we return, so the caller can open the Record Card.
         if (newRowId && !this.isDisposed()) {
           this.setCursorPos({ rowId: newRowId });
@@ -353,22 +396,18 @@ export class CalendarView extends BaseView implements CalendarHost {
     if (!cal) { return; }
     const next = typeof rowId === "number" ? rowId : null;
     if (next === this._selectedRecordId) { return; }
-
-    // Always clear the previous highlight, even when there's no incoming event to highlight
-    // (e.g. cursor moved off any mapped row, or to a row whose date columns are blank).
-    if (this._selectedRecordId) { cal.setHighlight(this._selectedRecordId, false); }
     this._selectedRecordId = next;
+    // CalendarExt keeps the accent on this row from now on, including across redraws. So a row that
+    // is not drawn yet (one just created by a drag) still lights up once its event appears.
+    cal.setSelected(next);
     if (next === null) { return; }
 
-    const event = this._allEvents.get(next);
-    if (!event) { return; }
-
-    cal.setDate(event.start as TZDate);
+    // Bring the row's day into view. The span comes from the index rather than from a drawn event,
+    // so this works for a row that is nowhere near the range the grid currently shows.
+    const range = this._source.get()?.getRange(next);
+    if (!range) { return; }
+    cal.setDate(range.start);
     cal.updateUIAfterNavigation();
-  }
-
-  private _refreshSelectedRecord() {
-    if (this._selectedRecordId) { this._calendar?.setHighlight(this._selectedRecordId, true); }
   }
 
   private _setPerspective(view: Perspective) {
@@ -427,11 +466,20 @@ export class CalendarView extends BaseView implements CalendarHost {
     const serialize = (ev?: EventObject) => !ev ? null : {
       title: ev.title, startMs: getMs(ev.start), endMs: getMs(ev.end), isAllDay: Boolean(ev.isAllday),
     };
+    // Both lookups go through what is really drawn, so a test that finds an event has also proved
+    // the event reached TUI. Nothing outside the grid can be found this way, which is what we want:
+    // an event off the visible range is not on screen either.
+    const drawn = (rowId: number) => this._calendar?.getEvent(rowId) ?? undefined;
     return {
       _view: this,
-      getEventByRowId: (rowId: number) => serialize(this._allEvents.get(rowId)),
-      getEventByTitle: (title: string) => serialize(
-        [...this._allEvents.values()].find(e => e.title === title)),
+      getEventByRowId: (rowId: number) => serialize(drawn(rowId)),
+      getEventByTitle: (title: string) => {
+        for (const rowId of this._visible.get()?.getAllRows() ?? []) {
+          const event = typeof rowId === "number" ? drawn(rowId) : undefined;
+          if (event?.title === title) { return serialize(event); }
+        }
+        return null;
+      },
       getSelectedRecordId: () => this._selectedRecordId,
       getViewName: () => this._calendar?.getViewName(),
       getCalendarDate: () => this._calendar?.getDate().toDate().toDateString(),
@@ -459,6 +507,21 @@ interface Field {
   displayType: string;
   widgetOptions: any;
   get: (rowId: number) => CellValue | undefined;
+}
+
+/**
+ * The filter that decides what the grid shows: does this row's span touch the visible range?
+ *
+ * The range is read once, when the filter is made, and every row then costs two number comparisons
+ * against the index. This is why navigating does not re-read a single row.
+ *
+ * The filter reaches into the index that sits one layer above it in the chain. That works because
+ * CalendarSource updates the index before it reports the change, so by the time the filter runs the
+ * span it reads is already the new one.
+ */
+function inRange(source: CalendarSource, cal: CalendarExt): RowFilterFunc<UIRowId> {
+  const { fromMs, toMs } = cal.getVisibleRange();
+  return rowId => source.isInRange(rowId, fromMs, toMs);
 }
 
 function numToDate(value: CellValue | undefined): Date | null {
