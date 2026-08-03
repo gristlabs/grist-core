@@ -121,11 +121,9 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
       // the doc timezone (same convention as TypeConversion.addColTypeSuffix) so the grid, formulas
       // and exports agree with what the calendar renders.
       const dateType = mode === "date" ? "Date" : `DateTime:${gristDoc.docInfo.timezone.peek()}`;
-      // Resolve (and, for "Create new column", create) the columns inside the bundle. insertColumn
-      // passes nestInActiveBundle:true, so with this outer bundle active each new column folds into
-      // the single "Configure calendar" action instead of becoming its own. That keeps the whole
-      // setup atomic: one undo backs out the columns, the mapping and the view together, and a failed
-      // mapping write can't leave orphan columns behind.
+      // insertColumn passes nestInActiveBundle:true, so with this outer bundle active each new
+      // column folds into the single "Configure calendar" action. One undo then backs out the
+      // columns, the mapping and the view together, and a failed mapping write leaves no orphans.
       await gristDoc.docData.bundleActions("Configure calendar", async () => {
         const startRef = await resolveColumn(startVal.get(), dateType, t("Start"));
         const endRef = await resolveColumn(endVal.get(), dateType, t("End"));

@@ -578,7 +578,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
     // Legacy calendar sections get the Calendar label, not their stored parentKey's.
-    const widgetType = this.effectiveWidgetType.peek();
+    const widgetType = this.effectiveWidgetType();
     const widgetTypeDesc = widgetType !== "record" ?
       `${getWidgetTypes(widgetType).getLabel()}` :
       "";
