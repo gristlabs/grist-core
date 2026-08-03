@@ -1,21 +1,23 @@
-import { CALENDAR_NAME, setTZDate } from "app/client/components/CalendarEvents";
+import { CALENDAR_NAME, setTZDate } from "app/client/components/CalendarSource";
 import { loadToastUICalendar, ToastUICalendarModule } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { theme } from "app/client/ui2018/cssVars";
 import { ColumnsToMap } from "app/plugin/CustomSectionAPI";
 
-import { Disposable, styled } from "grainjs";
+import { Disposable, makeTestId, styled } from "grainjs";
 
 import type Calendar from "@toast-ui/calendar";
 import type { EventObject, Options, TZDate } from "@toast-ui/calendar";
 
-const t = makeT("CalendarExt");
+const t = makeT("CalendarWrapper");
+// Same prefix CalendarView uses, so tests reach the whole widget through one namespace.
+const testId = makeTestId("test-calendar-");
 
 export type Perspective = "day" | "week" | "month";
 export const PERSPECTIVES: Perspective[] = ["day", "week", "month"];
 
 /**
- * What CalendarExt asks Grist to do. The calendar knows only row ids and dates. Everything that
+ * What CalendarWrapper asks Grist to do. The calendar knows only row ids and dates. Everything that
  * needs a document (is this editable, where is the cursor, write this row) goes through here.
  * CalendarView implements it.
  */
@@ -52,7 +54,7 @@ export interface CalendarHost extends Disposable {
  * We did not keep: TUI's form and detail popups with their key handling, the i18next translation
  * code, and a `mouseup` fix for stuck drags that used TUI v1 internals that v2 removed.
  */
-export class CalendarExt extends Disposable {
+export class CalendarWrapper extends Disposable {
   /**
    * Loads the TUI module (imports.js keeps one copy) and builds the calendar inside `container`.
    * Returns null if the host was disposed while the module was still loading.
@@ -62,11 +64,11 @@ export class CalendarExt extends Disposable {
    */
   public static async load(
     host: CalendarHost, container: HTMLElement, titleDom: HTMLElement, perspective: Perspective,
-  ): Promise<CalendarExt | null> {
+  ): Promise<CalendarWrapper | null> {
     const { Calendar: Ctor, TZDate: TZDateCtor } = await loadToastUICalendar();
     setTZDate((date: Date) => new TZDateCtor(date) as unknown as TZDate);
     if (host.isDisposed()) { return null; }
-    return new CalendarExt(Ctor, TZDateCtor, container, titleDom, host, perspective);
+    return new CalendarWrapper(Ctor, TZDateCtor, container, titleDom, host, perspective);
   }
 
   private _calendar: Calendar;
@@ -85,6 +87,10 @@ export class CalendarExt extends Disposable {
   private _weekStart: WeekStart = getLocaleWeekStart();
   // The last all-day-only value we sent to TUI, so we only call setOptions when it really changes.
   private _appliedAllDayOnly: boolean | null = null;
+
+  // How many events each day of Day/Week could not show, keyed as in CalendarRenderer's dayKey.
+  // Kept because TUI redraws the headers these are written into; see _paintHiddenCounts.
+  private _hiddenPerDay = new Map<string, number>();
 
   private constructor(
     Ctor: ToastUICalendarModule["Calendar"],
@@ -132,6 +138,15 @@ export class CalendarExt extends Disposable {
   }
 
   public getViewName(): string { return this._calendar.getViewName(); }
+
+  /**
+   * True when the caller should limit how many events it draws per day.
+   *
+   * Month folds whatever does not fit a cell into its own "+N more" and so wants every event;
+   * counting on a subset would make that number wrong. Day and Week have no such fold for timed
+   * events and draw all of them, so they need the caller to stop.
+   */
+  public capsEventsPerDay(): boolean { return this._calendar.getViewName() !== "month"; }
 
   public getDate(): TZDate { return this._calendar.getDate(); }
 
@@ -237,6 +252,22 @@ export class CalendarExt extends Disposable {
     this._selectedId = rowId;
     if (previous !== null) { this._paint(previous, false); }
     this._repaintSelected();
+  }
+
+  /**
+   * Says, under each day of Day/Week, how many of its events were left off the grid.
+   *
+   * Month needs nothing here because TUI writes its own "+N more". Day and Week have no such
+   * counter for timed events, so this writes one into the day header TUI has already drawn. Keyed
+   * by `dayKey` from CalendarRenderer, which is where the counting happens.
+   *
+   * Written straight to the DOM rather than through a TUI template, because changing a template
+   * means setOptions, and that re-renders the whole grid — the very cost the cap exists to avoid.
+   * The nodes are TUI's, so a redraw wipes these labels; every redraw calls this again.
+   */
+  public setHiddenCounts(hiddenPerDay: Map<string, number>) {
+    this._hiddenPerDay = hiddenPerDay;
+    this._paintHiddenCounts();
   }
 
   // Title shown in the toolbar above the calendar grid.
@@ -365,7 +396,13 @@ export class CalendarExt extends Disposable {
     // text does not work: Preact would just overwrite it. Instead we hide the label
     // (see cssCalendarContainer) and draw our own here. We also watch characterData, so we
     // react when only the label text changes while the drag grows.
-    const observer = new MutationObserver(() => this._maybeSyncSelectionOverlay());
+    const observer = new MutationObserver(() => {
+      this._maybeSyncSelectionOverlay();
+      // TUI owns the day headers and redraws them whenever the grid changes, taking our hidden-event
+      // counts with them. They are cheap to write and there are at most seven, so put them back on
+      // every mutation rather than trying to work out which redraw dropped them.
+      this._paintHiddenCounts();
+    });
     // childList+subtree catches the selection box appearing/disappearing; characterData catches the
     // label's raw time changing in place as the drag extends (a text-only update wouldn't fire the
     // other two). All three keep _syncSelectionOverlay in step with TUI's own render.
@@ -460,6 +497,36 @@ export class CalendarExt extends Disposable {
   // showed raw 24-hour text. We format hour labels to the browser locale, and this label is the one
   // TUI builds itself with no template hook, so it gets hidden and redrawn here to match the rest of
   // the grid.
+
+  /**
+   * Writes the remembered counts into the day headers TUI has drawn.
+   *
+   * Called both when the counts change and from the container's MutationObserver, because these
+   * nodes live inside markup Preact owns and any redraw takes them away.
+   */
+  private _paintHiddenCounts() {
+    const headers = this._container.querySelectorAll(".toastui-calendar-day-name-item");
+    if (!headers.length) { return; }
+    // TUI renders the day headers in the order of the visible range, so the nth header is the nth
+    // day. Reading the date off the DOM would mean parsing its text, which varies by locale.
+    const start = this._calendar.getDateRangeStart().toDate();
+    headers.forEach((header, index) => {
+      const day = new Date(start);
+      day.setDate(day.getDate() + index);
+      const hidden = this._hiddenPerDay.get(`${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`);
+      const existing = header.querySelector(`.${cssHiddenCount.className}`);
+      const text = hidden ? t("+{{count}} more", { count: hidden }) : "";
+      // Rewrite only on a real change: this runs from a MutationObserver, and touching the DOM
+      // unconditionally would trigger it again on every pass.
+      if (!hidden) {
+        existing?.remove();
+      } else if (!existing) {
+        header.appendChild(cssHiddenCount(text, testId("hidden-count")));
+      } else if (existing.textContent !== text) {
+        existing.textContent = text;
+      }
+    });
+  }
 
   // Fast gate for the hot callers (mutation observer + scroll): skip the full overlay sync when
   // there's no live selection and no lingering overlay to clean up.
@@ -679,6 +746,23 @@ function getLocaleTimeFormat(): TimeFormat {
 // not have to work out any parent offsets. We place it again on every grid change and on scroll
 // (see _wireEvents), so it follows the box. It lives on document.body, outside the container that
 // Preact manages, so Preact never removes it. `pointer-events: none` keeps it out of the drag.
+// How many events a Day/Week column could not show, tucked into the bottom of the day header.
+//
+// Positioned out of the flow on purpose: TUI gives the header panel a fixed inline height and lets
+// it scroll, so a label that took up room would push the day name into a scrollable overflow rather
+// than appear beside it. The header itself is `position: relative`, so this anchors to it.
+// See setHiddenCounts.
+const cssHiddenCount = styled("div", `
+  position: absolute;
+  right: 4px;
+  bottom: 1px;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 12px;
+  pointer-events: none;
+  color: ${theme.lightText};
+`);
+
 const cssSelectionLabel = styled("div", `
   position: fixed;
   z-index: 10;

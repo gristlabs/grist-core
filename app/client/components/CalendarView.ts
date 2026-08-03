@@ -1,10 +1,11 @@
 import BaseView from "app/client/components/BaseView";
-import { CalendarDates, EventContext, makeGristDateTime } from "app/client/components/CalendarEvents";
 import {
-  CalendarExt, CalendarHost, cssCalendarContainer, getCalendarColumns, Perspective, PERSPECTIVES,
-} from "app/client/components/CalendarExt";
-import { CalendarRenderer, ReadRecord } from "app/client/components/CalendarRenderer";
-import { CalendarSource, ReadDates } from "app/client/components/CalendarSource";
+  CalendarDates, CalendarRenderer, CalendarSource, EventContext, makeGristDateTime, ReadDates,
+  ReadRecord,
+} from "app/client/components/CalendarSource";
+import {
+  CalendarHost, CalendarWrapper, cssCalendarContainer, getCalendarColumns, Perspective, PERSPECTIVES,
+} from "app/client/components/CalendarWrapper";
 import { GristDoc } from "app/client/components/GristDoc";
 import { Delay } from "app/client/lib/Delay";
 import { makeT } from "app/client/lib/localization";
@@ -35,9 +36,9 @@ const testId = makeTestId("test-calendar-");
  * day/week/month perspectives.
  *
  * This is the Grist half: column mapping, reading rows, writing user actions, cursor linking and
- * the toolbar. The calendar itself lives in CalendarExt, which holds what we kept from the bundled
+ * the toolbar. The calendar itself lives in CalendarWrapper, which holds what we kept from the bundled
  * "calendar" custom widget (grist-widget repo, calendar/page.js). The two talk through the
- * CalendarHost methods on this class: CalendarExt reports row ids, and this class turns them
+ * CalendarHost methods on this class: CalendarWrapper reports row ids, and this class turns them
  * into Grist actions.
  *
  * Almost nothing here comes from the widget. The widget ran in an iframe and reached Grist through
@@ -47,7 +48,7 @@ const testId = makeTestId("test-calendar-");
  * options are all available at once. The few ported parts say so where they appear.
  */
 export class CalendarView extends BaseView implements CalendarHost {
-  private _calendar: CalendarExt | null = null;
+  private _calendar: CalendarWrapper | null = null;
 
   // The date index, rebuilt whenever the mapping or a mapped column's type changes. Held rather
   // than owned outright, because a rebuild replaces it: creating into a Holder disposes the old one
@@ -139,7 +140,7 @@ export class CalendarView extends BaseView implements CalendarHost {
    * for it; everything that needs a live calendar checks `this._calendar` first.
    */
   public async init() {
-    const calendar = await CalendarExt.load(
+    const calendar = await CalendarWrapper.load(
       this, this._calendarDom, this._titleDom, this._perspective.get());
     if (!calendar) { return; }   // the section was disposed while TUI was loading
     this._calendar = this.autoDispose(calendar);
@@ -163,7 +164,7 @@ export class CalendarView extends BaseView implements CalendarHost {
     this._resize();
   }
 
-  // CalendarHost: CalendarExt calls this and the on* methods when the user acts on the grid. It
+  // CalendarHost: CalendarWrapper calls this and the on* methods when the user acts on the grid. It
   // passes row ids and dates, and turning those into Grist actions is this class's job.
   public isReadOnly(): boolean {
     return this.gristDoc.isReadonly.get() || this.disableEditing.peek();
@@ -377,7 +378,7 @@ export class CalendarView extends BaseView implements CalendarHost {
       } else {
         const newRowId = await this.sendTableAction(["AddRecord", null, fields] as UserAction);
         // setCursorPos calls _selectRecord for a row the pipeline has not delivered yet, so the new
-        // event is not on the grid at that moment. Nothing has to be done about it: CalendarExt
+        // event is not on the grid at that moment. Nothing has to be done about it: CalendarWrapper
         // remembers which row is selected and accents it as soon as the renderer draws it.
         // The cursor moves to the new row before we return, so the caller can open the Record Card.
         if (newRowId && !this.isDisposed()) {
@@ -397,7 +398,7 @@ export class CalendarView extends BaseView implements CalendarHost {
     const next = typeof rowId === "number" ? rowId : null;
     if (next === this._selectedRecordId) { return; }
     this._selectedRecordId = next;
-    // CalendarExt keeps the accent on this row from now on, including across redraws. So a row that
+    // CalendarWrapper keeps the accent on this row from now on, including across redraws. So a row that
     // is not drawn yet (one just created by a drag) still lights up once its event appears.
     cal.setSelected(next);
     if (next === null) { return; }
@@ -519,7 +520,7 @@ interface Field {
  * CalendarSource updates the index before it reports the change, so by the time the filter runs the
  * span it reads is already the new one.
  */
-function inRange(source: CalendarSource, cal: CalendarExt): RowFilterFunc<UIRowId> {
+function inRange(source: CalendarSource, cal: CalendarWrapper): RowFilterFunc<UIRowId> {
   const { fromMs, toMs } = cal.getVisibleRange();
   return rowId => source.isInRange(rowId, fromMs, toMs);
 }
