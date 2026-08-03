@@ -2,6 +2,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, By, driver, Key } from "mocha-webdriver";
+import moment from "moment-timezone";
 
 /**
  * Behavioral tests for the native CalendarView (the in-app replacement for the bundled calendar
@@ -17,15 +18,28 @@ describe("CalendarView", function() {
   // viewport. Give the suite a bigger screen so the widget has realistic room.
   gu.bigScreen();
 
-  // Seconds-since-epoch for a date, as Grist stores Date/DateTime values.
-  const sec = (d: Date) => Math.floor(d.getTime() / 1000);
+  // The Calendar.grist fixture is in Europe/Warsaw and its From/To are DateTime columns, so an
+  // event's wall-clock time is the doc's, not the machine's. Build the fixture times in that
+  // timezone, or they drift by the offset between the two (CI runs in UTC, most dev machines
+  // do not). The calendar draws that wall-clock in browser-local time, which is what expectedMs
+  // reproduces.
+  const DOC_TZ = "Europe/Warsaw";
 
   // Anchor every fixture event off "today" so events stay in the visible week regardless of when
-  // the test runs (rather than the previous mix of 2023-anchored events and "today"-relative
-  // navigation, which made it easy for a future change to break depending on the date).
-  const baseDay = new Date();
-  baseDay.setHours(0, 0, 0, 0);
-  const atHour = (h: number) => { const d = new Date(baseDay); d.setHours(h, 0, 0, 0); return d; };
+  // the test runs.
+  const today = moment.tz(DOC_TZ).format("YYYY-MM-DD");
+
+  // Seconds-since-epoch for a wall-clock time in the doc timezone, as Grist stores DateTime.
+  const sec = (day: string, hour: number) =>
+    moment.tz(`${day} ${String(hour).padStart(2, "0")}:00`, "YYYY-MM-DD HH:mm", DOC_TZ).unix();
+
+  // The ms the calendar reports for that same wall-clock. CalendarSource.adjust() renders a
+  // DateTime at the doc's wall-clock time, so the browser shows those hours and minutes in its own
+  // timezone. Under TZ=Europe/Warsaw the two coincide and this is a no-op; elsewhere it is not.
+  const expectedMs = (day: string, hour: number) => {
+    const docTime = moment.tz(`${day} ${String(hour).padStart(2, "0")}:00`, "YYYY-MM-DD HH:mm", DOC_TZ);
+    return new Date(docTime.year(), docTime.month(), docTime.date(), docTime.hour(), docTime.minute()).getTime();
+  };
 
   before(async function() {
     const session = await gu.session().login();
@@ -62,7 +76,7 @@ describe("CalendarView", function() {
   it("creates an event when a row is added", async function() {
     await gu.sendActions([
       ["AddRecord", "Table1", -1, {
-        From: sec(atHour(13)), To: sec(atHour(14)),
+        From: sec(today, 13), To: sec(today, 14),
         // Deliberately not the "New Event" placeholder title: the afterEach teardown removes rows
         // with that exact label (see removeStrayNewEventRows), which would delete this row and
         // shift the rowIds the following tests rely on.
@@ -73,8 +87,8 @@ describe("CalendarView", function() {
     await driver.wait(async () => Boolean(await getCalendarEvent(1)), 2000);
     assert.deepEqual(await getCalendarEvent(1), {
       title: "Timed Event",
-      startMs: atHour(13).getTime(),
-      endMs: atHour(14).getTime(),
+      startMs: expectedMs(today, 13),
+      endMs: expectedMs(today, 14),
       isAllDay: false,
     });
   });
@@ -82,7 +96,7 @@ describe("CalendarView", function() {
   it("creates an all-day event when a row is added", async function() {
     await gu.sendActions([
       ["AddRecord", "Table1", -1, {
-        From: sec(atHour(13)), To: sec(atHour(14)),
+        From: sec(today, 13), To: sec(today, 14),
         Label: "All Day Event", IsFullDay: true,
       }],
     ]);
@@ -93,12 +107,12 @@ describe("CalendarView", function() {
   });
 
   it("updates an event when the row changes", async function() {
-    const expectedEnd = atHour(15).getTime();
-    await gu.sendActions([["UpdateRecord", "Table1", 1, { To: sec(atHour(15)) }]]);
+    const expectedEnd = expectedMs(today, 15);
+    await gu.sendActions([["UpdateRecord", "Table1", 1, { To: sec(today, 15) }]]);
     await driver.wait(async () => (await getCalendarEvent(1))?.endMs === expectedEnd, 2000);
     assert.deepEqual(await getCalendarEvent(1), {
       title: "Timed Event",
-      startMs: atHour(13).getTime(),
+      startMs: expectedMs(today, 13),
       endMs: expectedEnd,
       isAllDay: false,
     });
@@ -205,9 +219,9 @@ describe("CalendarView", function() {
   it("selects the calendar event for the linked grid row", async function() {
     // Create two events today (visible in the default week view).
     await gu.sendActions([
-      ["AddRecord", "Table1", -1, { From: sec(atHour(10)), To: sec(atHour(11)),
+      ["AddRecord", "Table1", -1, { From: sec(today, 10), To: sec(today, 11),
         Label: "Linked A", IsFullDay: false }],
-      ["AddRecord", "Table1", -1, { From: sec(atHour(13)), To: sec(atHour(14)),
+      ["AddRecord", "Table1", -1, { From: sec(today, 13), To: sec(today, 14),
         Label: "Linked B", IsFullDay: false }],
     ]);
 
@@ -224,13 +238,13 @@ describe("CalendarView", function() {
     // reliably (in week view, with many events, the hit-testing and scroll position are flaky).
     const day = await gotoCleanDay(3);
     await gu.sendActions([
-      ["AddRecord", "Table1", -1, { From: dayAt(day, 9), To: dayAt(day, 10), Label: "DragMe", IsFullDay: false }],
+      ["AddRecord", "Table1", -1, { From: sec(day, 9), To: sec(day, 10), Label: "DragMe", IsFullDay: false }],
     ]);
 
     // findContentWait for the rendered event also waits for the calendar to catch up.
-    const el = await driver.findContentWait("[data-event-id]", /DragMe/, 2000);
+    const eventEl = await driver.findContentWait("[data-event-id]", /DragMe/, 2000);
     await driver.executeScript(
-      "arguments[0].scrollIntoView({block: 'center', behavior: 'instant'})", el);
+      "arguments[0].scrollIntoView({block: 'center', behavior: 'instant'})", eventEl);
     const before = await getEventByTitle("DragMe");
     assert.isNotNull(before);
 
@@ -240,24 +254,25 @@ describe("CalendarView", function() {
     // attempt first resets the row to its starting time, so a retry drags from the same place and
     // the duration check below stays meaningful. (waitToPass re-runs the body until it passes.)
     const rowId = await driver.executeScript<number>(`
-      const t = window.gristDocPageModel.gristDoc.get().docData.getTable("Table1");
-      return t.getRowIds().find(id => t.getValue(id, "Label") === "DragMe");
+      const table = window.gristDocPageModel.gristDoc.get().docData.getTable("Table1");
+      return table.getRowIds().find(id => table.getValue(id, "Label") === "DragMe");
     `);
     await gu.waitToPass(async () => {
       await gu.sendActions([["UpdateRecord", "Table1", rowId,
-        { From: dayAt(day, 9), To: dayAt(day, 10) }]]);
+        { From: sec(day, 9), To: sec(day, 10) }]]);
       await driver.withActions(a => a
-        .move({ origin: el })
+        .move({ origin: eventEl })
         .press()
-        .move({ origin: el, x: 0, y: 6 })
+        .move({ origin: eventEl, x: 0, y: 6 })
         .pause(120)
-        .move({ origin: el, x: 0, y: 100 })
+        .move({ origin: eventEl, x: 0, y: 100 })
         .pause(120)
         .release());
       await gu.waitForServer();
       // The drag moved the event to a later time (write path: TUI drag -> UpdateRecord)...
       const moved = await getEventByTitle("DragMe");
-      assert.isTrue(Boolean(moved && moved.startMs! > before!.startMs!), "event did not move");
+      assert.isNotNull(moved);
+      assert.isAbove(moved!.startMs!, before!.startMs!);
       // ...preserving its duration (a move, not a resize).
       assert.equal(moved!.endMs! - moved!.startMs!, before!.endMs! - before!.startMs!);
     }, 6000);
@@ -266,11 +281,11 @@ describe("CalendarView", function() {
   it("opens the Record Card on double-click of an event", async function() {
     const day = await gotoCleanDay(5);
     await gu.sendActions([
-      ["AddRecord", "Table1", -1, { From: dayAt(day, 9), To: dayAt(day, 11), Label: "CardMe", IsFullDay: false }],
+      ["AddRecord", "Table1", -1, { From: sec(day, 9), To: sec(day, 11), Label: "CardMe", IsFullDay: false }],
     ]);
-    const el = await driver.findContentWait("[data-event-id]", /CardMe/, 2000);
-    await driver.executeScript("arguments[0].scrollIntoView({block: 'center'})", el);
-    await driver.withActions(a => a.doubleClick(el));
+    const eventEl = await driver.findContentWait("[data-event-id]", /CardMe/, 2000);
+    await driver.executeScript("arguments[0].scrollIntoView({block: 'center'})", eventEl);
+    await driver.withActions(a => a.doubleClick(eventEl));
     assert.isTrue(await driver.findWait(".test-record-card-popup-overlay", 2000).isDisplayed());
     assert.isTrue(await driver.findContent(".g_record_detail_value", /CardMe/).isPresent());
     // Double-clicking an event opens the Record Card, not TUI's create-event form popup. TUI still
@@ -300,8 +315,8 @@ describe("CalendarView", function() {
     assert.isTrue(await driver.findWait(".test-record-card-popup-overlay", 2000).isDisplayed());
     assert.isFalse(await driver.find(".toastui-calendar-popup-container").isPresent());
     await driver.wait(async () => Boolean(await getEventByTitle("New Event")), 2000);
-    const ev = await getEventByTitle("New Event");
-    assert.equal(new Date(ev!.startMs!).toDateString(), day.toDateString());
+    const event = await getEventByTitle("New Event");
+    assert.equal(moment(event!.startMs).format("YYYY-MM-DD"), day);
     // The card and the placeholder "New Event" row are cleaned up by the afterEach teardown.
   });
 
@@ -311,8 +326,8 @@ describe("CalendarView", function() {
   // "New Event" placeholder. Safe when there are none. Used by the teardown to keep tests independent.
   async function removeStrayNewEventRows() {
     const ids = await driver.executeScript<number[]>(`
-      const t = window.gristDocPageModel.gristDoc.get().docData.getTable("Table1");
-      return t.getRowIds().filter(id => t.getValue(id, "Label") === "New Event");
+      const table = window.gristDocPageModel.gristDoc.get().docData.getTable("Table1");
+      return table.getRowIds().filter(id => table.getValue(id, "Label") === "New Event");
     `).catch(() => [] as number[]);
     if (ids.length) {
       await gu.sendActions([["BulkRemoveRecord", "Table1", ids]]);
@@ -345,23 +360,20 @@ describe("CalendarView", function() {
     const rowId = await driver.executeScript<number | null>(
       "return window.gristCalendarView.getSelectedRecordId()");
     if (rowId == null) { return null; }
-    const ev = await getCalendarEvent(rowId);
-    return ev?.title ?? null;
+    const event = await getCalendarEvent(rowId);
+    return event?.title ?? null;
   }
 
-  // Switches to day view and navigates `daysAhead` days forward (to a day with no other events,
-  // since all fixture events are today or in 2023). Returns that day at local midnight.
-  async function gotoCleanDay(daysAhead: number): Promise<Date> {
+  // Switches to day view and navigates `daysAhead` days forward, to a day with no other events.
+  // Returns the day the calendar actually landed on, as YYYY-MM-DD, ready for sec()/expectedMs().
+  // Read back from the calendar rather than computed here, so the two cannot disagree.
+  async function gotoCleanDay(daysAhead: number): Promise<string> {
     await dismissCalendarPopup();
     await driver.find(".test-calendar-perspective-day").click();
     await driver.find(".test-calendar-today").click();
     for (let i = 0; i < daysAhead; i++) { await driver.find(".test-calendar-next").click(); }
-    const day = new Date(); day.setHours(0, 0, 0, 0); day.setDate(day.getDate() + daysAhead);
-    return day;
+    return moment(new Date(await getCalendarDate())).format("YYYY-MM-DD");
   }
-
-  const dayAt = (day: Date, hour: number) =>
-    sec(new Date(day.getTime() + hour * 3600_000));
 
   // A mistimed grid drag can leave a popup open, whose overlay then intercepts clicks in later
   // tests. Two kinds can appear: TUI's own create/edit form popup, and (since useFormPopup is off)
@@ -427,22 +439,6 @@ describe("CalendarView setup modal", function() {
       ["AddColumn", "Table1", "DateOnly", { type: "Date" }],
     ]);
   });
-
-  // Adds a calendar widget linked to Table1 and waits for the setup modal to open.
-  async function addCalendarAndOpenModal() {
-    await gu.addNewSection(/Calendar/, /Table1/, { selectBy: /TABLE1/ });
-    await driver.findWait(".test-calendar-setup-start", 2000);
-  }
-
-  // Picks an option (matched by text) in one of the modal's slot selects.
-  async function pickSlot(slot: string, label: RegExp) {
-    await driver.find(`.test-calendar-setup-${slot} .test-select-open`).click();
-    await driver.findContentWait(".test-select-row", label, 1000).click();
-  }
-
-  async function getViewName(): Promise<string> {
-    return driver.executeScript("return window.gristCalendarView.getViewName()");
-  }
 
   afterEach(async function() {
     // Make sure no modal is left open between tests. Each test adds its own fresh (unmapped)
@@ -523,6 +519,24 @@ describe("CalendarView setup modal", function() {
     assert.isOk(info.startId);
     assert.equal(info.type, "DateTime:" + info.docTz);
   });
+
+  // Helpers
+
+  // Adds a calendar widget linked to Table1 and waits for the setup modal to open.
+  async function addCalendarAndOpenModal() {
+    await gu.addNewSection(/Calendar/, /Table1/, { selectBy: /TABLE1/ });
+    await driver.findWait(".test-calendar-setup-start", 2000);
+  }
+
+  // Picks an option (matched by text) in one of the modal's slot selects.
+  async function pickSlot(slot: string, label: RegExp) {
+    await driver.find(`.test-calendar-setup-${slot} .test-select-open`).click();
+    await driver.findContentWait(".test-select-row", label, 1000).click();
+  }
+
+  async function getViewName(): Promise<string> {
+    return driver.executeScript("return window.gristCalendarView.getViewName()");
+  }
 });
 
 /**
@@ -568,9 +582,9 @@ describe("CalendarView legacy custom.calendar docs", function() {
     await driver.wait(async () => Boolean(
       await driver.executeScript("return window.gristCalendarView.getEventByTitle('Legacy Event A')"),
     ), 2000);
-    const ev = await driver.executeScript<any>(
+    const event = await driver.executeScript<any>(
       "return window.gristCalendarView.getEventByTitle('Legacy Event A')");
-    assert.equal(ev?.title, "Legacy Event A");
+    assert.equal(event?.title, "Legacy Event A");
   });
 
   it("shows the calendar column mapping in the creator panel", async function() {
@@ -615,9 +629,9 @@ describe("CalendarView legacy custom docs", function() {
     await driver.wait(async () => Boolean(
       await driver.executeScript("return window.gristCalendarView.getEventByTitle('Legacy Event A')"),
     ), 2000);
-    const ev = await driver.executeScript<any>(
+    const event = await driver.executeScript<any>(
       "return window.gristCalendarView.getEventByTitle('Legacy Event A')");
-    assert.equal(ev?.title, "Legacy Event A");
+    assert.equal(event?.title, "Legacy Event A");
   });
 
   it("shows the calendar column mapping in the creator panel", async function() {
