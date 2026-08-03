@@ -157,10 +157,9 @@ export class CalendarWrapper extends Disposable {
    * The date range the grid currently shows, in milliseconds, with both ends included.
    *
    * TUI gives the range as whole days, so the end is stretched to the last millisecond of its day;
-   * otherwise an event later in that day would count as out of view. The widget wrote
-   * `setHours(23, 99, 99, 999)` (minutes and seconds out of range, which Date rolls over into the
-   * next hour); this is the same instant, written plainly. We stretch a copy, because TUI may hand
-   * back its own range-end object, and changing that would push the window forward on every call.
+   * otherwise an event later in that day would count as out of view. We stretch a copy, because TUI
+   * may hand back its own range-end object, and changing that would push the window forward on
+   * every call.
    */
   public getVisibleRange(): { fromMs: number; toMs: number } {
     const end = this._calendar.getDateRangeEnd().toDate();
@@ -179,9 +178,8 @@ export class CalendarWrapper extends Disposable {
     this.updateUIAfterNavigation();
   }
 
-  // Ported from the calendar widget, which had three almost equal methods (calendarPrevious,
-  // calendarNext, calendarToday). Each one called the matching TUI method and then redrew the UI.
-  // They are one method here, because TUI's prev/next/today take no arguments and differ by name.
+  // One method rather than three, because TUI's prev/next/today take no arguments and differ only
+  // by name.
   public go(method: "prev" | "next" | "today") {
     this._calendar[method]();
     this.updateUIAfterNavigation();
@@ -198,8 +196,6 @@ export class CalendarWrapper extends Disposable {
 
   // When the mapped columns have no time-of-day, hide the Day/Week hour grid (eventView: ['allday'])
   // so timeless rows read as a task list instead of bars above an empty 24-hour grid.
-  //
-  // New: the widget always showed the hour grid.
   public setAllDayOnly(allDayOnly: boolean) {
     if (allDayOnly === this._appliedAllDayOnly) { return; }
     this._appliedAllDayOnly = allDayOnly;
@@ -208,11 +204,7 @@ export class CalendarWrapper extends Disposable {
 
   /**
    * Puts events on the grid. One call for a whole batch, so TUI re-renders once rather than once
-   * per event.
-   *
-   * Ported from the calendar widget only in spirit: the widget added events one at a time, and
-   * worked out by itself which of them were in view. Here the caller has already narrowed the list
-   * to what fits on the grid, so this just draws what it is handed.
+   * per event. The caller has already narrowed the list to what fits on the grid.
    */
   public createEvents(events: EventObject[]) {
     this._calendar.createEvents(events);
@@ -277,9 +269,6 @@ export class CalendarWrapper extends Disposable {
   // - month view: month + year.
   // TUI doesn't expose its own header text, but it does expose getDate / getDateRange* which give
   // us enough to derive these formats consistently.
-  //
-  // New. The widget's getMonthName() always showed "month year" regardless of perspective, so its
-  // day and week views were both labelled e.g. "August 2023".
   public updateTitle() {
     const cal = this._calendar;
     const view = cal.getViewName();
@@ -308,11 +297,7 @@ export class CalendarWrapper extends Disposable {
   // Paints (or unpaints) an event with the primary color. The accent is normally the left border,
   // but a single-day month event has none (dot or filled bar), so there we tint the fill.
   // Passing the full color set in one updateEvent is what makes TUI repaint; a lone change does not.
-  //
-  // Ported from the calendar widget (page.js _highlightEvent + _clearHighlightEvent), merged into
-  // one method with a `selected` flag since the two bodies only differed in which color they wrote.
-  // We also restore `color` (the text shade), which the widget never did, so an event keeps readable
-  // text after being deselected.
+  // `color` (the text shade) is restored too, so an event keeps readable text after deselection.
   private _paint(rowId: number, selected: boolean) {
     const event = this.getEvent(rowId);
     if (!event) { return; }
@@ -335,12 +320,6 @@ export class CalendarWrapper extends Disposable {
     if (this._selectedId !== null) { this._paint(this._selectedId, true); }
   }
 
-  // Partly ported. The clickEvent / beforeUpdateEvent / beforeDeleteEvent handlers and the
-  // mousedown clearGridSelections fix come from the calendar widget. The dblclick handler is
-  // rewritten: the widget listened on `document` and used TUI's internal getEventModel, while we
-  // listen on our own container and read data-event-id. The selectDateTime path that creates rows,
-  // and the selection overlay, are both new. The widget created events with TUI's form popup,
-  // which we turned off.
   private _wireEvents() {
     const cal = this._calendar;
 
@@ -408,9 +387,8 @@ export class CalendarWrapper extends Disposable {
     // other two). All three keep _syncSelectionOverlay in step with TUI's own render.
     observer.observe(this._container, { childList: true, subtree: true, characterData: true });
     // Scrolling the time grid moves TUI's selection box without mutating the DOM, so the mutation
-    // mutation observer would not fire, and our overlay would drift away from the box.
-    // Re-sync on scroll too (capture phase, since the scroll happens on an inner grid element, not
-    // on the container itself).
+    // observer would not fire, and our overlay would drift away from the box. Re-sync on scroll too
+    // (capture phase, since the scroll happens on an inner grid element, not on the container).
     const onScroll = () => this._maybeSyncSelectionOverlay();
     this._container.addEventListener("scroll", onScroll, true);
     this.onDispose(() => {
@@ -421,10 +399,8 @@ export class CalendarWrapper extends Disposable {
 
   // TUI theme, expressed in terms of Grist theme CSS variables so it follows light/dark mode.
   //
-  // Ported from the calendar widget (page.js _calendarTheme), minus the keys it set that we don't
-  // need (panelResizer, the nowIndicator past/bullet/today trio, month dayName borderLeft). The
-  // widget wrote raw "var(--grist-theme-*)" strings; we use the typed `theme` object instead, so a
-  // renamed variable is a compile error rather than a silently unstyled calendar.
+  // Uses the typed `theme` object rather than raw "var(--grist-theme-*)" strings, so a renamed
+  // variable is a compile error rather than a silently unstyled calendar.
   private _calendarTheme(): CalendarThemeOption {
     const border = `1px solid ${theme.tableBodyBorder}`;
     const textColor = theme.text.toString();
@@ -465,9 +441,6 @@ export class CalendarWrapper extends Disposable {
   // now-indicator default to different styles ("03 pm" vs "15:44"); format both with one helper so
   // they agree. The drag-selection label can't be templated, so it's hidden via CSS and redrawn as
   // an overlay in _syncSelectionOverlay to match.
-  //
-  // New. The widget templated a different set (event titles, popup buttons, day names) and forced
-  // 24-hour time by subclassing tui.TimePicker in its index.html; it never touched these two.
   private _timeTemplates(): NonNullable<Options["template"]> {
     return {
       timegridDisplayPrimaryTime: ({ time }) => formatHourMinute(time, this._timeFormat),
@@ -478,10 +451,6 @@ export class CalendarWrapper extends Disposable {
   // True when this event occupies a single day in month view. Such events render as a dot (timed) or
   // a filled bar (all-day), neither of which has a border for _paint to accent, so it tints
   // the fill instead. Multi-day month bars (which do have a border) and day/week views are excluded.
-  //
-  // Ported from the calendar widget (page.js _isMultidayInMonthViewEvent). Renamed: the widget's
-  // name said "multiday" but the body returned true for *single*-day events (it negated
-  // isEventMultiDay), so the name contradicted the behavior. Same logic, honest name.
   private _isSingleDayInMonthView(event: EventObject): boolean {
     if (this._calendar.getViewName() !== "month") { return false; }
     const start = (event.start as TZDate).toDate();
@@ -490,13 +459,6 @@ export class CalendarWrapper extends Disposable {
       start.getMonth() === end.getMonth() &&
       start.getDate() === end.getDate();
   }
-
-  // Drag-selection overlay: new, no widget equivalent.
-  //
-  // The widget left TUI's drag guide label alone (its screen.css only recolored it), so it always
-  // showed raw 24-hour text. We format hour labels to the browser locale, and this label is the one
-  // TUI builds itself with no template hook, so it gets hidden and redrawn here to match the rest of
-  // the grid.
 
   /**
    * Writes the remembered counts into the day headers TUI has drawn.
@@ -580,9 +542,8 @@ export class CalendarWrapper extends Disposable {
 
 // The columns the user has to map, as shown in the creator panel.
 //
-// Ported from the calendar widget (page.js getGristOptions). The five `name` keys must stay exactly
-// as the widget had them, because documents saved with that widget refer to them by name. The
-// titles and descriptions only appear in the panel, so we word those ourselves.
+// The five `name` keys must stay exactly as the old calendar widget had them, because documents
+// saved with that widget refer to them by name.
 export function getCalendarColumns(): ColumnsToMap {
   return [
     {
@@ -741,11 +702,6 @@ function getLocaleTimeFormat(): TimeFormat {
   return "12h";
 }
 
-// Our own drag guide label, drawn on top of TUI's hidden one (see cssCalendarContainer). There is
-// one per selected column. It uses `position: fixed` with the box's own screen position, so we do
-// not have to work out any parent offsets. We place it again on every grid change and on scroll
-// (see _wireEvents), so it follows the box. It lives on document.body, outside the container that
-// Preact manages, so Preact never removes it. `pointer-events: none` keeps it out of the drag.
 // How many events a Day/Week column could not show, tucked into the bottom of the day header.
 //
 // Positioned out of the flow on purpose: TUI gives the header panel a fixed inline height and lets
@@ -763,6 +719,10 @@ const cssHiddenCount = styled("div", `
   color: ${theme.lightText};
 `);
 
+// Our own drag guide label, drawn on top of TUI's hidden one (see cssCalendarContainer). There is
+// one per selected column. It uses `position: fixed` with the box's own screen position, so we do
+// not have to work out any parent offsets. It lives on document.body, outside the container that
+// Preact manages, so Preact never removes it. `pointer-events: none` keeps it out of the drag.
 const cssSelectionLabel = styled("div", `
   position: fixed;
   z-index: 10;

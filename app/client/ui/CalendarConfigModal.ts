@@ -4,13 +4,14 @@ import { makeT } from "app/client/lib/localization";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { WidgetColumnMapping } from "app/client/models/entities/ViewSectionRec";
 import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
-import { theme, vars } from "app/client/ui2018/cssVars";
+import { buttonSelect, cssButtonSelect } from "app/client/ui2018/buttonSelect";
+import { theme } from "app/client/ui2018/cssVars";
 import { IOptionFull, select } from "app/client/ui2018/menus";
 import { saveModal } from "app/client/ui2018/modals";
 import { ColumnToMapImpl } from "app/common/ColumnToMap";
 import { isDateOnlyType } from "app/common/gristTypes";
 
-import { Computed, dom, Observable, styled } from "grainjs";
+import { Computed, dom, Observable, styled, UseCB } from "grainjs";
 
 const t = makeT("CalendarConfigModal");
 const testId = makeTestId("test-calendar-setup-");
@@ -80,7 +81,7 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
     // The date flavor (true = date-only, false = date+time) a slot will actually resolve to:
     // an existing column keeps its own type; a "Create new column" slot takes the toggle's mode.
     // Returns null for the "none" slot, which imposes no constraint.
-    const slotIsDateOnly = (use: (o: any) => any, val: SlotValue): boolean | null => {
+    const slotIsDateOnly = (use: UseCB, val: SlotValue): boolean | null => {
       if (val === CREATE_NEW) { return use(dateMode) === "date"; }
       const col = colFor(section, val);
       return col ? isDateOnlyType(use(col.pureType)) : null;
@@ -147,16 +148,10 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
         cssHelpText(t("Pick the columns that hold your event dates and titles, or create new ones.")),
         cssLabel(t("Dates")),
         cssRow(
-          cssModeButton(t("Date only"),
-            cssModeButton.cls("-active", use => use(dateMode) === "date"),
-            dom.boolAttr("disabled", startIsExisting),
-            dom.on("click", () => dateMode.set("date")),
-            testId("mode-date")),
-          cssModeButton(t("Date + time"),
-            cssModeButton.cls("-active", use => use(dateMode) === "datetime"),
-            dom.boolAttr("disabled", startIsExisting),
-            dom.on("click", () => dateMode.set("datetime")),
-            testId("mode-datetime")),
+          buttonSelect<DateMode>(dateMode, [
+            { value: "date", label: t("Date only") },
+            { value: "datetime", label: t("Date + time") },
+          ], cssButtonSelect.cls("-disabled", startIsExisting), testId("mode")),
         ),
         cssLabel(t("Start")),
         cssRow(select(startVal, dateOptions(false), { defaultLabel: t("Select a column") }), testId("start")),
@@ -190,26 +185,6 @@ function colFor(section: ViewSectionRec, val: SlotValue): ColumnRec | null {
 const cssHelpText = styled("div", `
   color: ${theme.lightText};
   margin-bottom: 16px;
-`);
-
-const cssModeButton = styled("button", `
-  flex: 1;
-  height: 30px;
-  padding: 5px;
-  border: 1px solid ${theme.inputBorder};
-  background: ${theme.inputBg};
-  color: ${theme.text};
-  cursor: pointer;
-  font: inherit;
-  font-size: ${vars.mediumFontSize};
-  &:first-child { border-radius: 3px 0 0 3px; }
-  &:last-child { border-radius: 0 3px 3px 0; border-left: none; }
-  &-active {
-    background: ${theme.controlPrimaryBg};
-    color: ${theme.controlPrimaryFg};
-    border-color: ${theme.controlPrimaryBg};
-  }
-  &:disabled { opacity: 0.6; cursor: default; }
 `);
 
 const cssError = styled("div", `

@@ -111,7 +111,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // The underlying RowModel provides a KoSaveableObservable for each field in app/common/schema.ts.
   //   tableRef: number;
   //   parentId: number;
-  //   parentKey: string;
+  //   parentKey: string;   // storage value; prefer effectiveWidgetType for anything user-facing.
   //   title: string;
   //   description: string;
   //   defaultWidth: number;
