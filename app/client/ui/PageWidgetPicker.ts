@@ -11,7 +11,6 @@ import { focusAdjacentFocusable, trapTabKey } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/AppModel";
 import { ColumnRec, TableRec, ViewSectionRec } from "app/client/models/DocModel";
-import { PERMITTED_CUSTOM_WIDGETS } from "app/client/models/features";
 import { linkId, NoLink } from "app/client/ui/selectBy";
 import { overflowTooltip, withInfoTooltip } from "app/client/ui/tooltips";
 import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
@@ -21,7 +20,7 @@ import { icon } from "app/client/ui2018/icons";
 import { spinnerModal } from "app/client/ui2018/modals";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { isLongerThan, nativeCompare } from "app/common/gutil";
-import { IAttachedCustomWidget, IWidgetType } from "app/common/widgetTypes";
+import { IWidgetType } from "app/common/widgetTypes";
 
 import {
   computed,
@@ -328,14 +327,9 @@ export interface ISelectOptions {
   selectBy?: (val: IPageWidget) => IOption<string>[];
 }
 
-const registeredCustomWidgets: IAttachedCustomWidget[] =  [];
-const permittedCustomWidgets: IAttachedCustomWidget[] = PERMITTED_CUSTOM_WIDGETS().get().map(widget =>
-  widget as IAttachedCustomWidget) ?? [];
 // the list of widget types in the order they should be listed by the widget.
-const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a =>
-  registeredCustomWidgets.includes(a));
 const sectionTypes: IWidgetType[] = [
-  "record", "single", "detail", "form", "chart", "calendar", ...finalListOfCustomWidgetToShow, "custom",
+  "record", "single", "detail", "form", "chart", "calendar", "custom",
 ];
 
 // Returns dom that let a user select a page widget. User can select a widget type (id: 'grid',
