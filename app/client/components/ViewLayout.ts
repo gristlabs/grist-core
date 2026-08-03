@@ -48,13 +48,13 @@ import debounce from "lodash/debounce";
 const t = makeT("ViewLayout");
 
 const viewSectionTypes: { [key: string]: any } = {
-  "record": GridView,
-  "detail": DetailView,
-  "chart": ChartView,
-  "single": DetailView,
-  "calendar": CalendarView,
-  "custom": CustomView,
-  "form": FormView,
+  record: GridView,
+  detail: DetailView,
+  chart: ChartView,
+  single: DetailView,
+  calendar: CalendarView,
+  custom: CustomView,
+  form: FormView,
 };
 
 function getInstanceConstructor(parentKey: string) {

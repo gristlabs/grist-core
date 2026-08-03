@@ -122,7 +122,7 @@ export class RightPanel extends Disposable {
   // icons in the top tab.
   private _pageWidgetType = Computed.create<IWidgetType | null>(this, (use) => {
     const section: ViewSectionRec = use(this._gristDoc.viewModel.activeSection);
-    return (use(section.effectiveWidgetType) || null) as IWidgetType;
+    return (use(section.effectiveWidgetType) || null);
   });
 
   private _isForm = Computed.create(this, (use) => {
