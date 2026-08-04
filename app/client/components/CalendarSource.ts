@@ -339,6 +339,7 @@ export class CalendarRenderer extends RowListener {
       const event = this._build(rowId, range);
       if (sameEvent(this._cal.getEvent(rowId), event)) { continue; }
       this._cal.updateEvent(rowId, event);
+      this._drawn.add(rowId);
     }
   }
 
