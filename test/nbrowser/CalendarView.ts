@@ -123,6 +123,37 @@ describe("CalendarView", function() {
     await driver.wait(async () => (await getCalendarEvent(1)) === null, 2000);
   });
 
+  it("draws one event after a date moves out of view and back", async function() {
+    // Moving a row out of the visible range and back must not leave a copy behind at its old
+    // position, however many times it happens.
+    const far = moment.tz(DOC_TZ).add(120, "days").format("YYYY-MM-DD");
+    await gu.sendActions([
+      ["AddRecord", "Table1", -1, {
+        From: sec(today, 13), To: sec(today, 14), Label: "Round Trip", IsFullDay: false,
+      }],
+    ]);
+    const rowId = await driver.executeScript<number>(`
+      const table = window.gristDocPageModel.gristDoc.get().docData.getTable("Table1");
+      return table.getRowIds().find(id => table.getValue(id, "Label") === "Round Trip");
+    `);
+    await driver.wait(async () => Boolean(await getCalendarEvent(rowId)), 2000);
+
+    const selector = `[data-event-id="${rowId}"]`;
+    for (let i = 0; i < 3; i++) {
+      await gu.sendActions([["UpdateRecord", "Table1", rowId, { From: sec(far, 10), To: sec(far, 11) }]]);
+      await driver.wait(async () => (await getCalendarEvent(rowId)) === null, 2000);
+      assert.lengthOf(await driver.findElements(By.css(selector)), 0);
+
+      await gu.sendActions([
+        ["UpdateRecord", "Table1", rowId, { From: sec(today, 13), To: sec(today, 14) }],
+      ]);
+      await driver.wait(async () => Boolean(await getCalendarEvent(rowId)), 2000);
+      assert.lengthOf(await driver.findElements(By.css(selector)), 1);
+    }
+
+    await gu.sendActions([["RemoveRecord", "Table1", rowId]]);
+  });
+
   it("changes perspective when a toolbar button is pressed", async function() {
     // Buttons carry their localized labels (from perspectiveLabel's static t("Day")/t("Week")/
     // t("Month"), which the i18n extractor can see).
