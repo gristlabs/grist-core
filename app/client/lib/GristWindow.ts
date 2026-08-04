@@ -25,6 +25,8 @@ declare global {
     gristApp?: {
       topAppModel?: TopAppModel;
       testNumPendingApiRequests?: () => number;
+      testNumPendingChecks?: () => number;
+      testNumPendingPastes?: () => number;
     };
     cmd?: { [name: string]: () => void };
     isRunningUnderElectron?: boolean;

@@ -4245,7 +4245,60 @@ namespace gristUtils {
     }, timeMs);
   }
 
-  export const waitForAdminPanel = () => driver.findWait(".test-admin-panel", 2000);
+  /**
+   * Waits for the admin panel to be on screen and to have rendered content. The
+   * `.test-admin-panel` shell appears immediately, but the installation panel inside renders
+   * nothing until the probe list arrives, so waiting on the shell alone hands back an empty panel
+   * and every driver.find that follows races the fetch.
+   *
+   * `> *` matches elements only, never the comment nodes grainjs leaves as placeholders.
+   */
+  export async function waitForAdminPanel() {
+    // Two waits rather than one, so a missing shell and a shell that never fills report separately.
+    await driver.findWait(".test-admin-panel", 2000);
+    await driver.findWait(".test-admin-panel > *", 4000);
+  }
+
+  /**
+   * Polls one of the PendingOps counters exposed on window.gristApp until it reaches zero.
+   *
+   * A missing hook is an error, not a pass. Tolerating it would turn these helpers into no-ops
+   * whenever the hook was renamed or not wired up, and a wait that silently does nothing is worse
+   * than no wait at all: the test still passes, so nothing tells you the wait has gone. A missing
+   * window.gristApp is different, and we keep waiting for it, since the page may still be loading.
+   */
+  async function waitForPendingOps(hook: string, what: string, optTimeout: number) {
+    await driver.wait(async () => {
+      const result = await driver.executeScript<number | string>(
+        `if (!window.gristApp) { return "no-app"; }
+         if (!window.gristApp.${hook}) { return "no-hook"; }
+         return window.gristApp.${hook}();`,
+      ).catch(() => "no-app");
+      if (result === "no-hook") {
+        throw new Error(`window.gristApp.${hook} is not defined, so ${what} cannot be waited on`);
+      }
+      return result === 0;
+    }, optTimeout, `Timed out waiting for ${what}`);
+  }
+
+  /**
+   * Waits for every admin panel check (boot probe) to report back.
+   *
+   * Call after waitForAdminPanel: the panel has to have rendered for its checks to have started,
+   * or a count of zero just means nothing has begun.
+   */
+  export async function waitForAdminChecks(optTimeout: number = 10000) {
+    await waitForPendingOps("testNumPendingChecks", "admin panel checks to settle", optTimeout);
+  }
+
+  /**
+   * Waits for an in-progress paste. Nothing awaits a paste (the clipboard handler fires the
+   * command and returns), and waitForServer is not a substitute: a file paste is an upload plus a
+   * separate addAttachments action, and a poll between the two sees nothing outstanding.
+   */
+  export async function waitForPaste(optTimeout: number = 10000) {
+    await waitForPendingOps("testNumPendingPastes", "paste to complete", optTimeout);
+  }
 
   /** Gets the value from the select component */
   export async function getSelectValue(selector: string) {
@@ -4415,7 +4468,7 @@ namespace gristUtils {
    * By default, we verify that the given text is part of the latest announcement.
    */
   export async function assertScreenReaderAnnouncement(expected: string, mustBeLast: boolean = true) {
-    // We always wait a bit for the test to pass because announcements are not done synchronously
+    // Announcements are not synchronous, and a busy machine can take well over half a second.
     await driver.wait(async () => {
       // We manually get textContent instead of relying on selenium's getText because the text is visually hidden.
       const text = await driver.executeScript<string>((onlyLast: boolean) => {
