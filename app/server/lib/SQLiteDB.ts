@@ -94,6 +94,10 @@ export type RunResult = MinRunResult;
 const asyncLocalStorage = new AsyncLocalStorage<boolean>();
 
 function getVariant(): SqliteVariant {
+  if (process.env.GRIST_SQLITE_VARIANT === 'native') {
+    const { NativeSqliteVariant } = require("app/server/lib/SqliteNative");
+    return new NativeSqliteVariant();
+  }
   return create.getSqliteVariant?.() || new NodeSqliteVariant();
 }
 
