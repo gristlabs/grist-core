@@ -4,6 +4,7 @@
 
 import * as gu from "test/nbrowser/gristUtils";
 
+import { assert } from "chai";
 import { driver, Key, stackWrapFunc, WebElementPromise } from "mocha-webdriver";
 
 // Helper to get the input of a matching parse option in the ParseOptions dialog.
@@ -51,25 +52,38 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
   // TODO: find a more sensible fix.
   const records = await driver.findAll(".test-importer-preview .record-hlines");
   let success = false;
+  let lastError: unknown;
   await gu.scrollIntoView(await records[0].find(".field_clip"));
   for (const rec of records.slice(0, 10)) {
     try {
       const cell = await rec.find(".field_clip");
       await cell.click();
-      // Wait for the focus to be set.
-      await driver.findWait(".test-importer-preview .field_clip.has_cursor", 100);
+      // Wait for the focus to be set. Keep this generous: a short timeout here races
+      // under CI load, and the catch below would silently move on to the next record,
+      // leaving the grid scrolled somewhere unpredictable.
+      await driver.findWait(".test-importer-preview .field_clip.has_cursor", 1000);
       // Go to the first cell.
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
       await gu.sendKeys(Key.HOME);
       success = true;
       break;
     } catch (e) {
+      lastError = e;
       continue;
     }
   }
   if (!success) {
-    throw Error(`tried cells without success`);
+    throw Error(`tried cells without success, last error: ${lastError}`);
   }
+
+  // Scrolling back to the top is not instant. Callers read cells by row number right
+  // after this returns, and reading while the grid is still scrolled gives back
+  // undefined for every row. Wait for row 1 to actually be the first rendered row.
+  await gu.waitToPass(async () => {
+    const rowNums = await driver.findAll(".test-importer-preview .gridview_data_row_num",
+      el => el.getText());
+    assert.equal(rowNums[0], "1");
+  }, 2000);
 };
 
 // Helper that gets the list of visible column matching rows to the left of the preview.
