@@ -3168,8 +3168,8 @@ export class ActiveDoc extends EventEmitter {
   private _drainMcpMetrics(triggeredBy: DocMetricsTrigger): Record<string, number> {
     if (triggeredBy === "docOpen") { return {}; }
     const metrics: Record<string, number> = {};
-    if (this._mcpToolCalls > 0) { metrics.mcpToolCallsDelta = this._mcpToolCalls; }
-    if (this._mcpUsers.size > 0) { metrics.mcpUsersDelta = this._mcpUsers.size; }
+    metrics.mcpToolCallsDelta = this._mcpToolCalls;
+    metrics.mcpUsersDelta = this._mcpUsers.size;
     this._mcpToolCalls = 0;
     this._mcpUsers.clear();
     return metrics;

@@ -16,7 +16,7 @@
 //   import {grist} from 'grist-api';
 //   grist.registerFunction();
 
-import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
+import { CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
   WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import {
   AccessTokenOptions, AccessTokenResult, FetchSelectedOptions, GristAPI, GristDocAPI,
@@ -241,8 +241,6 @@ let _mappingsCache: WidgetColumnMap | null | undefined;
 // Since widget needs to ask for mappings during onRecord and onRecords event, we will reuse
 // current request if available;
 let _activeRefreshReq: Promise<void> | null = null;
-// Remember columns requested during ready call.
-let _columnsToMap: ColumnsToMap | undefined;
 let _tableId: string | undefined;
 let _setInitialized: () => void;
 const _initialization = new Promise<void>(resolve => _setInitialized = resolve);
@@ -278,24 +276,18 @@ export async function testWaitForPendingRequests() {
 }
 
 /**
- * Renames columns in the result using columns mapping configuration passed in ready method.
- * Returns null if not all required columns were mapped or not widget doesn't support
- * custom column mapping.
+ * Renames columns in the result using the mapping Grist holds for this widget.
+ * Returns the data unchanged when the widget maps no columns.
  */
 export function mapColumnNames(data: any, options?: {
-  columns?: ColumnsToMap
   mappings?: WidgetColumnMap | null,
   reverse?: boolean,
 }) {
-  options = { columns: _columnsToMap, mappings: _mappingsCache, reverse: false, ...options };
-  // If no column configuration was requested or
-  // table has no rows, return original data.
-  if (!options.columns) {
-    return data;
-  }
-  // If we haven't received columns configuration return null.
+  options = { mappings: _mappingsCache, reverse: false, ...options };
+  // Grist sends a mapping for every column the widget asks for, whether it was
+  // declared in grist.ready() or in the widget's manifest.
   if (!options.mappings) {
-    return null;
+    return data;
   }
   // If we are renaming names for whole table, but it is empty, don't do anything.
   if (Array.isArray(data) && data.length === 0) {
@@ -308,14 +300,6 @@ export function mapColumnNames(data: any, options?: {
   const transformations: ((from: any, to: any) => void)[] = [];
   // First transformation is for copying id field:
   transformations.push((from, to) => to.id = from.id);
-  // Helper function to test if a column was configured as optional.
-  function isOptional(col: string) {
-    return Boolean(
-      // Columns passed as strings are required.
-      !options!.columns?.includes(col) &&
-      options!.columns?.find(c => typeof c === "object" && c?.name === col && c.optional),
-    );
-  }
   // For each widget column in mapping.
   // Keys are ordered for determinism in case of conflicts.
   for (const widgetCol of Object.keys(options.mappings).sort()) {
@@ -341,9 +325,6 @@ export function mapColumnNames(data: any, options?: {
       } else {
         transformations.push((from, to) => to[gristCol] = from[widgetCol]);
       }
-    } else if (!isOptional(widgetCol)) {
-      // Column was not configured but was required.
-      return null;
     }
   }
   // Finally assemble function to convert a single record.
@@ -359,7 +340,6 @@ export function mapColumnNames(data: any, options?: {
  * we don't attempt to do these transformations automatically.
  */
 export function mapColumnNamesBack(data: any, options?: {
-  columns?: ColumnsToMap
   mappings?: WidgetColumnMap | null,
 }) {
   return mapColumnNames(data, { ...options, reverse: true });
@@ -519,7 +499,6 @@ export function ready(settings?: ReadyPayload): void {
         hasCustomOptions: Boolean(settings.onEditOptions),
       };
       delete options.onEditOptions;
-      _columnsToMap = options.columns;
       await sectionApi.configure(options).catch((err: unknown) => console.error(err));
     }
   })();

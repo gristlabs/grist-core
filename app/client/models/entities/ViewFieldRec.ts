@@ -3,7 +3,7 @@ import { formatterForRec } from "app/client/models/entities/ColumnRec";
 import * as modelUtil from "app/client/models/modelUtil";
 import { removeRule, RuleOwner } from "app/client/models/RuleOwner";
 import { ViewFieldConfig } from "app/client/models/ViewFieldConfig";
-import * as UserType from "app/client/widgets/UserType";
+import { mergeOptions } from "app/client/widgets/UserTypeImpl";
 import { DocumentSettings } from "app/common/DocumentSettings";
 import { DropdownCondition, DropdownConditionCompilationResult } from "app/common/DropdownCondition";
 import { compilePredicateFormula } from "app/common/PredicateFormula";
@@ -238,7 +238,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   // Observable for the object with the current options, either for the field or for the column,
   // which takes into account the default options for this column's type.
   this.widgetOptionsJson = this.autoDispose(modelUtil.jsonObservable(this._widgetOptionsStr,
-    (opts: any) => UserType.mergeOptions(opts || {}, this.column().pureType())));
+    (opts: any) => mergeOptions(opts || {}, this.column().pureType())));
 
   // When user has yet to specify a desired wrapping state, we use different defaults for
   // GridView (no wrap) and DetailView (wrap).

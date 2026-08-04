@@ -3,7 +3,6 @@ import { SequenceNEVER, SequenceNum } from "app/client/components/Cursor";
 import { EmptyFilterColValues, LinkingState } from "app/client/components/LinkingState";
 import { KoArray } from "app/client/lib/koArray";
 import { fieldInsertPositions } from "app/client/lib/tableUtil";
-import { ColumnToMapImpl } from "app/client/models/ColumnToMap";
 import {
   ColumnRec,
   DocModel,
@@ -22,6 +21,7 @@ import { removeRule, RuleOwner } from "app/client/models/RuleOwner";
 import { LinkConfig } from "app/client/ui/LinkConfig";
 import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
 import { FilterColValues } from "app/common/ActiveDocAPI";
+import { ColumnToMapImpl } from "app/common/ColumnToMap";
 import { AccessLevel, ICustomWidget } from "app/common/CustomWidget";
 import { UserAction } from "app/common/DocActions";
 import { RecalcWhen } from "app/common/gristTypes";
@@ -297,8 +297,9 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   // Temporary fields used to communicate with the Custom Widget. There are set through the Widget API.
 
-  // Temporary variable holding columns mapping requested by the widget (set by API).
-  columnsToMap: ko.Observable<ColumnsToMap | null>;
+  // Column mappings. Read from widget manifest (if widget was installed from
+  // the gallery), or from the grist.ready call. Runtime values wins over manifest values.
+  columnsToMap: ko.Computed<ColumnsToMap | null>;
   // Map from widget columns to colIds in document.
   mappedColumns: ko.Computed<WidgetColumnMap | null>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
@@ -892,7 +893,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.hasCustomOptions = ko.observable(false);
   this.desiredAccessLevel = ko.observable<AccessLevel | null>(null);
-  this.columnsToMap = ko.observable<ColumnsToMap | null>(null);
+  const runtimeColumnMapping = ko.observable<ColumnsToMap | null>(null);
+  this.columnsToMap = ko.pureComputed({
+    read: () => runtimeColumnMapping() ?? this.customDef.widgetDef()?.columns ?? null,
+    write: value => runtimeColumnMapping(value),
+  });
   // Calculate mapped columns for Custom Widget.
   this.mappedColumns = ko.pureComputed(() => {
     // First check if widget has requested a custom column mapping and
