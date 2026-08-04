@@ -207,7 +207,7 @@ export class CalendarWrapper extends Disposable {
   }
 
   public deleteEvent(rowId: number) {
-    this._calendar.updateEvent(String(rowId), CALENDAR_NAME, { isVisible: false });
+    this._calendar.deleteEvent(String(rowId), CALENDAR_NAME);
   }
 
   public clearEvents() {
