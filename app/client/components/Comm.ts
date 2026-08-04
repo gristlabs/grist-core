@@ -396,7 +396,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     const serverSpeaksForThis = r.sent && r.sentOn === reconnected && !connectMsg.needReload &&
       lastReceivedReqId !== undefined;
 
-    if (serverSpeaksForThis && lastReceivedReqId !== null && reqId <= lastReceivedReqId) {
+    if (serverSpeaksForThis && typeof lastReceivedReqId === "number" && reqId <= lastReceivedReqId) {
       // The server has it, so wait rather than ask again. Safe because a response prepared while
       // the socket was down is replayed as a missed message, and if any were lost the server sets
       // needReload, ruled out above.

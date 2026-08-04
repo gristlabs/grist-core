@@ -633,6 +633,13 @@ describe("Comm", function() {
         { clientId, newClient: "0", counter: "c1", lastSeqId: String(seqIds[0]) });
       assert.isFalse(msg2.needReload);
       ws2.close();
+      await waitForSocketRelease(clientId);
+
+      // A later blip has nothing to report, since nothing was sent in between. A quiet
+      // connection is not a client failing to account for the handover, which is settled by now.
+      const { ws: ws3, msg: msg3 } = await connectWithParams({ clientId, newClient: "0", counter: "c1" });
+      assert.isFalse(msg3.needReload, "expected a confirmed handover to stop being held against it");
+      ws3.close();
     });
 
     it("should stop demanding a reload once the client has started over", async function() {
@@ -672,7 +679,7 @@ describe("Comm", function() {
       // answers to requests that never reached anyone.
       const { ws: ws3, msg: msg3 } = await connectWithParams({ clientId, newClient: "0", counter: "c2" });
       assert.isFalse(msg3.needReload);
-      assert.isNull(msg3.lastReceivedReqId);
+      assert.equal(msg3.lastReceivedReqId, "none");
       ws3.close();
     });
 
@@ -976,7 +983,7 @@ describe("Comm", function() {
         sent?: boolean,              // did the request go out?
         elsewhere?: boolean,         // did it go out on some other connection?
         needReload?: boolean,        // is the server telling us to start over?
-        lastReceivedReqId?: number | null,   // what the server read, undefined for "did not say"
+        lastReceivedReqId?: number | "none",  // what the server read, undefined for "did not say"
         boundClientId?: string,      // the request is only valid for this clientId
         expected: string,            // RESEND, WAIT, or the error the caller should see
       }[] = [
@@ -993,7 +1000,7 @@ describe("Comm", function() {
 
         // Sent, and the server read on past without seeing it, so it never arrived.
         { name: "sent, server stopped short of it", sent: true, lastReceivedReqId: REQ_ID - 1, expected: RESEND },
-        { name: "sent, server read nothing at all", sent: true, lastReceivedReqId: null, expected: RESEND },
+        { name: "sent, server read nothing at all", sent: true, lastReceivedReqId: "none", expected: RESEND },
 
         // Sent, and nothing the server said covers it.
         { name: "sent, server did not say", sent: true, expected: "interrupted by reconnect" },
@@ -1038,7 +1045,7 @@ describe("Comm", function() {
           cliComm.pendingRequests.set(REQ_ID, request as any);
 
           // A row that leaves lastReceivedReqId out is testing "the server did not say", which is
-          // not the same as a row that sets it to null, so the field is only added when named.
+          // not the same as a row that sets it to "none", so the field is only added when named.
           const connectMsg: CommClientConnect = {
             type: "clientConnect", clientId: "current", needReload: Boolean(c.needReload),
             ...("lastReceivedReqId" in c ? { lastReceivedReqId: c.lastReceivedReqId } : {}),

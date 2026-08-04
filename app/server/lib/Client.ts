@@ -102,7 +102,7 @@ export class Client {
   private _missedMessagesWindowStart: number = 0;
 
   // Set when we have handed a client messages and let go of them. If it comes back saying it
-  // received nothing, they are gone.
+  // received nothing, they are gone. Cleared once it comes back able to account for them.
   private _handoverUnconfirmed: boolean = false;
 
   // Set when we have told a client to reload, until one turns up that has. The demand goes out
@@ -349,7 +349,9 @@ export class Client {
       missedMessages = this.getMissedMessages(lastSeqId);
       if (missedMessages) {
         // We have all the needed messages (possibly an empty array); can do a seamless reconnect.
+        // No gap also means the client accounted for what we handed it before, so that is settled.
         seamlessReconnect = true;
+        this._handoverUnconfirmed = false;
       }
     }
 
@@ -391,7 +393,7 @@ export class Client {
       missedMessages,
       needReload,
       // Only meaningful when resuming the session; otherwise no earlier request survives.
-      lastReceivedReqId: seamlessReconnect ? this._lastReceivedReqId : undefined,
+      lastReceivedReqId: seamlessReconnect ? (this._lastReceivedReqId ?? "none") : undefined,
     };
 
     try {
@@ -432,7 +434,7 @@ export class Client {
   // is news to it.
   //
   // Returning undefined for a gap is load-bearing: it forces needReload, and only that stops a
-  // client waiting on requests it had in flight. See _resendPendingRequest in Comm.ts.
+  // client waiting on requests it had in flight.
   public getMissedMessages(lastSeqId: number | null): string[] | undefined {
     // Neither a client we are still waiting to see reload, nor one that cannot account for what
     // we handed it, has anything to resume. Report a gap for both.
