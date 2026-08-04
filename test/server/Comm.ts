@@ -157,15 +157,19 @@ describe("Comm", function() {
     });
   }
 
-  // Connect with explicit query params (e.g. clientId/newClient) to exercise reconnects, and
-  // return the socket together with the server's first message. The message handler is attached
-  // synchronously, before the socket opens: a needReload reconnect gets a single clientConnect
-  // followed immediately by a close, so a handler attached afterwards (as connect()+getMessages()
-  // does) would miss it.
-  async function connectWithParams(query: Record<string, string>, options?: GristClientSocketOptions) {
+  // Open a socket with explicit query params (e.g. clientId/newClient), to exercise reconnects.
+  function openSocket(query: Record<string, string>, options?: GristClientSocketOptions) {
     const port = (server.address() as AddressInfo).port;
     const qs = new URLSearchParams(query).toString();
-    const ws = new GristClientSocket(`ws://localhost:${port}/?${qs}`, options);
+    return new GristClientSocket(`ws://localhost:${port}/?${qs}`, options);
+  }
+
+  // As openSocket, but returns the socket together with the server's first message. The message
+  // handler is attached synchronously, before the socket opens: a needReload reconnect gets a
+  // single clientConnect followed immediately by a close, so a handler attached afterwards (as
+  // connect()+getMessages() does) would miss it.
+  async function connectWithParams(query: Record<string, string>, options?: GristClientSocketOptions) {
+    const ws = openSocket(query, options);
     const msg = await new Promise<CommClientConnect>((resolve, reject) => {
       ws.onmessage = (data: string) => resolve(JSON.parse(data));
       ws.onerror = (err: Error) => reject(err);
@@ -410,70 +414,251 @@ describe("Comm", function() {
       assert.equal(failedSendCount, sendShouldFail ? 1 : 0, "Expected to see a failed send");
     }
 
-    // A server method that takes its time, along with a promise that resolves once the server has
-    // started running it.
-    function makeSlowMethod(delayMs: number) {
+    // A server method the test drives: `started` resolves once the server has begun running it,
+    // and `finish()` lets it return.
+    function makeControlledMethod() {
       let notifyStarted!: () => void;
+      let finish!: () => void;
       const started = new Promise<void>((resolve) => { notifyStarted = resolve; });
+      const finished = new Promise<void>((resolve) => { finish = resolve; });
       const methods = {
-        methodSlow: async function(client: Client, x: any) {
+        methodControlled: async function(client: Client, x: any) {
           notifyStarted();
-          await delay(delayMs);
-          return { x, name: "methodSlow" };
+          await finished;
+          return { x, name: "methodControlled" };
         },
       };
-      return { methods, started };
+      return { methods, started, finish };
+    }
+
+    // How many messages the server is holding for a client that was not there to receive them.
+    function queuedMessageCount(clientId: string) {
+      return (comm!.getClient(clientId) as any)._missedMessages.size;
+    }
+
+    // The client's next clientConnect, which is how it learns a connection is up. Waiting for the
+    // next one rather than for any at all is what tells a reconnect from the connection before it.
+    function nextClientConnect(cliComm: ClientComm & BackboneEvents): Promise<CommClientConnect> {
+      return new Promise(resolve => cliComm.once("clientConnect", resolve));
+    }
+
+    // Let the server lose the next request that reaches it, as a network on its way out does.
+    function swallowNextRequest() {
+      let notifyLost!: () => void;
+      const lost = new Promise<void>((resolve) => { notifyLost = resolve; });
+      const stub: sinon.SinonStub = sandbox.stub(Client.prototype as any, "_onMessage")
+        .callsFake(async function(this: any, ...args: unknown[]): Promise<unknown> {
+          const message = args[0] as string;
+          if (JSON.parse(message).reqId !== undefined) {
+            stub.restore();
+            notifyLost();
+            return;
+          }
+          return stub.wrappedMethod.call(this, message);
+        });
+      return lost;
     }
 
     it("should deliver the response to a request that outlives a reconnect", async function() {
-      // Take longer over the request than the client takes to reconnect (about a second), so that
-      // the server is still working on it when the client comes back.
-      const { methods, started } = makeSlowMethod(3000);
+      const { methods, started, finish } = makeControlledMethod();
       const { cliComm, forwarder } = await startManagedConnection({ ...assortedMethods, ...methods });
 
-      // Start a slow request, and wait until the server has actually begun processing it.
-      const respPromise = cliComm._makeRequest(null, null, "methodSlow", "foo");
+      // Start a request, and wait until the server has actually begun processing it.
+      const respPromise = cliComm._makeRequest(null, null, "methodControlled", "foo");
       await started;
 
-      // The connection drops and comes back while the server is still working. The server still
-      // has our Client object, so it can tell us on reconnect that our request is in hand. There
-      // is nothing to do but wait for the answer.
+      // The connection drops and comes back while the server is still working. The server kept
+      // our Client object, so it can say on reconnect that the request is in hand.
+      const reconnected = nextClientConnect(cliComm);
       await forwarder.disconnectServerSide();
       await forwarder.connect();
+      await reconnected;
 
-      assert.deepEqual(await respPromise, { x: "foo", name: "methodSlow" });
+      // Only now let the server finish, so the answer is worked out after the reconnect.
+      finish();
+      assert.deepEqual(await respPromise, { x: "foo", name: "methodControlled" });
+    });
+
+    it("should reject a request the server cannot vouch for", async function() {
+      const { methods, started, finish } = makeControlledMethod();
+      const { cliComm, forwarder } = await startManagedConnection({ ...assortedMethods, ...methods });
+
+      const respPromise = cliComm._makeRequest(null, null, "methodControlled", "foo");
+      await started;
+
+      // The server forgets us while we are away, so on reconnect it can say nothing about the
+      // request it had in hand. Asking again could repeat work already done, and waiting would
+      // be waiting for nobody, so the request is rejected and the caller told.
+      await forwarder.disconnectServerSide();
+      comm!.destroyAllClients();
+      await forwarder.connect();
+      await assert.isRejected(respPromise, /interrupted by reconnect/);
+      finish();
+    });
+
+    it("should ask again for a request that never reached the server", async function() {
+      const { cliComm, forwarder } = await startManagedConnection(assortedMethods);
+
+      // One request that does arrive, so the server has a request id to report.
+      assert.deepEqual(await cliComm._makeRequest(null, null, "methodSync", "foo", 1),
+        { x: "foo", y: 1, name: "methodSync" });
+
+      // The next one is lost on its way in, as one in flight when the network goes is.
+      const lost = swallowNextRequest();
+      const respPromise = cliComm._makeRequest(null, null, "methodSync", "bar", 2);
+      await lost;
+
+      // On reconnect the server names the earlier request as the last it read, so this one cannot
+      // have arrived and cannot have had any effect. Asking again is safe, and better than
+      // failing a request that provably never landed.
+      await forwarder.disconnectServerSide();
+      await forwarder.connect();
+      assert.deepEqual(await respPromise, { x: "bar", y: 2, name: "methodSync" });
     });
 
     it("should deliver a response prepared while the connection was down", async function() {
-      const { methods, started } = makeSlowMethod(500);
+      const { methods, started, finish } = makeControlledMethod();
       const { cliComm, forwarder } = await startManagedConnection({ ...assortedMethods, ...methods });
+      const { clientId } = await nextClientConnect(cliComm);
 
-      // This is the client's first request, so it has not yet received anything numbered from the
-      // server, and has no place in the message stream to reconnect from.
-      const respPromise = cliComm._makeRequest(null, null, "methodSlow", "foo");
+      // The client's first request, so it has received nothing numbered, and has no place in the
+      // message stream to reconnect from.
+      const respPromise = cliComm._makeRequest(null, null, "methodControlled", "foo");
       await started;
 
-      // Stay away long enough for the server to finish the request and queue up its answer, with
-      // no socket to send it on.
+      // Finish only once the server has noticed the socket is gone, so it has to queue the answer.
       await forwarder.disconnectServerSide();
-      await delay(1500);
-      await forwarder.connect();
+      await waitForSocketRelease(clientId);
+      finish();
+      await waitForCondition(() => (queuedMessageCount(clientId) > 0), 2000);
 
-      assert.deepEqual(await respPromise, { x: "foo", name: "methodSlow" });
+      await forwarder.connect();
+      assert.deepEqual(await respPromise, { x: "foo", name: "methodControlled" });
     });
 
-    it("should not report request ids from before a browser tab started over", async function() {
-      await startComm(assortedMethods);
+    // Leave the server holding an answer the client has never had a chance to receive: it asked a
+    // question and went away. It has received nothing numbered, so it cannot say where to resume.
+    async function queueAnswerForAbsentClient() {
+      const { methods, started, finish } = makeControlledMethod();
+      await startComm({ ...assortedMethods, ...methods });
       cleanup.push(() => stopComm());
 
-      // A tab connects and gets a fair way through its requests.
       const ws1 = await connect();
       const [msg1] = await getMessages(ws1, 1) as CommClientConnect[];
       const clientId = msg1.clientId;
-      ws1.send(JSON.stringify({ reqId: 42, method: "methodSync", args: ["foo", 1] }));
-      await getMessages(ws1, 1);
+      ws1.send(JSON.stringify({ reqId: 0, method: "methodControlled", args: ["foo"] }));
+      await started;
+
       ws1.close();
       await waitForSocketRelease(clientId);
+      finish();
+      await waitForCondition(() => (queuedMessageCount(clientId) > 0), 2000);
+      return clientId;
+    }
+
+    // Connect, ask one question, take the answer, and go away. The answer goes out while the
+    // client is there to receive it, so the server is left holding no copy of it.
+    async function connectAskAndLeave(reqId: number) {
+      await startComm(assortedMethods);
+      cleanup.push(() => stopComm());
+
+      const ws = await connect();
+      const [msg] = await getMessages(ws, 1) as CommClientConnect[];
+      const clientId = msg.clientId;
+      ws.send(JSON.stringify({ reqId, method: "methodSync", args: ["foo", 1] }));
+      await getMessages(ws, 1);
+      ws.close();
+      await waitForSocketRelease(clientId);
+      return clientId;
+    }
+
+    // Connect, wait for the server to lose the clientConnect it sends in reply, and go away again.
+    async function connectAndLoseClientConnect(clientId: string, how: "failSend" | "swallow") {
+      const lost = loseNextClientConnect(how);
+      const ws = openSocket({ clientId, newClient: "0", counter: "c1" });
+      await new Promise<void>((resolve, reject) => { ws.onopen = resolve; ws.onerror = reject; });
+      await lost;
+      ws.close();
+      await waitForSocketRelease(clientId);
+    }
+
+    // Stop the next clientConnect from reaching the client. "failSend" is a socket that dies as
+    // the server answers it; "swallow" is one that takes the message and goes quiet. The
+    // difference matters: only the second leaves the server thinking it delivered something.
+    function loseNextClientConnect(how: "failSend" | "swallow") {
+      let notifyLost!: () => void;
+      const lost = new Promise<void>((resolve) => { notifyLost = resolve; });
+      const stub: sinon.SinonStub = sandbox.stub(Client.prototype as any, "_sendToWebsocket")
+        .callsFake(async function(this: any, ...args: unknown[]): Promise<unknown> {
+          const message = args[0] as string;
+          if (message.includes(`"clientConnect"`)) {
+            stub.restore();
+            notifyLost();
+            if (how === "failSend") { throw new Error("WebSocket is not open"); }
+            return;
+          }
+          return stub.wrappedMethod.call(this, message);
+        });
+      return lost;
+    }
+
+    it("should keep hold of missed messages if clientConnect cannot be sent", async function() {
+      const clientId = await queueAnswerForAbsentClient();
+
+      // The tab reconnects, but the clientConnect carrying the answer never makes it out.
+      await connectAndLoseClientConnect(clientId, "failSend");
+
+      // The client learned nothing, so the server must still hold the answer for it.
+      const { ws, msg } = await connectWithParams({ clientId, newClient: "0", counter: "c1" });
+      assert.isFalse(msg.needReload);
+      assert.deepEqual((msg.missedMessages || []).map(m => JSON.parse(m).data),
+        [{ x: "foo", name: "methodControlled" }]);
+      ws.close();
+    });
+
+    it("should let a client carry on once it has taken its missed messages", async function() {
+      const clientId = await queueAnswerForAbsentClient();
+
+      // The tab reconnects and takes the answer it missed.
+      const { ws: ws1, msg: msg1 } = await connectWithParams({ clientId, newClient: "0", counter: "c1" });
+      assert.isFalse(msg1.needReload);
+      const seqIds = (msg1.missedMessages || []).map(m => JSON.parse(m).seqId);
+      assert.lengthOf(seqIds, 1);
+      ws1.close();
+      await waitForSocketRelease(clientId);
+
+      // The connection blips again, and this time the tab can say where it got to. Having taken
+      // what we handed over, it must not be sent back to the start for it.
+      const { ws: ws2, msg: msg2 } = await connectWithParams(
+        { clientId, newClient: "0", counter: "c1", lastSeqId: String(seqIds[0]) });
+      assert.isFalse(msg2.needReload);
+      ws2.close();
+    });
+
+    it("should stop demanding a reload once the client has started over", async function() {
+      const clientId = await connectAskAndLeave(0);
+      await connectAndLoseClientConnect(clientId, "swallow");
+
+      const { ws: ws1, msg: msg1 } = await connectWithParams({ clientId, newClient: "0", counter: "c1" });
+      assert.isTrue(msg1.needReload, "expected the server to be asking for a reload");
+      ws1.close();
+      await waitForSocketRelease(clientId);
+
+      // The tab reloads, as asked. It keeps its clientId, and the server has nothing more to say.
+      const { ws: ws2, msg: msg2 } = await connectWithParams({ clientId, newClient: "1", counter: "c2" });
+      assert.isFalse(msg2.needReload);
+      ws2.close();
+      await waitForSocketRelease(clientId);
+
+      // A blip after that resumes as normal, rather than sending the tab round again.
+      const { ws: ws3, msg: msg3 } = await connectWithParams({ clientId, newClient: "0", counter: "c2" });
+      assert.isFalse(msg3.needReload);
+      ws3.close();
+    });
+
+    it("should not report request ids from before a browser tab started over", async function() {
+      // A tab connects and gets a fair way through its requests.
+      const clientId = await connectAskAndLeave(42);
 
       // The tab is reloaded. It takes its clientId along, since that lives in sessionStorage, but
       // it is a fresh page numbering its requests from zero again.
@@ -672,6 +857,210 @@ describe("Comm", function() {
       await waitForCondition(() => eventSpy.callCount > 0);
       assert.deepEqual(eventSpy.getCalls().map(call => call.args[0].n), [n - 1]);
     }
+
+    // The seqIds of the messages the server is holding for a client.
+    function queuedSeqIds(clientId: string): number[] {
+      return [...(comm!.getClient(clientId) as any)._missedMessages.keys()].sort((a, b) => a - b);
+    }
+
+    // What the server tells a client that turns up asking to carry on. Each row puts the server
+    // in a state and reconnects with given parameters. Past the stated outcome, every row is held
+    // to two rules that must hold whatever the state, since between them they are what stops a
+    // client waiting on an answer that is never coming.
+    describe("what to tell a client that reconnects", function() {
+      // The server volunteers a request id only when offering to resume. A fresh page is not
+      // resuming, however little it is being asked to do.
+      function assertOfferIsConsistent(resuming: boolean, msg: CommClientConnect) {
+        assert.equal(msg.lastReceivedReqId !== undefined, resuming,
+          resuming ? "a resume should say what it read" : "only a resume may say what it read");
+      }
+
+      // A resume must hand over every message the client has not accounted for, unbroken. A hole
+      // would leave it waiting; a message left behind would leave it a message short.
+      function assertNothingLeftBehind(resuming: boolean, held: number[], lastSeqId: number | undefined,
+        msg: CommClientConnect) {
+        if (!resuming) { return; }
+        const delivered = (msg.missedMessages || []).map(m => JSON.parse(m).seqId);
+        for (let i = 1; i < delivered.length; i++) {
+          assert.equal(delivered[i], delivered[i - 1] + 1, `hole in delivery: ${delivered}`);
+        }
+        if (lastSeqId !== undefined && delivered.length) {
+          assert.equal(delivered[0], lastSeqId + 1, "delivery should carry on where the client left off");
+        }
+        const owed = held.filter(seqId => lastSeqId === undefined || seqId > lastSeqId);
+        assert.deepEqual(delivered, owed, "a resume should hand over exactly what the client is owed");
+      }
+
+      const cases: {
+        state: "holding an answer" | "answered while connected" | "handed over unconfirmed" |
+          "reload demanded but lost",
+        newClient: string,
+        lastSeqId?: number,
+        needReload: boolean,
+        why: string,
+      }[] = [
+        { state: "holding an answer", newClient: "0", needReload: false,
+          why: "the answer is still here to hand over" },
+        { state: "holding an answer", newClient: "0", lastSeqId: 0, needReload: false,
+          why: "the client already has it" },
+        { state: "holding an answer", newClient: "1", needReload: false,
+          why: "a fresh page needs nothing and is told to reload nothing" },
+
+        { state: "answered while connected", newClient: "0", needReload: true,
+          why: "the answer went out live and is gone, and the client cannot account for it" },
+        { state: "answered while connected", newClient: "0", lastSeqId: 0, needReload: false,
+          why: "the client accounts for everything" },
+
+        { state: "handed over unconfirmed", newClient: "0", needReload: true,
+          why: "we let go of messages this client says it never received" },
+        { state: "handed over unconfirmed", newClient: "0", lastSeqId: 0, needReload: false,
+          why: "the client can show it received them after all" },
+
+        { state: "reload demanded but lost", newClient: "0", needReload: true,
+          why: "it never heard the demand, and we have moved past what it missed" },
+        { state: "reload demanded but lost", newClient: "0", lastSeqId: 0, needReload: true,
+          why: "accounting for messages is no help once the demand has gone unheard" },
+        { state: "reload demanded but lost", newClient: "1", needReload: false,
+          why: "the page started over, which is all we were waiting for" },
+      ];
+
+      for (const c of cases) {
+        const params = `newClient=${c.newClient}` + (c.lastSeqId === undefined ? "" : `, lastSeqId=${c.lastSeqId}`);
+        it(`${c.needReload ? "should demand a reload" : "should let it carry on"} ` +
+          `(${c.state}, ${params}): ${c.why}`, async function() {
+          let clientId: string;
+          switch (c.state) {
+            case "holding an answer":
+              clientId = await queueAnswerForAbsentClient();
+              break;
+            case "answered while connected":
+              clientId = await connectAskAndLeave(0);
+              break;
+            case "handed over unconfirmed":
+              clientId = await queueAnswerForAbsentClient();
+              await connectAndLoseClientConnect(clientId, "swallow");
+              break;
+            case "reload demanded but lost":
+              clientId = await connectAskAndLeave(0);
+              await connectAndLoseClientConnect(clientId, "swallow");
+              break;
+          }
+
+          const held = queuedSeqIds(clientId);
+          const query: Record<string, string> = { clientId, newClient: c.newClient, counter: "c1" };
+          if (c.lastSeqId !== undefined) { query.lastSeqId = String(c.lastSeqId); }
+          const { ws, msg } = await connectWithParams(query);
+
+          assert.equal(msg.needReload, c.needReload, c.why);
+          const resuming = c.newClient === "0" && !msg.needReload;
+          assertOfferIsConsistent(resuming, msg);
+          assertNothingLeftBehind(resuming, held, c.lastSeqId, msg);
+          ws.close();
+        });
+      }
+    });
+
+    // What the client does with a request left in flight when a clientConnect arrives. The three
+    // outcomes are: wait for an answer the server says is coming, send it again because it
+    // provably never landed, or reject it because nobody can say what became of it. Rejecting one
+    // that never arrived costs the user an error for nothing; re-sending one that did arrive
+    // could repeat work already done. So each row is worth stating.
+    describe("what to do with a request in flight", function() {
+      const RESEND = "resend", WAIT = "wait";
+
+      // A request numbered 4, so rows can put the server's last-read id either side of it.
+      const REQ_ID = 4;
+
+      const cases: {
+        name: string,
+        sent?: boolean,              // did the request go out?
+        elsewhere?: boolean,         // did it go out on some other connection?
+        needReload?: boolean,        // is the server telling us to start over?
+        lastReceivedReqId?: number | null,   // what the server read, undefined for "did not say"
+        boundClientId?: string,      // the request is only valid for this clientId
+        expected: string,            // RESEND, WAIT, or the error the caller should see
+      }[] = [
+        // Never sent, so it has had no effect and asking is always safe.
+        { name: "never sent, server up to date", lastReceivedReqId: 9, expected: RESEND },
+        { name: "never sent, server silent", expected: RESEND },
+        { name: "never sent, reload demanded", needReload: true, expected: RESEND },
+        { name: "never sent, bound to an older clientId", boundClientId: "stale",
+          expected: "pending with outdated clientId" },
+
+        // Sent, and the server accounts for it: it is in hand, and the answer cannot go astray.
+        { name: "sent, server read past it", sent: true, lastReceivedReqId: REQ_ID + 1, expected: WAIT },
+        { name: "sent, server read exactly it", sent: true, lastReceivedReqId: REQ_ID, expected: WAIT },
+
+        // Sent, and the server read on past without seeing it, so it never arrived.
+        { name: "sent, server stopped short of it", sent: true, lastReceivedReqId: REQ_ID - 1, expected: RESEND },
+        { name: "sent, server read nothing at all", sent: true, lastReceivedReqId: null, expected: RESEND },
+
+        // Sent, and nothing the server said covers it.
+        { name: "sent, server did not say", sent: true, expected: "interrupted by reconnect" },
+        { name: "sent, reload demanded", sent: true, needReload: true, lastReceivedReqId: REQ_ID,
+          expected: "interrupted by reconnect" },
+        { name: "sent on another connection", sent: true, elsewhere: true, lastReceivedReqId: REQ_ID,
+          expected: "interrupted by reconnect" },
+
+        // An outdated clientId only bites a request that is still ours to hold back.
+        { name: "in hand, though bound to an older clientId", sent: true, lastReceivedReqId: REQ_ID,
+          boundClientId: "stale", expected: WAIT },
+        { name: "never arrived, and bound to an older clientId", sent: true, lastReceivedReqId: REQ_ID - 1,
+          boundClientId: "stale", expected: "pending with outdated clientId" },
+      ];
+
+      for (const c of cases) {
+        it(`should ${c.expected === RESEND ? "send again" : c.expected === WAIT ? "wait" : "reject"}: ` +
+          `${c.name}`, function() {
+          stubWorkerConfig();
+          const cliComm = ClientComm.create() as ClientComm & BackboneEvents;
+          cleanup.push(async () => cliComm.dispose());
+
+          // The connection the clientConnect arrived on, and another the request may have used.
+          const send = sinon.stub().returns(true);
+          const dispose = sinon.stub();
+          const reconnected = { clientId: "current", send, dispose } as unknown as GristWSConnection;
+          const other = {
+            clientId: "current", send: sinon.stub().returns(true), dispose,
+          } as unknown as GristWSConnection;
+          (cliComm as any)._connections.set(null, reconnected);
+
+          const reject = sinon.stub();
+          const request = {
+            resolve: sinon.stub(), reject,
+            clientId: c.boundClientId ?? null,
+            docId: null,
+            methodName: "methodSync",
+            requestMsg: "the request",
+            sent: Boolean(c.sent),
+            sentOn: c.sent ? (c.elsewhere ? other : reconnected) : null,
+          };
+          cliComm.pendingRequests.set(REQ_ID, request as any);
+
+          // A row that leaves lastReceivedReqId out is testing "the server did not say", which is
+          // not the same as a row that sets it to null, so the field is only added when named.
+          const connectMsg: CommClientConnect = {
+            type: "clientConnect", clientId: "current", needReload: Boolean(c.needReload),
+            ...("lastReceivedReqId" in c ? { lastReceivedReqId: c.lastReceivedReqId } : {}),
+          } as CommClientConnect;
+          (cliComm as any)._resendPendingRequest(REQ_ID, request, connectMsg, reconnected);
+
+          if (c.expected === RESEND) {
+            assert.deepEqual(send.args, [["the request"]], "expected the request to go out again");
+            assert.equal(reject.callCount, 0, "expected no rejection");
+            assert.isTrue(cliComm.pendingRequests.has(REQ_ID), "expected the request to stay pending");
+          } else if (c.expected === WAIT) {
+            assert.equal(send.callCount, 0, "expected nothing to be sent");
+            assert.equal(reject.callCount, 0, "expected no rejection");
+            assert.isTrue(cliComm.pendingRequests.has(REQ_ID), "expected the request to stay pending");
+          } else {
+            assert.equal(send.callCount, 0, "expected nothing to be sent");
+            assert.match(reject.args[0]?.[0]?.message ?? "", new RegExp(c.expected));
+            assert.isFalse(cliComm.pendingRequests.has(REQ_ID), "expected the request to be dropped");
+          }
+        });
+      }
+    });
   });
 
   describe("websocket auth", function() {

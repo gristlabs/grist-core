@@ -383,19 +383,23 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     }
   }
 
-  private _resendPendingRequest(reqId: number, r: CommRequestInFlight, msg: CommClientConnect,
+  private _resendPendingRequest(reqId: number, r: CommRequestInFlight, connectMsg: CommClientConnect,
     reconnected: GristWSConnection | null) {
     let error = null;
     const connection = this._connection(r.docId);
 
-    // The server can only speak for a request we did send, on the connection it is resuming.
-    const lastReceivedReqId = (r.sent && r.sentOn === reconnected && !msg.needReload) ?
-      msg.lastReceivedReqId : undefined;
+    // lastReceivedReqId speaks only for requests that went out on the connection being resumed.
+    // Ids come from one counter shared by every connection on the page, and are handed out when a
+    // request is made rather than when it is sent, so one we sent elsewhere, or have not sent at
+    // all, can be numbered below it too.
+    const { lastReceivedReqId } = connectMsg;
+    const serverSpeaksForThis = r.sent && r.sentOn === reconnected && !connectMsg.needReload &&
+      lastReceivedReqId !== undefined;
 
-    if (lastReceivedReqId != null && reqId <= lastReceivedReqId) {
-      // The server has it, so wait rather than ask again. Safe only because the answer cannot go
-      // missing: a response prepared while the socket was down is replayed as a missed message,
-      // and if any were lost the server sets needReload, which we ruled out above.
+    if (serverSpeaksForThis && lastReceivedReqId !== null && reqId <= lastReceivedReqId) {
+      // The server has it, so wait rather than ask again. Safe because a response prepared while
+      // the socket was down is replayed as a missed message, and if any were lost the server sets
+      // needReload, ruled out above.
       log.debug("Comm: req #" + reqId + " " + r.methodName + " survived the reconnect");
       return;
     }
@@ -403,12 +407,13 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     if (r.clientId !== null && r.clientId !== connection.clientId) {
       // If we are waiting to send this request for a particular clientId, but clientId changed.
       error = "pending with outdated clientId";
-    } else if (r.sent && lastReceivedReqId === undefined) {
+    } else if (r.sent && !serverSpeaksForThis) {
       // We sent it, and reconnected without learning whether it arrived. The safer choice is to
       // reject it.
       error = "interrupted by reconnect";
     } else {
-      // Never sent, or the server says it never arrived: either way it has had no effect yet.
+      // Never sent, or the server read past it without seeing it: either way it has had no
+      // effect yet.
       r.sent = connection.send(r.requestMsg);
       r.sentOn = r.sent ? connection : null;
     }
