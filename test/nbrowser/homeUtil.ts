@@ -424,7 +424,7 @@ export class HomeUtil {
     return this.driver.wait(() => this.driver.executeAsyncScript<string>((done: (key: string) => void) => {
       try {
         const app = (window as any).gristApp;
-        if (!app || !app.topAppModel) { done(""); return; }
+        if (!app?.topAppModel) { done(""); return; }
         const api: UserAPI = app.topAppModel.api;
         api.fetchApiKey().then((key) => {
           if (key) { return key; }
