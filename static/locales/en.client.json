@@ -3133,7 +3133,8 @@
         "Upgrade to full Grist": "Upgrade to full Grist",
         "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.",
         "Your server will restart automatically once finished.": "Your server will restart automatically once finished.",
-        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today."
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.",
+        "The Community edition is set via environment variable.": "The Community edition is set via environment variable."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Apply and Continue",
