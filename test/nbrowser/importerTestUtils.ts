@@ -44,46 +44,36 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
   // Check if we can see row number 1
   await driver.findContentWait(".test-importer-preview .gridview_data_row_num", "1", 5000);
 
-  // Click any cell that we see to set the focus, to try to make the
-  // state after waiting more deterministic.
-  // There is something odd occasionally, depending perhaps on scrolling,
-  // where the first row isn't clickable. Just working around it, and trying each
-  // of the first ten records, since this problem has persisted a very long time.
-  // TODO: find a more sensible fix.
-  const records = await driver.findAll(".test-importer-preview .record-hlines");
-  let success = false;
-  let lastError: unknown;
-  await gu.scrollIntoView(await records[0].find(".field_clip"));
-  for (const rec of records.slice(0, 10)) {
-    try {
-      const cell = await rec.find(".field_clip");
-      await cell.click();
-      // Wait for the focus to be set. Keep this generous: a short timeout here races
-      // under CI load, and the catch below would silently move on to the next record,
-      // leaving the grid scrolled somewhere unpredictable.
-      await driver.findWait(".test-importer-preview .field_clip.has_cursor", 1000);
-      // Go to the first cell.
-      await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
-      await gu.sendKeys(Key.HOME);
-      success = true;
-      break;
-    } catch (e) {
-      lastError = e;
-      continue;
-    }
-  }
-  if (!success) {
-    throw Error(`tried cells without success, last error: ${lastError}`);
+  // Callers get here straight after picking merge fields, so a multi-select menu may still
+  // be open and would swallow later clicks. The old code closed it as a side effect of
+  // clicking a preview cell; close it explicitly now that we no longer click.
+  const menus = await driver.findAll(".test-multi-select-menu");
+  if (menus.length > 0) {
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitToPass(async () =>
+      assert.lengthOf(await driver.findAll(".test-multi-select-menu"), 0), 2000);
   }
 
-  // Scrolling back to the top is not instant. Callers read cells by row number right
-  // after this returns, and reading while the grid is still scrolled gives back
-  // undefined for every row. Wait for row 1 to actually be the first rendered row.
+  // Callers read the preview by row number, so the grid has to be scrolled to the top.
+  // Drive the view directly: clicking a cell and sending Ctrl+UP/HOME depends on the grid
+  // having focus, and when it does not the keys are lost and the grid stays where it was
+  // (CI has seen row 4045 as the first visible row, giving undefined for every cell).
+  // The scroll is re-issued on each attempt, and is not awaited in the page -- awaiting a
+  // promise there can hang the test if it never settles, so the assertion decides.
   await gu.waitToPass(async () => {
+    const registered = await driver.executeScript<boolean>(`
+      const preview = window.gristImportPreview;
+      if (!preview) { return false; }
+      preview.setCursorPos({rowIndex: 0, fieldIndex: 0});
+      preview.scrollToCursor(true);
+      return true;
+    `);
+    assert.isTrue(registered, "no import preview grid registered");
+
     const rowNums = await driver.findAll(".test-importer-preview .gridview_data_row_num",
       el => el.getText());
-    assert.equal(rowNums[0], "1");
-  }, 2000);
+    assert.equal(rowNums[0], "1", `grid did not scroll to the top, first row is ${rowNums[0]}`);
+  }, 5000);
 };
 
 // Helper that gets the list of visible column matching rows to the left of the preview.
