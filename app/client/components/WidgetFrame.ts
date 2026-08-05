@@ -231,11 +231,15 @@ export class WidgetFrame extends DisposableWithEvents {
       testId("ready", use => use(this._readyCalled) && !use(this._isEmpty)),
       (elem) => { this._options.onElem(elem); },
     );
-    // Show a spinner over the iframe until the widget signals it's ready (by calling
-    // grist.ready()). Skipped for the empty placeholder page, which loads instantly.
+    // Show a spinner for as long as the iframe itself is hidden (see `_visible` above), i.e.
+    // while a `showAfterReady` widget is still applying the theme. Not every widget calls
+    // grist.ready(), so we can't gate this on _readyCalled directly: that would spin forever
+    // for such widgets. `showAfterReady` is only set for gallery widgets whose manifest opts
+    // in via the `renderAfterReady` flag, declaring that they do call ready() - so this wait
+    // is already known to be bounded.
     return cssWidgetFrameContainer(
       this._iframe,
-      dom.maybe(use => !use(this._readyCalled) && !use(this._isEmpty), () =>
+      dom.maybe(use => !use(this._visible) && !use(this._isEmpty), () =>
         cssSpinnerOverlay(loadingSpinner(), testId("spinner"))),
     );
   }
