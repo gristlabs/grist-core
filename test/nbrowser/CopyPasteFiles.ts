@@ -35,8 +35,8 @@ describe("CopyPasteFiles", function() {
     await gu.getCell({ rowNum: 1, col: "Photo" }).click();
     await driver.executeScript(syntheticPasteFile,
       [{ content: samplePngContent.toString("base64"), name: "flower.png", type: "image/png" }]);
-    await gu.waitToPass(async () =>
-      assert.deepEqual(await getCellThumbTitles(gu.getCell({ rowNum: 1, col: "Photo" })), ["flower.png"]));
+    await gu.waitForPaste();
+    assert.deepEqual(await getCellThumbTitles(gu.getCell({ rowNum: 1, col: "Photo" })), ["flower.png"]);
 
     // Add a couple more records
     await api.applyUserActions(docId, [
@@ -48,6 +48,8 @@ describe("CopyPasteFiles", function() {
       { content: samplePngContent.toString("base64"), name: "flower.png", type: "image/png" },
       { content: samplePdfContent.toString("base64"), name: "sample.pdf", type: "application/pdf" },
     ]);
+
+    await gu.waitForPaste();
 
     assert.deepEqual(await getCellThumbTitles(gu.getCell({ rowNum: 1, col: "Name" })), []);
     assert.deepEqual(await getCellThumbTitles(gu.getCell({ rowNum: 1, col: "Photo" })), ["flower.png"]);

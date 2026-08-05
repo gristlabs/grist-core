@@ -25,6 +25,7 @@ import { copyToClipboard, readDataFromClipboard } from "app/client/lib/clipboard
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { makePasteHtml, makePasteText, parsePasteHtml, PasteData } from "app/client/lib/tableUtil";
+import { testPendingPastes } from "app/client/lib/testPendingOps";
 import { ShortcutKey, ShortcutKeyContent } from "app/client/ui/ShortcutKey";
 import { confirmModal } from "app/client/ui2018/modals";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
@@ -324,14 +325,25 @@ export class Clipboard extends Disposable {
       if (this._cutCallback) {
         // Cuts should only be possible on the first paste after a cut and only if the data being
         // pasted matches the data that was cut.
-        commands.allCommands.paste.run(pasteData, this._cutCallback);
+        this._runPaste(pasteData, this._cutCallback);
       }
     } else {
       this._cutData = null;
-      commands.allCommands.paste.run(pasteData, null);
+      this._runPaste(pasteData, null);
     }
     // The cut callback should only be usable once so it needs to be cleared after every paste.
     this._cutCallback = null;
+  }
+
+  /**
+   * Runs the paste command, counted so tests can wait for it. Nothing awaits a paste, and a file
+   * paste is an upload followed by a separate action, so in-flight request counts go quiet in
+   * between and look like success. Counting here rather than in each view's paste command keeps
+   * it to the one place a paste is dispatched from. See PendingOps.
+   */
+  private _runPaste(pasteData: PasteData, cutCallback: (() => unknown) | null) {
+    // Floated, as the bare run() call was before: nothing awaits a paste.
+    void testPendingPastes.track(async () => commands.allCommands.paste.run(pasteData, cutCallback));
   }
 }
 

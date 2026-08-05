@@ -12,6 +12,7 @@ import { onClickOutside } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import * as koUtil from "app/client/lib/koUtil";
 import { makeT } from "app/client/lib/localization";
+import { testPendingChecks, testPendingPastes } from "app/client/lib/testPendingOps";
 import { reportError, TopAppModel, TopAppModelImpl } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { setUpErrorHandling } from "app/client/models/errors";
@@ -265,6 +266,14 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   public testNumPendingApiRequests(): number {
     return BaseAPI.numPendingRequests();
+  }
+
+  public testNumPendingChecks(): number {
+    return testPendingChecks.count;
+  }
+
+  public testNumPendingPastes(): number {
+    return testPendingPastes.count;
   }
 
   private _reloadPane() {
