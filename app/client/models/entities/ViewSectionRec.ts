@@ -27,7 +27,7 @@ import { UserAction } from "app/common/DocActions";
 import { RecalcWhen } from "app/common/gristTypes";
 import { arrayRepeat, safeJsonParse } from "app/common/gutil";
 import { Sort } from "app/common/SortSpec";
-import { WidgetType } from "app/common/widgetTypes";
+import { isLegacyCalendarCustomDef, IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
@@ -96,6 +96,9 @@ export interface ViewSectionOptions extends ChartOptions {
   rowHeight?: number;           // Optional limit on height of rows, in lines.
   rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
 
+  // Options for the native CalendarView.
+  calendarViewPerspective?: "day" | "week" | "month";   // Last-used calendar view.
+
   // Other options.
   customView?: string;    // Configuration for custom widgets in JSON format.
   disabled?: boolean;     // Applies to the "default record card".
@@ -108,7 +111,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // The underlying RowModel provides a KoSaveableObservable for each field in app/common/schema.ts.
   //   tableRef: number;
   //   parentId: number;
-  //   parentKey: string;
+  //   parentKey: string;   // storage value; prefer effectiveWidgetType for anything user-facing.
   //   title: string;
   //   description: string;
   //   defaultWidth: number;
@@ -301,6 +304,15 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   columnsToMap: ko.Observable<ColumnsToMap | null>;
   // Map from widget columns to colIds in document.
   mappedColumns: ko.Computed<WidgetColumnMap | null>;
+
+  // True for old "custom" sections that referenced the retired calendar custom widget.
+  // They are rendered with the native calendar (see ViewLayout).
+  isLegacyCalendarWidget: ko.Computed<boolean>;
+  // The widget type to treat this section as, which is parentKey except for legacy calendar
+  // sections: those keep their old parentKey on disk but behave as "calendar" everywhere in the
+  // UI (which view to build, which creator panel to show, what the widget picker starts on).
+  // Use this rather than parentKey for anything user-facing; parentKey stays the storage value.
+  effectiveWidgetType: ko.Computed<IWidgetType>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;
   // Temporary variable holding widget desired access (changed either from manifest or via API).
@@ -510,6 +522,21 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     renderAfterReady: customDefObj.prop("renderAfterReady"),
   };
 
+  this.isLegacyCalendarWidget = ko.pureComputed(() => {
+    return this.parentKey() === "custom" && isLegacyCalendarCustomDef({
+      widgetId: this.customDef.widgetId(),
+      url: this.customDef.url(),
+    });
+  });
+
+  this.effectiveWidgetType = ko.pureComputed<IWidgetType>(() => {
+    const key = this.parentKey() as IWidgetType;
+    // Both legacy shapes present themselves as the native calendar: the old attached widget
+    // ("custom.calendar") and a plain "custom" section pointing at the retired widget.
+    if (key === "custom.calendar" || this.isLegacyCalendarWidget()) { return WidgetType.Calendar; }
+    return key;
+  });
+
   this.selectedFields = ko.observable<any>([]);
 
   // During schema change, some columns/fields might be disposed beyond our control.
@@ -550,8 +577,10 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // - Widget type description (if not grid)
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
-    const widgetTypeDesc = this.parentKey() !== "record" ?
-      `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}` :
+    // Legacy calendar sections get the Calendar label, not their stored parentKey's.
+    const widgetType = this.effectiveWidgetType();
+    const widgetTypeDesc = widgetType !== "record" ?
+      `${getWidgetTypes(widgetType).getLabel()}` :
       "";
     const table = this.table();
     return [

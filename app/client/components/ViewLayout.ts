@@ -1,8 +1,8 @@
 import BaseView from "app/client/components/BaseView";
 import { buildViewSectionDom } from "app/client/components/buildViewSectionDom";
+import { CalendarView } from "app/client/components/CalendarView";
 import { ChartView } from "app/client/components/ChartView";
 import * as commands from "app/client/components/commands";
-import { CustomCalendarView } from "app/client/components/CustomCalendarView";
 import { CustomView } from "app/client/components/CustomView";
 import DetailView from "app/client/components/DetailView";
 import { buildDuplicateWidgetModal } from "app/client/components/duplicateWidget";
@@ -48,13 +48,13 @@ import debounce from "lodash/debounce";
 const t = makeT("ViewLayout");
 
 const viewSectionTypes: { [key: string]: any } = {
-  "record": GridView,
-  "detail": DetailView,
-  "chart": ChartView,
-  "single": DetailView,
-  "custom": CustomView,
-  "form": FormView,
-  "custom.calendar": CustomCalendarView,
+  record: GridView,
+  detail: DetailView,
+  chart: ChartView,
+  single: DetailView,
+  calendar: CalendarView,
+  custom: CustomView,
+  form: FormView,
 };
 
 function getInstanceConstructor(parentKey: string) {
@@ -80,7 +80,7 @@ export class ViewSectionHelper extends Disposable {
       if (vs.isDisposed()) { return; }
       // Rebuild the section when its type changes or its underlying table.
       const table = use(vs.table);
-      const key = use(vs.parentKey);
+      const key = use(vs.effectiveWidgetType);
       const Cons = getInstanceConstructor(key);
       const viewOptions = options?.[key] || {};
       this._instance.clear();

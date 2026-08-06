@@ -201,8 +201,8 @@ describe("PageWidgetPicker", () => {
     // select 'New Table'
     await driver.findContent(".test-wselect-table", /New Table/).doClick();
 
-    // check that 'Chart' and 'Custom' are disabled
-    assert.deepEqual(await findAllDisabled("type"), ["Chart", "Custom"]);
+    // check that 'Chart', 'Calendar' and 'Custom' are disabled
+    assert.deepEqual(await findAllDisabled("type"), ["Chart", "Calendar", "Custom"]);
     assert.deepEqual(await findAllDisabled("table"), []);
 
     // click 'Chart'
@@ -219,6 +219,16 @@ describe("PageWidgetPicker", () => {
     // check that addBtn is not disabled anymore
     assert.equal(await addBtn.getAttribute("disabled"), null);
 
+    // summarizing the table disables the types that need columns a summary doesn't keep: a form
+    // (nothing to submit into) and a calendar (no title column, and a start date only when the
+    // summary happens to group by one).
+    await driver.findContent(".test-wselect-table", /Companies/).find(".test-wselect-pivot").doClick();
+    assert.deepEqual(await findAllDisabled("type"), ["Form", "Calendar"]);
+
+    // un-summarizing brings them back
+    await driver.findContent(".test-wselect-table", /Companies/).find(".test-wselect-pivot").doClick();
+    assert.deepEqual(await findAllDisabled("type"), []);
+
     // set option IsNewPage to true and reopen picker
     await closePicker();
     await setOption({ isNewPage: true });
@@ -227,9 +237,10 @@ describe("PageWidgetPicker", () => {
     // select `Table` type
     await driver.findContent(".test-wselect-type", /Table/).doClick();
 
-    // select 'New Table' and  check that 'single', 'detail', 'chart', 'custom' are disabled
+    // select 'New Table' and check that 'single', 'detail', 'chart', 'calendar', 'custom' are disabled
     await driver.findContent(".test-wselect-table", /New Table/).doClick();
-    assert.deepEqual(await findAllDisabled("type"), ["Card", "Card List", "Chart", "Custom"]);
+    assert.deepEqual(await findAllDisabled("type"),
+      ["Card", "Card List", "Chart", "Calendar", "Custom"]);
     assert.deepEqual(await findAllDisabled("table"), []);
 
     // select 'Companies' and check that none are disabled
