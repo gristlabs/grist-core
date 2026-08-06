@@ -15,6 +15,49 @@ describe("GranularAccess", function() {
   this.timeout(40000);
   const cleanup = setupTestSuite();
 
+  it("groups denial memos by kind", async function() {
+    const owner = await gu.session().teamSite.login();
+    const api = owner.createHomeApi();
+    const doc = await owner.tempNewDoc(cleanup, "MemoKinds", { load: false });
+
+    // A rule that would grant an owner update access (a "remedy" for the editor), plus a
+    // record-dependent deny (the "reason"). The reason is record-dependent so the client can't
+    // pre-block the edit -- it is attempted and denied server-side, producing the memo toast.
+    await api.applyUserActions(doc, [
+      // A real data row, so editing cell (0, 1) is an update rather than adding a new record.
+      ["AddRecord", "Table1", null, { A: "hi" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access == OWNER", permissionsText: "+U", memo: "Owners can edit",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: 'newRec.A != ""', permissionsText: "-U", memo: "Editing is locked",
+      }],
+    ]);
+    await api.updateDocPermissions(doc, {
+      users: { [gu.translateUser("user2").email]: "editors" },
+    });
+
+    // As the editor, try to edit a cell. The denial toast should group the two memo kinds.
+    const editorSession = await gu.session().teamSite.user("user2").login();
+    await editorSession.loadDoc(`/doc/${doc}`);
+    await gu.getCell(0, 1).click();
+    await gu.waitAppFocus();
+    await gu.sendKeys("nope", Key.ENTER);
+    await gu.waitForServer();
+
+    // Assert the grouping structurally (which memo is in which kind's group), not any UI copy.
+    const toast = await driver.findWait(".test-notifier-toast-wrapper", 2000);
+    const memosInGroup = (kind: string) => toast.findAll(
+      `.test-notifier-toast-memo-group-${kind} .test-notifier-toast-memo`, el => el.getText());
+    assert.deepEqual(await memosInGroup("reason"), ["Editing is locked"]);
+    assert.deepEqual(await memosInGroup("remedy"), ["Owners can edit"]);
+    // The kind icon carries an accessible label for screen readers (copy not pinned).
+    const iconLabel = await toast.find('.test-notifier-toast-memo-group-reason [role="img"]')
+      .getAttribute("aria-label");
+    assert.isNotEmpty(iconLabel);
+  });
+
   it("restores formula data column after rejection", async function() {
     // Create a document owned by default user.
     const mainSession = await gu.session().teamSite.login();
@@ -910,10 +953,14 @@ describe("GranularAccess", function() {
       await gu.waitForServer();
       const message = await driver.findWait(".test-notifier-toast-wrapper", 2000).getText();
 
-      // The last character in each regexp is the "x" to close the toast.
+      // A memo shows only if it explains this denial: the rule that blocks you (reason), or a
+      // would-allow rule not overruled by a higher-precedence denial (remedy). Column: rule3 blocks
+      // and overrules the table/doc remedies, so only rule3 shows. Table: rule2b blocks create, its
+      // sibling remedy rule2 survives, the doc remedy rule1 is shadowed. Reasons list before remedies.
+      // The trailing character is the "x" to close the toast.
       const expectedRegex = (blockedBy === "column") ?
-        /^Blocked by column update access rules\nrule3\nrule2\nrule1\n.$/ :
-        /^Blocked by table create access rules\nrule2\nrule2b\nrule1\n.$/;
+        /^Blocked by column update access rules\nrule3\n.$/ :
+        /^Blocked by table create access rules\nrule2b\nrule2\n.$/;
 
       assert.match(message, expectedRegex);
       await gu.wipeToasts();

@@ -1,9 +1,10 @@
+import { Memo } from "app/common/ACLPermissions";
 import { OpenDocMode } from "app/common/DocListAPI";
 
 interface ErrorDetails {
   status?: number;
   accessMode?: OpenDocMode;
-  memos?: string[];
+  memos?: Memo[];
 }
 
 /**
