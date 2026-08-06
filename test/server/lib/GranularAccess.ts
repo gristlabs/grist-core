@@ -14,6 +14,7 @@ import {
   TableColValues,
   TableDataAction,
   UpdateRecord,
+  UserAction,
 } from "app/common/DocActions";
 import { OpenDocOptions } from "app/common/DocListAPI";
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
@@ -4249,10 +4250,84 @@ describe("GranularAccess", function() {
     // Try to modify _grist_Attachments by shady means.
     await assert.isRejected(owner.getDocAPI(docId).addRows("_grist_Attachments", { fileName: ["A", "B"] }),
       /_grist_Attachments modification is not allowed/);
-    await assert.isRejected(owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [1], fileName: ["A"] }),
+    // Renaming is allowed (see the test below), but nothing else about the row is.
+    await assert.isRejected(owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [1], fileIdent: ["A"] }),
       /_grist_Attachments modification is not allowed/);
     await assert.isRejected(owner.getDocAPI(docId).removeRows("_grist_Attachments", [1]),
       /_grist_Attachments modification is not allowed/);
+  });
+
+  // The attachment editor renames files by updating _grist_Attachments.fileName, so
+  // that update needs to survive the lockdown on this table. The lockdown only applies
+  // when there are rules, and a share counts as rules even if the owner wrote none.
+  const attachmentScenarios: { name: string, setup: UserAction[], rulesApply: boolean }[] = [
+    { name: "a plain document", setup: [], rulesApply: false },
+    {
+      name: "a document with rules",
+      rulesApply: true,
+      setup: [
+        ["AddRecord", "_grist_ACLResources", -1, { tableId: "*", colIds: "*" }],
+        ["AddRecord", "_grist_ACLRules", null, {
+          resource: -1, aclFormula: "user.Access in [OWNER]", permissionsText: "all",
+        }],
+      ],
+    },
+    {
+      name: "a document with an unpublished share",
+      rulesApply: true,
+      setup: [
+        // A link id distinct from the one the share tests below use, since
+        // getShareKeyForUrl looks shares up by link id across all documents.
+        ["AddRecord", "_grist_Shares", null, { linkId: "rename-att", options: '{"publish": false}' }],
+      ],
+    },
+  ];
+
+  for (const { name, setup, rulesApply } of attachmentScenarios) {
+    it(`can rename attachments in ${name}`, async function() {
+      await freshDoc();
+      await owner.applyUserActions(docId, [
+        ["AddTable", "Data1", [{ id: "Texts", type: "Attachments" }]],
+        ...setup,
+      ]);
+
+      const i1 = await owner.getDocAPI(docId).uploadAttachment("content1", "1.txt");
+      await owner.getDocAPI(docId).addRows("Data1", { Texts: [[GristObjCode.List, i1]] });
+
+      await assert.isFulfilled(
+        owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [i1], fileName: ["renamed.txt"] }));
+      const rows = await owner.getDocAPI(docId).getRows("_grist_Attachments");
+      assert.deepEqual(rows.fileName, ["renamed.txt"]);
+
+      if (rulesApply) {
+        // No smuggling another column along with the file name.
+        await assert.isRejected(
+          owner.getDocAPI(docId).updateRows("_grist_Attachments",
+            { id: [i1], fileName: ["other.txt"], fileIdent: ["bogus"] }),
+          /_grist_Attachments modification is not allowed/);
+      }
+
+      // The share tests below expect to find only their own shares in the home database.
+      await removeShares(docId, owner);
+    });
+  }
+
+  it("stops applying a share's rules once the share is gone", async function() {
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddRecord", "_grist_Shares", null, { linkId: "share-gone", options: '{"publish": false}' }],
+    ]);
+    const i1 = await owner.getDocAPI(docId).uploadAttachment("content1", "1.txt");
+
+    // A share brings rules with it, which switch on the lockdown of _grist_Attachments.
+    await assert.isRejected(
+      owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [i1], fileIdent: ["x"] }),
+      /_grist_Attachments modification is not allowed/);
+
+    // Removing the last share should take effect right away, without a reload.
+    await removeShares(docId, owner);
+    await assert.isFulfilled(
+      owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [i1], fileIdent: ["x"] }));
   });
 
   describe("shares", function() {
