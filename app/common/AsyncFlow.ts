@@ -34,7 +34,10 @@ import { Disposable, IDisposable } from "grainjs";
 
 type DisposeListener = ReturnType<Disposable["onDispose"]>;
 
-export class CancelledError extends Error {}
+export class CancelledError extends Error {
+  // Set when a cancelled flow then failed on its way out.
+  constructor(message: string, public readonly cause?: unknown) { super(message); }
+}
 
 export class FlowRunner extends Disposable {
   public resultPromise: Promise<void>;
@@ -45,6 +48,12 @@ export class FlowRunner extends Disposable {
     async function runFlow() {
       try {
         return await func(flow);
+      } catch (err) {
+        // A cancelled flow may fail on its way out. Report that as cancelled, keeping the cause.
+        if (flow.isCancelled && !(err instanceof CancelledError)) {
+          throw new CancelledError("cancelled", err);
+        }
+        throw err;
       } finally {
         flow.dispose();
       }
@@ -70,6 +79,8 @@ export class AsyncFlow extends Disposable {
     this._handles.delete(obj);
     return obj;
   }
+
+  public get isCancelled(): boolean { return this._isCancelled; }
 
   public checkIfCancelled() {
     if (this._isCancelled) {
