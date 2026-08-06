@@ -787,7 +787,9 @@
         "Renew": "Renew",
         "Report a problem": "Report a problem",
         "Upgrade Plan": "Upgrade Plan",
-        "Manage billing": "Manage billing"
+        "Manage billing": "Manage billing",
+        "How you could gain access": "How you could gain access",
+        "What's blocking you": "What's blocking you"
     },
     "OnBoardingPopups": {
         "Finish": "Finish",
