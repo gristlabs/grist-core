@@ -386,7 +386,7 @@ class SummaryActions(object):
         c.summarySourceCol.colId,
         (
           'CONTAINS($%s, match_empty="")' if c.summarySourceCol.type == 'ChoiceList' else
-          'CONTAINS($%s, match_empty=0)' if c.summarySourceCol.type.startswith('Reflist') else
+          'CONTAINS($%s, match_empty=0)' if c.summarySourceCol.type.startswith('RefList:') else
           '$%s'
         ) % c.colId,
       )
