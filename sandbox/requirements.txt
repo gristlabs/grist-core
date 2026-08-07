@@ -54,3 +54,4 @@ unittest-xml-reporting==2.0.0
     # via -r core/sandbox/requirements.in
 wrapt==1.15.0
     # via astroid
+RestrictedPython==8.1
