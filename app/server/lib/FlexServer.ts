@@ -983,6 +983,7 @@ export class FlexServer implements GristServer {
     this._activations = new ActivationsManager(this._dbManager);
     this._installationId = (await this._activations.current()).id;
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
+    this._dbManager.setInstallAdmin(this._installAdmin);
   }
 
   public addDocWorkerMap() {
