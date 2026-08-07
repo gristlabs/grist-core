@@ -37,7 +37,5 @@ declare global {
       apiKey: string, base: string, options: AirtableImportOptions,
     ) => Promise<any>;
     testGrist?: Partial<TestState>;
-    // The importer's preview GridView, set while the import dialog is open. For tests.
-    gristImportPreview?: unknown;
   }
 }

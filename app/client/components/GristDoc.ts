@@ -609,12 +609,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       // cursor position is determined by finding active (or visible) section and passing this
       // command (setCursor) to its instance.
       vs.viewInstance(preview);
-      // Exposed for tests, which need to drive the preview grid directly (e.g. to scroll it).
-      G.window.gristImportPreview = preview;
-      preview.onDispose(() => {
-        vs.viewInstance(null);
-        delete G.window.gristImportPreview;
-      });
+      preview.onDispose(() => vs.viewInstance(null));
       return preview;
     };
 

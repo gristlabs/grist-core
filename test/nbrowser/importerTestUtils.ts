@@ -44,32 +44,16 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
   // Check if we can see row number 1
   await driver.findContentWait(".test-importer-preview .gridview_data_row_num", "1", 5000);
 
-  // Callers get here straight after picking merge fields, so a multi-select menu may still
-  // be open and would swallow later clicks. The old code closed it as a side effect of
-  // clicking a preview cell; close it explicitly now that we no longer click.
-  const menus = await driver.findAll(".test-multi-select-menu");
-  if (menus.length > 0) {
+  if (await driver.find(".test-multi-select-menu").isPresent()) {
     await gu.sendKeys(Key.ESCAPE);
-    await gu.waitToPass(async () =>
-      assert.lengthOf(await driver.findAll(".test-multi-select-menu"), 0), 2000);
+    await gu.notPresent(".test-multi-select-menu");
   }
 
-  // Callers read the preview by row number, so the grid has to be scrolled to the top.
-  // Drive the view directly: clicking a cell and sending Ctrl+UP/HOME depends on the grid
-  // having focus, and when it does not the keys are lost and the grid stays where it was
-  // (CI has seen row 4045 as the first visible row, giving undefined for every cell).
-  // The scroll is re-issued on each attempt, and is not awaited in the page -- awaiting a
-  // promise there can hang the test if it never settles, so the assertion decides.
   await gu.waitToPass(async () => {
-    const registered = await driver.executeScript<boolean>(`
-      const preview = window.gristImportPreview;
-      if (!preview) { return false; }
-      preview.setCursorPos({rowIndex: 0, fieldIndex: 0});
-      preview.scrollToCursor(true);
-      return true;
+    await driver.executeScript(`
+      const view = document.querySelector(".test-importer-preview .grid_view_data");
+      if (view) { view.scrollTop = 0; }
     `);
-    assert.isTrue(registered, "no import preview grid registered");
-
     const rowNums = await driver.findAll(".test-importer-preview .gridview_data_row_num",
       el => el.getText());
     assert.equal(rowNums[0], "1", `grid did not scroll to the top, first row is ${rowNums[0]}`);
