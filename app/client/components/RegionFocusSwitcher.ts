@@ -1,14 +1,17 @@
 import BaseView from "app/client/components/BaseView";
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import {
+  highlightKeyboardFocus,
+  isKeyboardUser,
+  kbFocusHighlighterClass,
+} from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { enableTabTrap, isFocusable } from "app/client/lib/focusUtils";
+import { enableTabTrap, isFocusable, isMousetrapIgnoredElement } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";
 import { mod } from "app/common/gutil";
-import { components } from "app/common/ThemePrefs";
 
 import { Disposable, dom, Holder, Observable, styled, UseCBOwner } from "grainjs";
 import isEqual from "lodash/isEqual";
@@ -68,15 +71,20 @@ export class RegionFocusSwitcher extends Disposable {
       nextRegion: () => {
         this._logCommand("nextRegion");
         this._maybeNotifyAboutCreatorPanel();
+        // "Highlighting" keyboard focus sets the `isKeyboardUser` flag that is later used to decide where to move focus
+        // between panels and the active section, when pressing the Escape key or when the clipboard regains focus.
+        highlightKeyboardFocus();
         return this._cycle("next");
       },
       prevRegion: () => {
         this._logCommand("prevRegion");
         this._maybeNotifyAboutCreatorPanel();
+        highlightKeyboardFocus();
         return this._cycle("prev");
       },
       creatorPanel: () => {
         this._logCommand("creatorPanel");
+        highlightKeyboardFocus();
         return this._toggleCreatorPanel();
       },
       cancel: this._onEscapeKeypress.bind(this),
@@ -84,10 +92,10 @@ export class RegionFocusSwitcher extends Disposable {
 
     this.autoDispose(this._state.addListener(this._onStateChange.bind(this)));
 
-    const focusActiveSection = () => this.focusActiveSection();
-    this._app?.on("clipboard_focus", focusActiveSection);
+    const onClipboardFocus = this._onClipboardFocus.bind(this);
+    this._app?.on("clipboard_focus", onClipboardFocus);
     this.onDispose(() => {
-      this._app?.off("clipboard_focus", focusActiveSection);
+      this._app?.off("clipboard_focus", onClipboardFocus);
       this.reset();
     });
   }
@@ -115,6 +123,7 @@ export class RegionFocusSwitcher extends Disposable {
           "region"),
       dom.attr("aria-label", ariaLabel),
       dom.attr(ATTRS.regionId, id),
+      dom.cls(cssPanel.className),
       dom.cls(kbFocusHighlighterClass, (use) => {
         // highlight focused elements everywhere except in the grist doc views
         return id !== "main" ?
@@ -138,10 +147,26 @@ export class RegionFocusSwitcher extends Disposable {
         }
         return false;
       }),
-      cssFocusedPanel.cls("-focused", (use) => {
-        const current = use(this._state);
-        return current.initiator?.type === "cycle" && current.region?.type === "panel" && current.region.id === id;
+      dom.on("focusin", () => {
+        if (isKeyboardUser()) {
+          this._savePrevElementState(this._state.get().region);
+        }
       }),
+      // When pressing Escape inside inputs, we "reset" the focused element state early to prevent
+      // a loop between the focusin listener above, and the _onClipboardFocus code. The loop would
+      // cause pressing Escape resulting in removing focus, then instantly re-focusing the input.
+      dom.on("keydown", (event) => {
+        if (
+          event.key === "Escape" &&
+          !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey &&
+          isMousetrapIgnoredElement(event.target)
+        ) {
+          const current = this._state.get().region;
+          if (current?.type === "panel") {
+            this._prevFocusedElements[current.id] = null;
+          }
+        }
+      }, { useCapture: true }),
     ];
   }
 
@@ -203,6 +228,19 @@ export class RegionFocusSwitcher extends Disposable {
     this._focusRegion(undefined);
   }
 
+  /**
+   * Called when the clipboard regains focus, for example after a dropdown menu or modal closes.
+   *
+   * If the user was in a panel before the overlay opened, re-focus that panel instead of the active section.
+   */
+  private _onClipboardFocus() {
+    const current = this._state.get().region;
+    if (current?.type === "panel" && isKeyboardUser()) {
+      return this._focusPanel(current);
+    }
+    return this.focusActiveSection();
+  }
+
   private _focusRegion(
     region: Region | undefined,
     options: { initiator?: StateUpdateInitiator } = {},
@@ -222,6 +260,38 @@ export class RegionFocusSwitcher extends Disposable {
     }
 
     this._state.set({ region, initiator: options.initiator });
+  }
+
+  /**
+   * Keyboard-focus the given panel itself or the previously focused child element inside it.
+   *
+   * Works in 3 steps:
+   *   - trap the Tab key inside the panel to prevent focusing back the view layout by mistake
+   *   - focus the panel or the previous child
+   *   - make the Tab key available for normal browser navigation, instead of being captured by widget commands
+   */
+  private _focusPanel(panel: PanelRegion) {
+    const panelElement = getPanelElement(panel.id);
+    if (!panelElement) {
+      return;
+    }
+
+    this._tabTrap.autoDispose(enableTabTrap(panelElement));
+
+    const child = this._prevFocusedElements[panel.id] as HTMLElement | null;
+    // Child element found: focus it if we actually can
+    if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
+      child.focus?.();
+    } else {
+      // No child to focus found: just focus the panel
+      focusPanelElement(panelElement);
+    }
+
+    const gristDoc = this._getGristDoc();
+    if (gristDoc) {
+      // Creator panel is a special case "related to the view"
+      escapeViewLayout(gristDoc, panel.id === "right");
+    }
   }
 
   private _cycle(direction: "next" | "prev") {
@@ -281,17 +351,19 @@ export class RegionFocusSwitcher extends Disposable {
   /**
    * This is registered as a `cancel` command when the RegionFocusSwitcher is created.
    *
-   * That means this is called when pressing Escape in no particular setting.
+   * On escape keypress, we either focus back the panel itself,
+   * or reset the focus to the active section if already focused on the panel.
+   *
    * Any `cancel` command registered by other code after loading the page will take precedence over this one.
    * So, this doesn't get called when in a modal, a popup menu, etc., as those have their own cancel callback.
    */
   private _onEscapeKeypress() {
-    const { region: current, initiator } = this._state.get();
+    const { region: current } = this._state.get();
     // Do nothing if we are not focused on a panel
     if (current?.type !== "panel") {
       return;
     }
-    const comesFromKeyboard = initiator?.type === "cycle";
+
     const panelElement = getPanelElement(current.id);
     if (!panelElement) {
       return;
@@ -313,7 +385,7 @@ export class RegionFocusSwitcher extends Disposable {
       // If user presses escape again, we also want to focus the panel.
       (activeElement === document.body)
     ) {
-      if (comesFromKeyboard) {
+      if (isKeyboardUser()) {
         focusPanelElement(panelElement);
         if (activeElementIsInPanel) {
           this._prevFocusedElements[current.id] = null;
@@ -352,7 +424,6 @@ export class RegionFocusSwitcher extends Disposable {
       undefined;
 
     this._tabTrap.clear();
-    removeFocusRings();
     removeTabIndexes();
     if (!mouseEvent) {
       this._savePrevElementState(prev.region);
@@ -369,12 +440,7 @@ export class RegionFocusSwitcher extends Disposable {
     //   - actually focus the panel dom element, or its previously focused child,
     //   - make the Tab key available for normal browser navigation in the panel (see `escapeViewLayout`)
     if (!mouseEvent && isPanel && panelElement && current.region) {
-      this._tabTrap.autoDispose(enableTabTrap(panelElement));
-      focusPanel(
-        current.region as PanelRegion,
-        this._prevFocusedElements[current.region.id as Panel] as HTMLElement | null,
-        gristDoc,
-      );
+      this._focusPanel(current.region as PanelRegion);
 
     // If clicking on a panel: only make sure view layout commands are disabled,
     // making the Tab key available for normal browser navigation (see `escapeViewLayout`)
@@ -513,36 +579,6 @@ export const viewCommands = (commandsObject: Record<string, Function>, context: 
 
 const ATTRS = {
   regionId: "data-grist-region-id",
-  focusedElement: "data-grist-region-focused-el",
-};
-
-/**
- * Focus the given panel dom element (or the given element inside it, if any), and let the grist doc view know about it.
- */
-const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: GristDoc | null) => {
-  const panelElement = getPanelElement(panel.id);
-  if (!panelElement) {
-    return;
-  }
-
-  // Child element found: focus it if we actually can
-  if (child && child !== panelElement && child.isConnected && isFocusable(child)) {
-    // Visually highlight the element with similar styles than panel focus,
-    // only for this time. This is here just to help the user better see the visual change when he switches panels.
-    child.setAttribute(ATTRS.focusedElement, "true");
-    child.addEventListener("blur", () => {
-      child.removeAttribute(ATTRS.focusedElement);
-    }, { once: true });
-    child.focus?.();
-  } else {
-    // No child to focus found: just focus the panel
-    focusPanelElement(panelElement);
-  }
-
-  if (gristDoc) {
-    // Creator panel is a special case "related to the view"
-    escapeViewLayout(gristDoc, panel.id === "right");
-  }
 };
 
 const focusPanelElement = (panelElement: HTMLElement) => {
@@ -692,15 +728,6 @@ const containsActiveElement = (el: HTMLElement | null): boolean => {
   return el?.contains(document.activeElement) && document.activeElement !== el || false;
 };
 
-/**
- * Remove the visual highlight on elements that are styled as focused elements of panels.
- */
-const removeFocusRings = () => {
-  document.querySelectorAll(`[${ATTRS.focusedElement}]`).forEach((el) => {
-    el.removeAttribute(ATTRS.focusedElement);
-  });
-};
-
 const removeTabIndexes = () => {
   document.querySelectorAll(`[${ATTRS.regionId}]`).forEach((el) => {
     el.removeAttribute("tabindex");
@@ -725,13 +752,6 @@ const isSpecialPage = (doc: GristDoc | null) => {
   return false;
 };
 
-export const cssFocusedPanel = styled("div", `
-  &-focused:focus {
-    outline: 3px solid ${components.kbFocusHighlight} !important;
-    outline-offset: -3px !important;
-  }
-
-  &-focused [${ATTRS.focusedElement}]:focus {
-    outline: 3px solid ${components.kbFocusHighlight} !important;
-  }
+export const cssPanel = styled("div", `
+  outline-offset: -3px !important;
 `);
