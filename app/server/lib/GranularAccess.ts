@@ -50,7 +50,7 @@ import { DocClients } from "app/server/lib/DocClients";
 import { OptDocSession } from "app/server/lib/DocSession";
 import { DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from "app/server/lib/DocStorage";
 import log from "app/server/lib/log";
-import { IPermissionInfo, MixedPermissionSetWithContext,
+import { IPermissionInfo, mergeMemoSets, MixedPermissionSetWithContext,
   PermissionInfo, PermissionSetWithContext } from "app/server/lib/PermissionInfo";
 import { TablePermissionSetWithContext } from "app/server/lib/PermissionInfo";
 import { integerParam } from "app/server/lib/requestUtils";
@@ -79,6 +79,11 @@ function isAclTable(tableId: string): boolean {
 }
 
 const ADD_OR_UPDATE_RECORD_ACTIONS = ["AddOrUpdateRecord", "BulkAddOrUpdateRecord"];
+
+// Actions whose update can be denied per-column, and whose written columns sit at index 3.
+const COLUMN_GRANULAR_UPDATE_ACTIONS = [
+  "UpdateRecord", "BulkUpdateRecord", "AddOrUpdateRecord", "BulkAddOrUpdateRecord",
+];
 
 function isAddOrUpdateRecordAction([actionName]: UserAction): boolean {
   return ADD_OR_UPDATE_RECORD_ACTIONS.includes(String(actionName));
@@ -1451,7 +1456,8 @@ export class GranularAccess implements GranularAccessForBundle {
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
       const accessCheck = await this._getAccessForActionType(docSession, a, "fatal");
-      accessCheck.get(tableAccess);  // will throw if access denied.
+      const permInfo = await this._getAccess(docSession);
+      accessCheck.get(this._focusUpdateMemos(a, tableAccess, permInfo, tableId));  // throws if denied
       return true;
     } else {
       // Any other action might change schema, so continuing could lead
@@ -1518,8 +1524,9 @@ export class GranularAccess implements GranularAccessForBundle {
         throw new Error(`${actionName} cannot yet be used on metadata tables`);
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
+      const permInfo = await this._getAccess(docSession);
       accessChecks.fatal.read.throwIfNotFullyAllowed(tableAccess);
-      accessChecks.fatal.update.throwIfDenied(tableAccess);
+      accessChecks.fatal.update.throwIfDenied(this._focusUpdateMemos(a, tableAccess, permInfo, tableId));
       accessChecks.fatal.create.throwIfDenied(tableAccess);
     });
   }
@@ -1655,6 +1662,29 @@ export class GranularAccess implements GranularAccessForBundle {
     if (docActions.some(docAction => isSchemaAction(docAction))) {
       await this.update();
     }
+  }
+
+  /**
+   * A table-wide update denial aggregates memos across all columns, so it can surface a memo about
+   * a column the user didn't touch. Return the same verdict and rule type, but with memos scoped to
+   * the columns this update actually touches. No-op for non-update actions or updates with no colIds.
+   *
+   * Update is the only case that needs this: it is the only column-granular data-write permission
+   * (AVAILABLE_BITS_COLUMNS is read/update), so create/delete denials are uniform across columns and
+   * their aggregate memo is already focused. Applies to plain updates and to the update side of an
+   * upsert; both keep the written columns at index 3.
+   */
+  private _focusUpdateMemos(a: DocAction | UserAction, ps: TablePermissionSetWithContext,
+    permInfo: IPermissionInfo, tableId: string): TablePermissionSetWithContext {
+    if (!COLUMN_GRANULAR_UPDATE_ACTIONS.includes(String(a[0]))) { return ps; }
+    const colIds = getColIdsFromDocAction(a as DataAction);
+    // No columns to focus on (e.g. an empty update): fall back to the table-level memos.
+    if (!colIds || colIds.length === 0) { return ps; }
+    return {
+      perms: ps.perms,
+      ruleType: ps.ruleType,
+      getMemos: () => mergeMemoSets(colIds.map(colId => permInfo.getColumnAccess(tableId, colId).getMemos())),
+    };
   }
 
   /**
@@ -1956,7 +1986,8 @@ export class GranularAccess implements GranularAccessForBundle {
       const rowPermInfo = new PermissionInfo(ruler.ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
-      const access = accessCheck.get(rowAccess);
+      // Scope any denial memos to the columns this update touches, as for the table-level checks.
+      const access = accessCheck.get(this._focusUpdateMemos(action, rowAccess, rowPermInfo, tableId));
       if (access === "deny") {
         toRemove.push(idx);
       } else if (access !== "allow" && colValues) {
@@ -2540,7 +2571,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const tableId = getTableId(action);
     const permInfo = await this._getStepAccess(cursor);
     const tableAccess = permInfo.getTableAccess(tableId);
-    const access = accessCheck.get(tableAccess);
+    const access = accessCheck.get(this._focusUpdateMemos(action, tableAccess, permInfo, tableId));
     if (access === "allow") { return; }
     if (access === "mixed") {
       // Deal with row-level access for the mixed condition.

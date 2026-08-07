@@ -2,6 +2,7 @@ import { makeT } from "app/client/lib/localization";
 import * as log from "app/client/lib/log";
 import { ConnectState, ConnectStateManager } from "app/client/models/ConnectState";
 import { isNarrowScreenObs, testId } from "app/client/ui2018/cssVars";
+import { Memo } from "app/common/ACLPermissions";
 import { delay } from "app/common/delay";
 import { isLongerThan } from "app/common/gutil";
 import { InactivityTimer } from "app/common/InactivityTimer";
@@ -72,7 +73,7 @@ export interface INotifyOptions {
   badgeCounter?: boolean;
   level: NotificationLevel;
 
-  memos?: string[];  // A list of relevant notes.
+  memos?: Memo[];  // Relevant notes attached to a denial, tagged as "reason" or "remedy".
 
   // cssToastAction class from NotifyUI will be applied automatically to action elements.
   actions?: NotifyAction[];

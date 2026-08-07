@@ -48,7 +48,29 @@
         "Invalid user attribute rule: {{prop}} must be set": "Недопустимое правило атрибута пользователя: {{prop}} должно быть задано",
         "Invalid user attribute to look up": "Неверный атрибут пользователя для поиска",
         "Not a valid user attribute": "Недопустимый атрибут пользователя",
-        "hidden": "скрытый"
+        "hidden": "скрытый",
+        "Resource missing in resource map: {{resourceKey}}": "Ресурса нет в карте ресурсов {{resourceKey}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Пытаюсь добавить табличные правила для таблицы {{tableId}}",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Используйте простой аттрибут user.LinkKey, например user.LinkKey.something",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Правила доступа\n\nБазовый доступ к документу определяется при помощи 'Manage Users' опции в 'Share' меню, где ты можешь распределять роли коллаборантам типо владельца, редактора и зрителя.\n\nДля более точного контроля, ты можешь создавать правда доступа для определённых людей\nтаблицы, столбцы или строки - нужны для чувствительных данных или к правилам по ролям.\n[Читать больше]({{helpAccessRules}})",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Правила доступа\n\nУ вас нет прав для просмотра и редактирования правил доступа для этого документа.",
+        "**Special rules** (expand each rule to customize who it applies to)": "**Специальные правила** (расширить каждое правила для полной кастомизации)",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "После отключения правл доступа, редактору будут в праве менять структуру документа и менять формулы. Редакторы и зрители смогут просматривать документ, а также копировать и скачивать его.",
+        "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "После включения правил доступа, редакторы больше не смогут менять структуру\nдокумента или формулы. Только владельцы смогут копировать или скачивать документы.\n\nЭти настройки могут быть изменены в 'Special rules'.",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Столбец {{colId}} появляется в нескольких правилах таблицы {{tableId}}. Попробовать разделить правила по-другому?",
+        "No columns listed in a column rule for table {{tableId}}": "Нет столбцов в их таблице правил{{tableId}}",
+        "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Все редакторы должны иметь возможность менять структуру (то есть менять и удалять таблицы, столбцы и стили), а также писать формулы. \nВажно: если проверерно, то редакторы должны иметть возможность редактировать формулы, которые имеют доступ к данным, вне зависимости от правил доступа для таблиц и столбцов.",
+        "Allow everyone to view access rules.": "Разрешите всем видеть правила доступа.",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Обходить и читать все предупреждения и разрешать любому копировать весь документ и смотреть его в полном интерактивном формате. Используйте только для примеров и шаблонов, не для документов, работающими с важными данными.",
+        "Continue": "Продолжайте",
+        "Disable Access Rules": "Отключите правила доступа",
+        "Disable and save": "Отключите и сохраните",
+        "Enable Access Rules": "Включите правила доступа",
+        "Permission to access the document in full by all users": "Разрешение всем пользователям на доступ к документу в полном объеме",
+        "Permission to access the document in full by unrestricted users": "Разрешение на полный доступ к документу для пользователей без ограничений",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Запретите пользователям, не являющимся владельцами, копировать или скачивать документ целиком. Примечание: это касается только пользователей, у которых нет ограничений на чтение, поскольку для остальных доступ будет ограничен независимо от этой настройки.",
+        "Special rules for templates": "Особые правила для шаблонов",
+        "This options should be off if Editors' access is to be limited. ": "Эту опцию следует отключить, если необходимо ограничить доступ для редакторов. "
     },
     "ACUserManager": {
         "Enter email address": "Введите адрес e-mail",
@@ -71,18 +93,32 @@
         "Password & security": "Пароль & Безопасность",
         "Two-factor authentication": "Двухфакторная аутентификация",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Двухфакторная аутентификация - это дополнительный уровень безопасности для вашего аккаунта Grist, предназначенный для идентификации вас как единственного человека, который может получить доступ к вашему аккаунту, даже если кто-то знает ваш пароль.",
-        "Language": "Язык"
+        "Language": "Язык",
+        "Basic info": "Основная информация",
+        "Developer": "Разработчик",
+        "Home": "Дом",
+        "Profile": "Профиль",
+        "Enterprise": "Предприятие",
+        "OAuth apps": "Приложения OAuth",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Приложения OAuth позволяют подключать к этому серверу Grist внешние интеграции — это безопаснее и удобнее, чем использование API-ключей.\n\nПриложения OAuth доступны в [полной версии Grist]({{fullGrist}}).",
+        "Accessibility": "Доступность"
     },
     "App": {
         "Memory Error": "Ошибка памяти",
         "Description": "Описание",
         "Key": "Ключ",
-        "Translators: please translate this only when your language is ready to be offered to users": "Переводчики: пожалуйста, переведите это только тогда, когда ваш язык будет готов для использования пользователями"
+        "Translators: please translate this only when your language is ready to be offered to users": "Переводчики: пожалуйста, переведите это только тогда, когда ваш язык будет готов для использования пользователями",
+        "Disabled screen reader improvements": "Улучшения для программ чтения с экрана",
+        "Enabled screen reader improvements": "Включены улучшения для программ чтения с экрана"
     },
     "ColorSelect": {
         "Apply": "Применить",
         "Cancel": "Отменить",
-        "Default cell style": "Стиль ячейки по умолчанию"
+        "Default cell style": "Стиль ячейки по умолчанию",
+        "default": "обычный",
+        "fill": "залить",
+        "none": "ничего",
+        "text": "текст"
     },
     "ColumnFilterMenu": {
         "Max": "Max",
@@ -194,7 +230,9 @@
         "Error bars": "Ошибка панелей",
         "None": "Нет",
         "Above+Below": "Выше+Ниже",
-        "Aggregate values": "Совокупные значения"
+        "Aggregate values": "Совокупные значения",
+        "Stack series": "Серия Stack",
+        "selected new x-axis": "выбрана новая ось x"
     },
     "CodeEditorPanel": {
         "Access denied": "Доступ запрещен",
@@ -246,7 +284,9 @@
         "Activation": "Активация",
         "Billing account": "Расчетный счет",
         "Sign up": "Зарегистрироваться",
-        "Use This Template": "Использовать этот шаблон"
+        "Use This Template": "Использовать этот шаблон",
+        "Site settings": "Настройки сайта",
+        "Account settings": "Настройки аккаунта"
     },
     "ActionLog": {
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблица {{tableId}} впоследствии была удалена в действии #{{actionNum}}",
@@ -496,7 +536,9 @@
         "Any documents created in this site will appear here.": "Все документы, созданные на этом сайте, будут отображаться здесь.",
         "Create my first document": "Создаю свой первый документ",
         "You have read-only access to this site. Currently there are no documents.": "У вас есть доступ к этому сайту только для чтения. На данный момент документов нет.",
-        "personal site": "персональный сайт"
+        "personal site": "персональный сайт",
+        "Grid view": "табличный вид",
+        "List view": "вид списка"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Не удается создать тур по документу на основе данных в этом документе. Убедитесь, что существует таблица с именем GristDocTour со столбцами Title, Body, Placement и Location.",
@@ -597,7 +639,8 @@
         "Allow others to suggest changes": "Разрешить другим предлагать изменения",
         "Enable suggestions": "Включить предложения",
         "Suggestions": "Предложения",
-        "experiment": "эксперимент"
+        "experiment": "эксперимент",
+        "For number formats": "для числового формата"
     },
     "DocPageModel": {
         "Add widget to page": "Добавить виджет на страницу",
@@ -657,7 +700,10 @@
         "Grid Options": "Параметры сетки",
         "Vertical gridlines": "Вертикальные линии сетки",
         "Horizontal gridlines": "Горизонтальные линии сетки",
-        "Zebra stripes": "Чересстрочная заливка"
+        "Zebra stripes": "Чересстрочная заливка",
+        "Show": "Показать",
+        "row IDs": "ID строки",
+        "row numbers": "строка чисел"
     },
     "HomeIntro": {
         "Interested in using Grist outside of your team? Visit your free ": "Заинтересованы в использовании Grist вне вашей команды? Попробуйте бесплатно ",
@@ -706,7 +752,8 @@
         "Tutorial": "Обучение",
         "Terms of service": "Условия использования",
         "Grist Resources": "Ресурсы Grist",
-        "context menu - {{- workspaceName }}": "контекстное меню - {{- workspaceName }}"
+        "context menu - {{- workspaceName }}": "контекстное меню - {{- workspaceName }}",
+        "Import from Airtable": "Загрузить из Airtable"
     },
     "GridViewMenus": {
         "Add to sort": "Добавить в сортировку",
@@ -758,7 +805,7 @@
         "Timestamp": "Метка времени",
         "Adding UUID column": "Добавление столбца UUID",
         "Adding duplicates column": "Добавление столбца дубликатов",
-        "Lookups": "Lookups",
+        "Lookups": "операции поиска",
         "Add formula column": "Добавить вычисляемый столбец",
         "Add column with type": "Добавить столбец с типом",
         "Created at": "Создан в",
@@ -777,7 +824,11 @@
         "Choice List": "Выбор из списка",
         "Reference": "Ссылка",
         "Reference List": "Ссылки списком",
-        "Attachment": "Вложение"
+        "Attachment": "Вложение",
+        "Row numbers": "Строка чисел",
+        "Numbers": "Числа",
+        "Row IDs": "Номера строк",
+        "Hidden": "Скрытый"
     },
     "FilterBar": {
         "SearchColumns": "Столбцы поиска",
@@ -795,7 +846,9 @@
         "Added new linked section to view {{viewName}}": "Добавлен новый связанный раздел в представление {{viewName}}",
         "Saved linked section {{title}} in view {{name}}": "Сохраненный связанный раздел {{title}} в представлении {{name}}",
         "go to webhook settings": "перейти к настройкам webhook",
-        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Новые изменения временно приостановлены. Очередь Webhooks переполнена. Пожалуйста, проверьте настройки webhooks, удалите недопустимые webhooks и очистите очередь."
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Новые изменения временно приостановлены. Очередь Webhooks переполнена. Пожалуйста, проверьте настройки webhooks, удалите недопустимые webhooks и очистите очередь.",
+        "Import from Airtable": "Загрузить с Airtable",
+        "{{title}} widget": "{{title}} виджет"
     },
     "Importer": {
         "Merge rows that match these fields:": "Объедините строки, соответствующие этим полям:",

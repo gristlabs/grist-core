@@ -4479,7 +4479,7 @@ namespace gristUtils {
         return (el?.textContent || "").toLowerCase();
       }, mustBeLast);
       return text.includes(expected.toLowerCase());
-    }, 4000);
+    }, 2000);
   }
 
 } // end of namespace gristUtils

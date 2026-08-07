@@ -1,3 +1,5 @@
+import { Memo } from "app/common/ACLPermissions";
+
 /**
  * A tip for fixing an error.
  */
@@ -33,7 +35,7 @@ export interface ApiErrorDetails {
   // If set, contains suggestions for fixing a problem.
   tips?: ApiTip[];
 
-  memos?: string[];
+  memos?: Memo[];
 }
 
 export type ApiErrorCode =

@@ -423,7 +423,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", { erro
   private _onOpenError(err: Error) {
     if (err instanceof CancelledError) {
       // This means that we started loading a new doc before the previous one finished loading.
-      console.log("DocPageModel _openDoc cancelled");
+      console.log("DocPageModel _openDoc cancelled", err.cause ?? "");
       return;
     }
     // Expected errors (e.g. Access Denied) produce a separate error page. For unexpected errors,

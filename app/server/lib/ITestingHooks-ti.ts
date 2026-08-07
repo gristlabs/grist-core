@@ -20,6 +20,8 @@ export const ITestingHooks = t.iface([], {
   "commSetClientPersistence": t.func("number", t.param("ttlMs", "number")),
   "commSetClientJsonMemoryLimits": t.func("ClientJsonMemoryLimits", t.param("limits", "ClientJsonMemoryLimits")),
   "closeDocs": t.func("void"),
+  "setDocOpenPaused": t.func("void", t.param("paused", "boolean")),
+  "getDocOpenCount": t.func("number"),
   "setDocWorkerActivation": t.func("void", t.param("workerId", "string"), t.param("active", t.union(t.lit("active"), t.lit("inactive"), t.lit("crash")))),
   "flushAuthorizerCache": t.func("void"),
   "flushDocs": t.func("void"),

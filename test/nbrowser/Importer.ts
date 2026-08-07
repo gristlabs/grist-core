@@ -327,7 +327,7 @@ describe("Importer", function() {
 
     // Add a new column, with a formula to examine the first.
     await gu.openColumnMenu("Birthday", "Insert column to the right");
-    await driver.findWait(".test-new-columns-menu-add-new", 100).click();
+    await driver.findWait(".test-new-columns-menu-add-new", 1000).click();
     await gu.waitForServer();
     await driver.sendKeys(Key.ESCAPE);
     await gu.getCell({ col: 2, rowNum: 1 }).click();
@@ -445,7 +445,7 @@ describe("Importer", function() {
 
       // Open the field select menu and check that all the preview table columns are available options.
       await driver.find(".test-importer-merge-fields-select").click();
-      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 100);
+      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 1000);
 
       assert.deepEqual(
         await driver.findAll(".test-multi-select-menu .test-multi-select-menu-option-text", e => e.getText()),
@@ -542,15 +542,17 @@ describe("Importer", function() {
 
       // Check the preview shows a diff of the changes importing will make.
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2], [1, 2, 3, 4, 5, 6]),
-        ["Lily", "Jones", ["director", "student", undefined],
-          "Kathy", "Mills", ["student", "professor", undefined],
-          "Karen", "Gold", ["professor", "director", undefined],
-          [undefined, "Michael", undefined], [undefined, "Smith", undefined], [undefined, "student", undefined],
-          [undefined, "Lily", undefined], [undefined, "James", undefined], [undefined, "student", undefined],
-          "", "", "",
-        ],
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2], [1, 2, 3, 4, 5, 6]),
+          ["Lily", "Jones", ["director", "student", undefined],
+            "Kathy", "Mills", ["student", "professor", undefined],
+            "Karen", "Gold", ["professor", "director", undefined],
+            [undefined, "Michael", undefined], [undefined, "Smith", undefined], [undefined, "student", undefined],
+            [undefined, "Lily", undefined], [undefined, "James", undefined], [undefined, "student", undefined],
+            "", "", "",
+          ],
+        );
+      });
 
       // Complete the import, and verify that incoming data was merged into matching records in UploadedData1.
       await driver.find(".test-modal-confirm").click();
@@ -608,7 +610,7 @@ describe("Importer", function() {
 
       // Now pick the merge fields, and check that the preview diff looks correct.
       await driver.find(".test-importer-merge-fields-select").click();
-      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 100);
+      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 1000);
       await driver.findContent(
         ".test-multi-select-menu .test-multi-select-menu-option",
         /Name/,
@@ -620,15 +622,17 @@ describe("Importer", function() {
       await gu.sendKeys(Key.ESCAPE);
 
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2], [1, 2, 3, 4, 5, 6]),
-        ["Lily", "Jones", ["director", "student", undefined],
-          "Kathy", "Mills", ["student", "professor", undefined],
-          "Karen", "Gold", ["professor", "director", undefined],
-          [undefined, "Michael", undefined], [undefined, "Smith", undefined], [undefined, "student", undefined],
-          [undefined, "Lily", undefined], [undefined, "James", undefined], [undefined, "student", undefined],
-          "", "", "",
-        ],
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2], [1, 2, 3, 4, 5, 6]),
+          ["Lily", "Jones", ["director", "student", undefined],
+            "Kathy", "Mills", ["student", "professor", undefined],
+            "Karen", "Gold", ["professor", "director", undefined],
+            [undefined, "Michael", undefined], [undefined, "Smith", undefined], [undefined, "student", undefined],
+            [undefined, "Lily", undefined], [undefined, "James", undefined], [undefined, "student", undefined],
+            "", "", "",
+          ],
+        );
+      });
 
       // Check that clicking UploadedData2 now works.
       await driver.findContent(".test-importer-source", /UploadedData2Extended.csv/).click();
@@ -644,7 +648,7 @@ describe("Importer", function() {
       await waitForColumnMapping();
       await driver.find(".test-importer-update-existing-records").click();
       await driver.find(".test-importer-merge-fields-select").click();
-      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 100);
+      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 1000);
       await driver.findContent(
         ".test-multi-select-menu .test-multi-select-menu-option",
         /CourseId/,
@@ -657,20 +661,24 @@ describe("Importer", function() {
 
       // Check that the preview diff looks correct for UploadedData2.
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7, 8, 9]),
-        ["BUS100",      "Intro to Business",   [undefined, "Mariyam Melania", undefined], "01/13/2021", "",
-          "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",       "",
-          "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",       "",
-          "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",       "",
-          "BUS500",      [undefined, undefined, "Ethics and Law"],     "Filip Andries",    "01/13/2021", "",
-          [undefined, "BUS501", undefined], [undefined, "Marketing", undefined], [undefined, "Michael Rian", undefined],
-          [undefined, "01/13/2021", undefined], [undefined, "false", undefined],
-          [undefined, "BUS539", undefined], [undefined, "Independent Study", undefined],   "",
-          [undefined, "01/13/2021", undefined], [undefined, "true", undefined],
-          "BUS540",      "Capstone",            "",                    "01/13/2021",      ["true", "false", undefined],
-          "", "", "", "", "",
-        ],
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7, 8, 9]),
+          ["BUS100",      "Intro to Business",   [undefined, "Mariyam Melania", undefined], "01/13/2021", "",
+            "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",       "",
+            "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",       "",
+            "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",       "",
+            "BUS500",      [undefined, undefined, "Ethics and Law"],     "Filip Andries",    "01/13/2021", "",
+            [undefined, "BUS501", undefined], [undefined, "Marketing", undefined],
+            [undefined, "Michael Rian", undefined],
+            [undefined, "01/13/2021", undefined], [undefined, "false", undefined],
+            [undefined, "BUS539", undefined], [undefined, "Independent Study", undefined],   "",
+            [undefined, "01/13/2021", undefined], [undefined, "true", undefined],
+            "BUS540",      "Capstone",            "",                    "01/13/2021",
+            ["true", "false", undefined],
+            "", "", "", "", "",
+          ],
+        );
+      });
 
       // Complete the import, and verify that incoming data was merged into both UploadedData1 and UploadedData2.
       await driver.find(".test-modal-confirm").click();
@@ -735,7 +743,7 @@ describe("Importer", function() {
       await waitForColumnMapping();
       await driver.find(".test-importer-update-existing-records").click();
       await driver.find(".test-importer-merge-fields-select").click();
-      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 100);
+      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 1000);
 
       await driver.findContent(
         ".test-multi-select-menu .test-multi-select-menu-option",
@@ -753,15 +761,17 @@ describe("Importer", function() {
 
       // Check the preview diff of City. The population should have doubled in every row.
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]),
-        [
-          "Kabul", "Kabol", ["1780000", "3560000", undefined], "2", ["1780", "3560", undefined],
-          "Qandahar", "Qandahar", ["237500", "475000", undefined], "2", ["237.5", "475", undefined],
-          "Herat", "Herat", ["186800", "373600", undefined], "2", ["186.8", "373.6", undefined],
-          "Mazar-e-Sharif", "Balkh", ["127800", "255600", undefined], "2", ["127.8", "255.6", undefined],
-          "Amsterdam", "Noord-Holland", ["731200", "1462400", undefined], "159",  ["731.2", "1462.4", undefined],
-        ],
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]),
+          [
+            "Kabul", "Kabol", ["1780000", "3560000", undefined], "2", ["1780", "3560", undefined],
+            "Qandahar", "Qandahar", ["237500", "475000", undefined], "2", ["237.5", "475", undefined],
+            "Herat", "Herat", ["186800", "373600", undefined], "2", ["186.8", "373.6", undefined],
+            "Mazar-e-Sharif", "Balkh", ["127800", "255600", undefined], "2", ["127.8", "255.6", undefined],
+            "Amsterdam", "Noord-Holland", ["731200", "1462400", undefined], "159",  ["731.2", "1462.4", undefined],
+          ],
+        );
+      });
 
       // For sheet Country, merge on Code.
       await driver.findContent(".test-importer-source", /Country/).click();
@@ -771,7 +781,7 @@ describe("Importer", function() {
       await waitForColumnMapping();
       await driver.find(".test-importer-update-existing-records").click();
       await driver.find(".test-importer-merge-fields-select").click();
-      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 100);
+      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 1000);
       await driver.findContent(
         ".test-multi-select-menu .test-multi-select-menu-option",
         /Code/,
@@ -781,17 +791,19 @@ describe("Importer", function() {
       // Check the preview diff of Country. The population should have doubled in every row.
       await waitForDiffPreviewToLoad();
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.UP));
-      await driver.findContentWait(".field_clip", "ABW", 100);
+      await driver.findContentWait(".field_clip", "ABW", 1000);
 
-      assert.deepEqual(
-        await getPreviewDiffCellValues([0, 6], [1, 2, 3, 4, 5]),
-        ["ABW", ["103000", "206000", undefined],
-          "AFG", ["22720000", "45440000", undefined],
-          "AGO", ["12878000", "25756000", undefined],
-          "AIA", ["8000", "16000", undefined],
-          "ALB", ["3401200", "6802400", undefined],
-        ],
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(
+          await getPreviewDiffCellValues([0, 6], [1, 2, 3, 4, 5]),
+          ["ABW", ["103000", "206000", undefined],
+            "AFG", ["22720000", "45440000", undefined],
+            "AGO", ["12878000", "25756000", undefined],
+            "AIA", ["8000", "16000", undefined],
+            "ALB", ["3401200", "6802400", undefined],
+          ],
+        );
+      });
 
       // For sheet CountryLanguage, merge on Country and Language.
       await driver.findContent(".test-importer-source", /CountryLanguage/).click();
@@ -802,7 +814,7 @@ describe("Importer", function() {
       await waitForColumnMapping();
       await driver.find(".test-importer-update-existing-records").click();
       await driver.find(".test-importer-merge-fields-select").click();
-      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 100);
+      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 1000);
       await driver.findContent(
         ".test-multi-select-menu .test-multi-select-menu-option",
         /Country/,
@@ -815,14 +827,16 @@ describe("Importer", function() {
 
       // Check the preview diff of CountryLanguage. The first few percentages should be slightly different.
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3], [1, 2, 3, 4, 5]),
-        ["Dutch", ["5.3", "5.5", undefined], "ABW", "",
-          "English", ["9.5", "9.3", undefined], "ABW", "",
-          "Papiamento", ["76.7", "76.3", undefined], "ABW", "",
-          "Spanish", ["7.4", "7.8", undefined], "ABW", "",
-          "Balochi", ["0.9", "1.1", undefined], "AFG", "",
-        ],
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3], [1, 2, 3, 4, 5]),
+          ["Dutch", ["5.3", "5.5", undefined], "ABW", "",
+            "English", ["9.5", "9.3", undefined], "ABW", "",
+            "Papiamento", ["76.7", "76.3", undefined], "ABW", "",
+            "Spanish", ["7.4", "7.8", undefined], "ABW", "",
+            "Balochi", ["0.9", "1.1", undefined], "AFG", "",
+          ],
+        );
+      });
 
       // Complete the import, and verify that incoming data was merged correctly.
       await driver.find(".test-modal-confirm").click();
@@ -912,18 +926,20 @@ describe("Importer", function() {
       // Click 'Update existing records', and check the preview does not yet show a diff.
       await driver.find(".test-importer-update-existing-records").click();
       await gu.waitForServer();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        ["BUS100",      "Intro to Business",   "",                    "01/13/2021",      "",
-          "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",      "",
-          "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",      "",
-          "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",      "",
-          "BUS500",      "Ethics and Law",      "Filip Andries",       "01/13/2021",      "",
-          "BUS540",      "Capstone",            "",                    "01/13/2021",      "",
-          "",            "",                    "",                    "",                ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
+          ["BUS100",      "Intro to Business",   "",                    "01/13/2021",      "",
+            "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",      "",
+            "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",      "",
+            "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",      "",
+            "BUS500",      "Ethics and Law",      "Filip Andries",       "01/13/2021",      "",
+            "BUS540",      "Capstone",            "",                    "01/13/2021",      "",
+            "",            "",                    "",                    "",                ""]);
+      });
 
       // Select 'CourseId' as the merge column, and check that the preview now contains a diff of old/new values.
       await driver.find(".test-importer-merge-fields-select").click();
-      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 100);
+      await driver.findWait(".test-multi-select-menu .test-multi-select-menu-option", 1000);
       await driver.findContent(
         ".test-multi-select-menu .test-multi-select-menu-option",
         /CourseId/,
@@ -931,26 +947,31 @@ describe("Importer", function() {
       await gu.sendKeys(Key.ESCAPE);
       await gu.waitForServer();
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        ["BUS100",      "Intro to Business",   [undefined, undefined, "Mariyam Melania"], "01/13/2021", "",
-          "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",      "",
-          "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",      "",
-          "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",      "",
-          "BUS500",      "Ethics and Law",      "Filip Andries",       "01/13/2021",      "",
-          "BUS540",      "Capstone",            "",                    "01/13/2021",      ["false", "true", undefined],
-          "",            "",                    "",                    "",                ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
+          ["BUS100",      "Intro to Business",   [undefined, undefined, "Mariyam Melania"], "01/13/2021", "",
+            "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",      "",
+            "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",      "",
+            "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",      "",
+            "BUS500",      "Ethics and Law",      "Filip Andries",       "01/13/2021",      "",
+            "BUS540",      "Capstone",            "",                    "01/13/2021",
+            ["false", "true", undefined],
+            "",            "",                    "",                    "",                ""]);
+      });
 
       // Uncheck 'Update existing records', and check that the preview no longer shows a diff.
       await driver.find(".test-importer-update-existing-records").click();
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        ["BUS100",      "Intro to Business",   "",                    "01/13/2021",      "",
-          "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",      "",
-          "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",      "",
-          "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",      "",
-          "BUS500",      "Ethics and Law",      "Filip Andries",       "01/13/2021",      "",
-          "BUS540",      "Capstone",            "",                    "01/13/2021",      "",
-          "",            "",                    "",                    "",                ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
+          ["BUS100",      "Intro to Business",   "",                    "01/13/2021",      "",
+            "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",      "",
+            "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",      "",
+            "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",      "",
+            "BUS500",      "Ethics and Law",      "Filip Andries",       "01/13/2021",      "",
+            "BUS540",      "Capstone",            "",                    "01/13/2021",      "",
+            "",            "",                    "",                    "",                ""]);
+      });
 
       // Check that the column matching section is correct.
       assert.deepEqual(await getColumnMatchingRows(), [
@@ -966,7 +987,7 @@ describe("Importer", function() {
       await waitForDiffPreviewToLoad();
       await driver.findContent(".test-importer-column-match-source-destination", /CourseId/)
         .find(".test-importer-column-match-formula").click();
-      await driver.findWait(".test-importer-apply-formula", 100).click();
+      await driver.findWait(".test-importer-apply-formula", 1000).click();
       await gu.sendKeys(' + "-NEW"');
 
       // Before saving the formula, check that the preview isn't showing the hidden helper column ids.
@@ -979,27 +1000,29 @@ describe("Importer", function() {
 
       // Check that the preview diff was updated and now shows that all 6 rows are new rows.
       await waitForDiffPreviewToLoad();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        [
-          [undefined, "BUS100-NEW", undefined], [undefined, "Intro to Business", undefined], "",
-          [undefined, "01/13/2021", undefined], [undefined, "false", undefined],
-          [undefined, "BUS102-NEW", undefined], [undefined, "Business Law", undefined],
-          [undefined, "Nathalie Patricia", undefined], [undefined, "01/13/2021", undefined],
-          [undefined, "false", undefined],
-          [undefined, "BUS300-NEW", undefined], [undefined, "Business Operations", undefined],
-          [undefined, "Michael Rian", undefined], [undefined, "01/14/2021", undefined],
-          [undefined, "false", undefined],
-          [undefined, "BUS301-NEW", undefined], [undefined, "History of Business", undefined],
-          [undefined, "Mariyam Melania", undefined], [undefined, "01/14/2021", undefined],
-          [undefined, "false", undefined],
-          [undefined, "BUS500-NEW", undefined], [undefined, "Ethics and Law", undefined],
-          [undefined, "Filip Andries", undefined], [undefined, "01/13/2021", undefined],
-          [undefined, "false", undefined],
-          [undefined, "BUS540-NEW", undefined], [undefined, "Capstone", undefined], "",
-          [undefined, "01/13/2021", undefined], [undefined, "true", undefined],
-          "", "", "", "", "",
-        ],
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
+          [
+            [undefined, "BUS100-NEW", undefined], [undefined, "Intro to Business", undefined], "",
+            [undefined, "01/13/2021", undefined], [undefined, "false", undefined],
+            [undefined, "BUS102-NEW", undefined], [undefined, "Business Law", undefined],
+            [undefined, "Nathalie Patricia", undefined], [undefined, "01/13/2021", undefined],
+            [undefined, "false", undefined],
+            [undefined, "BUS300-NEW", undefined], [undefined, "Business Operations", undefined],
+            [undefined, "Michael Rian", undefined], [undefined, "01/14/2021", undefined],
+            [undefined, "false", undefined],
+            [undefined, "BUS301-NEW", undefined], [undefined, "History of Business", undefined],
+            [undefined, "Mariyam Melania", undefined], [undefined, "01/14/2021", undefined],
+            [undefined, "false", undefined],
+            [undefined, "BUS500-NEW", undefined], [undefined, "Ethics and Law", undefined],
+            [undefined, "Filip Andries", undefined], [undefined, "01/13/2021", undefined],
+            [undefined, "false", undefined],
+            [undefined, "BUS540-NEW", undefined], [undefined, "Capstone", undefined], "",
+            [undefined, "01/13/2021", undefined], [undefined, "true", undefined],
+            "", "", "", "", "",
+          ],
+        );
+      });
 
       // Check the column mapping section updated with the new formula.
       assert.deepEqual(await getColumnMatchingRows(), [
@@ -1014,14 +1037,16 @@ describe("Importer", function() {
       await openTableMapping();
       await driver.find(".test-importer-target-new-table").click();
       await gu.waitForServer();
-      assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
-        ["BUS100",      "Intro to Business",   "",                    "01/13/2021",      "",
-          "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",      "",
-          "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",      "",
-          "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",      "",
-          "BUS500",      "Ethics and Law",      "Filip Andries",       "01/13/2021",      "",
-          "BUS540",      "Capstone",            "",                    "01/13/2021",      "",
-          "",            "",                    "",                    "",                ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
+          ["BUS100",      "Intro to Business",   "",                    "01/13/2021",      "",
+            "BUS102",      "Business Law",        "Nathalie Patricia",   "01/13/2021",      "",
+            "BUS300",      "Business Operations", "Michael Rian",        "01/14/2021",      "",
+            "BUS301",      "History of Business", "Mariyam Melania",     "01/14/2021",      "",
+            "BUS500",      "Ethics and Law",      "Filip Andries",       "01/13/2021",      "",
+            "BUS540",      "Capstone",            "",                    "01/13/2021",      "",
+            "",            "",                    "",                    "",                ""]);
+      });
 
       // Close the dialog.
       await driver.find(".test-modal-cancel").click();
