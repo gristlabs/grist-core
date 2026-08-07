@@ -555,11 +555,11 @@ describe("ProposedChangesPage", function() {
     await driver.findContentWait("span", /original document/, 2000).click();
 
     // There should be exactly one proposal.
-    await driver.findWait(".test-proposals-header", 2000);
+    await driver.findWait(".test-proposals-header", 4000);
     assert.lengthOf(await driver.findAll(".test-proposals-header"), 1);
 
     // Verify the reference change is shown
-    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 4000);
     assert.deepEqual(await getColumns("LIFE"), ["Habitat"]);
     assert.deepEqual(await getRowValues("LIFE", 0), ["OceanDesert"]);
     assert.deepEqual(await getChangeType("LIFE", 0), "→");

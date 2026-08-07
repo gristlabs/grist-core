@@ -17,6 +17,13 @@
  * 3. There is a command `Emulation.setEmulatedMedia`, can do the equivalent of dev console's
  *    simulation of `@media print`. That's what we use here. We don't get to see anything about
  *    pagination, but we can at least check whether various elements are visible for printing.
+ *
+ * 4. `window.print()` is replaced below with one that only fires `beforeprint`. The real call
+ *    blocks the main thread, and in headless chrome it sometimes never returns, which hangs
+ *    every later executeScript. The DOM under test is built by the `beforeprint` handler, so
+ *    firing the event keeps the assertions meaningful. `afterprint` was already simulated
+ *    here (see `afterPrintCallback` below), so both ends of the cycle are now driven by the
+ *    test rather than by the browser's print pipeline.
  */
 import * as gu from "test/nbrowser/gristUtils";
 
@@ -31,7 +38,10 @@ function emulateMediaPrint(print: boolean) {
  */
 export async function checkPrintSection(sectionName: string, checkFunc: () => Promise<void>) {
   const numTabs = (await driver.getAllWindowHandles()).length;
-  await driver.executeScript("window.debugPrinting = 1");
+  await driver.executeScript(`
+    window.debugPrinting = 1;
+    window.print = () => window.dispatchEvent(new Event("beforeprint"));
+  `);
   await gu.openSectionMenu("viewLayout", sectionName);
   await driver.findWait(".test-print-section", 500).click();
   await driver.sleep(100);    // Just to be sure we don't continue before setTimeout(0), used in printing.

@@ -422,13 +422,17 @@ export class HomeUtil {
 
   private async _getApiKey(): Promise<string> {
     return this.driver.wait(() => this.driver.executeAsyncScript<string>((done: (key: string) => void) => {
-      const app = (window as any).gristApp;
-      if (!app) { done(""); return; }
-      const api: UserAPI = app.topAppModel.api;
-      return api.fetchApiKey().then((key) => {
-        if (key) { return key; }
-        return api.createApiKey();
-      }).then(done).catch(() => done(""));
+      try {
+        const app = (window as any).gristApp;
+        if (!app?.topAppModel) { done(""); return; }
+        const api: UserAPI = app.topAppModel.api;
+        api.fetchApiKey().then((key) => {
+          if (key) { return key; }
+          return api.createApiKey();
+        }).then(done).catch(() => done(""));
+      } catch (e) {
+        done("");
+      }
     }), 4000);
   }
 
