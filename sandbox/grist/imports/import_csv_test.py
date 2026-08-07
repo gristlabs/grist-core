@@ -427,8 +427,11 @@ class TestImportCSV(unittest.TestCase):
 
   def test_csv_encoding_detection_greek(self):
     # ISO-8859-7 is close to CP1253, and this fixure file would be identical in these two.
+    # Depending on the chardet version, the detected encoding may be reported as either
+    # ISO-8859-7 or the equivalent Windows-1253; both decode this fixture identically.
     options, parsed_file = import_csv.parse_file(non_utf8_fixture, parse_options='')
-    self._check_options(options, encoding='ISO-8859-7')
+    self.assertIn(options.pop("encoding"), ("ISO-8859-7", "Windows-1253"))
+    self._check_options(options)
     sheet = parsed_file[0]
     self._check_col(sheet, 0, "Name", "Text", [u'John Smith', u'Μαρία Παπαδοπούλου', u'Δημήτρης Johnson'])
     self._check_col(sheet, 2, "Επάγγελμα", "Text", [u'Γιατρός', u'Engineer', u'Δικηγόρος'])

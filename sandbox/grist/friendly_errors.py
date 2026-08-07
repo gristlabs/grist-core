@@ -24,8 +24,9 @@ def friendly_message(exc):
       # with a suggestion to report the case on GitHub.
       return ""
 
-    if "All built-in exceptions defined by Python are derived from `Exception`" in generic:
+    if "built-in exceptions defined by Python are derived from `Exception`" in generic:
       # Unhelpful explanation for a generic `Exception`
+      # (the sentence starts with "All" or "Most" depending on the friendly-traceback version)
       return ""
 
     # Add a blank line between the standard message and the friendly message
