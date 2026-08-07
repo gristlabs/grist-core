@@ -58,7 +58,7 @@
         "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "После отключения правл доступа, редактору будут в праве менять структуру документа и менять формулы. Редакторы и зрители смогут просматривать документ, а также копировать и скачивать его.",
         "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "После включения правил доступа, редакторы больше не смогут менять структуру\nдокумента или формулы. Только владельцы смогут копировать или скачивать документы.\n\nЭти настройки могут быть изменены в 'Special rules'.",
         "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Столбец {{colId}} появляется в нескольких правилах таблицы {{tableId}}. Попробовать разделить правила по-другому?",
-        "No columns listed in a column rule for table {{tableId}}": "Нет столбцов в их таблице правил{{tableId}}",
+        "No columns listed in a column rule for table {{tableId}}": "Нет подходящих столбцов в правилах таблицы {{tableId}}",
         "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Все редакторы должны иметь возможность менять структуру (то есть менять и удалять таблицы, столбцы и стили), а также писать формулы. \nВажно: если проверерно, то редакторы должны иметть возможность редактировать формулы, которые имеют доступ к данным, вне зависимости от правил доступа для таблиц и столбцов.",
         "Allow everyone to view access rules.": "Разрешите всем видеть правила доступа.",
         "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Обходить и читать все предупреждения и разрешать любому копировать весь документ и смотреть его в полном интерактивном формате. Используйте только для примеров и шаблонов, не для документов, работающими с важными данными.",
@@ -385,7 +385,8 @@
         "download attachments": "скачать вложения",
         "Download full document and history": "Скачать полный документ и историю",
         "Download an archive of all the attachments present in this document.": "Загрузите архив всех вложений, присутствующих в этом документе.",
-        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Вложения являются внешними и не включены в эту загрузку. При загрузке документа в другую инсталляцию Grist вам также потребуется {{downloadLink}} отдельно. "
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Вложения являются внешними и не включены в эту загрузку. При загрузке документа в другую инсталляцию Grist вам также потребуется {{downloadLink}} отдельно. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Если вы планируете загрузить этот документ в установку Grist, вы должны иметь архив в формате .tar чтобы восстановить приложения "
     },
     "ShareMenu": {
         "Back to current": "Вернуться к текущему",
@@ -875,7 +876,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Справочный центр",
-        "Accessibility": "Доступность"
+        "Accessibility": "Доступность",
+        "(Screen reader improvements enabled)": "(Включены улучшения для программ чтения с экрана)",
+        "Screen reader improvements enabled": "Включены улучшения в программе чтения с экрана"
     },
     "RowContextMenu": {
         "Duplicate rows_other": "Дублировать строки",
@@ -920,7 +923,10 @@
         "Select data": "Выбор данных",
         "Select widget": "Выбор виджета",
         "New Table": "Новая таблица",
-        "SELECT BY": "SELECT BY"
+        "SELECT BY": "SELECT BY",
+        "{{table}} grouped by… (press to select fields)": "{{table}} сгруппированна с помощью... (нажмите чтобы выбрать поля)",
+        "Press Space to add fields": "Нажмите пробел, чтобы добавить поля",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Используйте клавиши \"вверх\" и \"вниз\" чтобы просмотреть все опции. Нажмите Enter и Esc чтобы двигаться между шагами."
     },
     "RightPanel": {
         "SOURCE DATA": "ИСТОЧНИК ДАННЫХ",
@@ -974,7 +980,8 @@
         "Select a field in the form widget to configure.": "Выберите поле в виджете формы для настройки.",
         "Submit": "Отправить",
         "Thank you! Your response has been recorded.": "Спасибо! Ваш ответ был учтён.",
-        "Chart options": "Параметры диаграммы"
+        "Chart options": "Параметры диаграммы",
+        "You may use {{placeholder}} placeholder for the ID of the added record.": "Вы можете использовать {{placeholder}} заполнитель для идентификатора добавленной записи."
     },
     "PermissionsWidget": {
         "Allow all": "Разрешить все",
@@ -1012,7 +1019,9 @@
         "Switch Sites": "Переключить сайты"
     },
     "TopBar": {
-        "Manage team": "Управлять командой"
+        "Manage team": "Управлять командой",
+        "Redo": "Переделать",
+        "Undo": "Отменить изменения"
     },
     "TriggerFormulas": {
         "Any field": "Любое поле",
@@ -1027,7 +1036,9 @@
     "ThemeConfig": {
         "Appearance ": "Оформление ",
         "Switch appearance automatically to match system": "Автоматическое переключение оформления в соответствии с системной настройкой",
-        "Light": "Светлая"
+        "Light": "Светлая",
+        "Dark": "Темная",
+        "Light (High Contrast)": "Светлая (Высокий контраст)"
     },
     "UserManagerModel": {
         "In full": "Полный",
@@ -1132,7 +1143,13 @@
         "You are unsubscribed": "Вы отписались",
         "You can still unsubscribe from this document by updating your preferences in the document settings": "Вы всё ещё можете отписаться от этого документа, обновив свои предпочтения в настройках документа",
         "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Вы больше не будете получать уведомления по электронной почте о {{changes}} в {{docName}} на {{email}}.",
-        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Вы больше не будете получать уведомления по электронной почте о {{comments}} в {{docName}} на адрес {{email}}."
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Вы больше не будете получать уведомления по электронной почте о {{comments}} в {{docName}} на адрес {{email}}.",
+        "Unsubscribed{{suffix}}": "Отписался{{suffix}}",
+        "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Вы больше не будете получать уведомления по электронной почте о {{suggestions}} в {{docName}} по адресу {{email}}.",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Вы больше не будете получать уведомления по электронной почте о {{automations}} в {{docName}} по адресу {{email}}.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Вы отписались от уведомлений автоматизации для {{docName}} Вы можете в любое время изменить свои настройки в настройках документа.",
+        "automations": "автоматизации",
+        "suggestions": "предложения"
     },
     "CellStyle": {
         "CELL STYLE": "СТИЛЬ ЯЧЕЙКИ",
@@ -1301,7 +1318,8 @@
         "Field Format": "Формат поля",
         "Lines": "Линейность",
         "Multi line": "Многострочный",
-        "Single line": "Однострочный"
+        "Single line": "Однострочный",
+        "Maximum characters": "Максимальное количество символов"
     },
     "pages": {
         "Duplicate page": "Дублировать страницу",
@@ -1456,7 +1474,9 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Вы можете добавлять комментарии к ячейкам, отвечать на темы комментариев и создать @-упоминание сотрудникам.",
         "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Создаёт новый столбец Списка ссылок в целевой таблице, причём как этот, так и целевые столбцы можно редактировать и синхронизировать.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Если этот флажок установлен, значение этого поля по умолчанию может быть предварительно заполнено из URL-адреса с использованием параметров запроса.",
-        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "С помощью предложений пользователи вносят изменения в личную копию, не изменяя исходный документ, а затем отправляют эти предложения на рассмотрение владельцу документа для принятия решения об их интеграции."
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "С помощью предложений пользователи вносят изменения в личную копию, не изменяя исходный документ, а затем отправляют эти предложения на рассмотрение владельцу документа для принятия решения об их интеграции.",
+        "Unpin to hide the button while keeping the filter.": "Открепите, чтобы скрыть кнопку, сохранив при этом фильтр.",
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Идентификаторы строк - это стабильные и уникальные числовые идентификаторы, используемые ссылочными столбцами для идентификации записей."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ",
@@ -1485,7 +1505,8 @@
     },
     "Clipboard": {
         "Got it": "Понятно",
-        "Unavailable Command": "Недоступная команда"
+        "Unavailable Command": "Недоступная команда",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "Команда меню {{action}} недоступна в этом браузере. Вы все равно можете выполнить {{action}}, используя сочетание клавиш {{shortcut}}."
     },
     "FieldContextMenu": {
         "Clear field": "Очистить поле",
@@ -1553,10 +1574,15 @@
         "upgrade your plan": "обновите свой тавиф",
         "You have {{numCredits}} remaining credits.": "У вас осталось {{numCredits}} кредитов.",
         "For higher limits, {{upgradeNudge}}.": "Для увеличения лимитов, {{upgradeNudge}}.",
-        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Общайтесь со мной как с человеком. Не нужно указывать названия таблиц и столбцов. Например, вы можете попросить \"Пожалуйста, подсчитайте общую сумму счета.\""
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Общайтесь со мной как с человеком. Не нужно указывать названия таблиц и столбцов. Например, вы можете попросить \"Пожалуйста, подсчитайте общую сумму счета.\"",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "Для получения дополнительной информации о формулах ознакомьтесь с нашими {{functionList}} и {{formulaCheatSheet}} или посетите наше {{community}} для получения дополнительной информации.",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "Когда вы обращаетесь ко мне, ваши вопросы и структура вашего документа (видимая в {{codeView}}) отправляются в OpenAI. {{learnMore}}."
     },
     "GridView": {
-        "Click to insert": "Нажмите для вставки"
+        "Click to insert": "Нажмите для вставки",
+        "ID": "ID",
+        "row {{rowNum}} {{colName}}": "ряд {{rowNum}}{{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "ряд {{rowNum}}{{colName}}(новый ряд)"
     },
     "WelcomeSitePicker": {
         "Welcome back": "С возвращением",
@@ -1607,7 +1633,10 @@
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "После того как вы удалили свой собственный доступ, вы не сможете получить его обратно без помощи кого-то еще с достаточным доступом к {{resourceType}}.",
         "You are about to remove your own access to this {{resourceType}}": "Вы собираетесь лишить себя доступа к {{resourceType}}",
         "Inherit access: ": "Наследование доступа: ",
-        "Access overview": "Обзор прав доступа"
+        "Access overview": "Обзор прав доступа",
+        "Share it publicly": "Опубликовать",
+        "Verify your sensitive data before sharing publicly": "Проверьте ваши данные перед публикацией",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Ваш {{resourceType}} будет доступен всем, у кого есть ссылка — независимо от того, получили ли они ее напрямую или нашли через поисковую систему.\nПеред тем как поделиться своим {{resourceType}}, убедитесь, что он не содержит конфиденциальных данных."
     },
     "SupportGristNudge": {
         "Close": "Закрыть",
@@ -1652,7 +1681,8 @@
         "DESCRIPTION": "ОПИСАНИЕ"
     },
     "searchDropdown": {
-        "Search": "Поиск"
+        "Search": "Поиск",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Показано {{displayedCount}} из {{totalCount}} элементов. Поиск других."
     },
     "SearchModel": {
         "Search all pages": "Искать на всех страницах",
@@ -1722,7 +1752,8 @@
         "Your form description goes here.": "Описание формы.",
         "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "После публикации вашей формы будет создана ссылка для обмена. Любой, у кого есть ссылка, может просмотреть пустую форму и отправить ответ.",
         "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Отмена публикации формы приведет к отключению ссылки \"Поделиться\", и пользователи, имеющие доступ к вашей форме по этой ссылке, увидят сообщение об ошибке.",
-        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Ваша форма опубликована. Все изменения доступны пользователям, имеющим доступ к форме. Если вы хотите внести комплексные изменения, отмените публикацию формы."
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Ваша форма опубликована. Все изменения доступны пользователям, имеющим доступ к форме. Если вы хотите внести комплексные изменения, отмените публикацию формы.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Возможности пользователей ограничены добавлением записей (строк в таблице) и чтением заранее заданных значений в определенных полях, таких как столбцы ссылок и столбцы выбора."
     },
     "WelcomeCoachingCall": {
         "free coaching call": "бесплатный коуч-звонок",
@@ -1731,7 +1762,11 @@
         "Schedule call": "Запланировать звонок",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Запланируйте свой {{freeCoachingCall}} с членом нашей команды.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Вы также можете проверить {{ourWeeklyWebinars}} чтобы узнать больше о Grist.",
-        "our weekly webinars": "наши еженедельные вебинары"
+        "our weekly webinars": "наши еженедельные вебинары",
+        "Free coaching call": "Бесплатная коучинговая сессия",
+        "Grist 101": "Grist 101",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Вы также можете посмотреть наш вводный вебинар {{ourWeeklyWebinars}}, призванный помочь новым пользователям освоить основы Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "Вы также можете посмотреть наш вводный вебинар {{ourWeeklyWebinars}}, призванный помочь новым пользователям освоить основы работы с Grist."
     },
     "Editor": {
         "Delete": "Удалить"
@@ -1752,7 +1787,8 @@
         "Vertical": "Вертикальный",
         "Accept value from URL": "Принять значение из URL",
         "Hidden field": "Скрытое поле",
-        "URL parameter:\n{{colId}}=VALUE": "Параметр из URL:\n{{colId}}=VALUE"
+        "URL parameter:\n{{colId}}=VALUE": "Параметр из URL:\n{{colId}}=VALUE",
+        "Options limit": "Лимит опций"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Некоторые обязательные столбцы не сопоставлены",
@@ -1800,7 +1836,9 @@
         "Unmap fields": "Отменить сопоставление полей",
         "Unmapped": "Несопоставленные",
         "Hide {{label}}": "Скрыть {{label}}",
-        "Hide {{label}} (batch mode)": "Скрыть {{label}} (пакетный режим)"
+        "Hide {{label}} (batch mode)": "Скрыть {{label}} (пакетный режим)",
+        "Unmap {{label}}": "Отменить привязку {{label}}",
+        "Unmap {{label}} (batch mode)": "Отменить привязку {{label}} (пакетный режим)"
     },
     "Section": {
         "Insert section above": "Вставить секцию выше",
@@ -1880,7 +1918,44 @@
         "Administrative accounts": "Административные учётные записи",
         "The users with administrative accounts": "Пользователи с административными учётными записями",
         "Version {{versionNumber}}": "Версия {{versionNumber}}",
-        "no admin accounts": "нет учётных записей администратора"
+        "no admin accounts": "нет учётных записей администратора",
+        "Restart Grist?": "Перезагрузить Grist?",
+        "Restarting Grist...": "Перезапускаю Grist...",
+        "error in {{provider}}: {{verdict}}": "ошибка в {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Пожалуйста перезагрузите Grist в ручную.",
+        "Restart Grist to apply pending changes.": "Перезагрузи Grist чтобы применить изменения.",
+        "Restart unavailable": "Перезагрузка невозможна",
+        "Boot key": "Ключ запуска",
+        "Fallback authentication method": "Резервный метод аутентификации",
+        "If you are the server operator, you can sign in using the boot key from your server logs.": "Если вы являетесь оператором сервера, вы можете войти в систему, используя ключ загрузки из журналов сервера.",
+        "Maintenance": "Обслуживание",
+        "Service status": "Статус сервиса",
+        "Sign in with boot key": "Войдите с ключом запуска",
+        "Take Grist out of service for maintenance": "Вывести Grist из эксплуатации для проведения технического обслуживания.",
+        "boot key": "ключ запуска",
+        "disabled": "отключена",
+        "enabled": "включена",
+        "in service": "на обслуживании",
+        "out of service": "не в работе",
+        "{{count}} admin accounts_one": "{{count}} учетная запись администратора",
+        "{{count}} admin accounts_other": "{{count}} учетные записи администраторов",
+        "configured": "настроено",
+        "Are you sure you want to restart Grist?": "Вы уверены, что хотите перезапустить Grist?",
+        "Grist is running in an environment that doesn't support restarting from the admin panel.": "Grist работает в окружении, которое не поддерживает перезагрузку из админ-панели.",
+        "Restart": "Перезагрузка",
+        "Restart Grist": "Перезагрузить Grist",
+        "Restart Grist to apply pending changes or resolve issues.": "Перезагрузите Grist чтобы утвердить изменения в обработке или разобраться с ошибками.",
+        "This will apply any pending changes and briefly interrupt access for all users.": "Это применит все ожидающие изменения и на короткое время прервет доступ для всех пользователей.",
+        "You can still restart Grist manually.": "Вы по-прежнему можете перезапустить Grist вручную.",
+        "Back up documents externally": "Создавайте резервные копии документов вне системы",
+        "Backups": "Бэкапы",
+        "Storage": "Хранилище",
+        "Apply changes (manual restart required)": "Применить изменения (необходима ручная перезагрузка)",
+        "Base URL": "Базовый URL",
+        "Changes have been saved. Restart Grist to apply them.": "Изменения были сохранены. Перезагрузите Grist чтобы их применить.",
+        "Edition": "Издание",
+        "Its controls have moved to {{editionLink}} above.": "Элементы управления перемещены в {{editionLink}} выше.",
+        "Restart the Grist server": "Перезагрузи сервер Grist"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
