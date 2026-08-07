@@ -310,6 +310,12 @@ export async function useLocalDoc(srcPath: string, storageManager: any, alias: s
     (name: string) => docUtils.createExclusive(storageManager.getPath(name)));
   await docUtils.copyFile(srcPath, storageManager.getPath(docName));
   await storageManager.markAsChanged(docName);
+  // Leave the doc in the same state as a freshly-closed one: pending uploads flushed.
+  // On HostedStorageManager in S3_WITHOUT_CACHE mode this may also schedule a background cache wipe;
+  // wait for it here (when available) so callers don't race the teardown.
+  await storageManager.closeDocument(docName);
+  await storageManager.cleanupAfterClose?.(docName);
+  await storageManager._closing?.get(docName);
   return docName;
 }
 
