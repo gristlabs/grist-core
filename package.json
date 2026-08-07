@@ -205,7 +205,7 @@
     "minio": "8.0.5",
     "moment": "2.29.4",
     "moment-timezone": "0.5.35",
-    "morgan": "1.9.1",
+    "morgan": "1.11.0",
     "mousetrap": "1.6.2",
     "multiparty": "4.3.0",
     "node-abort-controller": "3.0.1",
