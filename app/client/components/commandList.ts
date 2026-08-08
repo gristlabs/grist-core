@@ -300,7 +300,7 @@ export const groups: CommendGroupDef[] = [{
     },
     {
       name: "expandSection",
-      keys: ["Mod+Shift+E"],
+      keys: ["Mod+Shift+F"],
       desc: () => t("Maximize the active section"),
     },
     {
