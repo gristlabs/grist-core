@@ -450,13 +450,15 @@ class BaseReferenceColumn(BaseColumn):
       self._relation.add_reference(row_id, r)
 
   def _reject_unresolved_temp_ids(self, values):
-    # A negative id surviving translation is a temp id the bundle never created, and can never
-    # resolve. (A positive missing id is a supported dangling ref, so we leave those alone.)
+    # A negative id surviving translation names a row the bundle has not added yet. Temp ids
+    # resolve as rows land, so a reference can only point backwards. (A positive missing id is
+    # a supported dangling ref, so we leave those alone.)
     for value in values:
       for r in (value if isinstance(value, list) else (value,)):
         if isinstance(r, int) and r < 0:
           raise ValueError(
-            "Reference to unknown temporary row id %s in column %s.%s" % (
+            "Reference to temporary row id %s in column %s.%s before it was added; add that row "
+            "earlier in the bundle, or set this reference in a later action" % (
               r, self.table_id, self.col_id))
 
   def _clean_up_value(self, value):
