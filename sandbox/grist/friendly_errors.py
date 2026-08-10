@@ -12,9 +12,19 @@ def friendly_message(exc):
     # Imported locally because it's Python 3 only
     from friendly_traceback.core import FriendlyTraceback
 
-    fr = FriendlyTraceback(type(exc), exc, exc.__traceback__)
-    fr.assign_generic()
-    fr.assign_cause()
+    saved_traceback = exc.__traceback__
+    if isinstance(exc, SyntaxError):
+      # A SyntaxError already carries what friendly-traceback needs, and the traceback only holds
+      # our own parser's frames. Hide it: formatting those frames raises AttributeError on Python
+      # 3.13, losing the explanation entirely. Still an issue as of friendly-traceback 0.7.61.
+      exc.__traceback__ = None
+
+    try:
+      fr = FriendlyTraceback(type(exc), exc, exc.__traceback__)
+      fr.assign_generic()
+      fr.assign_cause()
+    finally:
+      exc.__traceback__ = saved_traceback
 
     generic = fr.info["generic"]  # broad explanation for the exception class
     cause = fr.info.get("cause")  # more specific explanation
