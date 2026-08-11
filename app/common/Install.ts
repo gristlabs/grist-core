@@ -39,6 +39,15 @@ export interface PendingChanges {
    * If set, clears all sessions on server restart.
    */
   onRestartClearSessions?: boolean;
+  /**
+   * If set, the session with this id survives `onRestartClearSessions`.
+   *
+   * Only ever holds a boot-key session, and is only set by the server. Such a session
+   * does not depend on the login provider being replaced, and its holder can sign in
+   * again with the same key, so clearing it protects nothing. It would only sign the
+   * operator out of the setup they are in the middle of.
+   */
+  onRestartKeepSessionId?: string | null;
 }
 
 export interface TelemetryPrefs {

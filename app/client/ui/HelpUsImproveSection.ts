@@ -163,7 +163,9 @@ export class HelpUsImproveSection extends Disposable {
     }
 
     return {
-      installationId: config.installationId,
+      // Only install admins get the ID, and only they get past the wizard's access check,
+      // so it should always be set here, a sentinel makes the exception visible in the survey.
+      installationId: config.installationId ?? "missing_expected_installation_id",
       loginWithGristClientId: await this._fetchLoginWithGristClientId(),
       referralSource: hearAbout,
       role: userType,

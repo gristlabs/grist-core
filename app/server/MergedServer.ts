@@ -257,11 +257,13 @@ export class MergedServer {
       // deletePrefs creates a transaction to remove and return onRestartClearSessions.
       // This is important when there are multiple home servers, as we only want
       // one server to get back a truthy value and proceed with clearing sessions.
-      const { onRestartClearSessions } = await activations.deletePrefs(["onRestartClearSessions"]);
+      const { onRestartClearSessions, onRestartKeepSessionId } = await activations.deletePrefs(
+        ["onRestartClearSessions", "onRestartKeepSessionId"],
+      );
       if (!onRestartClearSessions) { return; }
 
       log.info("Clearing sessions...");
-      await this.flexServer.getSessions().clearAllSessions();
+      await this.flexServer.getSessions().clearAllSessions(onRestartKeepSessionId || undefined);
       log.info("Successfully cleared sessions");
     } catch (err) {
       // Don't re-throw so we don't disrupt the rest of the startup process.

@@ -3,8 +3,10 @@ import { AuthProvider } from "app/common/ConfigAPI";
 import { FALLBACK_PROVIDER_KEY, GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
+import { getBootKeySessionId } from "app/server/lib/Boot";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { getGetGristComHost, readGetGristComConfigFromSettings } from "app/server/lib/GetGristComConfig";
+import { GristServer } from "app/server/lib/GristServer";
 import {
   getActiveLoginSystemType,
   getActiveLoginSystemTypeSource,
@@ -17,7 +19,7 @@ import { sendOkReply, stringParam } from "app/server/lib/requestUtils";
 import * as express from "express";
 
 export class ConfigBackendAPI {
-  constructor(private _activations: ActivationsManager) {
+  constructor(private _activations: ActivationsManager, private _gristServer: GristServer) {
   }
 
   public addEndpoints(app: express.Express, requireInstallAdmin: express.RequestHandler) {
@@ -47,7 +49,7 @@ export class ConfigBackendAPI {
 
       await this._activations.updateEnvVars({ GRIST_LOGIN_SYSTEM_TYPE: providerKey });
 
-      await this._activations.updatePrefs({ onRestartClearSessions: true });
+      await this._clearSessionsOnRestart(req);
 
       return sendOkReply(req, resp, { msg: "ok" });
     }));
@@ -78,7 +80,7 @@ export class ConfigBackendAPI {
       await this._activations.updateEnvVars({ [gristComSecret]: key });
       // TODO: Restart may not always be required. When this endpoint evolves to support other
       // providers, be more nuanced about setting this.
-      await this._activations.updatePrefs({ onRestartClearSessions: true });
+      await this._clearSessionsOnRestart(req);
       return sendOkReply(req, resp, { msg: "ok" });
     }));
 
@@ -103,6 +105,19 @@ export class ConfigBackendAPI {
         ...(config ? { oidcClientId: config.clientId } : {}),
       });
     }));
+  }
+
+  /**
+   * Ask for sessions to be cleared on the next restart, because an auth change
+   * invalidates logins made through the previous configuration. The requester's own
+   * boot-key session is kept, so an admin setting auth up for the first time is not
+   * signed out half-way through.
+   */
+  private async _clearSessionsOnRestart(req: express.Request) {
+    await this._activations.updatePrefs({
+      onRestartClearSessions: true,
+      onRestartKeepSessionId: (await getBootKeySessionId(req, this._gristServer)) ?? null,
+    });
   }
 
   /**

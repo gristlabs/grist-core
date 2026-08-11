@@ -295,7 +295,7 @@ to individuals and small orgs with less than US $1 million in total annual fundi
             { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
             t("Learn more."),
           ),
-          pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
+          pricingLink: cssLink({ href: commonUrls.plansSelfManaged, target: "_blank" }, t("pricing")),
         }),
         testId("trial-note"),
       ) : null,
@@ -358,7 +358,7 @@ annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free tria
               { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
               t("Free activation keys"),
             ),
-            pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
+            pricingLink: cssLink({ href: commonUrls.plansSelfManaged, target: "_blank" }, t("pricing")),
           })),
           dom("p", t("You may downgrade at any time to the Community edition. You will not lose your \
 data or need to reinstall Grist.")),

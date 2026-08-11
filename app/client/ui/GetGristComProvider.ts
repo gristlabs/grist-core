@@ -84,10 +84,8 @@ export function getGristComProviderMeta() {
 Users sign in with their getgrist.com account."),
     docsUrl: commonUrls.signInWithGristDocs,
     recommendedBadge: t("Recommended"),
-    recommendedHighlight: t("Ideal for testing and prototyping. Sign in with a getgrist.com account, \
-with no identity provider to configure."),
-    recommendedDesc: t("You can switch to OIDC, SAML, or another method at any time."),
-    recommendedConfigure: t("Use getgrist.com sign-in"),
+    recommendedHint: t("Users sign in with a getgrist.com account. Simplest to configure. \
+Also ideal for testing and prototyping."),
   };
 }
 

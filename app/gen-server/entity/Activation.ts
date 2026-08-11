@@ -94,6 +94,10 @@ export class Activation extends BaseEntity {
         this.prefs.onRestartClearSessions = props.prefs.onRestartClearSessions;
       }
 
+      if (props.prefs.onRestartKeepSessionId !== undefined) {
+        this.prefs.onRestartKeepSessionId = props.prefs.onRestartKeepSessionId;
+      }
+
       if (props.prefs.envVars) {
         this.prefs.envVars = this.prefs.envVars || {};
 

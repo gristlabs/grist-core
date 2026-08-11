@@ -13,7 +13,6 @@ import { QuickSetupApplyStep } from "app/client/ui/QuickSetupApplyStep";
 import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SANDBOX_PROBE_ID, SandboxSetupSection } from "app/client/ui/SandboxSection";
-import { textButton } from "app/client/ui2018/buttons";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
 
@@ -165,19 +164,11 @@ export class QuickSetup extends Disposable {
       };
       return dom("div",
         section.buildDom(),
+        // canProceed covers both a configured provider and acknowledged no-auth (the
+        // chooser's last-resort row), so one Continue serves every deliberate choice.
         dom.maybe(
-          section.hasConfiguredAuth,
+          section.canProceed,
           () => quickSetupContinueButton(step, () => this._advanceStep(), testId("auth-continue")),
-        ),
-        dom.maybe(
-          use => !use(section.hasConfiguredAuth),
-          () => cssAuthSkipRow(
-            textButton(
-              t("Set up later"),
-              dom.on("click", () => section.confirmNoAuth(() => this._advanceStep())),
-              testId("auth-skip"),
-            ),
-          ),
         ),
       );
     });
@@ -216,9 +207,4 @@ const cssStepContent = styled("div", `
   animation: ${cssFadeUp} 0.5s ease 0.24s both;
   margin: 24px auto;
   max-width: 520px;
-`);
-
-const cssAuthSkipRow = styled("div", `
-  text-align: center;
-  margin-top: 20px;
 `);

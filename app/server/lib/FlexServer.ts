@@ -2245,7 +2245,7 @@ export class FlexServer implements GristServer {
     // Need to be an admin to change the Grist config
     const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
 
-    const configBackendAPI = new ConfigBackendAPI(this.getActivations());
+    const configBackendAPI = new ConfigBackendAPI(this.getActivations(), this);
     configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
   }
 

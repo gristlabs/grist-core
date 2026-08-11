@@ -1,5 +1,4 @@
 import { cssSmallLinkButton } from "app/client/components/Forms/styles";
-import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { makeTestId } from "app/client/lib/domUtils";
 import { dateFmtFull } from "app/client/lib/formatUtils";
 import { makeT } from "app/client/lib/localization";
@@ -13,20 +12,18 @@ import {
   cssCelebrateLead,
 } from "app/client/ui/AdminPanelCss";
 import { cssOptInButton, cssParagraph, cssSection } from "app/client/ui/AdminTogglesCss";
-import { hoverTooltip, showTransientTooltip } from "app/client/ui/tooltips";
+import { buildInstallationIdBlock } from "app/client/ui/InstallationIdBlock";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { colorIcon, icon } from "app/client/ui2018/icons";
 import { ActivationState, commonUrls, COMMUNITY_EDITION, FULL_EDITION } from "app/common/gristUrls";
 import { not } from "app/common/gutil";
-import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
 import { BindableValue, Computed, Disposable, dom, input, MultiHolder, Observable, styled } from "grainjs";
 
 const t = makeT("ToggleEnterpriseWidget");
 const testId = makeTestId("test-toggle-enterprise-");
-const TOOLTIP_KEY = "copy-on-settings";
 
 type State = "core" | "activated" | "trial" | "no-key" | "error";
 
@@ -95,7 +92,9 @@ export class ToggleEnterpriseWidget extends Disposable {
   private _buildPasteYourKey(show: BindableValue<boolean> = Observable.create(this, true)) {
     return cssParagraph(
       // Lives with the key input so the ID shows exactly when the input does (e.g. only after "Update").
-      this._buildInstallationIdBlock(),
+      buildInstallationIdBlock(
+        cssIdHelp(t("Provide this when requesting an activation key. Keys are tied to your installation ID.")),
+      ),
       cssIdLabel(t(`Activation key`), dom.style("margin-bottom", "8px")),
       cssInput(
         this._activationKey, { onInput: true }, { placeholder: t("Paste your activation key") },
@@ -136,29 +135,11 @@ export class ToggleEnterpriseWidget extends Disposable {
           inlineMarkdown(t(`[Free activation keys]({{learnMoreLink}}) are available to individuals and small \
 orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{pricingLink}}).`, {
             learnMoreLink: commonUrls.helpEnterpriseOptIn,
-            pricingLink: commonUrls.plans,
+            pricingLink: commonUrls.plansSelfManaged,
           })),
         ),
       ),
       testId("good-news"),
-    );
-  }
-
-  private _buildInstallationIdBlock() {
-    return cssIdBlock(
-      dom.show(use => Boolean(use(this._model.installationId))),
-      cssIdLabel(t("Installation ID")),
-      cssIdValueRow(
-        cssIdValue(dom.text(use => redactInstallationId(use(this._model.installationId) ?? ""))),
-        cssIdCopyButton(
-          icon("Copy"),
-          dom("span", t("Copy")),
-          copyInstallationId(() => this._model.installationId.get() ?? ""),
-          testId("installation-id-copy"),
-        ),
-      ),
-      cssIdHelp(t("Provide this when requesting an activation key. Keys are tied to your installation ID.")),
-      testId("installation-id-block"),
     );
   }
 
@@ -326,7 +307,7 @@ orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{
           markdown(t(
             `Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to
 [sign up for Full Grist]({{signupLink}}) and paste your activation key below.`, {
-              signupLink: commonUrls.plans,
+              signupLink: commonUrls.plansSelfManaged,
               expireAt,
             })),
         ),
@@ -337,7 +318,7 @@ orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{
           markdown(t(`An active subscription is required to continue using Full Grist. You can
 you activate your subscription by [signing up for Full Grist ]({{signupLink}}) and pasting your
 activation key below.`, {
-            signupLink: commonUrls.plans,
+            signupLink: commonUrls.plansSelfManaged,
           })),
         ),
       ]),
@@ -364,7 +345,7 @@ function enterpriseNotEnabledCopy() {
       markdown(t(`An activation key is used to run Full Grist after a trial period
         of 30 days has expired. Get an activation key by [signing up for Grist
         Enterprise]({{signupLink}}). You do not need an activation key to run
-        Grist Community Edition.`, { signupLink: commonUrls.plans })),
+        Grist Community Edition.`, { signupLink: commonUrls.plansSelfManaged })),
     ),
     learnMoreLink(),
   ];
@@ -373,33 +354,8 @@ function enterpriseNotEnabledCopy() {
 function learnMoreLink() {
   return cssParagraph(
     markdown(t(`Learn more in our [Help Center]({{helpCenter}}).`, {
-      signupLink: commonUrls.plans,
       helpCenter: commonUrls.helpEnterpriseOptIn,
     })));
-}
-
-function copyHandler(value: () => string, confirmation: string) {
-  return dom.on("click", async (e, d) => {
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    showTransientTooltip(d as Element, confirmation, {
-      key: TOOLTIP_KEY,
-    });
-    await copyToClipboard(value());
-  });
-}
-
-// Shared so the inline row and the prominent block can't drift on the copy/tooltip strings.
-function copyInstallationId(getId: () => string) {
-  return [
-    copyHandler(getId, t("Installation ID copied to clipboard")),
-    hoverTooltip(t("Copy to clipboard"), { key: TOOLTIP_KEY }),
-  ];
-}
-
-function redactInstallationId(id: string): string {
-  if (id.length <= 6) { return id; }
-  return id.slice(0, 6) + "*".repeat(id.length - 6);
 }
 
 export const cssInput = styled(input, `
@@ -492,53 +448,8 @@ const cssGoodNewsWell = styled(cssCelebrate, `
   margin: 16px 0;
 `);
 
-const cssIdBlock = styled("div", `
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 16px 0;
-`);
-
 const cssIdLabel = styled("div", `
   font-weight: 600;
-`);
-
-const cssIdValueRow = styled("div", `
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-`);
-
-const cssIdValue = styled("div", `
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  padding: 8px 12px;
-  font-family: ${tokens.fontFamilyMono};
-  color: ${theme.inputFg};
-  background-color: ${theme.inputDisabledBg};
-  border: 1px solid ${theme.inputBorder};
-  border-radius: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`);
-
-const cssIdCopyButton = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  cursor: pointer;
-  color: ${theme.controlFg};
-  --icon-color: ${theme.controlFg};
-  border: 1px solid ${theme.inputBorder};
-  border-radius: 4px;
-  white-space: nowrap;
-  &:hover {
-    background-color: ${theme.lightHover};
-  }
 `);
 
 const cssIdHelp = styled("div", `

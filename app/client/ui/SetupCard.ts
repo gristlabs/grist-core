@@ -1,102 +1,65 @@
 /**
  * Generic card components for setup UI sections.
  *
- * Provides reusable building blocks: HeroCard, buildItemCard, CardList,
- * and buildBadge.
+ * Provides reusable building blocks: buildHeroCard, buildItemCard, and buildCardList.
  *
  * All options are data-driven: plain values or Bindable<T> for reactivity.
  */
 import { cssCardSurface } from "app/client/ui/SettingsLayout";
-import { basicButton } from "app/client/ui2018/buttons";
+import { cssCheckboxCircle } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { useBindable } from "app/common/gutil";
+import { tokens } from "app/common/ThemePrefs";
 
 import {
   BindableValue, dom, DomContents, DomElementArg,
-  makeTestId, MaybeObsArray, Observable, styled,
+  makeTestId, Observable, styled,
 } from "grainjs";
 
 const testId = makeTestId("test-setup-card-");
 
 /**
- * First card in the setup - a Hero card.
+ * First card in the setup — the hero: an item card with hero sizing (larger padding and
+ * title, bottom margin separating it from the list below), sharing the item card's
+ * indicator stripe, selection styling, and whole-card click behavior.
  *
  * ```
  * buildHeroCard({
- *   indicator: "success",
+ *   indicator: "active",
  *   header: "OIDC",
  *   badges: [{ label: "Active", variant: "primary" }],
  *   text: "Your server authenticates users via OpenID Connect.",
- *   checkbox: labeledSquareCheckbox(myObs, "Enable feature"),
- *   buttons: [
- *     basicButton("Reconfigure", dom.on("click", reconfigure)),
- *     basicButton("Deactivate", dom.on("click", deactivate)),
- *   ],
- *   footer: [
- *     dom("span", "Installation admin:", dom("strong", "admin@example.com")),
- *     textButton("Change admin", dom.on("click", () => changeAdmin())),
- *   ],
  * })
  * ```
  */
-export function buildHeroCard(props: {
-  /** Indicator — left border color. */
-  indicator: BindableValue<HeroVariant>;
-  /** Radio button on the left side of the card. */
-  radio?: RadioConfig;
-  /** Header text. */
+export function buildHeroCard(props: Omit<ItemCardProps, "muted" | "onClick">) {
+  return buildItemCard({
+    ...props,
+    args: [cssItemRow.cls("-hero"), testId("hero"), ...(props.args ?? [])],
+  });
+}
+
+/**
+ * The card/hero body: header (+ inline and right-aligned badges), description, and anything
+ * below it (error, info, extra). buildItemCard wraps this with the card surface, radio, and
+ * indicator; the authentication section's heroes wrap it with their own frame and admin-row footer.
+ */
+export interface ItemContentProps {
+  /** Header — title text. */
   header: BindableValue<string>;
-  /** Header tag, like Recommended */
-  tags?: TagConfig[];
-  /** Header badges. */
-  badges?: MaybeObsArray<BadgeConfig>;
-  /** Text - main content. */
+  /** Header › Badges (inline chips after the name): use buildBadge() */
+  badges?: DomContents,
+  /** Right-aligned label chips (e.g. "Requires activation key"): use buildBadge(). */
+  rightBadges?: DomContents,
+  /** Text — description/hint below header. */
   text?: BindableValue<string>;
-  /** Error message. */
+  /** Error message — shown in red. */
   error?: BindableValue<string>;
-  /** Controls / Checkbox (e.g. labeledSquareCheckbox(...)). */
-  checkbox?: DomContents;
-  /** Controls / Buttons (e.g. basicButton(...)). */
-  buttons?: DomContents;
-  /** Footer content (rendered inside a styled footer bar). */
-  footer?: DomContents;
-  args?: DomElementArg[];
-}) {
-  const hasControls = props.checkbox || props.buttons;
-  const hasFooter = props.footer;
-
-  const content = cssHeroCardContent(
-    cssHeroHeader(
-      cssHeroTitle(
-        dom.text(props.header),
-        ...(props.tags ?? []).map(t => cssTag(t.label, testId("tag"))),
-        testId("header"),
-      ),
-      props.badges ? dom.forEach(props.badges, b => buildBadge(b.label, b.variant, testId("badge"))) : null,
-    ),
-    props.text ? cssHeroText(dom.text(props.text)) : null,
-    props.error ? buildCollapsibleError(props.error) : null,
-    hasControls ? cssHeroControls(
-      props.checkbox ?? null,
-      props.buttons ? cssHeroControlButtons(props.buttons) : null,
-    ) : null,
-    hasFooter ? cssHeroFooter(props.footer) : null,
-  );
-
-  return cssHeroCard(
-    dom.cls((use) => {
-      const v = useBindable(use, props.indicator);
-      return v ? `${cssHeroCard.className}-${v}` : "";
-    }),
-    testId("hero"),
-    props.radio ? cssCardWithRadio(
-      buildRadioInput(props.radio),
-      content,
-    ) : content,
-    props.radio?.disabled ? dom.cls(DISABLED_CLASS, props.radio.disabled) : null,
-    ...(props.args ?? []),
-  );
+  /** Info — informational text (gray). */
+  info?: BindableValue<string>;
+  /** Extra content rendered below the description (wells, env notes). */
+  extra?: DomContents;
 }
 
 /**
@@ -107,53 +70,53 @@ export function buildHeroCard(props: {
  *   indicator: "active",
  *   header: "OIDC",
  *   badges: [{ label: "Active", variant: "primary" }],
- *   buttons: [{ label: "Configure", action: () => configure() }],
+ *   radio: { checked: isActive, onSelect: () => activate() },
  *   text: "Works with most identity providers.",
  * })
  * ```
  */
-export function buildItemCard(props: {
-  /** Indicator — left border color. */
+export interface ItemCardProps extends ItemContentProps {
+  /** Indicator — colored stripe on the card's left edge, tinting the left border to match. */
   indicator?: BindableValue<ItemBorderVariant | undefined>;
   /** Radio button on the left side of the card. */
   radio?: RadioConfig;
-  /** Header — title text. */
-  header: BindableValue<string>;
-  /** Header › Tags (superscript accent labels). */
-  tags?: TagConfig[];
-  /** Header › Badges. */
-  badges?: MaybeObsArray<BadgeConfig>;
-  /** Header › Buttons. */
-  buttons?: ItemButtonConfig[];
-  /** Text — description/hint below header. */
-  text?: BindableValue<string>;
-  /** Error message — shown in red. */
-  error?: BindableValue<string>;
-  /** Info — informational text (gray). */
-  info?: BindableValue<string>;
+  /** Whole-card click handler. Defaults to the radio's onSelect when one is given, since
+   * the radio glyph itself is presentational (see buildItemRadio) and can't receive clicks. */
+  onClick?: () => void;
+  /** Muted (no-auth) variant — plain background, no accent. */
+  muted?: boolean;
   args?: DomElementArg[];
-}) {
-  const content = cssItemContent(
+}
+
+/** The shared card/hero body. */
+export function buildItemContent(props: ItemContentProps) {
+  return cssItemContent(
     // Header
     cssItemHeader(
       cssItemLabel(
         dom.text(props.header),
-        ...(props.tags ?? []).map(t => cssTag(t.label, testId("tag"))),
         testId("header"),
       ),
-      props.badges ? dom.forEach(props.badges, b => buildBadge(b.label, b.variant, testId("badge"))) : null,
+      props.badges,
       cssFlex(),
-      ...(props.buttons ?? []).map(b => basicButton(
-        b.label,
-        b.disabled ? dom.prop("disabled", true) : null,
-        b.action ? dom.on("click", b.action) : null,
-      )),
+      props.rightBadges,
     ),
 
     props.text ? cssItemText(dom.text(props.text)) : null,
     props.error ? dom.maybe(props.error, e => buildCollapsibleError(e)) : null,
-    props.info ? cssItemInfo(dom.text(props.info)) : null,
+    props.info ? cssItemInfo(cssItemInfoIcon("Info"), dom.text(props.info)) : null,
+    props.extra ?? null,
   );
+}
+
+export function buildItemCard(props: ItemCardProps) {
+  // The radio glyph is presentational (pointer-events: none), so the card is the click target;
+  // it falls back to the radio's onSelect.
+  const { radio } = props;
+  const cardClick = props.onClick ??
+    (radio?.onSelect && !radio.disabled ? () => radio.onSelect!() : undefined);
+
+  const content = buildItemContent(props);
 
   return cssItemRow(
     props.indicator != null ?
@@ -164,12 +127,25 @@ export function buildItemCard(props: {
           return val ? `${cssItemRow.className}-border-${val}` : "";
         }) :
       null,
+    props.muted ? cssItemRow.cls("-muted") : null,
+    props.radio ? cssItemRow.cls("-selected", props.radio.checked) : null,
+    props.radio?.disabled && !cardClick ? cssItemRow.cls("-disabled", props.radio.disabled) : null,
+    cardClick ? [
+      cssItemRow.cls("-clickable"),
+      // Keyboard operability: only interactive cards get a tab stop. Full radiogroup arrow-key
+      // semantics (Up/Down moving selection) is a deliberate follow-up, not done here.
+      { tabindex: "0", role: "button" },
+      dom.on("click", cardClick),
+      dom.on("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          cardClick();
+        }
+      }),
+    ] : null,
     testId("item"),
-    props.radio ? cssCardWithRadio(
-      buildRadioInput(props.radio),
-      content,
-    ) : content,
-    props.radio?.disabled ? dom.cls(DISABLED_CLASS, props.radio.disabled) : null,
+    props.radio ? buildItemRadio(props.radio) : null,
+    content,
     ...(props.args ?? []),
   );
 }
@@ -182,7 +158,6 @@ export function buildItemCard(props: {
  *   header: "Other authentication methods",
  *   collapsible: true,
  *   initiallyCollapsed: true,
- *   collapseObs: someCheckboxObs,
  *   items: [
  *     buildItemCard({ header: "OIDC", ... }),
  *     buildItemCard({ header: "SAML", ... }),
@@ -218,18 +193,29 @@ export function buildCardList(props: {
       dom.domComputed(collapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse")),
       header,
       dom.on("click", toggle),
+      dom.on("keydown", (ev: KeyboardEvent) => {
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); }
+      }),
+      dom.attr("tabindex", "0"),
+      dom.attr("role", "button"),
+      dom.attr("aria-expanded", use => String(!use(collapsed))),
       ...(args ?? []),
     ),
     dom.maybe(use => !use(collapsed), buildCards),
   );
 }
 
-function buildRadioInput(radio: RadioConfig): HTMLElement {
-  return cssRadioInput({ type: "radio" },
+/**
+ * The check-glyph radio used by item cards: a status circle carrying the whole state in one
+ * glyph (checked = active, disabled = grayed out). Presentational only — the card itself
+ * drives selection (see buildItemCard's cardClick). A checkbox input rather than a radio:
+ * an unchecked radio whose group has no selection matches :indeterminate, triggering the
+ * checkbox CSS's filled minus-glyph look.
+ */
+export function buildItemRadio(radio: RadioConfig): HTMLElement {
+  return cssItemRadio({ "type": "checkbox", "tabindex": "-1", "aria-hidden": "true" },
     dom.prop("checked", radio.checked),
     radio.disabled ? dom.prop("disabled", radio.disabled) : null,
-    dom.on("change", () => radio.onSelect()),
-    radio.name ? dom.attr("name", radio.name) : null,
   );
 }
 
@@ -246,267 +232,215 @@ function buildCollapsibleError(error: BindableValue<string>): DomContents {
   );
 }
 
-const cssRadioInput = styled("input", `
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  margin: 0px !important;
-  border-radius: 50%;
-  background-clip: content-box;
-  border: 1px solid ${theme.checkboxBorder};
-  background-color: ${theme.checkboxBg};
-  flex-shrink: 0;
-  cursor: pointer;
-  &:hover {
-    border: 1px solid ${theme.checkboxBorderHover};
-  }
-  &:disabled {
-    cursor: default;
-    border-color: ${theme.checkboxDisabledBg};
-    background-color: ${theme.checkboxDisabledBg};
-  }
-  &:checked {
-    padding: 2px;
-    background-color: ${theme.controlPrimaryBg};
-    border: 1px solid ${theme.controlPrimaryBg};
-  }
-  &:checked:disabled {
-    background-color: ${theme.checkboxDisabledBg};
-    border-color: ${theme.checkboxDisabledBg};
-  }
+// Outside a cssLabel, so it sets the base --color itself. The margin-top centers the 16px
+// glyph on the name row's 22px first line (see cssItemLabel).
+const cssItemRadio = styled(cssCheckboxCircle, `
+  flex: none;
+  margin-top: 3px !important;
+  pointer-events: none;
+  --color: ${theme.checkboxBorder};
 `);
 
-const DISABLED_CLASS = "setup-card-disabled";
-
 export function buildBadge(label: string, variant: BadgeVariant, ...args: DomElementArg[]): HTMLElement {
-  return cssBadge(label, cssBadge.cls(`-${variant}`), ...args);
+  return cssBadge(label, cssBadge.cls(`-${variant}`), testId("badge"), ...args);
 }
+
+const cssBadge = styled("span", `
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: ${tokens.smallFontSize};
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid transparent;
+
+  &-primary {
+    background-color: ${tokens.primary};
+    color: ${tokens.white};
+  }
+  &-pending {
+    background-color: #ffb535;
+    color: white;
+  }
+  &-grey {
+    background-color: ${tokens.secondary};
+    color: white;
+  }
+  &-accent {
+    border-color: ${tokens.primary};
+    color: ${tokens.primary};
+  }
+  &-warning {
+    border-color: #ffb535;
+    color: ${tokens.body};
+  }
+  &-error {
+    border-color: ${theme.errorText};
+    color: ${theme.errorText};
+  }
+`);
 
 // =========================================================================
 // Types
 // =========================================================================
 
-export type HeroVariant = "success" | "pending" | "warning" | "error" | "";
-
 export type ItemBorderVariant = "active" | "configured" | "warning" | "error";
 
-export type BadgeVariant = "primary" | "warning" | "error" | "accent";
-
-export interface BadgeConfig {
-  label: string;
-  variant: BadgeVariant;
-}
-
-export interface TagConfig {
-  label: string;
-}
-
-export interface ItemButtonConfig {
-  label: string;
-  action?: () => void;
-  disabled?: boolean;
-}
+export type BadgeVariant = "primary" | "warning" | "error" | "accent" | "pending" | "grey";
 
 export interface RadioConfig {
   /** Whether this radio is currently selected. */
   checked: BindableValue<boolean>;
-  /** Called when the user clicks this radio. */
-  onSelect: () => void;
-  /** Shared radio group name (for native radio exclusivity). */
-  name?: string;
-  /** When true, radio is disabled and the whole card is grayed out. */
-  disabled?: BindableValue<boolean>;
+  /** Select this option. The glyph itself is presentational; this is the whole-card click's
+   * default handler (see buildItemCard). Omit for a pure status glyph, as in Auth's hero. */
+  onSelect?: () => void;
+  /** When true, radio is disabled; the card is also grayed out unless it has its own onClick. */
+  disabled?: boolean;
 }
 
 // =========================================================================
 // Styled components
 // =========================================================================
 
-const cssBadge = styled("div", `
-  padding: 2px 8px;
-  color: ${theme.lightText};
-  border: 1px solid ${theme.lightText};
-  font-size: ${vars.xsmallFontSize};
-  font-weight: 600;
-  border-radius: 16px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  &-primary {
-    border-color: ${theme.controlPrimaryBg};
-    color: ${theme.controlPrimaryBg};
-  }
-  &-warning {
-    border-color: #ffb535;
-    color: ${theme.toastWarningBg}
-  }
-  &-error {
-    border-color: ${theme.errorText};
-    color: ${theme.errorText};
-  }
-  &-accent {
-    border-color: ${theme.accentText};
-    color: ${theme.accentText};
-  }
-`);
-
-const cssTag = styled("span", `
-  text-transform: uppercase;
-  vertical-align: super;
-  font-size: ${vars.xsmallFontSize};
-  font-weight: 600;
-  line-height: 1;
-  color: ${theme.accentText};
-  margin-left: 6px;
-`);
-
-/**
- * Hero card with a colored 4px left border indicating state. Shared by
- * the sandbox setup card and the authentication section's hero. Use
- * `cssHeroCard.cls("-success" | "-pending" | "-warning" | "-error")` to
- * pick the left-border color.
- */
+/** Hero sizing, reused by the authentication section's hand-built hero. */
 export const cssHeroCard = styled(cssCardSurface, `
   padding: 16px 20px;
-  border-left-width: 4px;
   margin-bottom: 24px;
-
-  &-success {
-    border-left-color: ${theme.toastSuccessBg};
-  }
-  &-pending {
-    border-left-color: ${theme.controlPrimaryBg};
-  }
-  &-warning {
-    border-left-color: ${theme.toastWarningBg};
-  }
-  &-error {
-    border-left-color: ${theme.errorText};
-  }
 `);
 
-const cssHeroHeader = styled("div", `
+export const cssItemsContainer = styled("div", `
   display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 8px;
-`);
-
-const cssHeroTitle = styled("div", `
-  font-size: ${vars.largeFontSize};
-  font-weight: 600;
-  color: ${theme.text};
-`);
-
-const cssHeroText = styled("div", `
-  color: ${theme.lightText};
-  font-size: ${vars.mediumFontSize};
-  line-height: 1.4;
-  margin-bottom: 8px;
-`);
-
-const cssHeroControls = styled("div", `
-  margin-top: 12px;
-`);
-
-const cssHeroControlButtons = styled("div", `
-  display: flex;
+  flex-direction: column;
   gap: 8px;
-  margin-top: 8px;
 `);
 
-const cssHeroFooter = styled("div", `
+const cssItemRow = styled(cssCardSurface, `
+  align-items: flex-start;
   display: flex;
-  align-items: center;
   gap: 12px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid ${theme.menuBorder};
-  font-size: ${vars.mediumFontSize};
-  color: ${theme.lightText};
-`);
-
-const cssItemsContainer = styled(cssCardSurface, `
-  display: flex;
-  flex-direction: column;
+  padding: 14px 18px;
+  transition: border-color 0.2s, background-color 0.2s;
+  position: relative;
   overflow: hidden;
-`);
 
-const cssItemRow = styled("div", `
-  display: flex;
-  gap: 16px;
-  flex-direction: column;
-  padding: 16px;
-  background-color: ${theme.mainPanelBg};
-  border-bottom: 1px solid ${theme.menuBorder};
-  border-left: 3px solid transparent;
-  &:last-child {
-    border-bottom: none;
+  &-clickable {
+    cursor: pointer;
+  }
+  &-clickable:hover {
+    border-color: ${tokens.primary};
+  }
+  &-selected {
+    border-color: ${tokens.primary};
+  }
+  &-disabled {
+    border-color: ${tokens.decorationSecondary};
+    cursor: not-allowed;
+  }
+  &-disabled:hover {
+    border-color: ${tokens.decorationSecondary};
+    box-shadow: none;
+  }
+  &-muted {
+    background-color: ${tokens.bgSecondary};
+  }
+  &:focus-visible {
+    outline: 2px solid ${tokens.primary};
+    outline-offset: 1px;
+  }
+  &-hero {
+    padding: 16px 20px;
+    margin-bottom: 24px;
   }
   &-border-active {
-    border-left-color: ${theme.toastSuccessBg};
+    --indicator-color: ${theme.toastSuccessBg};
   }
   &-border-configured {
-    border-left-color: ${theme.controlPrimaryBg};
+    --indicator-color: ${theme.controlPrimaryBg};
   }
   &-border-warning {
-    border-left-color: ${theme.toastWarningBg};
+    --indicator-color: ${theme.toastWarningBg};
   }
   &-border-error {
-    border-left-color: ${theme.errorText};
+    --indicator-color: ${theme.errorText};
+  }
+  /* The stripe tints the left border to match, so it doesn't clash with the selected/hover
+   * border color; !important because -clickable:hover outranks this selector's specificity. */
+  &-border-active, &-border-configured, &-border-warning, &-border-error {
+    border-left-color: var(--indicator-color) !important;
+  }
+  &-border-active::before, &-border-configured::before, &-border-warning::before, &-border-error::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: var(--indicator-color);
   }
 `);
 
-const cssCardWithRadio = styled("div", `
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
-
-  & > input[type="radio"] {
-    margin-top: 4px;
-  }
-`);
-
-const cssHeroCardContent = styled("div", `
-  flex: 1;
-  min-width: 0;
-`);
-
-const cssItemContent = styled("div", `
+export const cssItemContent = styled("div", `
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  flex: 1;
+  gap: 4px;
   min-width: 0;
-`);
-
-const cssItemHeader = styled("div", `
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   flex: 1;
-  gap: 16px;
 `);
 
-const cssItemLabel = styled("div", `
-  font-size: ${vars.mediumFontSize};
-  color: ${theme.text};
+export const cssItemHeader = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 `);
 
-const cssItemText = styled("div", `
-  color: ${theme.lightText};
-  font-size: ${vars.smallFontSize};
-  & a {
-    color: ${theme.controlFg};
+export const cssItemLabel = styled("span", `
+  font-weight: 600;
+  line-height: 22px;
+
+  .${cssItemRow.className}-hero & {
+    font-size: ${vars.largeFontSize};
   }
 `);
 
-const cssItemInfo = styled("div", `
-  color: ${theme.lightText};
+export const cssItemText = styled("div", `
+  color: ${tokens.secondary};
+  font-size: ${vars.mediumFontSize};
+  line-height: 1.5;
 `);
 
-const cssFlex = styled("div", `
+/** A status annotation (e.g. why a card is unavailable), set apart from the description
+ * by its Info icon. */
+export const cssItemInfo = styled("div", `
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: ${tokens.secondary};
+  font-size: ${vars.mediumFontSize};
+  margin-top: 2px;
+`);
+
+const cssItemInfoIcon = styled(icon, `
+  flex: none;
+  --icon-color: ${tokens.decoration};
+`);
+
+export const cssFlex = styled("div", `
   flex: 1;
+`);
+
+/** Action-button row inside a hero card's body. */
+export const cssHeroActions = styled("div", `
+  display: flex;
+  gap: 8px;
+  &:not(:empty) {
+    margin-top: 12px;
+  }
+`);
+
+export const cssItemError = styled("div", `
+  color: ${theme.errorText};
+  font-size: ${vars.mediumFontSize};
 `);
 
 const cssListHeader = styled("div", `
@@ -526,6 +460,13 @@ const cssListHeaderClickable = styled(cssListHeader, `
   gap: 4px;
   &:hover {
     color: ${theme.text};
+  }
+  /* Inset the focus ring with box-shadow so it isn't clipped by ancestor
+     overflow boundaries (the section sits inside a card with overflow:hidden). */
+  &:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px ${theme.controlFg};
+    border-radius: 4px;
   }
 `);
 

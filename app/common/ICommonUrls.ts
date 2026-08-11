@@ -23,6 +23,8 @@ export interface ICommonUrls {
   helpTeamAuditLogs: string;
   helpTelemetryLimited: string;
   helpEnterpriseOptIn: string;
+  activationKeyRequestForm: string;
+  freeActivationKeyFaq: string;
   helpCalendarWidget: string;
   helpLinkKeys: string;
   helpFilteringReferenceChoices: string;
@@ -44,6 +46,7 @@ export interface ICommonUrls {
   termsOfService: string | undefined; // Link to the terms of service (if set, adds a button to the bottom-left corner).
   onboardingTutorialVideoId: string; // URL to the Youtube video to onboard users.
   plans: string; // Link to the plans.
+  plansSelfManaged: string; // Link to the plans for self-managed installs.
   contact: string; // Link to the contact page.
   templates: string; // Link to the templates store.
   webinars: string; // Link to the webinars

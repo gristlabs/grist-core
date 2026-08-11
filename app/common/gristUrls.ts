@@ -149,6 +149,8 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpTeamAuditLogs: "https://support.getgrist.com/install/audit-log-overview/",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-enable-the-full-edition-of-grist",
+  activationKeyRequestForm: "https://www.getgrist.com/request-activation-key",
+  freeActivationKeyFaq: "https://www.getgrist.com/free-grist-activation-key-faq/",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown-lists",
@@ -170,6 +172,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   termsOfService: getTermsOfServiceUrl(),
   onboardingTutorialVideoId: getOnboardingVideoId(),
   plans: "https://www.getgrist.com/pricing",
+  plansSelfManaged: "https://www.getgrist.com/pricing/#your-servers",
   contact: "https://www.getgrist.com/contact",
   templates: "https://www.getgrist.com/templates",
   webinars: getWebinarsUrl(),
@@ -837,7 +840,8 @@ export function parseSubdomainStrictly(host: string | undefined): { org?: string
  * This is the thing that is send via sendAppPage (so this is embedded in HTML).
  */
 export interface ActivationState {
-  installationId: string;    // Unique identifier for this installation.
+  // Unique identifier for this installation. Absent on pages sent to non-admins.
+  installationId?: string;
   key?: {                    // Set when Grist is activated.
     expirationDate?: string; // ISO8601 date that Grist will need reactivation.
     daysLeft?: number;       // Number of days until Grist will need reactivation.
@@ -1079,11 +1083,11 @@ export interface AdminPageConfig extends GristLoadConfig {
   /** Whether there is a parent process that can restart Grist. */
   runningUnderSupervisor: boolean;
 
-  /** The unique installation ID. */
-  installationId: string;
-
   /** Whether AdminControls are available and should be enabled in UI. */
   adminControls?: boolean;
+
+  /** This installation's ID. Only sent to install admins, so absent for everyone else. */
+  installationId?: string;
 
   /**
    * Whether the installation is "in service". Set to false on fresh installs

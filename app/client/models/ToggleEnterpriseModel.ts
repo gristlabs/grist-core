@@ -15,7 +15,6 @@ const t = makeT("ToggleEnterpriseModel");
 export class ToggleEnterpriseModel extends Disposable {
   public readonly edition: Observable<GristEdition | null> = Observable.create(this, null);
   public readonly status: Observable<ActivationStatus | null> = Observable.create(this, null);
-  public readonly installationId: Observable<string | null> = Observable.create(this, null);
   public readonly busy: Observable<boolean> = Observable.create(this, false);
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
   private readonly _installAPI: InstallAPIImpl = new InstallAPIImpl(getHomeUrl());
@@ -34,7 +33,6 @@ export class ToggleEnterpriseModel extends Disposable {
         return;
       }
       this.status.set(status);
-      this.installationId.set(status.installationId);
     }
   }
 

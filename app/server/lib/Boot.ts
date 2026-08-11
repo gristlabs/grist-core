@@ -1,6 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { normalizeEmail } from "app/common/emails";
 import { isEmail } from "app/common/gutil";
+import { BOOT_KEY_PROVIDER_KEY } from "app/common/loginProviders";
 import { UserProfile } from "app/common/UserAPI";
 import { makeAdminPageConfig } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
@@ -74,7 +75,7 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
       await this._server.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: makeAdminPageConfig(this._server),
+        config: await makeAdminPageConfig(req, this._server),
       });
     }));
 
@@ -127,11 +128,35 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
 
       await setUserInSession(req, this._server, getRequiredAdminProfile());
 
+      // Record that this session was established with a boot key. An auth change clears
+      // sessions on restart, and this one is kept: see `getBootKeySessionId`.
+      await this._server.getSessions()
+        .getOrCreateSessionFromRequest(req)
+        .updateUser(req, { authProvider: BOOT_KEY_PROVIDER_KEY });
+
       res.sendStatus(204);
     }), secureJsonErrorHandler);
 
     return "boot-key";
   }
+}
+
+/**
+ * Returns the request's session id, but only if that session was authenticated with a
+ * boot key. Callers use it to keep that one session when sessions are cleared after an
+ * auth change: it was not vouched for by the login provider being replaced, and the
+ * operator can sign in again with the same key anyway. Any other session returns
+ * undefined and is cleared as usual.
+ */
+export async function getBootKeySessionId(
+  req: Request, server: GristServer,
+): Promise<string | undefined> {
+  const sessions = server.getSessions();
+  const sessionId = sessions.getSessionIdFromRequest(req);
+  if (!sessionId) { return undefined; }
+
+  const user = await sessions.getOrCreateSessionFromRequest(req, { sessionId }).getScopedSession();
+  return user.authProvider === BOOT_KEY_PROVIDER_KEY ? sessionId : undefined;
 }
 
 function getAdminProfile(): UserProfile | undefined {

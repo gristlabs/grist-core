@@ -2,7 +2,7 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/client/models/AdminChecks";
+import { AdminCheckRequest, AdminChecks, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -43,6 +43,7 @@ import {
 } from "app/client/ui/PermissionsSetupSection";
 import { PermissionsToggleModel } from "app/client/ui/PermissionsToggleModel";
 import { QuickSetup } from "app/client/ui/QuickSetup";
+import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import {
   cssPageTitle,
@@ -242,6 +243,7 @@ class AdminInstallationPanel extends Disposable {
   // construction time and the "no valid user" admin path renders
   // alternative content that doesn't need the section anyway.
   private _authSection: AuthenticationSection | undefined;
+  private _sandboxSection: SandboxSetupSection;
 
   // Banner visibility: shown when a tracked section has restart-required
   // pending changes, or the user has applied changes without a restart and
@@ -269,9 +271,12 @@ class AdminInstallationPanel extends Disposable {
       });
     }
 
+    this._sandboxSection = SandboxSetupSection.create(this, this._checks, { inAdminPanel: true });
+
     this._drafts.addSection(this._baseUrlSection);
     this._drafts.addSection(this._editionSection);
     this._drafts.addSection(this._permissionsModel);
+    this._drafts.addSection(this._sandboxSection.draftSection);
     if (this._authSection) {
       this._drafts.addSection(this._authSection);
     }
@@ -580,7 +585,7 @@ now, and takes effect the next time you restart Grist manually.")),
           name: t("Sandboxing"),
           description: t("Sandbox settings for data engine"),
           value: this._buildSandboxingDisplay(),
-          expandedContent: this._buildSandboxingNotice(),
+          expandedContent: this._sandboxSection.buildDom(),
         }),
         SectionItem({
           id: "authentication",
@@ -669,19 +674,6 @@ now, and takes effect the next time you restart Grist manually.")),
             cssErrorText(t("unconfigured")));
       },
     );
-  }
-
-  private _buildSandboxingNotice() {
-    return [
-      // Use AdminChecks text for sandboxing, in order not to
-      // duplicate.
-      probeDetails.sandboxing.info,
-      dom(
-        "div",
-        { style: "margin-top: 8px" },
-        cssLink({ href: commonUrls.helpSandboxing, target: "_blank" }, t("Learn more.")),
-      ),
-    ];
   }
 
   private _buildAdminUsersComputed(

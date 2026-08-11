@@ -279,12 +279,25 @@ describe("AdminPanel", function() {
     // It would be good to test other scenarios, but we are using
     // a multi-server setup on grist-saas and the sandbox test isn't
     // useful there yet.
+
+    // Expanding the row shows the sandbox selection section (and not the
+    // "probe not available" race error it once hit when constructed before
+    // the panel's probe list loaded).
+    await driver.find(".test-admin-panel-item-name-sandboxing").click();
+    await gu.waitToPass(async () => {
+      assert.isTrue(await driver.find(".test-sandbox-section-flavor-0").isDisplayed());
+    }, 8000);
   });
 
   it("should show various self checks", async function() {
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
-    assert.equal(await driver.find(".test-admin-panel-item-name-probe-system-user").isDisplayed(), true);
+    // Retry find+isDisplayed together: probe rows re-render as results land.
+    await gu.waitToPass(
+      async () => assert.equal(
+        await driver.find(".test-admin-panel-item-name-probe-system-user").isDisplayed(), true),
+      3000,
+    );
     await gu.waitForAdminChecks();
     assert.match(await driver.find(".test-admin-panel-item-value-probe-system-user").getText(), /✅/);
   });
