@@ -27,8 +27,26 @@ export function isRequestFunctionEnabled(): boolean {
   return isAffirmative(process.env.GRIST_ENABLE_REQUEST_FUNCTION);
 }
 
+/**
+ * Split a comma-separated domain list, trimming entries and dropping empty
+ * ones. All readers of such a list should use this, so that a stray space or
+ * newline cannot make them disagree.
+ */
+export function parseDomainList(domains: string | undefined): string[] {
+  return (domains || "").split(",").map(s => s.trim()).filter(Boolean);
+}
+
+/**
+ * Whether a domain list is the "*" wildcard, meaning any domain is allowed.
+ * Only a list that is nothing but "*" counts, so listing it alongside other
+ * entries is not a wildcard.
+ */
+export function isWildcardDomainList(domains: string | undefined): boolean {
+  return (domains || "").trim() === "*";
+}
+
 export function isAllowedWebhookWildcard(): boolean {
-  return process.env.ALLOWED_WEBHOOK_DOMAINS === "*";
+  return isWildcardDomainList(process.env.ALLOWED_WEBHOOK_DOMAINS);
 }
 
 /**
@@ -38,6 +56,5 @@ export function isAllowedWebhookWildcard(): boolean {
  */
 export function getAllowedWebhookDomains(): string[] {
   if (isAllowedWebhookWildcard()) { return []; }
-  return (process.env.ALLOWED_WEBHOOK_DOMAINS || "")
-    .split(",").map(s => s.trim()).filter(Boolean);
+  return parseDomainList(process.env.ALLOWED_WEBHOOK_DOMAINS);
 }

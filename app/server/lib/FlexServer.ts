@@ -73,6 +73,7 @@ import log, { logAsJson } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
 import { testSandboxFlavor } from "app/server/lib/NSandbox";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
+import { isWildcardDomainList } from "app/server/lib/outgoingRequests";
 import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
 import { addPluginEndpoints, limitToPlugins } from "app/server/lib/PluginEndpoint";
@@ -2083,7 +2084,7 @@ export class FlexServer implements GristServer {
     // If all webhook targets are accepted, and no proxy is defined, issue
     // a warning. This warning can be removed by explicitly setting the proxy
     // to the empty string.
-    if (allowedWebhookDomains === "*" && proxyForUntrustedRequestsUrl === undefined) {
+    if (isWildcardDomainList(allowedWebhookDomains) && proxyForUntrustedRequestsUrl === undefined) {
       log.warn("Setting an ALLOWED_WEBHOOK_DOMAINS wildcard without GRIST_PROXY_FOR_UNTRUSTED_URLS " +
         "exposes your internal network");
     }

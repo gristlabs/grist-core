@@ -3,6 +3,7 @@ import {
   BufferedResponse,
   buildProxyRequestUrl,
   forwardHttpRequest,
+  isUrlAllowed,
   proxyHttpRequest,
   ProxyHttpRequestOptions,
   relayBufferedResponse,
@@ -56,6 +57,44 @@ describe("requestUtils", function() {
     for (const origin of apiErrorTestCases) {
       it(`throws an ApiError on invalid origin '${origin}'`, function() {
         assert.throws(() => trustOrigin({ headers: { origin } } as any));
+      });
+    }
+  });
+
+  describe("isUrlAllowed", function() {
+    const combinations: [string | undefined, string, boolean][] = [
+      // A wildcard waives the https requirement too.
+      ["*", "https://example.com/hook", true],
+      ["*", "http://localhost:8080/hook", true],
+      ["*", "http://192.168.0.1/hook", true],
+      // Whitespace is ignored, so a value read from a config file with a
+      // trailing newline still works.
+      ["*\n", "http://localhost:8080/hook", true],
+      [" * ", "http://localhost:8080/hook", true],
+      ["example.com, other.com", "https://other.com/hook", true],
+      // Only a list of just "*" is a wildcard. Listed alongside anything else
+      // it is a domain entry, and matches no host.
+      ["example.com,*", "http://169.254.169.254/hook", false],
+      ["example.com,*", "https://evil.org/hook", false],
+      ["example.com,*", "https://example.com/hook", true],
+      [undefined, "https://example.com/hook", false],
+      ["", "https://example.com/hook", false],
+      [",,", "https://example.com/hook", false],
+      ["example.com", "https://example.com/hook", true],
+      ["example.com", "https://sub.example.com/hook", true],
+      ["example.com", "https://notexample.com/hook", false],
+      ["example.com", "https://example.com.evil.org/hook", false],
+      // The host includes the port, so a port in the URL needs one in the entry.
+      ["localhost:8080", "http://localhost:8080/hook", true],
+      ["localhost", "http://localhost:8080/hook", false],
+      // Short of a wildcard, http is only for localhost.
+      ["example.com", "http://example.com/hook", false],
+      ["*", "ftp://example.com/file", false],
+      ["*", "not a url", false],
+    ];
+    for (const [allowedDomains, url, allowed] of combinations) {
+      it(`${allowed ? "allows" : "forbids"} '${url}' under ${JSON.stringify(allowedDomains)}`, function() {
+        assert.equal(isUrlAllowed(allowedDomains, url), allowed);
       });
     }
   });

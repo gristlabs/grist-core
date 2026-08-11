@@ -18,6 +18,7 @@ import { RequestWithGrist } from "app/server/lib/GristServer";
 import { getHomeUrl } from "app/server/lib/gristSettings";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
+import { isWildcardDomainList, parseDomainList } from "app/server/lib/outgoingRequests";
 import { Permit } from "app/server/lib/Permit";
 
 import http, { IncomingMessage, ServerResponse } from "http";
@@ -562,11 +563,12 @@ export function getExtraAttachmentOptions(req: Request): {
  * Returns true if `urlString` is allowed under `allowedDomains`.
  *
  * `allowedDomains` is a comma-separated list of domain entries
- * (e.g. `"example.com,trusted.org"`). A single entry of `*` is a wildcard
+ * (e.g. `"example.com,trusted.org"`). A list of just `*` is a wildcard
  * that allows any domain.
  * Each entry is matched against the URL's host using base-domain matching
  * (see {@link matchesBaseDomain}), so `example.com` also allows
- * `sub.example.com`. Empty entries "example.com,,other.com" are ignored.
+ * `sub.example.com`. Empty entries "example.com,,other.com" and whitespace
+ * around entries are ignored.
  * `undefined` and `""` means an empty list, so no domains are allowed.
  *
  * Summary of logic, allowed when all of the those are true:
@@ -574,8 +576,8 @@ export function getExtraAttachmentOptions(req: Request): {
  * - the URL's protocol is `https:`, OR it's `http:` with hostname `localhost`
  *   (the http+localhost exception is for local dev/testing)
  * - the URL's host matches one of the entries in `allowedDomains` (or
- *   `allowedDomains === "*"`, which allows any host), if list is empty then it
- *   is not allowed.
+ *   `allowedDomains` is just `*`, which allows any host), if list is empty
+ *   then it is not allowed.
  */
 export function isUrlAllowed(allowedDomains: string | undefined, urlString: string) {
   let url: URL;
@@ -592,7 +594,7 @@ export function isUrlAllowed(allowedDomains: string | undefined, urlString: stri
 
   // Support a wildcard that allows all domains.
   // Allow either https or http if it is set.
-  if (allowedDomains === "*") {
+  if (isWildcardDomainList(allowedDomains)) {
     return true;
   }
 
@@ -602,9 +604,7 @@ export function isUrlAllowed(allowedDomains: string | undefined, urlString: stri
     return false;
   }
 
-  return (allowedDomains || "").split(",").some(domain =>
-    domain && matchesBaseDomain(url.host, domain),
-  );
+  return parseDomainList(allowedDomains).some(domain => matchesBaseDomain(url.host, domain));
 }
 
 /**
