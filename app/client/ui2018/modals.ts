@@ -240,6 +240,7 @@ export function modal(
 
   let close = doClose;
   let dialogDom: HTMLElement;
+  let focusLayer!: FocusLayer;
 
   const modalDom = cssModalBacker(
     dom.create((owner) => {
@@ -259,7 +260,7 @@ export function modal(
         testId("modal-dialog"),
         { "role": "dialog", "aria-modal": "true" },
       );
-      FocusLayer.create(owner, {
+      focusLayer = FocusLayer.create(owner, {
         defaultFocusElem: dialogDom,
         allowFocus: elem => (elem !== document.body),
         // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
@@ -275,6 +276,10 @@ export function modal(
   document.body.appendChild(modalDom);
   enableTabTrap(modalDom);
   if (variant === "collapsing") { expandModal(); }
+
+  // Focus now that the dialog is attached, so that it never appears without the focus. The
+  // FocusLayer on its own would only get to it after the current task.
+  focusLayer.focusDefaultElem();
 }
 
 export interface ISaveModalOptions {
