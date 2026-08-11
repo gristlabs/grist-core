@@ -205,7 +205,8 @@ def convert_completion(completion):
     if (
       len(func_body_stmts) > 1 and
       isinstance(func_body_stmts[0], ast.Expr) and
-      isinstance(func_body_stmts[0].value, ast.Str)
+      isinstance(func_body_stmts[0].value, ast.Constant) and
+      isinstance(func_body_stmts[0].value.value, str)
     ):
       # Skip the docstring.
       first_stmt = func_body_stmts[1]

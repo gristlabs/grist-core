@@ -10,7 +10,7 @@ To setup your environment, you would need to install the following dependencies:
  - git
  - [nvm](https://github.com/nvm-sh/nvm/blob/master/README.md) (recommended) or nodejs installed on your system
  - Chromium to run the end-to-end tests
- - Python (preferably Python 3.11, minimum 3.9) and virtualenv
+ - Python (preferably Python 3.14, minimum 3.11) and virtualenv
 
 ### Clone the repository
 
@@ -57,10 +57,13 @@ You can also use nodejs installed in your system. To prevent incompatibilities, 
 
 ### Install the python packages
 
-Be sure to have Python and virtualenv installed. On debian-based Linux distributions, you can simply run the following command as root:
+Be sure to have Python and virtualenv installed. On debian-based Linux
+distributions, you can simply run the following command as root
+(change the python version to a lower one if the packages are not available for
+your distribution):
 
 ```bash
-# apt install python3.11 python3.11-venv
+# apt install python3.14 python3.14-venv
 ```
 
 ### Install the project dependencies and build
