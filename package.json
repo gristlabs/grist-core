@@ -191,7 +191,7 @@
     "i18next-http-middleware": "3.9.7",
     "image-size": "0.6.3",
     "jquery": "3.5.0",
-    "js-yaml": "4.2.0",
+    "js-yaml": "4.3.1",
     "jsdom": "26.1.0",
     "jsesc": "3.0.2",
     "jsonwebtoken": "9.0.2",
