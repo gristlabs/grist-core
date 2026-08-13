@@ -420,8 +420,8 @@ Grist can be configured in many ways. Here are the main environment variables it
 | Variable | Purpose |
 | -------- | ------- |
 | ALLOWED_WEBHOOK_DOMAINS | comma-separated list of permitted domains to use in webhooks (e.g. webhook.site,zapier.com). You can set this to `*` to allow all domains, but if doing so, we recommend using a carefully locked-down proxy (see `GRIST_PROXY_FOR_UNTRUSTED_URLS`) if you do not entirely trust users. Otherwise services on your internal network may become vulnerable to manipulation. |
-| APP_DOC_URL | doc worker url, set when starting an individual doc worker (other servers will find doc worker urls via redis) |
-| APP_DOC_INTERNAL_URL | like `APP_DOC_URL` but used by the home server to reach the server using an internal domain name resolution (like in a docker environment). It only makes sense to define this value in the doc worker. Defaults to `APP_DOC_URL`. |
+| APP_DOC_URL | the url a browser should use to reach this doc worker. In a multi-server setup, if not using `GRIST_FLEET`, every doc worker must be reachable by the browser at a public url of its own. If not using `GRIST_ROUTER_URL` to assign those automatically, `APP_DOC_URL` needs setting in practice. Wherever it is set it must be distinct for each worker, since it is how a client reaches the worker holding a document, and, where `APP_DOC_INTERNAL_URL` is unset, how other servers reach it too. Behind a single front end that means a path per worker, such as `https://grist.example.com/dw/worker-1`. Setting it alongside `GRIST_FLEET` is refused at startup, since a fleet routes clients through whichever server they reach and never uses it. |
+| APP_DOC_INTERNAL_URL | like `APP_DOC_URL` but used by other servers to reach this one using an internal domain name resolution (like in a docker environment). It only makes sense to define this value in the doc worker. Defaults to `APP_DOC_URL`. If both are unset, an address is derived from `GRIST_HOST`, or from the interface this server reaches Redis on. Workers that share a host can be told apart by path, and the id derived from this url includes it. |
 | APP_HOME_URL | url prefix for home api (home and doc servers need this) |
 | APP_HOME_INTERNAL_URL | like `APP_HOME_URL` but used by the home and the doc servers to reach any home workers using an internal domain name resolution (like in a docker environment). Defaults to `APP_HOME_URL` |
 | APP_STATIC_URL | url prefix for static resources |
@@ -441,6 +441,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented |
 | GRIST_DEFAULT_PRODUCT | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts. |
 | GRIST_DEFAULT_LOCALE | Locale to use as fallback when Grist cannot honour the browser locale. Defaults to `en-US`. Should match a locale code found in `app/common/LocaleCodes.ts`. |
+| GRIST_DOC_WORKER_ID | identity of a doc worker, which must be distinct for every server sharing a Redis. Leave it unset to have one derived. Two servers sharing a value can open the same document at once. |
 | GRIST_DOMAIN | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com". |
 | GRIST_EDITION | selects which edition the `yarn install` hook sets up, `full` or `community`. Takes precedence over the `grist-edition` file written by `yarn run set-full-edition` / `yarn run set-community-edition`. Defaults to `full`. See [Building from source](#building-from-source). |
 | GRIST_SKIP_EXT_AUTOSETUP | set to `1` to skip the `yarn install` hook that downloads the full-edition `ext` material. Useful where extensions are installed by other means (Docker builds, grist-desktop, grist-static). See [Building from source](#building-from-source). |
@@ -450,7 +451,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default. |
 | GRIST_HEADERS_TIMEOUT_MS | if set, override nodes's server.headersTimeout flag. |
 | GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`, `automations`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |
-| GRIST_HOST | hostname to use when listening on a port. |
+| GRIST_HOST | hostname to use when listening on a port. Also decides the address a doc worker publishes for its peers, and the identity derived from it: set it to `0.0.0.0` to listen on every interface, and leave it unset to listen only on `localhost`. |
 | GRIST_PROXY_FOR_UNTRUSTED_URLS | Full URL of proxy for delivering webhook payloads. Default value is `direct` for delivering payloads without proxying. |
 | HTTPS_PROXY or https_proxy | Full URL of reverse web proxy (corporate proxy) for fetching the custom widgets repository or the OIDC config from the issuer. |
 | GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*. |

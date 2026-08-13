@@ -49,6 +49,9 @@ import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocManager } from "app/server/lib/DocManager";
 import { getSqliteMode } from "app/server/lib/DocStorage";
 import { DocWorker } from "app/server/lib/DocWorker";
+import {
+  DEFAULT_HOST, deriveDocWorkerIdentity, DocWorkerIdentity, getRedisLocalAddress,
+} from "app/server/lib/DocWorkerIdentity";
 import { DocWorkerLoadTracker, getDocWorkerLoadTracker } from "app/server/lib/DocWorkerLoadTracker";
 import { DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap, jsonErrorHandler, secureJsonErrorHandler } from "app/server/lib/expressWrap";
@@ -99,6 +102,7 @@ import { setupLocale } from "app/server/localization";
 import * as http from "http";
 import * as https from "https";
 import net, { AddressInfo } from "net";
+import * as os from "os";
 import * as path from "path";
 
 import axios from "axios";
@@ -128,7 +132,7 @@ const latestVersionChannel = "latestVersionAvailable";
 
 // Host that the HTTP server binds to. Shared with RestartShell so
 // shell and child agree on the same value.
-export function getGristHost() { return process.env.GRIST_HOST || "localhost"; }
+export function getGristHost() { return process.env.GRIST_HOST || DEFAULT_HOST; }
 
 export interface FlexServerOptions {
   dataDir?: string;
@@ -389,6 +393,15 @@ export class FlexServer implements GristServer {
     // address() returns null and this.port is authoritative.
     const addr = this.server?.address();
     return (addr && typeof addr === "object") ? addr.port : this.port;
+  }
+
+  // The address the listening socket ended up bound to, with the bind's own resolution of
+  // GRIST_HOST already applied. As with the port, under RestartShell the socket belongs to the
+  // shell, which passes down what it bound. Undefined where there is no listening socket, or
+  // where it is a pipe.
+  public getBoundAddress(): string | undefined {
+    const addr = this.server?.address();
+    return (addr && typeof addr === "object") ? addr.address : process.env.GRIST_BOUND_ADDRESS;
   }
 
   /**
@@ -2434,30 +2447,31 @@ export class FlexServer implements GristServer {
       // it always will be.  In testing, we may disconnect and reconnect the
       // worker.  We only need to determine docWorkerId and this.worker once.
       if (!this.worker) {
-        if (process.env.GRIST_ROUTER_URL) {
-          // register ourselves with the load balancer first.
-          const w = await this.createWorkerUrl();
-          const url = `${w.url}/v/${this.tag}/`;
-          // TODO: we could compute a distinct internal url here.
-          this.worker = {
-            id: w.host,
-            publicUrl: url,
-            internalUrl: url,
-          };
-        } else {
-          const url = (process.env.APP_DOC_URL || this.getOwnUrl()) + `/v/${this.tag}/`;
-          this.worker = {
-            // The worker id should be unique to this worker.
-            id: process.env.GRIST_DOC_WORKER_ID || `testDocWorkerId_${this.port}`,
-            publicUrl: url,
-            internalUrl: process.env.APP_DOC_INTERNAL_URL || url,
-          };
-        }
-        this.info.push(["docWorkerId", this.worker.id]);
-
+        const identity = await deriveDocWorkerIdentity({
+          docWorkerId: process.env.GRIST_DOC_WORKER_ID,
+          appDocInternalUrl: process.env.APP_DOC_INTERNAL_URL,
+          appDocUrl: process.env.APP_DOC_URL,
+          fleet: isAffirmative(process.env.GRIST_FLEET),
+          gristHost: process.env.GRIST_HOST,
+          redisLocalAddress: await getRedisLocalAddress(workers.getRedisClient()),
+          hostname: os.hostname(),
+          // Read now rather than earlier: the socket is up, so the port and the address it landed
+          // on are settled.
+          port: this.getOwnPort(),
+          boundAddress: this.getBoundAddress(),
+          ownUrl: this.getOwnUrl(),
+          tag: this.tag,
+          createWorkerUrl: process.env.GRIST_ROUTER_URL ?
+            () => this.createWorkerUrl() : undefined,
+        });
+        this.worker = identity.info;
         if (process.env.GRIST_WORKER_GROUP) {
           this.worker.group = process.env.GRIST_WORKER_GROUP;
         }
+        this.info.push(["docWorkerId", this.worker.id]);
+        this.info.push(["docWorkerInternalUrl", this.worker.internalUrl]);
+        this.info.push(["docWorkerAddressSource", identity.addressSource]);
+        this._warnIfPeersCannotReachUs(identity, workers);
       } else {
         if (process.env.GRIST_ROUTER_URL) {
           await this.createWorkerUrl();
@@ -2481,6 +2495,15 @@ export class FlexServer implements GristServer {
         { params: { act: "remove", port: this.getOwnPort() } });
       log.info(`DocWorker unregistered itself via ${process.env.GRIST_ROUTER_URL}`);
     }
+  }
+
+  private _warnIfPeersCannotReachUs(identity: DocWorkerIdentity, workers: IDocWorkerMap) {
+    // Without Redis there is only ever one server, and nobody else needs this address.
+    if (!workers.getRedisClient() || identity.addressSource !== "none") { return; }
+    log.warn(
+      `DocWorker ${identity.info.id} has no address peers can reach, so published ` +
+      `${identity.info.internalUrl}. Set GRIST_HOST=0.0.0.0 to listen on every interface, ` +
+      `or APP_DOC_INTERNAL_URL to name an address.`);
   }
 
   // Called when server is shutting down.  Save any state that needs saving, and
