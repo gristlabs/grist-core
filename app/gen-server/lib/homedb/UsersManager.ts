@@ -233,6 +233,7 @@ export class UsersManager {
       prefs: user.prefs?.find(p => p.orgId === null)?.prefs,
       firstLoginAt: user.firstLoginAt || null,
       disabledAt: user.disabledAt || null,
+      disabledReason: user.disabledReason || null,
     };
     if (user.firstLoginAt) {
       result.firstLoginAt = user.firstLoginAt;
@@ -317,6 +318,10 @@ export class UsersManager {
       }
       if (props.disabledAt !== undefined && props.disabledAt !== user.disabledAt) {
         user.disabledAt = props.disabledAt;
+        needsSave = true;
+      }
+      if (props.disabledReason !== undefined && props.disabledReason !== user.disabledReason) {
+        user.disabledReason = props.disabledReason;
         needsSave = true;
       }
       if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {
