@@ -82,7 +82,23 @@ export interface OrganizationWithoutAccessInfo extends OrganizationProperties {
   owner: FullUser | null;
   billingAccount?: BillingAccount;
   host: string | null;  // if set, org's preferred domain (e.g. www.thing.com)
+  // Number of billable members, set only when the org's plan limits them
+  // (billingAccount.features.maxUsersPerOrg), and only for owners and billing managers.
+  // Counted as getOrgBillableMemberCount does, so it agrees with what is enforced when
+  // members are added, and with what is billed.
+  billableMemberCount?: number;
+  // Set when the site's documents are held read-only, saying why. Comes from the same
+  // method that does the holding, so what a user is told cannot drift from what is
+  // enforced. Sent to everyone, since read-only affects everyone on the site.
+  readOnlyReason?: SiteReadOnlyReason;
 }
+
+// Why a site's documents are held read-only.
+//  - suspended: the site is on the suspended plan, its subscription having been cancelled.
+//  - plan: the site's features hold documents read-only for some other reason.
+//  - billing: the subscription is not in good standing.
+//  - users: the site has more billable members than its plan allows.
+export type SiteReadOnlyReason = "suspended" | "plan" | "billing" | "users";
 
 // Organization information plus the user's access level
 export interface Organization extends OrganizationWithoutAccessInfo {
@@ -95,6 +111,10 @@ export interface BillingAccountStatus {
   stripeStatus?: string;
   currentPeriodStart?: string;
   currentPeriodEnd?: string;
+  // Set when the site has more billable members than its plan allows. Sent to everyone, not
+  // only to those told billableMemberCount, since an editor who cannot lift the limit still
+  // stands to lose write access by it, and can pass the warning to someone who can act.
+  overUserLimit?: boolean;
   // Used only for tests
   message?: string;
 }

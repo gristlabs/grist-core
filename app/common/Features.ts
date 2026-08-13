@@ -60,6 +60,15 @@ export interface Features {
   maxWorkspacesPerOrg?: number;   // Maximum number of workspaces allowed per org.
   // (default: unlimited)
 
+  /**
+   * Maximum number of billable members of an org, counted as getOrgBillableMemberCount does.
+   * Fewer people than it sounds: users with access only to a workspace or doc are org guests
+   * rather than members, and are limited by maxSharesPerWorkspace / maxSharesPerDoc instead,
+   * while consultants and the special users (support, anonymous, everyone) are not billable.
+   * (default: unlimited)
+   */
+  maxUsersPerOrg?: number;
+
   readOnlyDocs?: boolean;   // if set, docs can only be read, not written.
 
   snapshotWindow?: SnapshotWindow;  // if set, controls how far back snapshots are kept.

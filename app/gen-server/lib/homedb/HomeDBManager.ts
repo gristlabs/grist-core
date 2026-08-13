@@ -1,5 +1,5 @@
 import { ShareInfo } from "app/common/ActiveDocAPI";
-import { ApiError, LimitType } from "app/common/ApiError";
+import { ApiError, ApiTip, LimitType } from "app/common/ApiError";
 import { mapGetOrSet, mapSetOrClear, MapWithTTL } from "app/common/AsyncCreate";
 import { ConfigKey, ConfigValue } from "app/common/Config";
 import { getDataLimitInfo } from "app/common/DocLimits";
@@ -13,6 +13,7 @@ import {
   isFreePlan,
   mergedFeatures,
   PERSONAL_FREE_PLAN,
+  SUSPENDED_PLAN,
 } from "app/common/Features";
 import { buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId } from "app/common/gristUrls";
 import { UserProfile } from "app/common/LoginSessionAPI";
@@ -35,6 +36,7 @@ import {
   PREVIEWER_EMAIL,
   Proposal as ApiProposal,
   ProposalStatus,
+  SiteReadOnlyReason,
   UserAccessData,
   UserOptions,
   WorkspaceProperties,
@@ -93,6 +95,7 @@ import {
   getRawAndEntities,
   hasAtLeastOneOfTheseIds,
   hasOnlyTheseIdsOrNull,
+  jsonFieldIsTrue,
   lockForUpdate,
   makeJsonArray,
   now,
@@ -157,6 +160,11 @@ export const Deps = {
       envVar: "GRIST_POSTGRES_USE_PREPARED_STATEMENTS",
       defaultValue: false,
     }),
+  // Whether a site with more billable members than its plan allows is held read-only.
+  // Adding members past the limit is refused regardless; this is only about sites that were
+  // already over it when the limit arrived. Off until the sites affected have been told it is
+  // coming, at which point this becomes unconditional and goes away.
+  readOnlyOverUserLimit: false,
 };
 
 // Name of a special workspace with examples in it.
@@ -175,6 +183,16 @@ const DOC_AUTH_CACHE_TTL = appSettings.section("access").flag("docAuthCacheTTL")
   envVar: "GRIST_TEST_DOC_AUTH_CACHE_TTL",
   defaultValue: 5000,
 });
+
+// How a site stands against the member limit of its plan.
+export interface UserLimitStatus {
+  // Billable members, counted as getOrgBillableMemberCount does.
+  count: number;
+  // Whether there are more of them than the plan allows.
+  overLimit: boolean;
+  // Whether documents are held read-only as a result.
+  readOnly: boolean;
+}
 
 // Maps from userId to group name, or null to inherit.
 export interface UserIdDelta {
@@ -591,22 +609,73 @@ export class HomeDBManager implements HomeDBAuth {
   /**
    * Returns the number of users in any non-guest role in the given org.
    * Note that this does not require permissions and should not be exposed to the client.
-   *
-   * If an Organization is provided, all of orgs.acl_rules, orgs.acl_rules.group,
-   * and orgs.acl_rules.group.memberUsers should be included.
    */
-  public async getOrgMemberCount(org: string | number | Organization): Promise<number> {
-    return (await this._getOrgMembers(org)).length;
+  public async getOrgMemberCount(org: string | number, manager?: EntityManager): Promise<number> {
+    return this._countOrgMembers(org, { manager });
   }
 
   /**
-   * Returns the number of billable users in the given org.
+   * Returns the number of billable users in the given org: its members, less consultants and
+   * the special users (support, anonymous, and so on).  This is the number seats are sold by,
+   * and the number the member limit of a plan applies to.
    */
-  public async getOrgBillableMemberCount(org: string | number | Organization): Promise<number> {
-    return (await this._getOrgMembers(org))
-      .filter(u => !u.options?.isConsultant) // remove consultants.
-      .filter(u => !this._usersManager.getExcludedUserIds().includes(u.id)) // remove support user and other
-      .length;
+  public async getOrgBillableMemberCount(org: string | number, manager?: EntityManager): Promise<number> {
+    return this._countOrgMembers(org, { billableOnly: true, manager });
+  }
+
+  /**
+   * As getOrgBillableMemberCount, but cached, for when the count is needed on a page load
+   * rather than as part of a billing operation. Invalidated where membership changes; the
+   * cache TTL covers the paths with no invalidation, such as flagging a member as a
+   * consultant.
+   */
+  public async getCachedOrgBillableMemberCount(orgId: number): Promise<number> {
+    return this.caches ?
+      await this.caches.getOrgBillableMemberCount(orgId) :
+      await this.getOrgBillableMemberCount(orgId);
+  }
+
+  /**
+   * How a site stands against the member limit of its plan, or undefined for a plan that does
+   * not limit members. This is derived rather than stored: there is no flag to set when a site
+   * goes over, and so none to leave behind when it comes back under.
+   */
+  public async getUserLimitStatus(
+    org: Organization, manager?: EntityManager,
+  ): Promise<UserLimitStatus | undefined> {
+    const limit = org.billingAccount?.getEffectiveFeatures().maxUsersPerOrg;
+    if (limit === undefined) { return undefined; }
+    // A caller in a transaction counts within it. The cache is shared between requests, so
+    // filling it from inside one would publish figures that are not committed yet, and a miss
+    // would take a second connection while this one is held.
+    const count = manager ?
+      await this.getOrgBillableMemberCount(org.id, manager) :
+      await this.getCachedOrgBillableMemberCount(org.id);
+    const overLimit = count > limit;
+    return { count, overLimit, readOnly: overLimit && Deps.readOnlyOverUserLimit };
+  }
+
+  /**
+   * Why a site's documents are held read-only, or undefined if they are not. Everything that
+   * holds a site read-only is decided here, so that what a user is told cannot drift from what
+   * is enforced. Causes are checked cheapest first, which leaves the member count until last,
+   * where it is skipped entirely while that clamp is off.
+   *
+   * Pass userLimit if the caller has already looked the count up, so that the site is
+   * counted once and the two answers cannot come from different reads.
+   */
+  public async getSiteReadOnlyReason(
+    org: Organization,
+    options: { manager?: EntityManager, userLimit?: UserLimitStatus } = {},
+  ): Promise<SiteReadOnlyReason | undefined> {
+    const billingAccount = org.billingAccount;
+    if (billingAccount.getEffectiveFeatures().readOnlyDocs) {
+      return billingAccount.product?.name === SUSPENDED_PLAN ? "suspended" : "plan";
+    }
+    if (!billingAccount.inGoodStanding) { return "billing"; }
+    if (!Deps.readOnlyOverUserLimit) { return undefined; }
+    const userLimit = options.userLimit ?? await this.getUserLimitStatus(org, options.manager);
+    return userLimit?.readOnly ? "users" : undefined;
   }
 
   /**
@@ -1100,10 +1169,8 @@ export class HomeDBManager implements HomeDBAuth {
       if (!doc.workspace.org.billingAccount.product) {
         throw new ApiError("billing account has no product", 500);
       }
-      const features = doc.workspace.org.billingAccount.getEffectiveFeatures();
-      if (features.readOnlyDocs ||
-        this.isReadonly() ||
-        !doc.workspace.org.billingAccount.inGoodStanding
+      if (this.isReadonly() ||
+        await this.getSiteReadOnlyReason(doc.workspace.org, { manager: transaction })
       ) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole("viewers", doc.access);
@@ -2180,9 +2247,14 @@ export class HomeDBManager implements HomeDBAuth {
       const groups = getNonGuestGroups(org);
       if (userIdDelta) {
         const membersBefore = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
-        const countBefore = removeRole(membersBefore).length;
+        const usersBefore = removeRole(membersBefore);
         await this._updateUserPermissions(groups, userIdDelta, manager);
         this._checkUserChangeAllowed(userId, groups);
+        // Careful, _updateUserPermissions has mutated groups, so this is the membership
+        // the site would be left with.
+        const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
+        const usersAfter = removeRole(membersAfter);
+        this._restrictOrgMembers(org.billingAccount.getEffectiveFeatures(), usersBefore, usersAfter);
         await manager.save(groups);
         // Fully remove any users being removed from the org.
         for (const deltaUser in userIdDelta) {
@@ -2195,11 +2267,10 @@ export class HomeDBManager implements HomeDBAuth {
         // Get docIds to invalidate, but publish the invalidation once the transaction commits.
         this.caches?.addInvalidationDocAccess(notifications,
           await this._getDocsInheritingFrom(manager, { orgId: org.id }));
+        this.caches?.addInvalidationOrgBillableMemberCount(notifications, [org.id]);
 
         // Emit an event if the number of org users is changing.
-        const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
-        const countAfter = removeRole(membersAfter).length;
-        notifications.push(this._userChangeNotification(userId, org, countBefore, countAfter,
+        notifications.push(this._userChangeNotification(userId, org, usersBefore.length, usersAfter.length,
           membersBefore, membersAfter));
         // Notify any added users that they've been added to this resource.
         notifications.push(this._inviteNotification(userId, org, userIdDelta, membersBefore));
@@ -3716,16 +3787,36 @@ export class HomeDBManager implements HomeDBAuth {
       .from(Config, "configs");
   }
 
-  private async _getOrgMembers(org: string | number | Organization) {
-    if (!(org instanceof Organization)) {
-      const result = await this._orgMembers(org).getRawAndEntities();
-      if (result.entities.length === 0) {
-        // If the query for the org failed, return the failure result.
-        throw new ApiError("org not found", 404);
-      }
-      org = result.entities[0];
-    }
-    return UsersManager.getResourceUsers(org, this.defaultNonGuestGroupNames);
+  // Counts the members of an org with a COUNT query, rather than by loading every member row
+  // and counting those, since the count is wanted on page loads. Members are the users in the
+  // org's owners, editors and viewers groups; guests are not members, and are limited by the
+  // share limits instead. With billableOnly, counts only the users seats are sold for.
+  private async _countOrgMembers(
+    org: string | number,
+    options: { billableOnly?: boolean, manager?: EntityManager } = {},
+  ): Promise<number> {
+    // Every condition below belongs to a join rather than to the where clause. In a where
+    // clause they would refer to the left-joined tables, making the joins inner ones, so an
+    // org with nobody to count would return no rows at all.
+    const excludedUserIds = this._usersManager.getExcludedUserIds();
+    const result = await this._org(null, false, org, { needRealOrg: true, manager: options.manager })
+      .select("COUNT(DISTINCT org_member_users.id)", "count")
+      .leftJoin("orgs.aclRules", "acl_rules")
+      .leftJoin("acl_rules.group", "org_groups",
+        "org_groups.name IN (:...groupNames)", { groupNames: this.defaultNonGuestGroupNames })
+      .leftJoin("org_groups.memberUsers", "org_member_users",
+        // Consultants are not billable, nor are the special users: support, anonymous,
+        // and everyone.
+        options.billableOnly ?
+          `NOT ${jsonFieldIsTrue(this._dbType, "org_member_users.options", "isConsultant")}
+           AND org_member_users.id NOT IN (:...excludedUserIds)` :
+          "1 = 1", { excludedUserIds })
+      // Counting over no rows gives zero, so an org that does not exist would look like one
+      // with no members. Grouping by the org tells the two apart: a missing org gives no row.
+      .groupBy("orgs.id")
+      .getRawOne();
+    if (!result) { throw new ApiError("org not found", 404); }
+    return Number(result.count);
   }
 
   private _orgMembers(
@@ -5129,6 +5220,36 @@ export class HomeDBManager implements HomeDBAuth {
     return [personalOrg].concat(regularOrgs);
   }
 
+  // Emit a meaningful ApiError if `after` is past a limit that `before` was within.
+  // If checkChange is set, only complain when someone is actually being added, since the
+  // limit may have arrived after the users did.
+  // The message is built from the pluralization the limit calls for: " more" for a limit
+  // there is any room under, and nothing at all for a limit of zero.
+  private _restrictUsers(options: {
+    limit: number,
+    before: User[],
+    after: User[],
+    checkChange: boolean,
+    message: (more: string) => string,
+    tips: ApiTip[],
+    subquantity?: string,
+  }) {
+    const { limit, before, after, checkChange, tips, subquantity } = options;
+    if (after.length <= limit) { return; }
+    const existingUserIds = new Set(before.map(user => user.id));
+    if (checkChange && !after.some(user => !existingUserIds.has(user.id))) { return; }
+    throw new ApiError(options.message(limit > 0 ? " more" : ""), 403, {
+      limit: {
+        quantity: "collaborators",
+        subquantity,
+        maximum: limit,
+        value: before.length,
+        projectedValue: after.length,
+      },
+      tips,
+    });
+  }
+
   // Check if shares are about to exceed a limit, and emit a meaningful
   // ApiError if so.
   // If checkChange is set, issue an error only if a new share is being
@@ -5136,31 +5257,47 @@ export class HomeDBManager implements HomeDBAuth {
   private _restrictShares(role: roles.NonGuestRole | null, limit: number,
     before: User[], after: User[], checkChange: boolean, kind: string,
     features: Features) {
-    const existingUserIds = new Set(before.map(user => user.id));
-    // Do not emit error if users are not added, even if the number is past the limit.
-    if (after.length > limit &&
-      (!checkChange || after.some(user => !existingUserIds.has(user.id)))) {
-      const more = limit > 0 ? " more" : "";
-      throw new ApiError(
-        checkChange ? `No${more} external ${kind} ${role || "shares"} permitted` :
-          `Too many external ${kind} ${role || "shares"}`,
-        403, {
-          limit: {
-            quantity: "collaborators",
-            subquantity: role || undefined,
-            maximum: limit,
-            value: before.length,
-            projectedValue: after.length,
-          },
-          tips: canAddOrgMembers(features) ? [{
-            action: "add-members",
-            message: "add users as team members to the site first",
-          }] : [{
-            action: "upgrade",
-            message: "pay for more team members",
-          }],
-        });
-    }
+    this._restrictUsers({
+      limit, before, after, checkChange,
+      subquantity: role || undefined,
+      message: more => checkChange ?
+        `No${more} external ${kind} ${role || "shares"} permitted` :
+        `Too many external ${kind} ${role || "shares"}`,
+      tips: canAddOrgMembers(features) ? [{
+        action: "add-members",
+        message: "add users as team members to the site first",
+      }] : [{
+        action: "upgrade",
+        message: "pay for more team members",
+      }],
+    });
+  }
+
+  // Check if org members are about to exceed a limit, and emit a meaningful
+  // ApiError if so.  A site that is already over the limit is left alone until
+  // someone new is added, since the limit may have arrived after the members did.
+  private _restrictOrgMembers(features: Features, before: User[], after: User[]) {
+    const limit = features.maxUsersPerOrg;
+    if (limit === undefined) { return; }
+    this._restrictUsers({
+      limit,
+      before: this._billableUsers(before),
+      after: this._billableUsers(after),
+      checkChange: true,
+      message: more => `No${more} team members permitted`,
+      tips: [{
+        action: "upgrade",
+        message: "pay for more team members",
+      }],
+    });
+  }
+
+  // The users among these that are billed for, which is the population the member limit
+  // applies to.  Mirrors the conditions getOrgBillableMemberCount asks the database for,
+  // and is the answer to the same question about a membership held in memory.
+  private _billableUsers(users: User[]): User[] {
+    const excludedUserIds = new Set(this._usersManager.getExcludedUserIds());
+    return users.filter(user => !user.options?.isConsultant && !excludedUserIds.has(user.id));
   }
 
   // Check if document shares exceed any of the share limits, and emit a meaningful
@@ -5191,13 +5328,13 @@ export class HomeDBManager implements HomeDBAuth {
   // Throw an error if there's no room for adding another document.
   private async _checkRoomForAnotherDoc(workspace: Workspace, manager: EntityManager) {
     const features = workspace.org.billingAccount.getEffectiveFeatures();
-    if (features.readOnlyDocs) {
+    const readOnlyReason = await this.getSiteReadOnlyReason(workspace.org, { manager });
+    if (readOnlyReason === "billing") {
+      throw new ApiError("Site is in readonly mode due to billing issues", 429);
+    }
+    if (readOnlyReason) {
       // Send payment required error.
       throw new ApiError("Site is in readonly mode", 402);
-    }
-    const billingOk = workspace.org.billingAccount.inGoodStanding;
-    if (!billingOk) {
-      throw new ApiError("Site is in readonly mode due to billing issues", 429);
     }
     if (features.maxDocsPerOrg !== undefined) {
       // we need to count how many docs are in the current org, and if we

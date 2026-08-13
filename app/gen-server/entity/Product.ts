@@ -50,12 +50,17 @@ export const teamFeatures: Features = {
 
 /**
  * A summary of features available in free team sites.
+ *
+ * What a plan offers is also written out for people to read on the plan card, and may need
+ * updating alongside changes here. The copy shown is the Stripe product's marketing features;
+ * FEATURES in app/client/ui/PlanCard is only the fallback for products that have none.
  */
 export const teamFreeFeatures: Features = {
   workspaces: true,
   vanityDomain: true,
   maxSharesPerWorkspace: 0,   // all workspace shares need to be org members.
   maxSharesPerDoc: 2,
+  maxUsersPerOrg: 10,
   snapshotWindow: { count: 30, unit: "days" },
   baseMaxRowsPerDocument: 5000,
   baseMaxApiUnitsPerDocumentPerDay: 5000,

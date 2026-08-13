@@ -56,6 +56,12 @@ export interface UserOrgPrefs extends Prefs {
 
   // List of document IDs where the user has seen and dismissed the document tour.
   seenDocTours?: string[];
+
+  // Whether the user has dismissed the banner saying this site is at its team member limit.
+  // Cleared when the site is next seen below the limit, so that reaching it again is said.
+  // Here rather than in UserPrefs.dismissedPopups, which is global: an owner of two sites at
+  // the limit should have to dismiss it on each.
+  dismissedUserLimitBanner?: boolean;
 }
 
 export interface OrgPrefs extends Prefs {

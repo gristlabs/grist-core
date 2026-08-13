@@ -2,7 +2,7 @@ import { ApiError } from "app/common/ApiError";
 import { isAffirmative } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";
 import { checkSubdomainValidity } from "app/common/orgNameUtils";
-import { BasicRole } from "app/common/roles";
+import { BasicRole, OWNER } from "app/common/roles";
 import * as SATypes from "app/common/ServiceAccountTypes";
 import ServiceAccountTI from "app/common/ServiceAccountTypes-ti";
 import { DOCTYPE_NORMAL,
@@ -595,6 +595,26 @@ export class ApiServer {
       if (org?.data?.billingAccount) {
       // Flatten features into single object for client side code that is using BillingAccount client side model.
         org.data.billingAccount.features = org.data.billingAccount.getEffectiveFeatures();
+        // Report the member count when the plan caps it, so the client can warn as the site
+        // approaches the cap rather than only failing when someone is added.
+        const userLimit = await this._dbManager.getUserLimitStatus(org.data);
+        if (userLimit) {
+          // The number itself is billing detail, and goes only to those who can act on it.
+          if (org.data.access === OWNER || org.data.billingAccount.isManager) {
+            org.data.billableMemberCount = userLimit.count;
+          }
+          // Being over the limit goes to everyone, since it affects everyone, and is said
+          // before documents are held read-only rather than at the moment they are.
+          if (userLimit.overLimit) {
+            org.data.billingAccount.status = {
+              ...org.data.billingAccount.status,
+              overUserLimit: true,
+            };
+          }
+        }
+        // Why the site's documents are held read-only, if they are. Handing over the count
+        // keeps this to the one lookup made above.
+        org.data.readOnlyReason = await this._dbManager.getSiteReadOnlyReason(org.data, { userLimit });
       }
       return sendOkReply(req, res, {
         user: { ...fullUser,

@@ -599,7 +599,7 @@ export class UsersManager {
       await this._homeDb.storageCoordinator.hardDeleteDoc(fullId);
     }
 
-    return await this._connection.transaction(async (manager) => {
+    const { result, orgIdsAffected } = await this._connection.transaction(async (manager) => {
       const user = await manager.findOne(User, { where: { id: userIdToDelete },
         relations: ["logins", "personalOrg", "prefs"] });
       if (!user) { throw new ApiError("user not found", 404); }
@@ -625,6 +625,20 @@ export class UsersManager {
       await manager.save(docs);
 
       await manager.remove([...user.logins]);
+
+      // Orgs the user belongs to, noted before their group memberships go, so that any cached
+      // member counts can be invalidated once the deletion commits. A superset of the orgs
+      // they were counted in: guest-only orgs are here too, as are orgs where they were not
+      // billable. Invalidating one of those costs a refetch, missing one is wrong for a TTL.
+      const orgRows = await manager.createQueryBuilder()
+        .select("acl_rules.org_id", "orgId")
+        .from("group_users", "group_users")
+        .innerJoin("acl_rules", "acl_rules", "acl_rules.group_id = group_users.group_id")
+        .where("group_users.user_id = :userId", { userId: userIdToDelete })
+        .andWhere("acl_rules.org_id IS NOT NULL")
+        .distinct(true)
+        .getRawMany();
+
       // We don't have a GroupUser entity, and adding one tickles lots of TypeOrm quirkiness,
       // so use a plain query to delete entries in the group_users table.
       await manager.createQueryBuilder()
@@ -635,10 +649,16 @@ export class UsersManager {
 
       await manager.delete(User, userIdToDelete);
       return {
-        status: 200,
-        data: user,
+        result: {
+          status: 200,
+          data: user,
+        },
+        orgIdsAffected: orgRows.map(row => Number(row.orgId)),
       };
     });
+
+    await this._homeDb.caches?.invalidateOrgBillableMemberCount(orgIdsAffected);
+    return result;
   }
 
   public async initializeSpecialIds(): Promise<void> {

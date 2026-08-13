@@ -24,6 +24,7 @@ export const Features = t.iface([], {
   "maxSharesPerWorkspace": t.opt("number"),
   "maxDocsPerOrg": t.opt("number"),
   "maxWorkspacesPerOrg": t.opt("number"),
+  "maxUsersPerOrg": t.opt("number"),
   "readOnlyDocs": t.opt("boolean"),
   "snapshotWindow": t.opt("SnapshotWindow"),
   "baseMaxRowsPerDocument": t.opt("number"),

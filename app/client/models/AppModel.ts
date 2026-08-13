@@ -2,7 +2,6 @@ import { BehavioralPromptsManager } from "app/client/components/BehavioralPrompt
 import { ScreenReaderAnnouncer } from "app/client/components/ScreenReaderAnnouncer";
 import { hooks } from "app/client/Hooks";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
-import { makeT } from "app/client/lib/localization";
 import { sessionStorageObs } from "app/client/lib/localStorageObs";
 import { error } from "app/client/lib/log";
 import { reportError, setErrorNotifier } from "app/client/models/errors";
@@ -31,8 +30,6 @@ import { ExtendedUser } from "app/common/UserAPI";
 import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl } from "app/common/UserAPI";
 
 import { bundleChanges, Computed, Disposable, Observable, subscribe } from "grainjs";
-
-const t = makeT("AppModel");
 
 // Reexported for convenience.
 export { reportError } from "app/client/models/errors";
@@ -270,12 +267,6 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
           // If not, redirect.  This is to allow vanity domains
           // to "stick" only if paid for.
           await urlState().pushUrl({ ...state, org: org.domain });
-        }
-        if (org.billingAccount?.product?.name === "suspended") {
-          this.notifier.createUserMessage(
-            t("This team site is suspended. Documents can be read, but not modified."),
-            { actions: ["renew", "personal"] },
-          );
         }
       }
       AppModelImpl.create(this.appObs, this, user, org, orgError);
