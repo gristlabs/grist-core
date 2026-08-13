@@ -43,12 +43,21 @@ jobs:
             node-version: 22.x
             python-version: '3.11'
             os: macos-latest
+          - tests: ':pyodide:'
+            node-version: 22.x
+            python-version: '3.11'
+            os: windows-2022
           - tests: ':smoke:'
             edition: full
             node-version: 22.x
             python-version: '3.11'
             os: ubuntu-24.04
     steps:
+      # Package scripts are written for a POSIX shell.
+      - name: Run package scripts through bash
+        if: contains(matrix.os, 'windows')
+        run: yarn config set script-shell bash
+
       - uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
@@ -61,9 +70,12 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          # skipping system python on windows currently.
+          cache: ${{ !contains(matrix.os, 'windows') && 'pip' || '' }}
 
       - name: Install Python packages
+        # skipping system python on windows currently.
+        if: "!contains(matrix.os, 'windows')"
         run: |
           pip install virtualenv
           yarn run install:python
@@ -137,14 +149,28 @@ jobs:
           GRIST_DOCS_MINIO_PORT: 9000
           GRIST_DOCS_MINIO_BUCKET: grist-docs-test
 
+      # Force TEMP into a weird form on Windows, to catch canonicalization
+      # that doesn't handle it. This is how non-short directory names get
+      # shortened to DIR~1 and similar. Sigh.
+      - name: Use stressful TEMP for windows
+        if: contains(matrix.os, 'windows') && contains(matrix.tests, ':pyodide:')
+        shell: cmd
+        run: |
+          for %%I in ("%TEMP%") do echo TEMP=%%~sI>> %GITHUB_ENV%
+          for %%I in ("%TEMP%") do echo TMP=%%~sI>> %GITHUB_ENV%
+
       - name: Run a couple of tests using pyodide
         if: contains(matrix.tests, ':pyodide:')
+        shell: bash
         run: |
           cd sandbox/pyodide
           make setup
           cd ../..
-          yarn run test:server -g 'ActiveDoc.useQuerySet|Sandbox'
-          yarn run test:nbrowser -g 'Importer.*should.show.correct.preview'
+          yarn run test:server -g 'ActiveDoc.useQuerySet|ActiveDocImport parsing|Sandbox|createTmpDir'
+          # No browser tests on windows yet.
+          if [[ "$RUNNER_OS" != "Windows" ]]; then
+            yarn run test:nbrowser -g 'Importer.*should.show.correct.preview'
+          fi
         env:
           MOCHA_WEBDRIVER_HEADLESS: 1
           GRIST_SANDBOX_FLAVOR: pyodide
@@ -225,6 +251,7 @@ jobs:
 
       - name: Prepare for saving artifact
         if: failure()
+        shell: bash
         run: |
           ARTIFACT_NAME=logs-$(echo $TESTS | sed 's/[^-a-zA-Z0-9]/_/g')
           echo "Artifact name is '$ARTIFACT_NAME'"
