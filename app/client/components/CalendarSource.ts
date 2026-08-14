@@ -22,19 +22,23 @@ const SECONDS_PER_DAY = 24 * 60 * 60;
 // The id of the single TUI "calendar" that every event belongs to.
 export const CALENDAR_NAME = "standardCalendar";
 
+// A calendar moment, wherever it came from: a plain Date read from a Grist row, or TUI's TZDate
+// (which adds timezone helpers). Their shared methods are what the code here relies on.
+export type CalendarDate = Date | TZDate;
+
 // Shared by every calendar section on the page, so it is never cleared: clearing it when one
 // section goes away would break the others.
-let _TZDate: ((date: Date) => TZDate) | null = null;
+let _TZDate: ((date: CalendarDate) => TZDate) | null = null;
 
-export function setTZDate(make: (date: Date) => TZDate) {
+export function setTZDate(make: (date: CalendarDate) => TZDate) {
   _TZDate = make;
 }
 
 /**
- * Wraps a Date in TUI's TZDate, which adds the timezone helpers a plain Date lacks. Throws when no
+ * Wraps a date in TUI's TZDate, which adds the timezone helpers a plain Date lacks. Throws when no
  * calendar has loaded yet, rather than returning a wrong date.
  */
-export function tzDate(date: Date): TZDate {
+export function tzDate(date: CalendarDate): TZDate {
   if (!_TZDate) { throw new Error("Toast UI Calendar is not loaded"); }
   return _TZDate(date);
 }
@@ -64,8 +68,8 @@ export interface CalendarRecord {
  * a row, so nobody can hold a span that was computed some other way.
  */
 export class EventRange {
-  public readonly start: Date;
-  public readonly end: Date;
+  public readonly start: CalendarDate;
+  public readonly end: CalendarDate;
   public readonly isAllDay: boolean;
 
   constructor(record: CalendarDates, ctx: EventContext) {
@@ -73,13 +77,13 @@ export class EventRange {
     let end = record.endDate ? adjust(record.endDate, ctx.endType, ctx.docTz) : start;
 
     // Normalize invalid ranges so the event is still visible.
-    if (end < start) { end = start; }
+    if (end.valueOf() < start.valueOf()) { end = start; }
 
     let isAllDay = record.isAllDay;
     if (isDateOnlyType(ctx.startType) && isDateOnlyType(ctx.endType)) { isAllDay = true; }
     // Workaround for midnight zero-length events not showing up.
     if (!isAllDay && end.valueOf() === start.valueOf() && isZeroTime(end) && isZeroTime(start)) {
-      end = tzDate(end).addHours(1) as unknown as Date;
+      end = tzDate(end).addHours(1);
     }
 
     this.start = start;
@@ -146,7 +150,7 @@ export function buildEvent(
     // Base colors, so the selection accent can be undone later (CalendarWrapper._paint).
     raw: { backgroundColor, color },
     customStyle: { fontStyle, fontWeight, textDecoration, textWrap: "auto" },
-  } as EventObject;
+  };
 }
 
 /**
@@ -154,11 +158,11 @@ export function buildEvent(
  * a pure type ("Date" or "DateTime"), not a raw one: a stored DateTime type carries its timezone,
  * as in "DateTime:America/New_York", and would not compare equal.
  */
-function adjust(date: Date, pureType: string, docTz: string): Date {
-  // `timezone` exists on TZDate but not on plain Date, and we call this with both.
-  const dateTz = (date as Date & { timezone?: string }).timezone;
+function adjust(date: CalendarDate, pureType: string, docTz: string): CalendarDate {
+  // `timezone` exists on TZDate (untyped) but not on plain Date, and we call this with both.
+  const dateTz = (date as { timezone?: string }).timezone;
   if (docTz && docTz !== dateTz && pureType === "DateTime") {
-    return tzDate(date).tz(docTz) as unknown as Date;
+    return tzDate(date).tz(docTz);
   }
   if (!isDateOnlyType(pureType)) { return date; }
   // Like date.tz('UTC'), but accounts for DST differences.
@@ -167,8 +171,13 @@ function adjust(date: Date, pureType: string, docTz: string): Date {
 }
 
 /**
- * Converts a calendar date (browser-local TZDate) into the seconds value Grist stores. If the user
- * is in UTC-5 and the doc is in UTC+2, a picked time of 10:00 is stored as 03:00.
+ * Converts a calendar date (browser-local TZDate) into the seconds value Grist stores.
+ *
+ * TUI represents the dates it shows as TZDates in the browser's timezone, but from the user's
+ * perspective the displayed wall-clock time (e.g. 2026-02-15 10:00) is in the document's timezone.
+ * In other words: the epoch value on a calendar date is wrong, the human-readable time is right.
+ * So the conversion keeps the wall-clock reading and reinterprets it in the doc timezone: if the
+ * user is in UTC-5 and the doc is in UTC+2, a picked time of 10:00 is stored as 03:00.
  */
 export function makeGristDateTime(date: TZDate, pureType: string, docTz: string): number {
   let unixTime = Math.floor(date.valueOf() / 1000);
@@ -184,7 +193,7 @@ export function makeGristDateTime(date: TZDate, pureType: string, docTz: string)
   }
 }
 
-function isZeroTime(date: Date): boolean {
+function isZeroTime(date: CalendarDate): boolean {
   return date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0;
 }
 
@@ -307,7 +316,7 @@ export class CalendarRenderer extends RowListener {
   // The rows currently on the grid. A filter change reports its removals and its additions as two
   // separate passes, so a redraw during the first pass cannot see the second; remembering what was
   // drawn lets the next pass compare instead of guess.
-  private _drawn = new Set<number>();
+  private _drawnRowIds = new Set<number>();
 
   constructor(
     private _cal: CalendarWrapper,
@@ -323,7 +332,7 @@ export class CalendarRenderer extends RowListener {
     // Skip anything a previous redraw already put on the grid, so the 'add' that follows a bulk
     // removal costs nothing when it brings no news.
     const fresh = [...rows].filter((rowId): rowId is number =>
-      typeof rowId === "number" && !this._drawn.has(rowId));
+      typeof rowId === "number" && !this._drawnRowIds.has(rowId));
     if (!fresh.length) { return; }
     // With a cap in force a new event can displace one already drawn, or fall behind the cap
     // itself, so what belongs on the grid is a property of the whole day and not of the new row.
@@ -339,7 +348,7 @@ export class CalendarRenderer extends RowListener {
       const event = this._build(rowId, range);
       if (sameEvent(this._cal.getEvent(rowId), event)) { continue; }
       this._cal.updateEvent(rowId, event);
-      this._drawn.add(rowId);
+      this._drawnRowIds.add(rowId);
     }
   }
 
@@ -356,14 +365,14 @@ export class CalendarRenderer extends RowListener {
     } else {
       for (const rowId of rowIds) {
         this._cal.deleteEvent(rowId);
-        this._drawn.delete(rowId);
+        this._drawnRowIds.delete(rowId);
       }
     }
   }
 
   private _redrawAll() {
     this._cal.clearEvents();
-    this._drawn.clear();
+    this._drawnRowIds.clear();
     this._drawRows(this._visible.getAllRows());
   }
 
@@ -371,7 +380,7 @@ export class CalendarRenderer extends RowListener {
     const { events, hiddenPerDay } = this._selectEvents(rows);
     // One call for the batch, so TUI re-renders once however many events entered the view.
     if (events.length) { this._cal.createEvents(events); }
-    for (const event of events) { this._drawn.add(Number(event.id)); }
+    for (const event of events) { this._drawnRowIds.add(Number(event.id)); }
     this._cal.setHiddenCounts(hiddenPerDay);
   }
 
@@ -436,6 +445,6 @@ function toMs(date: unknown): number {
 }
 
 // Groups events by the day they start on, in local time, which is what the grid uses.
-function dayKey(date: Date): string {
+function dayKey(date: CalendarDate): string {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }

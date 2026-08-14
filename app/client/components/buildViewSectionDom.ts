@@ -32,8 +32,6 @@ export function buildCollapsedSectionDom(options: {
     );
   }
   const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
-  // effectiveWidgetType so a legacy calendar section shows the calendar icon rather than the
-  // "Custom" one its stored parentKey would give.
   const typeComputed = Computed.create(null, use => getWidgetTypes(use(vs.effectiveWidgetType)).icon);
   return cssMiniSection(
     testId(`collapsed-section-${sectionRowId}`),

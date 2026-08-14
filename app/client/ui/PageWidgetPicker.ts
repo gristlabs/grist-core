@@ -137,10 +137,8 @@ function getCompatibleTypes(tableId: TableRef,
 // The Picker disables some choices that do not make much sense.
 // This function return a boolean telling if summary can be used with this type.
 function isSummaryCompatible(widgetType: IWidgetType): boolean {
-  // A summary table exposes only its group-by columns plus the "group"/"count" formulas, so a
-  // calendar there can map a start date only when the summary happens to group by a date column,
-  // and never gets a title to label events with. Offer it on plain tables only.
-  const incompatibleTypes: IWidgetType[] = ["form", "calendar"];
+  // Forms add records, which a summary table does not accept.
+  const incompatibleTypes: IWidgetType[] = ["form"];
   return !incompatibleTypes.includes(widgetType);
 }
 

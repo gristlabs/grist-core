@@ -194,7 +194,10 @@
         "Set up calendar": "Set up calendar",
         "Start": "Start",
         "Start and end must be the same date type.": "Start and end must be the same date type.",
-        "Title": "Title"
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "This summary table has no date column. Add a formula column such as MIN($group.Date) first.",
+        "This summary table has no text column. Events will show without labels.": "This summary table has no text column. Events will show without labels.",
+        "Title": "Title",
+        "Title (optional)": "Title (optional)"
     },
     "CalendarView": {
         "Day": "Day",

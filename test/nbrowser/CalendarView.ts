@@ -551,6 +551,44 @@ describe("CalendarView setup modal", function() {
     assert.equal(info.type, "DateTime:" + info.docTz);
   });
 
+  it("offers no column creation on a summary table, and hints when it has no date column", async function() {
+    // Group by Label only: the summary table has no date column at all.
+    await gu.addNewSection(/Calendar/, /Table1/, { summarize: [/Label/] });
+    await driver.findWait(".test-calendar-setup-start", 2000);
+    assert.isTrue(await driver.findWait(".test-calendar-setup-summary-hint", 1000).isDisplayed());
+    assert.isTrue(await driver.find(".test-modal-confirm").matches("[disabled]"));
+    // A column created here would be an empty formula column, so the option is not offered.
+    await driver.find(".test-calendar-setup-start .test-select-open").click();
+    assert.isEmpty(await driver.findAll(".test-select-menu .test-select-row", el => el.getText()));
+    await driver.sendKeys(Key.ESCAPE);
+  });
+
+  it("maps existing summary columns when the summary groups by a date", async function() {
+    await gu.addNewSection(/Calendar/, /Table1/, { summarize: [/Label/, /DateOnly/] });
+    await driver.findWait(".test-calendar-setup-start", 2000);
+    assert.isFalse(await driver.find(".test-calendar-setup-summary-hint").isPresent());
+    await pickSlot("start", /DateOnly/);
+    await pickSlot("title", /Label/);
+    await driver.find(".test-modal-confirm").click();
+    await gu.waitForServer();
+    await driver.findWait(".test-calendar-widget", 2000);
+    // DateOnly is date-only, so the default view is month.
+    assert.equal(await getViewName(), "month");
+  });
+
+  it("saves without a title and hints when a summary has no text column", async function() {
+    // Group by DateOnly only: the summary table has a date column but no text column.
+    await gu.addNewSection(/Calendar/, /Table1/, { summarize: [/DateOnly/] });
+    await driver.findWait(".test-calendar-setup-start", 2000);
+    assert.isTrue(await driver.findWait(".test-calendar-setup-summary-title-hint", 1000).isDisplayed());
+    await pickSlot("start", /DateOnly/);
+    // Title is optional, so start alone is enough to save.
+    await driver.find(".test-modal-confirm").click();
+    await gu.waitForServer();
+    await driver.findWait(".test-calendar-widget", 2000);
+    assert.equal(await getViewName(), "month");
+  });
+
   // Helpers
 
   // Adds a calendar widget linked to Table1 and waits for the setup modal to open.

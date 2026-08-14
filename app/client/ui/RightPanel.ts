@@ -89,9 +89,7 @@ function usesColumnMapping(widgetType: IWidgetType | null | undefined): boolean 
 }
 
 // Widget types configured through the predefined column-mapping panel (no widget selector), as
-// opposed to the generic "custom" URL widget which picks its widget first. Only the native
-// calendar qualifies: the panel reads effectiveWidgetType, so a legacy calendar section arrives
-// here as "calendar" too, and no other attached widget type is left.
+// opposed to the generic "custom" URL widget which picks its widget first.
 function usesPredefinedMapping(widgetType: IWidgetType | null | undefined): boolean {
   return widgetType === "calendar";
 }

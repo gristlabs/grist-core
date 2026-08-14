@@ -306,13 +306,13 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Map from widget columns to colIds in document.
   mappedColumns: ko.Computed<WidgetColumnMap | null>;
 
-  // True for old "custom" sections that referenced the retired calendar custom widget.
-  // They are rendered with the native calendar (see ViewLayout).
+  // True for both legacy shapes of the retired calendar custom widget: the old attached widget
+  // ("custom.calendar") and a plain "custom" section pointing at it. Both are rendered with the
+  // native calendar (see ViewLayout).
   isLegacyCalendarWidget: ko.Computed<boolean>;
-  // The widget type to treat this section as, which is parentKey except for legacy calendar
-  // sections: those keep their old parentKey on disk but behave as "calendar" everywhere in the
-  // UI (which view to build, which creator panel to show, what the widget picker starts on).
-  // Use this rather than parentKey for anything user-facing; parentKey stays the storage value.
+  // The widget type to treat this section as - allows newer widgets to replace legacy ones
+  // but keep the same parentKey on disk (e.g. custom.calendar).
+  // Use this rather than parentKey for anything user-facing.
   effectiveWidgetType: ko.Computed<IWidgetType>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;
@@ -524,18 +524,16 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   };
 
   this.isLegacyCalendarWidget = ko.pureComputed(() => {
-    return this.parentKey() === "custom" && isLegacyCalendarCustomDef({
+    const key = this.parentKey();
+    return key === "custom.calendar" || (key === "custom" && isLegacyCalendarCustomDef({
       widgetId: this.customDef.widgetId(),
       url: this.customDef.url(),
-    });
+    }));
   });
 
   this.effectiveWidgetType = ko.pureComputed<IWidgetType>(() => {
-    const key = this.parentKey() as IWidgetType;
-    // Both legacy shapes present themselves as the native calendar: the old attached widget
-    // ("custom.calendar") and a plain "custom" section pointing at the retired widget.
-    if (key === "custom.calendar" || this.isLegacyCalendarWidget()) { return WidgetType.Calendar; }
-    return key;
+    if (this.isLegacyCalendarWidget()) { return WidgetType.Calendar; }
+    return this.parentKey() as IWidgetType;
   });
 
   this.selectedFields = ko.observable<any>([]);
