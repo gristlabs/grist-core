@@ -1661,15 +1661,18 @@ export class GranularAccess implements GranularAccessForBundle {
       await this.update();
       return;
     }
-    // A share brings rules with it, so while one exists any metadata change may alter
-    // the rules. A change to _grist_Shares counts too, since the action may have just
-    // removed the last share.
-    const sharesInPlay = this._docData.getMetaTable("_grist_Shares").getRowIds().length > 0 ||
-      docActions.some(action => getTableId(action) === "_grist_Shares");
-    if (sharesInPlay && docActions.some(action => isMetadataTable(getTableId(action)))) {
+    // A share carries rules derived from the document metadata, so while a share exists
+    // any metadata change may change the rules. Check the actions too, since _docData is
+    // already updated here and a bundle that removed the last share leaves none to count.
+    const touchesShares = docActions.some(action => getTableId(action) === "_grist_Shares");
+    const haveShares = this._docData.getMetaTable("_grist_Shares").numRecords() > 0;
+    const touchesMetadata = docActions.some(action => isMetadataTable(getTableId(action)));
+    if (touchesShares || (haveShares && touchesMetadata)) {
       await this.update();
       return;
     }
+    // No rules means nothing to rebuild. A share would have implied rules, since every
+    // share gets default rules from ACLRulesReader, and share changes were caught above.
     if (!this._ruler.haveRules()) {
       return;
     }
