@@ -1,4 +1,4 @@
-import { CALENDAR_NAME, setTZDate } from "app/client/components/CalendarSource";
+import { CALENDAR_NAME, CalendarDate, setTZDate } from "app/client/components/CalendarSource";
 import { loadToastUICalendar, ToastUICalendarModule } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { theme } from "app/client/ui2018/cssVars";
@@ -59,7 +59,7 @@ export class CalendarWrapper extends Disposable {
     host: CalendarHost, container: HTMLElement, titleDom: HTMLElement, perspective: Perspective,
   ): Promise<CalendarWrapper | null> {
     const { Calendar: Ctor, TZDate: TZDateCtor } = await loadToastUICalendar();
-    setTZDate((date: Date) => new TZDateCtor(date) as unknown as TZDate);
+    setTZDate((date: CalendarDate) => new TZDateCtor(date) as unknown as TZDate);
     if (host.isDisposed()) { return null; }
     return new CalendarWrapper(Ctor, TZDateCtor, container, titleDom, host, perspective);
   }

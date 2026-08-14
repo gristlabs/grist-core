@@ -219,13 +219,11 @@ describe("PageWidgetPicker", () => {
     // check that addBtn is not disabled anymore
     assert.equal(await addBtn.getAttribute("disabled"), null);
 
-    // summarizing the table disables the types that need columns a summary doesn't keep: a form
-    // (nothing to submit into) and a calendar (no title column, and a start date only when the
-    // summary happens to group by one).
+    // summarizing the table disables Form, which has nothing to submit into.
     await driver.findContent(".test-wselect-table", /Companies/).find(".test-wselect-pivot").doClick();
-    assert.deepEqual(await findAllDisabled("type"), ["Form", "Calendar"]);
+    assert.deepEqual(await findAllDisabled("type"), ["Form"]);
 
-    // un-summarizing brings them back
+    // un-summarizing brings it back
     await driver.findContent(".test-wselect-table", /Companies/).find(".test-wselect-pivot").doClick();
     assert.deepEqual(await findAllDisabled("type"), []);
 

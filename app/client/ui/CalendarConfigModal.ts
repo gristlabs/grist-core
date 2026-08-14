@@ -45,10 +45,15 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
     // Date-only vs date+time. Defaults to date+time (week view), the common calendar case.
     const dateMode = Observable.create<DateMode>(owner, "datetime");
 
+    // A summary table only accepts formula columns, and a column created here would get an empty
+    // formula (so an empty calendar). Offer existing columns only; the user adds formula columns
+    // (e.g. MIN($group.Date)) in the grid first.
+    const isSummary = section.table.peek().summarySourceTable.peek() !== 0;
+
     // Slot selections. Start/Title default to "create new"; End defaults to "none" (0).
-    const startVal = Observable.create<SlotValue>(owner, CREATE_NEW);
+    const startVal = Observable.create<SlotValue>(owner, isSummary ? 0 : CREATE_NEW);
     const endVal = Observable.create<SlotValue>(owner, 0);
-    const titleVal = Observable.create<SlotValue>(owner, CREATE_NEW);
+    const titleVal = Observable.create<SlotValue>(owner, isSummary ? 0 : CREATE_NEW);
 
     const dateCol = new ColumnToMapImpl({ name: "startDate", type: "Date,DateTime", strictType: true });
     const textCol = new ColumnToMapImpl({ name: "title", type: "Text", strictType: true });
@@ -59,20 +64,23 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
     const textColumns = Computed.create(owner, use =>
       use(section.columns).filter(col => textCol.canByMapped(use(col.pureType))));
 
+    const createNewOption: IOptionFull<SlotValue>[] = isSummary ? [] :
+      [{ value: CREATE_NEW, label: t("Create new column"), icon: "Plus" }];
     const dateOptions = (includeNone: boolean) => Computed.create(owner, (use): IOptionFull<SlotValue>[] => [
-      { value: CREATE_NEW, label: t("Create new column"), icon: "Plus" },
+      ...createNewOption,
       ...(includeNone ? [{ value: 0, label: t("None") } as IOptionFull<SlotValue>] : []),
       ...use(dateColumns).map(col => ({ value: col.getRowId(), label: use(col.label), icon: "FieldColumn" as const })),
     ]);
     const titleOptions = Computed.create(owner, (use): IOptionFull<SlotValue>[] => [
-      { value: CREATE_NEW, label: t("Create new column"), icon: "Plus" },
+      ...createNewOption,
+      { value: 0, label: t("None") } as IOptionFull<SlotValue>,
       ...use(textColumns).map(col => ({ value: col.getRowId(), label: use(col.label), icon: "FieldColumn" as const })),
     ]);
 
     // When an existing Start column is chosen, its type fixes the date mode (and locks the
     // toggle): a Date column means date-only, a DateTime column means date+time. Creating a
     // new column leaves the choice to the user.
-    const startIsExisting = Computed.create(owner, use => isRealColumn(use(startVal)));
+    const startIsExisting = Computed.create(owner, use => isSummary || isRealColumn(use(startVal)));
     owner.autoDispose(startVal.addListener((val) => {
       const col = colFor(section, val);
       if (col) { dateMode.set(isDateOnlyType(col.pureType.peek()) ? "date" : "datetime"); }
@@ -100,11 +108,13 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
       return "";
     });
 
-    // Start/Title are required: unset means the "none" slot value 0. CREATE_NEW and any real
+    const noDateColumns = Computed.create(owner, use => isSummary && use(dateColumns).length === 0);
+    const noTextColumns = Computed.create(owner, use => isSummary && use(textColumns).length === 0);
+
+    // Only Start is required: unset means the "none" slot value 0. CREATE_NEW and any real
     // rowId both count as set.
-    const isSet = (val: SlotValue) => val !== 0;
     const saveDisabled = Computed.create(owner, use =>
-      !isSet(use(startVal)) || !isSet(use(titleVal)) || Boolean(use(mixedTypeError)));
+      use(startVal) === 0 || Boolean(use(mixedTypeError)));
 
     async function resolveColumn(val: SlotValue, type: string, label: string): Promise<number | null> {
       if (val === 0) { return null; }
@@ -129,8 +139,9 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
         const endRef = await resolveColumn(endVal.get(), dateType, t("End"));
         const titleRef = await resolveColumn(titleVal.get(), "Text", t("Title"));
         const existing = section.customDef.columnsMapping.peek() || {};
-        const mapping: WidgetColumnMapping = { ...existing, startDate: startRef, title: titleRef };
+        const mapping: WidgetColumnMapping = { ...existing, startDate: startRef };
         if (endRef) { mapping.endDate = endRef; } else { delete mapping.endDate; }
+        if (titleRef) { mapping.title = titleRef; } else { delete mapping.title; }
         await section.customDef.columnsMapping.setAndSave(mapping);
         await section.optionsObj.prop("calendarViewPerspective").setAndSave(perspectiveFor(mode));
       });
@@ -153,10 +164,18 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
         ),
         cssLabel(t("Start")),
         cssRow(select(startVal, dateOptions(false), { defaultLabel: t("Select a column") }), testId("start")),
+        dom.maybe(noDateColumns, () => cssRow(cssError(
+          t("This summary table has no date column. Add a formula column such as MIN($group.Date) first."),
+          testId("summary-hint"),
+        ))),
         cssLabel(t("End (optional)")),
         cssRow(select(endVal, dateOptions(true), { defaultLabel: t("None") }), testId("end")),
-        cssLabel(t("Title")),
-        cssRow(select(titleVal, titleOptions, { defaultLabel: t("Select a column") }), testId("title")),
+        cssLabel(t("Title (optional)")),
+        cssRow(select(titleVal, titleOptions, { defaultLabel: t("None") }), testId("title")),
+        dom.maybe(noTextColumns, () => cssRow(cssError(
+          t("This summary table has no text column. Events will show without labels."),
+          testId("summary-title-hint"),
+        ))),
         dom.maybe(mixedTypeError, msg => cssError(msg, testId("error"))),
       ),
     };

@@ -234,7 +234,7 @@ export class CalendarView extends BaseView implements CalendarHost {
    */
   private _context(): EventContext | null {
     const start = this._field("startDate");
-    if (!start || !this._field("title")) { return null; }
+    if (!start) { return null; }
     const end = this._field("endDate");
     const startType = start.displayType;
     return {
@@ -268,8 +268,7 @@ export class CalendarView extends BaseView implements CalendarHost {
     const ctx = this._context();
     const cal = this._calendar;
     const start = this._field("startDate");
-    const title = this._field("title");
-    if (!cal || !ctx || !start || !title) {
+    if (!cal || !ctx || !start) {
       cal?.setAllDayOnly(false);
       return;
     }
@@ -281,6 +280,7 @@ export class CalendarView extends BaseView implements CalendarHost {
     const end = this._field("endDate");
     const allDay = this._field("isAllDay");
     const type = this._field("type");
+    const title = this._field("title");
     const readDates: ReadDates = (rowId) => {
       const startDate = numToDate(start.get(rowId));
       if (!startDate) { return null; }
@@ -291,10 +291,11 @@ export class CalendarView extends BaseView implements CalendarHost {
       } satisfies CalendarDates;
     };
     // A row created by a drag has no title until the user fills in the Record Card, so it gets a
-    // placeholder rather than vanishing from the grid.
+    // placeholder rather than vanishing from the grid. With no title column mapped at all, events
+    // show as unlabeled bars instead.
     const readRecord: ReadRecord = rowId => ({
       id: rowId,
-      title: asText(title.get(rowId)) ?? t("New Event"),
+      title: title ? (asText(title.get(rowId)) ?? t("New Event")) : "",
       type: type ? asChoice(type.get(rowId)) : "",
     });
 
