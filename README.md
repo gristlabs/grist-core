@@ -73,11 +73,10 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
     - [SCIM](https://support.getgrist.com/install/scim/) for standard user and group provisioning (🇫🇷).
   * [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
   * Access control options.
-    - (You'll need SSO logins set up to make use of these options; [`grist-omnibus`](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
+    - (You'll need logins set up to make use of these options — see [Logins](#logins))
     - Share [individual documents](https://support.getgrist.com/sharing/), workspaces, or [team sites](https://support.getgrist.com/team-sharing/).
     - Control access to [individual rows, columns, and tables](https://support.getgrist.com/access-rules/).
     - Control access based on cell values and user attributes.
-    - [OIDC](https://support.getgrist.com/install/oidc/) (🇫🇷) and [SAML](https://support.getgrist.com/install/saml/) support for single sign-on.
   * Collaboration.
     - [Comments](https://support.getgrist.com/sharing/#comments) on cells, with threaded replies and @-mentions.
     - See who else is viewing a document in real time.
@@ -107,7 +106,7 @@ Here is a list of features available in the full edition of Grist that are not i
 
   * [GristConnect](https://support.getgrist.com/install/grist-connect/) (2022)
     - Any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins.
-    - GristConnect is a niche feature built for a specific client which you probably don't care about – `OIDC` and `SAML` support *is* part of `grist-core` and covers most authentication use cases.
+    - GristConnect is a niche feature built for a specific client which you probably don't care about.
   * [Azure back-end for document storage](https://support.getgrist.com/install/cloud-storage/#azure) (2022)
     - With `grist-core` you can store document versions in anything S3-compatible, which covers a lot of services, but not Azure specifically. The Azure back-end fills that gap.
     - Unless you are a Microsoft shop you probably don't care about this.
@@ -137,6 +136,11 @@ Here is a list of features available in the full edition of Grist that are not i
   * [MCP server](https://support.getgrist.com/mcp/) (2026)
     - A built-in [Model Context Protocol](https://modelcontextprotocol.io/) endpoint that lets AI clients such as Claude or ChatGPT read and edit Grist documents over JSON-RPC. Enabled with `GRIST_MCP_ENABLED` (see [environment variables](#environment-variables)).
     - With `grist-core` you can still use one of the many community MCP servers that talks to Grist through its [REST API](https://support.getgrist.com/api/). The built-in server saves you that work.
+  * Single sign-on (SSO) via [OIDC](https://support.getgrist.com/install/oidc/) (🇫🇷) or [SAML](https://support.getgrist.com/install/saml/) (2026)
+    - Sign in with your own identity provider, such as Okta, Keycloak, Authentik, or Microsoft Entra ID.
+    - The code is open source, but we only stand behind it on the full edition, and turning on OIDC or SAML requires an activation key.
+    - For years, community members have told us that free enterprise SSO was surprisingly generous, and wouldn't it be better for Grist Labs to stay in business? We agree, but remain generous for individuals and small orgs ([free activation keys](https://www.getgrist.com/free-grist-activation-key-faq/) are available).
+    - Authentication options [Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-grist/) and [forward authentication](https://support.getgrist.com/install/forwarded-headers/) are available in all editions.
 
 ## Using Grist
 
@@ -339,7 +343,7 @@ in a limited anonymous mode.
 
 The friendliest way to get sign-in set up is the Quick setup page that
 appears on a fresh install. It lets you pick an admin email and an
-authentication method (e.g. OIDC, SAML) from a short menu. See
+authentication method from a short menu. See
 [First-run setup](https://support.getgrist.com/install/first-run-setup/)
 for the full walkthrough. You can revisit those same settings later
 from the [Admin Panel](#the-admin-panel).
@@ -356,8 +360,13 @@ You can change your name in `Profile Settings` in
 the [User Menu](https://support.getgrist.com/glossary/#user-menu).
 
 For multi-user operation, or if you wish to access Grist across the
-public internet, you'll want to connect it to your own Single Sign-On service.
-There are a lot of ways to do this, including [SAML and forward authentication](https://support.getgrist.com/self-managed/#how-do-i-set-up-authentication).
+public internet, you'll want to connect it to a Single Sign-On service.
+[Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-grist/)
+and [forward authentication](https://support.getgrist.com/install/forwarded-headers/)
+are available in all editions; connecting directly to your own identity
+provider via [OIDC](https://support.getgrist.com/install/oidc/) or
+[SAML](https://support.getgrist.com/install/saml/) is
+[fully supported](#features-not-in-grist-core) with an activation key.
 Grist has been tested with [Authentik](https://goauthentik.io/), [Auth0](https://auth0.com/),
 and Google/Microsoft sign-ins via [Dex](https://dexidp.io/).
 
@@ -516,9 +525,8 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_SNAPSHOT_KEEP | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made |
 | GRIST_PROMCLIENT_PORT | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️. |
 | GRIST_ENABLE_SCIM | optional. If set, enable the [SCIM API Endpoint](https://support.getgrist.com/install/scim/) (experimental) |
-| GRIST_LOGIN_SYSTEM_TYPE | optional. If set, explicitly selects which login system to use. Valid values: `saml`, `oidc`, `forward-auth`, `minimal`. If not set, Grist will automatically detect and use the first configured login system. |
-| GRIST_OIDC_... | optional. Environment variables used to configure OpenID authentification. See [OpenID Connect](https://support.getgrist.com/install/oidc/) documentation for full related list of environment variables. |
-| GRIST_SAML_... | optional. Environment variables used to configure SAML authentification. See [SAML](https://support.getgrist.com/install/saml/) documentation for full related list of environment variables. |
+| GRIST_OIDC_... | optional. Environment variables used to configure OpenID authentification. See [OpenID Connect](https://support.getgrist.com/install/oidc/) documentation for full related list of environment variables. See also [Logins](#logins). |
+| GRIST_SAML_... | optional. Environment variables used to configure SAML authentification. See [SAML](https://support.getgrist.com/install/saml/) documentation for full related list of environment variables. See also [Logins](#logins). |
 | GRIST_IDP_EXTRA_PROPS | optional. If set, defines which extra fields returned by your identity provider will be stored in the users table of the home database (in the `options.ssoExtraInfo` object). Usage: 'onekey,anotherkey'. |
 | GRIST_FEATURE_FORM_FRAMING | optional. Configures a border around a rendered form that is added for security reasons; Can be set to: `border` or `minimal`. Defaults to `border`. |
 | GRIST_TRUTHY_VALUES | optional. Comma-separated list of extra words that should be considered as truthy by the data engine beyond english defaults. Ex: "oui,ja,si" |
