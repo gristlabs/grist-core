@@ -17,9 +17,11 @@ import {
   getRowIds,
   getRowIdsFromDocAction,
   isBulkAction,
+  isBulkUpdateRecord,
   isDataAction,
   isSomeAddRecordAction,
   isSomeRemoveRecordAction,
+  isUpdateRecord,
 } from "app/common/DocActions";
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from "app/common/DocActions";
 import { getColIdsFromDocAction, TableDataAction, UserAction } from "app/common/DocActions";
@@ -87,6 +89,16 @@ const COLUMN_GRANULAR_UPDATE_ACTIONS = [
 
 function isAddOrUpdateRecordAction([actionName]: UserAction): boolean {
   return ADD_OR_UPDATE_RECORD_ACTIONS.includes(String(actionName));
+}
+
+/**
+ * Is this an action that does nothing but rename attachments? Everything else about
+ * a row of _grist_Attachments is the back end's business.
+ */
+function isAttachmentRenameAction(a: DocAction): boolean {
+  if (!isUpdateRecord(a) && !isBulkUpdateRecord(a)) { return false; }
+  const colIds = getColIdsFromDocAction(a) || [];
+  return colIds.length === 1 && colIds[0] === "fileName";
 }
 
 // A list of key metadata tables that need special handling.  Other metadata tables may
@@ -1649,13 +1661,19 @@ export class GranularAccess implements GranularAccessForBundle {
       await this.update();
       return;
     }
-    const shares = this._docData.getMetaTable("_grist_Shares");
-    if (shares.getRowIds().length > 0 &&
-      docActions.some(action => isMetadataTable(getTableId(action)))) {
+    // A share carries rules derived from the document metadata, so while a share exists
+    // any metadata change may change the rules. Check the actions too, since _docData is
+    // already updated here and a bundle that removed the last share leaves none to count.
+    const touchesShares = docActions.some(action => getTableId(action) === "_grist_Shares");
+    const haveShares = this._docData.getMetaTable("_grist_Shares").numRecords() > 0;
+    const touchesMetadata = docActions.some(action => isMetadataTable(getTableId(action)));
+    if (touchesShares || (haveShares && touchesMetadata)) {
       await this.update();
       return;
     }
-    if (!shares && !this._ruler.haveRules()) {
+    // No rules means nothing to rebuild. A share would have implied rules, since every
+    // share gets default rules from ACLRulesReader, and share changes were caught above.
+    if (!this._ruler.haveRules()) {
       return;
     }
     // If there is a schema change, redo from scratch for now.
@@ -2748,8 +2766,13 @@ export class GranularAccess implements GranularAccessForBundle {
         if (this._activeBundle?.options?.attachment) {
           return dummyAccessCheck;
         }
-        // Users cannot take actions on _grist_Attachments through the regular
-        // action interface.
+        // Renaming is the one change users may make here, since the attachment editor
+        // offers it. Check it like any other update, so rules still have their say.
+        if (isAttachmentRenameAction(a)) {
+          return accessChecks[severity].update;
+        }
+        // Users cannot take any other action on _grist_Attachments through the
+        // regular action interface.
         throw new Error("_grist_Attachments modification is not allowed");
       }
       // Actions on any metadata table currently require the schemaEdit flag.
