@@ -2,6 +2,7 @@
 Some more test cases for summary tables, involving UNDO.
 """
 import logging
+import actions
 import testutil
 import test_engine
 
@@ -52,4 +53,29 @@ class TestSummaryUndo(test_engine.EngineTestCase):
       [ 1,    "NY",    2],
       [ 2,    "IL",    2],
       [ 3,    "ME",    1],
+    ])
+
+  def test_summary_dup_key(self):
+    """
+    An undo stream can re-add a summary row whose group key already exists (an undo of a
+    summary-row removal, after an equivalent group was auto-created). The duplicate gets
+    auto-removed; the summary bookkeeping must keep track of the surviving row, so that later
+    removals and recalcs still behave.
+    """
+    self.load_sample(testutil.parse_test_sample({
+      "SCHEMA": [[1, "Address", [[11, "City", "Text", False, "", "", ""]]]],
+      "DATA": {"Address": [["id", "City"], [1, "New York"], [2, "New York"]]},
+    }))
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11], None])
+    st = "Address_summary_City"
+
+    # Undo-style re-add of a summary row with the already-existing key.
+    self.apply_undo_actions([actions.AddRecord(st, 9, {"City": "New York"})])
+    # The duplicate was auto-removed. Now remove the survivor too.
+    self.apply_undo_actions([actions.RemoveRecord(st, 1)])
+
+    # The engine ends healthy: the group is recreated for the still-existing source rows.
+    self.assertTableData(st, cols="subset", data=[
+      ["id", "City", "count"],
+      [1, "New York", 2],
     ])

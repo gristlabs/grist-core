@@ -1260,6 +1260,10 @@ class UserActions(object):
     for ref_col in sorted(table._back_references, key=lambda c: c.node):
       if ref_col.is_formula() or not isinstance(ref_col, column.BaseReferenceColumn):
         continue
+      if self._engine.tables[ref_col.table_id]._summary_source_table:
+        # Skip summary tables: their group-by values are written only by the summary machinery,
+        # and will get cleaned when source rows' references are cleared.
+        continue
       updates = ref_col.get_updates_for_removed_target_rows(row_id_set)
       if updates:
         table_id = ref_col.table_id

@@ -339,6 +339,7 @@ class Engine(object):
 
     # Add the records.
     self.add_records(data.table_id, data.row_ids, columns)
+    table._hooks_after_load.run(data.row_ids)
 
   def load_done(self):
     """
@@ -654,6 +655,7 @@ class Engine(object):
       for lookup_map in self._unused_lookups:
         if self.dep_graph.remove_node_if_unused(lookup_map.node):
           self.delete_column(lookup_map)
+      self._destroy_gone_columns()
     finally:
       self._unused_lookups.clear()
       self._post_update()
@@ -1193,6 +1195,14 @@ class Engine(object):
     added_col_ids = new_columns.keys() - old_columns.keys()
     deleted_col_ids = old_columns.keys() - new_columns.keys()
 
+    # Special helper columns (lookup maps keyed by a column, sorted lookup maps sorting by one)
+    # hold state tied to the column objects they use. When such a column is deleted (including via
+    # ModifyColumn's delete + recreate) delete the helpers too; they'll get recreated on next use.
+    if deleted_col_ids:
+      for col_id, col_obj in list(table._special_cols.items()):
+        if not col_obj.used_col_ids().isdisjoint(deleted_col_ids):
+          deleted_col_ids.add(col_id)
+
     # Invalidate the columns that got added and anything that depends on them.
     if added_col_ids:
       self.invalidate_records(table.table_id, col_ids=added_col_ids)
@@ -1220,7 +1230,10 @@ class Engine(object):
         # We can skip metadata tables, there are no trigger-formulas there.
         continue
       for col_id, col_obj in table.all_columns.items():
-        if col_obj.is_formula() or not col_obj.has_formula():
+        # Note that #-prefixed columns are helpers for lookups and summary tables. They should be
+        # skipped here: "#" check skips them explicitly, although they are already correctly
+        # skipped due to is_formula() check.
+        if col_obj.is_formula() or not col_obj.has_formula() or col_id.startswith('#'):
           continue
         col_rec = self.docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
 
@@ -1249,8 +1262,15 @@ class Engine(object):
     # Remove reference to the column from the dependency graph and the recompute_map.
     self.dep_graph.clear_dependencies(col_obj.node)
     self.recompute_map.pop(col_obj.node, None)
-    # Mark the column to be destroyed at the end of applying this docaction.
+    # Schedule the column to be destroyed at the next _destroy_gone_columns() call.
     self._gone_columns.append(col_obj)
+
+  def _destroy_gone_columns(self):
+    for col in self._gone_columns:
+      # Calc actions may already be generated if the column deletion was triggered by auto-removal.
+      actions.prune_actions(self.out_actions.calc, col.table_id, col.col_id)
+      col.destroy()
+    self._gone_columns = []
 
 
   def new_column_name(self, table):
@@ -1276,7 +1296,7 @@ class Engine(object):
     table = self.tables[table_id]
     self._use_node(self._current_time_node, table._identity_relation)
 
-  _current_time_node = ("#now", None)
+  _current_time_node = depend.Node("#now", None)
 
   def mark_lookupmap_for_cleanup(self, lookup_map_column):
     """
@@ -1381,8 +1401,6 @@ class Engine(object):
     Applies a doc action, which is a step of a user action. It is represented by an Action object
     as defined in actions.py.
     """
-    self._gone_columns = []
-
     action_name = doc_action.__class__.__name__
     saved_schema = None
     if action_name in actions.schema_actions:
@@ -1404,14 +1422,11 @@ class Engine(object):
           self.rebuild_usercode()
         except Exception:
           log.error("Error rebuilding usercode after restoring schema: %s", traceback.format_exc())
+      # The failed action's column deletions have been rolled back, so simply forget them.
+      self._gone_columns = []
       raise
 
-    # If any columns got deleted, destroy them to clear _back_references in other tables, and to
-    # force errors if anything still uses them. Also clear them from calc actions if needed.
-    for col in self._gone_columns:
-      # Calc actions may already be generated if the column deletion was triggered by auto-removal.
-      actions.prune_actions(self.out_actions.calc, col.table_id, col.col_id)
-      col.destroy()
+    self._destroy_gone_columns()
 
     # We normally recompute formulas before returning to the user; but some formulas are also used
     # internally in-between applying doc actions. We have this workaround to ensure that those are

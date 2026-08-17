@@ -104,6 +104,16 @@ def ifError(value, value_if_error):
   # formulas, but it's unclear how to make that work.
   return value_if_error if isinstance(value, AltText) else value
 
+def extract_value(cell_value):
+  """
+  When cell_value is a Record, returns its rowId. Otherwise returns the value unchanged.
+  This is to allow lookups to work with reference columns.
+  """
+  if isinstance(cell_value, Record):
+    return cell_value._row_id
+  return cell_value
+
+
 _numeric_types = (float, int)
 _numeric_or_none = (float, int, NoneType)
 

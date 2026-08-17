@@ -1,5 +1,6 @@
 import logging
 import actions
+import objtypes
 
 import testsamples
 import testutil
@@ -711,8 +712,7 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
       [6,     "Yale",       SchoolsRec(3),  "New Haven" ],
     ])
 
-  def test_contains(self):
-    sample = testutil.parse_test_sample({
+  contains_sample = testutil.parse_test_sample({
       "SCHEMA": [
         [1, "Source", [
           [11, "choicelist1", "ChoiceList", False, "", "choicelist1", ""],
@@ -742,12 +742,31 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
         ]
       }
     })
-    self.load_sample(sample)
+
+  def test_contains(self):
+    self.load_sample(self.contains_sample)
 
     self.assertTableData("Source", cols="subset", data=[
           ["id", "contains1", "contains2", "contains_both", "combined"],
           [101,  [101, 103],  [102, 103],  [103],           []],
           [102,  [102, 103],  [101, 103],  [103],           [102]],
+          [103,  [],          [],          [],              []],
+    ])
+
+  def test_contains_with_errors(self):
+    self.load_sample(self.contains_sample)
+    self.update_record("Source", 101, choicelist1=['E', 'ValueError'])
+    self.assertTableData("Source", cols="subset", data=[
+          ["id", "contains1", "contains2", "contains_both", "combined"],
+          [101,  [103],       [102, 103],  [103],           []],
+          [102,  [102, 103],  [101, 103],  [103],           [102]],
+          [103,  [],          [],          [],              []],
+    ])
+    self.update_record("Source", 103, choicelist1=['E', 'ValueError'])
+    self.assertTableData("Source", cols="subset", data=[
+          ["id", "contains1", "contains2", "contains_both", "combined"],
+          [101,  [],          [102, 103],  [],              []],
+          [102,  [102],       [101, 103],  [],              [102]],
           [103,  [],          [],          [],              []],
     ])
 
@@ -867,3 +886,99 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
         [1,    123,   [1],       [2]],
         [2,    'foo', [1],       [2]],
       ])
+
+  def test_error_values(self):
+    # Test that error values in lookup key columns lead to consistent lookup results.
+
+    # Set an error value on a ref cell, as when it is a formula that returned an exception.
+    self.load_sample(testsamples.sample_students)
+
+    error = objtypes.RaisedException(OverflowError())
+    out_actions = self.update_record("Schools", 2, name=error)
+    self.assertPartialOutActions(out_actions, {
+      "stored": [
+        actions.UpdateRecord("Schools", 2, {"name": error}),
+        actions.BulkUpdateRecord("Students", [1,3], {
+          'schoolCities': ["New York", "New York"]
+        }),
+        actions.BulkUpdateRecord("Students", [1,3], {
+          'schoolIds': ["1", "1"]
+        }),
+      ],
+      "calls": {"Students": { 'schoolCities': 2, 'schoolIds': 2 },
+                "Schools": {'#lookup#name': 1} },
+    })
+
+    # Confirm the final result.
+    self.assertPartialData("Students", ["id", "schoolIds", "schoolCities" ], [
+      [1,   "1",    "New York" ],
+      [2,   "3:4",  "New Haven:West Haven" ],
+      [3,   "1",    "New York" ],
+      [4,   "3:4",  "New Haven:West Haven" ],
+      [5,   "",     ""],
+      [6,   "3:4",  "New Haven:West Haven" ]
+    ])
+
+  def test_error_values_in_order_by(self):
+    # Test that error values in order_by columns lead to errors as lookup results, as a
+    # reasonably-expected and consistent behavior.
+
+    self.load_sample(testsamples.sample_students)
+    error = objtypes.RaisedException(OverflowError())
+
+    # Change an address; initially it shouldn't affect the sort order of results.
+    self.update_record("Schools", 2, address=0)
+    self.assertPartialData("Students", ["id", "schoolIds"], [
+      [1,   "1:2" ],
+      [2,   "3:4" ],
+      [3,   "1:2" ],
+      [4,   "3:4" ],
+      [5,   ""    ],
+      [6,   "3:4" ],
+    ])
+
+    # Change schoolIds column to sort by address. Some values should get reordered.
+    self.modify_column("Students", "schoolIds", formula=
+      "':'.join(str(id) for id in Schools.lookupRecords(name=$schoolName, order_by='address').id)")
+    self.assertPartialData("Students", ["id", "schoolIds"], [
+      [1,   "2:1" ],
+      [2,   "3:4" ],
+      [3,   "2:1" ],
+      [4,   "3:4" ],
+      [5,   ""    ],
+      [6,   "3:4" ],
+    ])
+
+    # Change an address to an error value.
+    self.update_record("Schools", 2, address=error) #['E', 'ValueError'])
+    self.assertPartialData("Students", ["id", "schoolIds"], [
+      [1,   error ],
+      [2,   "3:4" ],
+      [3,   error ],
+      [4,   "3:4" ],
+      [5,   ""    ],
+      [6,   "3:4" ],
+    ])
+
+    # Change schoolIds column to sort in the opposite order.
+    self.modify_column("Students", "schoolIds", formula=
+      "':'.join(str(id) for id in Schools.lookupRecords(name=$schoolName, order_by='-address').id)")
+    self.assertPartialData("Students", ["id", "schoolIds" ], [
+      [1,   error ],
+      [2,   "4:3" ],
+      [3,   error ],
+      [4,   "4:3" ],
+      [5,   ""    ],
+      [6,   "4:3" ],
+    ])
+
+    # Set address to a valid value again. Values that used error cells should get correct order.
+    self.update_record("Schools", 2, address=12)
+    self.assertPartialData("Students", ["id", "schoolIds" ], [
+      [1,   "2:1" ],
+      [2,   "4:3" ],
+      [3,   "2:1" ],
+      [4,   "4:3" ],
+      [5,   ""    ],
+      [6,   "4:3" ],
+    ])
