@@ -3,11 +3,22 @@ import { server, setupTestSuite } from "test/projects/testUtils";
 import { assert, driver, Key } from "mocha-webdriver";
 
 describe("modals", function() {
+  this.timeout(20000);
+
   setupTestSuite();
 
-  before(async function() {
-    this.timeout(20000);      // Set a longer default timeout.
+  async function loadPage() {
     await driver.get(`${server.getHost()}/modals`);
+  }
+
+  before(loadPage);
+
+  afterEach(async function() {
+    // A modal left open by a failing test would block the clicks of every later one. Only after a
+    // failure: some tests below pass an open modal on to the next.
+    if (this.currentTest?.state === "failed") {
+      await loadPage();
+    }
   });
 
   async function checkClosed() {
@@ -16,7 +27,10 @@ describe("modals", function() {
   }
 
   async function checkOpen() {
-    assert.equal(await driver.findWait(".test-modal-dialog", 100).isPresent(), true);
+    await driver.findWait(".test-modal-dialog", 1000);
+    // A modal has the focus by the time it appears, so keys typed from here on reach the modal.
+    assert.equal(await driver.find(".test-modal-dialog:focus-within").isPresent(), true,
+      "modal should hold the focus as soon as it appears");
   }
 
   it("should close on click-away, OK, Cancel, Escape, Enter", async function() {
@@ -79,6 +93,7 @@ describe("modals", function() {
     assert.match(await driver.find(".testui-custom-modal-text").getText(), /Closed/);
 
     await driver.find(".testui-custom-modal-opener").click();
+    await checkOpen();
     assert.match(await driver.find(".testui-custom-modal-text").getText(), /Open/);
 
     // Hit Escape to close
@@ -138,7 +153,11 @@ describe("modals", function() {
     await checkOpen();
 
     await driver.find(".testui-nested-modals-open-submodal").click();
-    assert.equal(await driver.findWait(".testui-nested-modals-submodal", 100).isPresent(), true);
+    await driver.findWait(".testui-nested-modals-submodal", 1000);
+    assert.equal(
+      await driver.find(".test-modal-dialog:has(.testui-nested-modals-submodal):focus").isPresent(), true,
+      "nested modal should hold the focus as soon as it opens",
+    );
     await driver.sendKeys(Key.TAB);
     await driver.sendKeys(Key.TAB);
     assert.equal(
@@ -149,6 +168,8 @@ describe("modals", function() {
 
     await driver.find(".testui-nested-modals-close-submodal").click();
     assert.equal(await driver.find(".testui-nested-modals-submodal").isPresent(), false);
+    assert.equal(await driver.find(".test-modal-dialog:focus").isPresent(), true,
+      "focus should return to the first modal as soon as the nested one closes");
     await driver.sendKeys(Key.TAB);
     await driver.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
     assert.equal(
