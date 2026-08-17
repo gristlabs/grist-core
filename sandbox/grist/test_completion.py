@@ -482,8 +482,6 @@ class TestCompletion(test_engine.EngineTestCase):
     )
 
   def test_suggest_lookup_attributes(self):
-    # A completed `lookupOne()` returns a record, so suggest its columns after the dot.
-    # This works with no arguments, which is useful for a table holding a single row.
     self.assertEqual(
       self.autocomplete("Schools.lookupOne().", "Address", "city"),
       [
@@ -497,7 +495,6 @@ class TestCompletion(test_engine.EngineTestCase):
       ],
     )
 
-    # Arguments don't change the suggestions, they only narrow which record is found.
     self.assertEqual(
       self.autocomplete("Schools.lookupOne(name=$city).", "Address", "city"),
       [
@@ -511,7 +508,6 @@ class TestCompletion(test_engine.EngineTestCase):
       ],
     )
 
-    # Typing part of a column name filters the suggestions.
     self.assertEqual(
       self.autocomplete("Schools.lookupOne().last", "Address", "city"),
       [
@@ -520,10 +516,9 @@ class TestCompletion(test_engine.EngineTestCase):
       ],
     )
 
-    # An unknown table gives nothing.
     self.assertEqual(self.autocomplete("NoSuchTable.lookupOne().", "Address", "city"), [])
 
-    # `lookupRecords` returns a RecordSet, not a record, so columns are not suggested for it.
+    # lookupRecords() should not be affected
     self.assertEqual(
       self.autocomplete("Schools.lookupRecords().", "Address", "city"),
       [
