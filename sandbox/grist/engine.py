@@ -1449,6 +1449,21 @@ class Engine(object):
         result = [(r, None) for r in result]
         return sorted(result)
 
+    # A completed `Table.lookupOne(...)` evaluates to a record, so suggest columns after the dot.
+    # rlcompleter can't do this itself, as it never evaluates calls.
+    match = re.match(r"(\w+)\.lookupOne\([^()]*\)\.(\w*)$", txt)
+    if match:
+      lookup_table_id, prefix = match.group(1), match.group(2)
+      if lookup_table_id in self.tables:
+        lookup_table = self.tables[lookup_table_id]
+        start = txt[:len(txt) - len(prefix)]
+        result = [
+          (start + col_id, None)
+          for col_id in lookup_table.all_columns
+          if (column.is_visible_column(col_id) or col_id == 'id') and col_id.startswith(prefix)
+        ]
+        return sorted(result)
+
     # replace $ with rec. and add a dummy rec object
     tweaked_txt = DOLLAR_REGEX.sub(r'rec.', txt)
     # convert a bare $ with nothing after it also

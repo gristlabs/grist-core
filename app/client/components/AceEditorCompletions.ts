@@ -95,8 +95,14 @@ function initCustomCompleter() {
 
   // The default regex just matches identifiers. We expand it to include periods (to capture
   // attributes) and "$", for Grist column names. In addition, we autocomplete lookup formulas
-  // with the function name, to give suggestions for lookup keyword arguments.
-  const prefixMatchRegex = /\w+\.(?:lookupRecords|lookupOne)\([\w.$\u00A2-\uFFFF]*$|[\w.$\u00A2-\uFFFF]+$/;
+  // with the function name, to give suggestions for lookup keyword arguments. A completed
+  // `lookupOne(...)` call is matched together with the attribute after it, so that the server
+  // can suggest columns of the looked-up record.
+  const prefixMatchRegex = new RegExp([
+    /\w+\.lookupOne\([^()]*\)\.[\w\u00A2-\uFFFF]*$/,
+    /\w+\.(?:lookupRecords|lookupOne)\([\w.$\u00A2-\uFFFF]*$/,
+    /[\w.$\u00A2-\uFFFF]+$/,
+  ].map(r => r.source).join("|"));
 
   // Monkey-patch getCompletionPrefix. This is based on the source code in
   // node_modules/ace-builds/src-noconflict/ext-language_tools.js, simplified to do the one thing

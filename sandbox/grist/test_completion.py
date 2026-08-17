@@ -481,6 +481,57 @@ class TestCompletion(test_engine.EngineTestCase):
       ],
     )
 
+  def test_suggest_lookup_attributes(self):
+    # A completed `lookupOne()` returns a record, so suggest its columns after the dot.
+    # This works with no arguments, which is useful for a table holding a single row.
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne().", "Address", "city"),
+      [
+        'Schools.lookupOne().address',
+        'Schools.lookupOne().budget',
+        'Schools.lookupOne().id',
+        'Schools.lookupOne().lastModified',
+        'Schools.lookupOne().lastModifier',
+        'Schools.lookupOne().name',
+        'Schools.lookupOne().yearFounded',
+      ],
+    )
+
+    # Arguments don't change the suggestions, they only narrow which record is found.
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne(name=$city).", "Address", "city"),
+      [
+        'Schools.lookupOne(name=$city).address',
+        'Schools.lookupOne(name=$city).budget',
+        'Schools.lookupOne(name=$city).id',
+        'Schools.lookupOne(name=$city).lastModified',
+        'Schools.lookupOne(name=$city).lastModifier',
+        'Schools.lookupOne(name=$city).name',
+        'Schools.lookupOne(name=$city).yearFounded',
+      ],
+    )
+
+    # Typing part of a column name filters the suggestions.
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne().last", "Address", "city"),
+      [
+        'Schools.lookupOne().lastModified',
+        'Schools.lookupOne().lastModifier',
+      ],
+    )
+
+    # An unknown table gives nothing.
+    self.assertEqual(self.autocomplete("NoSuchTable.lookupOne().", "Address", "city"), [])
+
+    # `lookupRecords` returns a RecordSet, not a record, so columns are not suggested for it.
+    self.assertEqual(
+      self.autocomplete("Schools.lookupRecords().", "Address", "city"),
+      [
+        ('Schools.lookupRecords', '(colName=<value>, ...)', True),
+        'Schools.lookupRecords(address=$id)',
+      ],
+    )
+
   def autocomplete(self, formula, table, column, user=None, row_id=None):
     """
     Mild convenience over self.engine.autocomplete.
