@@ -463,7 +463,8 @@ export interface UserAPI {
   updateUserName(name: string): Promise<void>;
   updateUserLocale(locale: string | null): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
-  disableUser(userId: number): Promise<void>;
+  // A blank or omitted reason clears the reason previously recorded, if any.
+  disableUser(userId: number, reason?: string): Promise<void>;
   enableUser(userId: number): Promise<void>;
   updateIsConsultant(userId: number, isConsultant: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
@@ -1009,9 +1010,10 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async disableUser(userId: number): Promise<void> {
+  public async disableUser(userId: number, reason?: string): Promise<void> {
     await this.request(`${this._url}/api/users/${userId}/disable`, {
       method: "POST",
+      body: JSON.stringify({ reason }),
     });
   }
 
