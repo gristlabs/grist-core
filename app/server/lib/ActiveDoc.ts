@@ -275,10 +275,10 @@ export class ActiveDoc extends EventEmitter {
    */
   public static keepDocOpen(target: ActiveDoc, propertyKey: string, descriptor: PropertyDescriptor) {
     const origFunc = descriptor.value;
-    descriptor.value = function(this: ActiveDoc) {
+    descriptor.value = function (this: ActiveDoc) {
       const result = origFunc.apply(this, arguments);
       this._inactivityTimer.disableUntilFinish(timeoutReached(Deps.KEEP_DOC_OPEN_TIMEOUT_MS, result))
-        .catch(() => {});
+        .catch(() => { });
       return result;
     };
   }
@@ -807,9 +807,11 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   public async createEmptyDoc(docSession: OptDocSession,
     options?: { useExisting?: boolean }): Promise<ActiveDoc> {
-    await this.loadDoc(docSession, { forceNew: true,
+    await this.loadDoc(docSession, {
+      forceNew: true,
       skipInitialTable: true,
-      ...options });
+      ...options
+    });
     // Makes sure docPluginManager is ready in case new doc is used to import new data
     await this.docPluginManager?.ready;
     this._fullyLoaded = true;
@@ -844,7 +846,7 @@ export class ActiveDoc extends EventEmitter {
             return this._beforeMigration(docSession, "storage", currentVersion, newVersion);
           },
           afterMigration: async (newVersion, success) => {
-            return this._afterMigration(docSession, "storage",  newVersion, success);
+            return this._afterMigration(docSession, "storage", newVersion, success);
           },
         });
       }
@@ -1697,9 +1699,11 @@ export class ActiveDoc extends EventEmitter {
     // point.
     // Undos are best effort now by default.
     return this._applyUserActionsWithExtendedOptions(
-      docSession, actions, { bestEffort: undo,
-        oldestSource,
-        fromOwnHistory, ...(options || {}) });
+      docSession, actions, {
+        bestEffort: undo,
+      oldestSource,
+      fromOwnHistory, ...(options || {})
+    });
   }
 
   /**
@@ -1766,6 +1770,16 @@ export class ActiveDoc extends EventEmitter {
     await this.waitForInitialization();
     const user = await this._granularAccess.getCachedUser(docSession);
     return this._pyCall("autocomplete", txt, tableId, columnId, rowId, user.toJSON());
+  }
+
+  public async findColDependents(
+    docSession: DocSession,
+    tableId: string,
+    colId: string,
+  ): Promise<{ tableId: string, colId: string }[]> {
+    if (!await this._granularAccess.canScanData(docSession)) { return []; }
+    await this.waitForInitialization();
+    return this._pyCall("find_col_dependents", tableId, colId);
   }
 
   /**
@@ -1899,8 +1913,10 @@ export class ActiveDoc extends EventEmitter {
     // can be associated with an arbitrary doc worker, rather than tied to the
     // same worker as the trunk.  We use a Permit for authorization.
     const permitStore = this._server.getPermitStore();
-    const permitKey = await permitStore.setPermit({ docId: forkIds.docId,
-      otherDocId: this.docName });
+    const permitKey = await permitStore.setPermit({
+      docId: forkIds.docId,
+      otherDocId: this.docName
+    });
     try {
       const url = await this._server.getHomeUrlByDocId(
         forkIds.docId,
@@ -2070,8 +2086,10 @@ export class ActiveDoc extends EventEmitter {
       if (!user.email) { continue; }
       const email = normalizeEmail(user.email);
       if (!isShared.has(email)) {
-        result.attributeTableUsers.push({ email: user.email, name: user.name || "",
-          id: 0, access: user.access === undefined ? "editors" : user.access });
+        result.attributeTableUsers.push({
+          email: user.email, name: user.name || "",
+          id: 0, access: user.access === undefined ? "editors" : user.access
+        });
       }
     }
 
@@ -2437,7 +2455,7 @@ export class ActiveDoc extends EventEmitter {
     return timingResults;
   }
 
-  public async getTimings(): Promise<FormulaTimingInfo[] | void>  {
+  public async getTimings(): Promise<FormulaTimingInfo[] | void> {
     await this.waitForInitialization();
 
     if (this._modificationLock.isLocked()) {
@@ -2501,7 +2519,7 @@ export class ActiveDoc extends EventEmitter {
       // nothing seems best, as long as we follow the recommendations in migrations.py (never
       // remove/modify/rename metadata tables or columns, or change their meaning).
       this._log.warn(docSession, "Doc is newer (v%s) than this version of Grist (v%s); " +
-      "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
+        "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
     }
 
     if (!this._isSnapshot) {
@@ -2741,8 +2759,8 @@ export class ActiveDoc extends EventEmitter {
   private _makeInfo(docSession: OptDocSession, options: ApplyUAOptions = {}) {
     const user =
       docSession.mode === "system" ? "grist" :
-      // Anonymize user info for form submissions.
-      // Note: This is half-baked and doesn't account for other types of shares besides forms.
+        // Anonymize user info for form submissions.
+        // Note: This is half-baked and doesn't account for other types of shares besides forms.
         getDocSessionShare(docSession) ? ANONYMOUS_USER_EMAIL :
           docSession.displayEmail || "";
     return {
@@ -3021,8 +3039,8 @@ export class ActiveDoc extends EventEmitter {
     // and DataEngine may still do things serially, but it allows them to be busy simultaneously.
     await bluebird.map(tableNames, async (tableName: string) =>
       this._pyCall("load_table", tableName, await this._fetchTableIfPresent(tableName)),
-    // How many tables to query for and push to the data engine in parallel.
-    { concurrency: 3 });
+      // How many tables to query for and push to the data engine in parallel.
+      { concurrency: 3 });
     return this;
   }
 
@@ -3613,7 +3631,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private _doStartTiming() {
-    return  this._pyCall("start_timing");
+    return this._pyCall("start_timing");
   }
 
   private _logForkDocumentEvents(
@@ -3669,12 +3687,14 @@ export class ActiveDoc extends EventEmitter {
       if (skip) {
         return;
       }
-      const column: ColumnMetadata = { id, fields: {
-        colRef: colRefs[index],
-        label: String(columnData.label?.[index] ?? ""),
-        isFormula: Boolean(columnData.isFormula?.[index]),
-        type: String(columnData.type?.[index] ?? ""),
-      } };
+      const column: ColumnMetadata = {
+        id, fields: {
+          colRef: colRefs[index],
+          label: String(columnData.label?.[index] ?? ""),
+          isFormula: Boolean(columnData.isFormula?.[index]),
+          type: String(columnData.type?.[index] ?? ""),
+        }
+      };
       const otherFieldNames = without(fieldNames, "label", "isFormula", "type");
       for (const key of otherFieldNames) {
         column.fields[key] = columnData[key][index];
@@ -3732,7 +3752,7 @@ interface ActiveDocAndReq {
 }
 export async function getRealTableId(
   tableId: string,
-  options:  MetaTables | ActiveDocAndReq,
+  options: MetaTables | ActiveDocAndReq,
 ): Promise<string> {
   if (parseInt(tableId)) {
     const metaTables = "metaTables" in options ?
