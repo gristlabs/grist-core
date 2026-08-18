@@ -527,6 +527,23 @@ class TestCompletion(test_engine.EngineTestCase):
       ],
     )
 
+  def test_suggest_lookup_attributes_with_call_argument(self):
+    # One level of parens inside the arguments (e.g. a function call) should still be
+    # recognized, as long as the lookupOne call itself is closed before the dot.
+    schools_cols = ['address', 'budget', 'id', 'lastModified', 'lastModifier', 'name', 'yearFounded']
+
+    def expect(txt, cols):
+      self.assertEqual(self.autocomplete(txt, "Address", "city"), [txt + c for c in cols])
+
+    expect("Schools.lookupOne(name=UPPER($city)).", schools_cols)
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne(name=UPPER($city)).last", "Address", "city"),
+      [
+        'Schools.lookupOne(name=UPPER($city)).lastModified',
+        'Schools.lookupOne(name=UPPER($city)).lastModifier',
+      ],
+    )
+
   def autocomplete(self, formula, table, column, user=None, row_id=None):
     """
     Mild convenience over self.engine.autocomplete.

@@ -1450,8 +1450,10 @@ class Engine(object):
         return sorted(result)
 
     # A completed `Table.lookupOne(...)` evaluates to a record, so suggest columns after the dot.
-    # rlcompleter can't do this itself, as it never evaluates calls.
-    match = re.match(r"(\w+)\.lookupOne\([^()]*\)\.(\w*)$", txt)
+    # rlcompleter can't do this itself, as it never evaluates calls. One level of parens is
+    # allowed inside the arguments (e.g. a function call). Keep in sync with the similar regex
+    # in AceEditorCompletions.ts.
+    match = re.match(r"(\w+)\.lookupOne\((?:[^()]|\([^()]*\))*\)\.(\w*)$", txt)
     if match:
       lookup_table_id, prefix = match.group(1), match.group(2)
       if lookup_table_id in self.tables:
