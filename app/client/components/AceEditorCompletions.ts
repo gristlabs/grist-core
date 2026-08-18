@@ -96,11 +96,12 @@ function initCustomCompleter() {
   // The default regex just matches identifiers. We expand it to include periods (to capture
   // attributes) and "$", for Grist column names. In addition, we autocomplete lookup formulas
   // with the function name, to give suggestions for lookup keyword arguments. A completed
-  // `lookupOne(...)` call is matched together with the attribute after it, so that the server
-  // can suggest columns of the looked-up record. One level of parens is allowed inside the
-  // arguments (e.g. a function call). Keep in sync with the similar regex in engine.py.
+  // `lookupOne(...)` or `lookupRecords(...)` call is matched together with the attribute after
+  // it, so that the server can suggest columns of the looked-up table. One level of parens is
+  // allowed inside the arguments (e.g. a function call). Keep in sync with the similar regex
+  // in engine.py.
   const prefixMatchRegex = new RegExp([
-    /\w+\.lookupOne\((?:[^()]|\([^()]*\))*\)\.[\w\u00A2-\uFFFF]*$/,
+    /\w+\.(?:lookupOne|lookupRecords)\((?:[^()]|\([^()]*\))*\)\.[\w\u00A2-\uFFFF]*$/,
     /\w+\.(?:lookupRecords|lookupOne)\([\w.$\u00A2-\uFFFF]*$/,
     /[\w.$\u00A2-\uFFFF]+$/,
   ].map(r => r.source).join("|"));

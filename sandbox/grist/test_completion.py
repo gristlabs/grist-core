@@ -518,12 +518,18 @@ class TestCompletion(test_engine.EngineTestCase):
 
     self.assertEqual(self.autocomplete("NoSuchTable.lookupOne().", "Address", "city"), [])
 
-    # lookupRecords() should not be affected
+    # lookupRecords() returns a RecordSet, but a field on it gives a list of values for that
+    # column across all matched records, so the same columns are suggested as for lookupOne().
     self.assertEqual(
       self.autocomplete("Schools.lookupRecords().", "Address", "city"),
       [
-        ('Schools.lookupRecords', '(colName=<value>, ...)', True),
-        'Schools.lookupRecords(address=$id)',
+        'Schools.lookupRecords().address',
+        'Schools.lookupRecords().budget',
+        'Schools.lookupRecords().id',
+        'Schools.lookupRecords().lastModified',
+        'Schools.lookupRecords().lastModifier',
+        'Schools.lookupRecords().name',
+        'Schools.lookupRecords().yearFounded',
       ],
     )
 

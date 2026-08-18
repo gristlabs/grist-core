@@ -1449,11 +1449,13 @@ class Engine(object):
         result = [(r, None) for r in result]
         return sorted(result)
 
-    # A completed `Table.lookupOne(...)` evaluates to a record, so suggest columns after the dot.
+    # A completed `Table.lookupOne(...)` evaluates to a record, and `Table.lookupRecords(...)`
+    # to a RecordSet, whose fields give a list of values instead of a single one. Either way the
+    # field names are the columns of the looked up table, so suggest those after the dot.
     # rlcompleter can't do this itself, as it never evaluates calls. One level of parens is
     # allowed inside the arguments (e.g. a function call). Keep in sync with the similar regex
     # in AceEditorCompletions.ts.
-    match = re.match(r"(\w+)\.lookupOne\((?:[^()]|\([^()]*\))*\)\.(\w*)$", txt)
+    match = re.match(r"(\w+)\.(?:lookupOne|lookupRecords)\((?:[^()]|\([^()]*\))*\)\.(\w*)$", txt)
     if match:
       lookup_table_id, prefix = match.group(1), match.group(2)
       if lookup_table_id in self.tables:
