@@ -1,3 +1,4 @@
+import { ApiCallsUsage } from "app/common/DocUsage";
 import { Role } from "app/common/roles";
 import { OrganizationProperties, organizationPropertyKeys, SiteReadOnlyReason } from "app/common/UserAPI";
 import { AclRuleOrg } from "app/gen-server/entity/AclRule";
@@ -67,6 +68,10 @@ export class Organization extends Resource {
   // Property that may be returned when the org is fetched, saying why its documents are held
   // read-only.  Not a column; see getSiteReadOnlyReason.
   public readOnlyReason?: SiteReadOnlyReason;
+
+  // Property that may be returned when the org is fetched, holding the api calls made this
+  // month, for plans that cap them. Not a column; the count is kept in redis.
+  public apiUsage?: ApiCallsUsage;
 
   // a computed column with permissions.
   // {insert: false} makes sure typeorm doesn't try to put values into such

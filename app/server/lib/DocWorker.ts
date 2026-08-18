@@ -18,6 +18,7 @@ import {
   getDocId, getExtraAttachmentOptions, integerParam,
   optStringParam, stringParam,
 } from "app/server/lib/requestUtils";
+import { getDailyMax, getOrgUsageLimit } from "app/server/lib/usageKeys";
 
 import * as path from "path";
 
@@ -227,17 +228,13 @@ function activeDocMethod(tracker: DocApiUsageTracker | undefined,
     log.rawDebug("activeDocMethod", activeDoc.getLogMeta(docSession, methodName));
 
     if (tracker && client.authSession.isApiKeyAuth) {
-      let dailyMax: number | undefined;
-      if (role) {
-        // assertAccess was already called above, so getCachedAuth() is available.
-        const cachedDoc = docSession.authorizer.getCachedAuth().cachedDoc;
-        dailyMax = cachedDoc?.workspace?.org?.billingAccount
-          ?.getEffectiveFeatures()?.baseMaxApiUnitsPerDocumentPerDay;
-      }
+      // assertAccess was only called above when a role is required, and getCachedAuth()
+      // is unavailable without it, so methods with no role skip the usage limits.
+      const cachedDoc = role ? docSession.authorizer.getCachedAuth().cachedDoc : undefined;
       // acquire + method call are in the same try so release runs even if acquire throws
       // (acquire increments the parallel counter before checking limits).
       try {
-        tracker.acquire(activeDoc.docName, dailyMax);
+        tracker.acquire(activeDoc.docName, getDailyMax(cachedDoc), getOrgUsageLimit(cachedDoc));
         return await (activeDoc as any)[methodName](docSession, ...args);
       } finally {
         tracker.release(activeDoc.docName);

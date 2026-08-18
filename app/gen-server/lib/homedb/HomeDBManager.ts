@@ -1129,7 +1129,10 @@ export class HomeDBManager implements HomeDBAuth {
         access,
       } as any;
 
-      // Use free personal account features for documents opened this way.
+      // The workspace above is only borrowed, so use anonymous features here, not the ones
+      // of the support user who owns it. Those features should only set limits that don't
+      // depend on an org or a billing account, or the usage would be counted for the
+      // support user.
       doc.workspace.org.billingAccount = patch(new BillingAccount(), {
         features: getAnonymousFeatures(),
         product: patch(new Product(), { name: PERSONAL_FREE_PLAN }),

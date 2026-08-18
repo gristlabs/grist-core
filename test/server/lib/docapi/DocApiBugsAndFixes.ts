@@ -10,15 +10,18 @@
  */
 
 import { UserAPI } from "app/common/UserAPI";
+import { BillingAccount } from "app/gen-server/entity/BillingAccount";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import { createTmpDir } from "test/server/docTools";
 import { openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
 
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { assert } from "chai";
 import * as fse from "fs-extra";
+import * as sinon from "sinon";
 
 const chimpy = configForUser("Chimpy");
 const kiwi = configForUser("Kiwi");
@@ -390,6 +393,88 @@ describe("DocApiBugsAndFixes", function() {
       assert.equal(resp.status, 200, JSON.stringify(resp.data));
       assert.equal(resp.data.status, "active");
       assert.isNotEmpty(resp.data.timing);
+    });
+  });
+
+  // The monthly limit counts api calls only, so the web client is not affected.
+  describe("monthly api limit", function() {
+    const sandbox = sinon.createSandbox();
+    let docId: string;
+    let orgDomain: string;
+    let cookie: AxiosRequestConfig;
+
+    // The count is per site and lives in redis, so every test gets a fresh site.
+    beforeEach(async function() {
+      orgDomain = `limit-${Date.now()}`;
+      const api = await server.createHomeApi("chimpy", "docs", true);
+      await api.newOrg({ name: orgDomain, domain: orgDomain });
+      const orgOwner = await server.createHomeApi("chimpy", orgDomain, true);
+      const ws = await orgOwner.newWorkspace({ name: "ws" }, "current");
+      docId = await orgOwner.newDoc({ name: "monthly-limit" }, ws);
+      cookie = await server.getCookieLogin(orgDomain, {
+        email: "chimpy@getgrist.com",
+        name: "Chimpy",
+      });
+    });
+
+    afterEach(async function() {
+      sandbox.restore();
+      const api = await server.createHomeApi("chimpy", "docs", true);
+      await api.deleteOrg(orgDomain);
+    });
+
+    // An endpoint wrapped in withDoc, so it goes through the usage tracker.
+    const snapshots = (config: AxiosRequestConfig) => axios.get(
+      `${homeUrl}/api/docs/${docId}/snapshots`,
+      { ...config, validateStatus: () => true },
+    );
+
+    it("counts api key requests", async function() {
+      sandbox.stub(BillingAccount.prototype, "getEffectiveFeatures")
+        .returns({ maxApiCallsPerOrgMonth: 1 });
+      assert.equal((await snapshots(chimpy)).status, 200);
+
+      const resp = await snapshots(chimpy);
+      assert.equal(resp.status, 429);
+      assert.match(resp.data.error, /Exceeded monthly API limit/);
+    });
+
+    it("does not count requests made by the web client", async function() {
+      sandbox.stub(BillingAccount.prototype, "getEffectiveFeatures")
+        .returns({ maxApiCallsPerOrgMonth: 1 });
+      // The web client calls such endpoints while a page loads, so a session must never
+      // spend the limit, however many calls it makes.
+      for (let i = 0; i < 5; i++) {
+        assert.equal((await snapshots(cookie)).status, 200);
+      }
+      // Nothing was spent, so the api can still make its one call.
+      assert.equal((await snapshots(chimpy)).status, 200);
+    });
+
+    it("does not count api calls on an unsaved document", async function() {
+      const acquire = sandbox.spy(DocApiUsageTracker.prototype, "acquire");
+
+      // Create a new document, that simulates clicking on a template from gallery, it
+      // creates a homeless document, that has stubbed billing account and it thinks
+      // it is in the personal org of the support user. The support's user personal
+      // org has limits as any other personal org - currently it has 3000 api calls
+      // per org, but we don't want to count those calls against the support user as
+      // it would share the limit with all anonymous users and can be easily exhausted.
+      // So when the document is created, it has special anonymous features with counts
+      // that don't depend on the org/billing account.
+      const unsavedId = (await axios.post(`${homeUrl}/api/docs`, {}, chimpy)).data;
+      // Sanity check that this is a new forked doc.
+      assert.match(unsavedId, /^new~/);
+      // Random API call.
+      assert.equal((await axios.get(
+        `${homeUrl}/api/docs/${unsavedId}/snapshots`,
+        { ...chimpy, validateStatus: () => true },
+      )).status, 200);
+
+      // Grist should try to acquire and increase limits for this document, but it should
+      // pass 0 as the monthlyMax (meaning no limit).
+      assert.isTrue(acquire.called);
+      assert.equal(acquire.lastCall.args[2]?.monthlyMax, 0);
     });
   });
 });

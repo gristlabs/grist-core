@@ -8,7 +8,7 @@ import { BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
   TableRecordValuesWithoutIds, UserAction } from "app/common/DocActions";
 import { DocCreationInfo, OpenDocMode } from "app/common/DocListAPI";
 import { DocStateComparison, DocStates } from "app/common/DocState";
-import { OrgUsageSummary } from "app/common/DocUsage";
+import { ApiCallsUsage, OrgUsageSummary } from "app/common/DocUsage";
 import { Features, Product } from "app/common/Features";
 import { isClient } from "app/common/gristUrls";
 import { encodeQueryParams } from "app/common/gutil";
@@ -91,6 +91,10 @@ export interface OrganizationWithoutAccessInfo extends OrganizationProperties {
   // method that does the holding, so what a user is told cannot drift from what is
   // enforced. Sent to everyone, since read-only affects everyone on the site.
   readOnlyReason?: SiteReadOnlyReason;
+  // Api calls made this month, set only when the org's plan limits them
+  // (billingAccount.features.maxApiCallsPerOrgMonth), and only for owners and billing
+  // managers. Sent with the org so every page can warn without another request.
+  apiUsage?: ApiCallsUsage;
 }
 
 // Why a site's documents are held read-only.
@@ -103,6 +107,19 @@ export type SiteReadOnlyReason = "suspended" | "plan" | "billing" | "users";
 // Organization information plus the user's access level
 export interface Organization extends OrganizationWithoutAccessInfo {
   access: roles.Role;
+}
+
+// What the account page reads about the signed in user. Holds the user, plus what the page
+// shows about their personal site, so that it does not need a second request for it.
+export interface AccountInfo extends FullUser {
+  personalSite?: PersonalSiteUsage;
+}
+
+// Usage of a personal site, against the limits its plan sets. A part is missing when the
+// plan sets no limit on it.
+export interface PersonalSiteUsage {
+  apiCalls?: ApiCallsUsage;
+  assistant?: { used: number, limit: number };
 }
 
 // This type is for billing account status information.  Intended for stuff
@@ -479,7 +496,7 @@ export interface UserAPI {
   pinDoc(docId: string): Promise<void>;
   unpinDoc(docId: string): Promise<void>;
   moveDoc(docId: string, workspaceId: number): Promise<void>;
-  getUserProfile(): Promise<FullUser>;
+  getUserProfile(): Promise<AccountInfo>;
   updateUserName(name: string): Promise<void>;
   updateUserLocale(locale: string | null): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
@@ -997,7 +1014,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async getUserProfile(): Promise<FullUser> {
+  public async getUserProfile(): Promise<AccountInfo> {
     return this.requestJson(`${this._url}/api/profile/user`);
   }
 

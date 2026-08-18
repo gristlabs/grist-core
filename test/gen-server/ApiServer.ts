@@ -198,7 +198,7 @@ describe("ApiServer", function() {
     assert.deepEqual(resp.data.map((org: any) => org.name),
       ["Chimpyland", "EmptyOrg", "EmptyWsOrg", "Fish", "Flightless",
         "FreeTeam", "NASA", "Primately", "TestAuditLogs", "TestDailyApiLimit",
-        "TestMaxNewUserInvites"]);
+        "TestHighDailyApiLimit", "TestMaxNewUserInvites"]);
     // personal orgs should have an owner and no domain
     // createdAt and updatedAt are omitted since exact times cannot be predicted.
     assert.deepEqual(
@@ -2671,7 +2671,9 @@ describe("ApiServer", function() {
         assert.deepEqual(resp.data, { error: "access denied" });
       } else {
         assert.equal(resp.status, 200);
-        assert.deepEqual(resp.data, expected);
+        // Only the fields the caller asked about, since these tests are about documents
+        // and attachments. The api and assistant limits have their own tests.
+        assert.deepEqual(omit(resp.data, "assistant", "apiCalls"), expected);
       }
     }
 

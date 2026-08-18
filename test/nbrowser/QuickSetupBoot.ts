@@ -110,16 +110,18 @@ describe("QuickSetupBoot", function() {
 
     // Configuring getgrist.com also stages it as the pending activation, which asks for
     // sessions to be cleared on restart.
-    await driver.findWait(".test-admin-auth-hero-configure", 4000).click();
+    await gu.waitToPass(async () => {
+      await driver.findWait(".test-admin-auth-hero-configure", 4000).click();
+    });
     await driver.findWait(".test-admin-auth-config-key-textarea", 2000).sendKeys(buildGetGristKey());
     await driver.find(".test-admin-auth-modal-configure").click();
     await gu.waitForServer();
 
-    const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
     await gu.waitToPass(async () => {
+      const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
       assert.match(await continueBtn.getText(), /Apply and Continue/i);
-    }, 2000);
-    await continueBtn.click();
+      await continueBtn.click();
+    }, 4000);
 
     // The click returns before the restart happens, so wait for the server to go down and
     // come back. Asserting any earlier only reads the old process, where the session is

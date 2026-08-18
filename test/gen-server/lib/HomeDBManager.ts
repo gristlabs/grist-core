@@ -257,6 +257,7 @@ describe("HomeDBManager", function() {
       "Primately",
       "TestAuditLogs",
       "TestDailyApiLimit",
+      "TestHighDailyApiLimit",
       "TestMaxNewUserInvites",
       "Charonland",
       "Chimpyland",

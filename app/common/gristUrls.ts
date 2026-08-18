@@ -48,7 +48,7 @@ export type HomePageTab = typeof HomePageTab.type;
 export const WelcomePage = StringUnion("teams", "signup", "verify", "select-account");
 export type WelcomePage = typeof WelcomePage.type;
 
-export const AccountPage = StringUnion("account", "authorized-apps", "developer");
+export const AccountPage = StringUnion("account", "authorized-apps", "developer", "personal-site");
 export type AccountPage = typeof AccountPage.type;
 
 export const ActivationPage = StringUnion("activation");

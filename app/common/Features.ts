@@ -82,6 +82,9 @@ export interface Features {
   // for attached files in a document
   maxAttachmentsBytesPerOrg?: number; // Limit across a site.
 
+  // Maximum number of api calls across a site in a calendar month (UTC).
+  maxApiCallsPerOrgMonth?: number;
+
   gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
   noGraceBanner?: boolean;   // If set, a banner is hidden, used for enterprise plans.
 
