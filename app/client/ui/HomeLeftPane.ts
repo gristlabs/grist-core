@@ -264,6 +264,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
       resourceType: "workspace",
       resourceId: ws.id,
       resource: ws,
+      appModel: home.app,
     });
   }
 
