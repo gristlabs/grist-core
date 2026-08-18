@@ -477,6 +477,10 @@ def MONTH(date):
 def NOW(tz=None):
   """
   Returns the `datetime` object for the current time.
+
+  Grist re-evaluates `NOW()` about once an hour while the document is open, and on reload; Python's
+  `datetime.now()` updates only on reload. Use a [trigger formula](formulas.md#trigger-formulas) to
+  freeze the value.
   """
   engine = docmodel.global_docmodel._engine
   engine.use_current_time()
@@ -502,6 +506,10 @@ def SECOND(time):
 def TODAY(tz=None):
   """
   Returns the `date` object for the current date.
+
+  Like `NOW()`, `TODAY()` re-evaluates about once an hour while the document is open; Python's
+  `datetime.date.today()` updates only on reload. Use a [trigger formula](formulas.md#trigger-formulas)
+  to freeze the value.
   """
   return NOW(tz=tz).date()
 
