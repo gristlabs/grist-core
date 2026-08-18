@@ -207,7 +207,53 @@ describe("QuickSetupApply", function() {
     await server.restart();
   });
 
-  it("should save permissions and show restart error", async function() {
+  it("should stay on the form and show an error when applying fails", async function() {
+    // Make every write request fail, so each dirty section's apply() throws. The
+    // draft manager then skips the restart and reports "Could not apply: ...".
+    // The stub only lives in this page; the next test's navigateToStep() reloads
+    // and clears it.
+    await navigateToStep(async () => {
+      await driver.executeScript(() => {
+        const origFetch = window.fetch;
+        window.fetch = async (input: any, init?: any) => {
+          const method = (input?.method ?? init?.method ?? "GET").toUpperCase();
+          if (method !== "GET" && method !== "HEAD") {
+            return new Response(JSON.stringify({ error: "Simulated failure" }), {
+              status: 500,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          return origFetch(input, init);
+        };
+      });
+    });
+
+    await driver.find(".test-permissions-setup-go-live").click();
+
+    // The form stays put, with the error banner above it.
+    await gu.waitToPass(async () => {
+      assert.include(
+        await driver.find(".test-permissions-setup-section").getText(),
+        "Could not apply",
+      );
+      assert.isTrue(await driver.find(".test-permissions-setup-go-live").isPresent());
+    }, 5000);
+
+    // Neither variant of the success page should be shown.
+    const text = await driver.find(".test-permissions-setup-section").getText();
+    assert.notInclude(text, "Grist needs restarting");
+    assert.notInclude(text, "Grist is live!");
+    assert.isFalse(await driver.find(".test-permissions-setup-back-to-install").isPresent());
+
+    // Nothing should have been persisted.
+    const status = await installApi.getPermissionsStatus();
+    assert.isUndefined(status.orgCreationAnyone.source);
+    assert.isUndefined(status.personalOrgs.source);
+    assert.isUndefined(status.forceLogin.source);
+    assert.isUndefined(status.anonPlayground.source);
+  });
+
+  it("should save permissions and show restart-needed page when restart is unavailable", async function() {
     await (await gu.session().personalSite.login()).loadDocMenu("/");
     // Before saving, all permissions should be at defaults (no source).
     const before = await installApi.getPermissionsStatus();
@@ -225,13 +271,20 @@ describe("QuickSetupApply", function() {
     await driver.find(".test-permissions-setup-preset-open").click();
     await driver.find(".test-permissions-setup-go-live").click();
 
-    // In test mode the server can't auto-restart, so the UI shows the error.
+    // In test mode the server can't auto-restart, so the UI shows the
+    // "restart needed" variant of the success page instead of staying on the form.
     await gu.waitToPass(async () => {
-      assert.include(
-        await driver.find(".test-permissions-setup-section").getText(),
-        "Cannot automatically restart",
-      );
+      const text = await driver.find(".test-permissions-setup-section").getText();
+      assert.include(text, "Grist needs restarting");
+      assert.include(text, "wasn't able to restart");
+      assert.isTrue(await driver.find(".test-permissions-setup-back-to-install").isPresent());
     }, 5000);
+
+    // The plain-success variant should not be shown.
+    assert.notInclude(
+      await driver.find(".test-permissions-setup-section").getText(),
+      "Grist is live!",
+    );
 
     // Do manual restart to apply settings for subsequent tests.
     await server.restart();
@@ -253,9 +306,13 @@ describe("QuickSetupApply", function() {
     assert.equal(status.telemetry.source, "preferences");
   });
 
-  async function navigateToStep() {
+  // onLoad, if given, runs after the page loads but before the apply step is
+  // built — the step's API objects bind window.fetch when they're constructed,
+  // so anything stubbing fetch has to be installed first.
+  async function navigateToStep(onLoad?: () => Promise<void>) {
     await driver.get(`${server.getHost()}/admin/setup`);
     await driver.findWait(".test-stepper-step-4", 1000);
+    await onLoad?.();
     await driver.find(".test-stepper-step-4").click();
     await gu.waitToPass(async () => {
       assert.include(

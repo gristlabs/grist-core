@@ -7,12 +7,14 @@ import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
 import { cssShadowedPrimaryButton } from "app/client/ui/SettingsLayout";
 import { bigBasicButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
+import { colorIcon, icon } from "app/client/ui2018/icons";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { ApiError } from "app/common/ApiError";
 import { commonUrls } from "app/common/gristUrls";
 import { not } from "app/common/gutil";
 import { HelpUsImproveResponse, HelpUsImproveSubmission } from "app/common/HelpUsImproveAPI";
 import { InstallAPIImpl } from "app/common/InstallAPI";
+import { tokens } from "app/common/ThemePrefs";
 
 import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
 
@@ -23,6 +25,7 @@ const t = makeT("QuickSetupApplyStep");
 const testId = makeTestId("test-permissions-setup-");
 
 type SurveyStatus = "ok" | "retryable" | "unrecoverable";
+type RestartStatus = "restarted" | "errored" | false;
 
 /**
  * Orchestrates the wizard's "Apply & restart" step: assembles the
@@ -41,8 +44,9 @@ export class QuickSetupApplyStep extends Disposable {
   private _improveForm: HelpUsImproveSection;
   private _installAPI = new InstallAPIImpl(getHomeUrl());
   private _error = Observable.create<string>(this, "");
-  // Whether the server has been restarted after saving. Used to switch to the success page.
-  private _restarted = Observable.create<boolean>(this, false);
+  // Whether the server restarted successfully, can't restart, or hasn't attempted it yet.
+  // Used to switch to and modify the success page.
+  private _restartStatus = Observable.create<RestartStatus>(this, false);
 
   // Drives the retry section on the success page:
   //  - 'ok'            → section hidden
@@ -57,8 +61,6 @@ export class QuickSetupApplyStep extends Disposable {
   private _lastResponse = Observable.create<HelpUsImproveResponse | null>(this, null);
   // Cached survey contents to avoid re-fetching any data (e.g. oidc client id)
   private _surveyPayload: HelpUsImproveSubmission | null = null;
-  // Guards against resubmitting when the user retries a Go Live that can't restart.
-  private _surveySent = false;
   private _surveyMessage = Computed.create(this, (use) => {
     const resp = use(this._lastResponse);
     // No structured response (network / unknown error): both parts retry.
@@ -96,8 +98,8 @@ export class QuickSetupApplyStep extends Disposable {
   public buildDom(): DomContents {
     return dom("div",
       testId("section"),
-      dom.domComputed(this._restarted, (done) => {
-        if (done) { return this._buildSuccessPage(); }
+      dom.domComputed(this._restartStatus, (_restartStatus) => {
+        if (_restartStatus !== false) { return this._buildSuccessPage(_restartStatus); }
         return dom("div",
           dom.maybe(this._error, err => cssError(err)),
           this._permissions.buildDom({ disabled: this._drafts.isApplying }),
@@ -139,6 +141,7 @@ export class QuickSetupApplyStep extends Disposable {
   private async _handleGoLive() {
     if (this._drafts.isApplying.get()) { return; }
     this._error.set("");
+    let restartErrored = false;
     try {
       // Applies all sections and restarts the server
       await this._drafts.applyAll();
@@ -148,22 +151,20 @@ export class QuickSetupApplyStep extends Disposable {
       // Sections are applied before the restart is attempted, so a server that can't
       // restart itself has still saved everything else. Send the survey anyway, since
       // the user won't reach the success page that normally sends it.
-      if (e instanceof ApiError && e.details?.code === "RestartUnavailable" && !this._surveySent) {
-        this._surveySent = true;
-        await this._captureSurveyPayload();
-        if (this.isDisposed()) { return; }
-        void this._submitSurvey();
+      if (e instanceof ApiError && e.details?.code === "RestartUnavailable") {
+        restartErrored = true;
+      } else {
+        return;
       }
-      return;
     }
     if (this.isDisposed()) { return; }
+    this._restartStatus.set(restartErrored ? "errored" : "restarted");
     // Cache the survey payload while the form is still mounted, then switch
     // to the success page. Retry re-uses this cached payload.
     await this._captureSurveyPayload();
     if (this.isDisposed()) { return; }
-    this._surveySent = true;
-    this._restarted.set(true);
-    void this._submitSurvey();
+    // Purely defensive catch - submitSurvey should be setting error state instead of throwing.
+    this._submitSurvey().catch(err => console.error(err));
   }
 
   private async _captureSurveyPayload() {
@@ -173,7 +174,7 @@ export class QuickSetupApplyStep extends Disposable {
 
   private async _submitSurvey() {
     const surveyUrl = commonUrls.helpUsImproveSurvey ? new URL(commonUrls.helpUsImproveSurvey) : undefined;
-    if (!surveyUrl || !this._surveyPayload) { return; }
+    if (!surveyUrl || !this._surveyPayload || this._surveyRetrying.get()) { return; }
     this._surveyRetrying.set(true);
     this._surveyStatus.set("ok");
     // Ask the server to skip whatever the last response reported either
@@ -190,10 +191,8 @@ export class QuickSetupApplyStep extends Disposable {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(this._surveyPayload),
       });
-      // A direct 400 means the client sent something the endpoint refuses
-      // (bad payload shape, etc.). Retrying with the same payload won't help.
-      // 429 stays retryable so a rate-limited user can try again later.
-      if (resp.status === 400) {
+      // Any 400 error (except 429 rate limited) means it isn't worth retrying (bad payload shape, etc.).
+      if (400 <= resp.status && resp.status < 500 && resp.status !== 429) {
         if (this.isDisposed()) { return; }
         this._lastResponse.set(null);
         this._surveyStatus.set("unrecoverable");
@@ -228,12 +227,21 @@ export class QuickSetupApplyStep extends Disposable {
     }
   }
 
-  private _buildSuccessPage(): DomContents {
+  private _buildSuccessPage(restartStatus: RestartStatus): DomContents {
+    const title = restartStatus === "restarted" ?
+      t("Grist is live!") :
+      t("Grist needs restarting");
+    const subtitle = restartStatus === "restarted" ?
+      t("Your configuration changes have been applied and the server has been restarted. " +
+        "Grist is now in service and available to users.") :
+      t("Your configuration changes have been saved, but Grist wasn't able to restart. " +
+        "Please manually restart Grist to apply the changes.");
+    const icon = restartStatus === "restarted" ? successIcon() : warningIcon();
+
     return cssSuccessPage(
-      cssSparks(),
-      cssSuccessTitle(t("Grist is live!")),
-      cssSuccessSubtitle(t("Your configuration changes have been applied and the server has been restarted. \
-Grist is now in service and available to users.")),
+      icon,
+      cssSuccessTitle(title),
+      cssSuccessSubtitle(subtitle),
       dom.maybe(use => use(this._surveyStatus) !== "ok", () =>
         cssSurveyRetryBox(
           cssSurveyRetryText(dom.text(this._surveyMessage), testId("survey-retry-message")),
@@ -309,13 +317,18 @@ const cssSuccessPage = styled("div", `
   gap: 12px;
 `);
 
-const cssSparks = styled("div", `
+const cssIconStyle = styled("div",`
   height: 48px;
   width: 48px;
-  background-image: var(--icon-Sparks);
-  display: inline-block;
-  background-repeat: no-repeat;
 `);
+
+const warningIcon = () => icon(
+  "Warning",
+  dom.cls(cssIconStyle.className),
+  // dom.style doesn't support custom variables - set it manually.
+  (elem) => { elem.style.setProperty("--icon-color", `${tokens.warningLight}`); },
+);
+const successIcon = () => colorIcon("Sparks", dom.cls(cssIconStyle.className));
 
 const cssSuccessTitle = styled("div", `
   font-size: 18px;
