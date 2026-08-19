@@ -1,6 +1,10 @@
 import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
+import {
+  ColumnReferenceEntry, fetchColumnReferences, navigateToColumn, pendingReferencesReveal,
+} from "app/client/models/ColumnReferences";
 import { BEHAVIOR, ColumnRec } from "app/client/models/entities/ColumnRec";
+import { reportError } from "app/client/models/errors";
 import { buildHighlightedCode, cssCodeBlock } from "app/client/ui/CodeHighlight";
 import { cssBlockedCursor, cssFieldFormula, cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { withInfoTooltip } from "app/client/ui/tooltips";
@@ -17,8 +21,10 @@ import { sanitizeIdent } from "app/common/gutil";
 import { components, tokens } from "app/common/ThemePrefs";
 import { CursorPos } from "app/plugin/GristAPI";
 
-import { bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
-  Observable, styled } from "grainjs";
+import {
+  bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
+  Observable, styled
+} from "grainjs";
 import * as ko from "knockout";
 
 const t = makeT("FieldConfig");
@@ -408,13 +414,13 @@ export function buildFormulaConfig(
         dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
         testId("field-set-trigger"),
       )),
-    ] : /* type == 'data' */ [
+    ] : /* type == 'data' */[
       menu(behaviorLabel(),
         [
           dom.domComputed(origColumn.hasTriggerFormula, hasTrigger => hasTrigger ?
-          // If we have trigger, we will convert it directly to a formula column
+            // If we have trigger, we will convert it directly to a formula column
             convertTriggerToFormulaOption() :
-          // else we will convert to empty column and open up the editor
+            // else we will convert to empty column and open up the editor
             convertDataColumnToFormulaOption(),
           ),
           clearAndResetOption(),
@@ -444,6 +450,91 @@ export function buildFormulaConfig(
       ]),
     ]),
   ]);
+}
+
+// A collapsible "formula references" that shows which other formulas in the document
+// reference this column. Collapsed by default, and fetches nothing until the user expands
+// it, so merely selecting a column in the grid never triggers a sandbox round-trip.
+export function buildReferencesConfig(owner: MultiHolder, origColumn: ColumnRec, gristDoc: GristDoc) {
+  const expanded = Observable.create(owner, false);
+  const references = Observable.create<ColumnReferenceEntry[] | null>(owner, null);
+  let rootElem: HTMLElement | undefined;
+
+  const refresh = () => {
+    const tableId = origColumn.table.peek().tableId.peek();
+    const colId = origColumn.colId.peek();
+    if (!tableId || !colId) { references.set([]); return; }
+    references.set(null);
+    fetchColumnReferences(gristDoc, tableId, colId)
+      .then((result) => { if (!owner.isDisposed()) { references.set(result); } })
+      .catch(reportError);
+  };
+
+  const expandAndReveal = () => {
+    expanded.set(true);
+    if (references.get() === null) { refresh(); }
+    if (rootElem) {
+      rootElem.scrollIntoView({ block: "center", behavior: "smooth" });
+      flashHighlight(rootElem);
+    }
+  };
+
+  // Collapse and drop stale results when the selected column changes,
+  // doesn't fetch until re-expanded
+  const onColumnMayHaveChanged = () => {
+    const pending = pendingReferencesReveal.get();
+    const tableId = origColumn.table.peek().tableId.peek();
+    const colId = origColumn.colId.peek();
+    if (pending?.tableId === tableId && pending.colId === colId) {
+      pendingReferencesReveal.set(null);
+      expandAndReveal();
+    } else {
+      expanded.set(false);
+      references.set(null);
+    }
+  };
+  owner.autoDispose(origColumn.id.subscribe(onColumnMayHaveChanged));
+  owner.autoDispose(pendingReferencesReveal.addListener(onColumnMayHaveChanged));
+  onColumnMayHaveChanged();
+
+  const toggle = () => {
+    const isExpanding = !expanded.get();
+    expanded.set(isExpanding);
+    if (isExpanding && references.get() === null) {
+      refresh();
+    }
+  };
+
+  return cssReferencesSection(
+    (elem) => { rootElem = elem; },
+    cssReferencesToggle(
+      icon("Dropdown", dom.style("transform", use => use(expanded) ? "" : "rotate(-90deg)")),
+      t("FORMULA REFERENCES"),
+      dom.on("click", toggle),
+      testId("field-references-toggle"),
+    ),
+    dom.maybe(expanded, () => dom.domComputed(references, (entries) => {
+      if (entries === null) {
+        return cssRow(cssReferenceHint(t("Checking references…")));
+      }
+      if (entries.length === 0) {
+        return cssRow(cssReferenceHint(t("Not referenced by any other formulas.")));
+      }
+      return entries.map(entry => cssReferenceRow(
+        dom.on("click", () => navigateToColumn(gristDoc, entry.tableId, entry.colId).catch(reportError)),
+        cssReferenceLabel(`${entry.tableLabel} · ${entry.colLabel}`),
+        testId("field-references-item"),
+      ));
+    })),
+  );
+}
+
+function flashHighlight(elem: HTMLElement) {
+  const flashClass = `${cssReferencesSection.className}-flash`;
+  elem.classList.remove(flashClass);
+  void elem.offsetWidth; // Force a reflow so the animation restarts if triggered again quickly.
+  elem.classList.add(flashClass);
+  setTimeout(() => elem.classList.remove(flashClass), 1400);
 }
 
 interface BuildFormulaOptions {
@@ -527,6 +618,46 @@ const cssColTieConnectors = styled("div", `
 
 const cssEmptySeparator = styled("div", `
   margin-top: 16px;
+`);
+
+const cssReferencesSection = styled("div", `
+  scroll-margin: 60px 0;
+
+  &-flash {
+    animation: cssReferencesFlash 1.4s ease-out;
+  }
+
+  /* Two pulses to grab attention to the section */
+  @keyframes cssReferencesFlash {
+    0%, 100% { background-color: transparent; }
+    10%, 50% { background-color: ${components.buttonGroupSelectedBg}; }
+    30%, 70% { background-color: transparent; }
+  }
+`);
+
+const cssReferencesToggle = styled(cssLabel, `
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+`);
+
+const cssReferenceHint = styled("span", `
+  color: ${theme.lightText};
+`);
+
+const cssReferenceRow = styled(cssRow, `
+  cursor: pointer;
+  color: ${theme.controlFg};
+  &:hover {
+    text-decoration: underline;
+  }
+`);
+
+const cssReferenceLabel = styled("span", `
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `);
 
 const cssInput = styled(textInput, `
