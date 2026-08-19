@@ -155,6 +155,7 @@ export class DocWorker {
       listActiveUserProfiles: method(null, "listActiveUserProfiles"),
       applyProposal: method("owners", "applyProposal"),
       getAssistance: method("viewers", "getAssistance"),
+      sql: method("viewers", "sql"),
     });
   }
 
