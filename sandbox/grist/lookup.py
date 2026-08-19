@@ -382,6 +382,8 @@ class _RelationTracker(object):
     if engine._is_current_node_formula:
       rel = self._get_relation(engine._current_node)
       rel._add_lookup(engine._current_row_id, key)
+      if engine._lookup_is_user_level:
+        rel.user_level = True
     else:
       rel = None
 
@@ -428,6 +430,11 @@ class _LookupRelation(relation.Relation):
     self._relation_tracker = relation_tracker
     self._referring_node = referring_node
 
+    # True once a user-level lookup (UserTable.lookupRecords/lookupOne) uses this relation. Only
+    # such relations un-do their finished referring rows when the looked-up table gains rows mid-
+    # calculation; the engine's own derived/summary reads are left alone.
+    self.user_level = False
+
     # Maps referring rows to keys, where multiple rows may map to the same key AND one row may
     # map to multiple keys (if a formula does multiple lookup calls).
     self._row_key_map = twowaymap.TwoWayMap(left=set, right=set)
@@ -456,6 +463,10 @@ class _LookupRelation(relation.Relation):
     affected_rows = self.get_affected_rows_by_keys(affected_keys - self._invalidated_keys_cache)
     if affected_rows:
       node = self._referring_node
+      # If a user-level referring cell already finished this pass, it read the stale lookup result,
+      # so un-mark it as done to force recomputation against the rows that were just added.
+      if self.user_level:
+        engine.undo_done_rows(node, affected_rows)
       engine.invalidate_records(node.table_id, affected_rows, col_ids=(node.col_id,))
       self._invalidated_keys_cache.update(affected_keys)
 
