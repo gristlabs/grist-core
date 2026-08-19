@@ -2,7 +2,7 @@ import { buildAuthSection } from "app/client/ui/AuthenticationSection";
 import { AuthProvider } from "app/common/ConfigAPI";
 import { MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
 
-import { dom, styled } from "grainjs";
+import { dom, Observable, styled } from "grainjs";
 
 /**
  * Storybook-only preview wrapper. Renders the auth section against fixture
@@ -19,6 +19,7 @@ function buildAuthSectionPreview(providers: AuthProvider[]): HTMLElement {
       },
       listCtx: {},
       loginSystemId: MINIMAL_PROVIDER_KEY,
+      noAuthAcknowledged: Observable.create(null, false),
     }),
   );
 }

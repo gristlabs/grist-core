@@ -338,10 +338,14 @@ describe("QuickSetupAuth", function() {
     it("should redirect through sign-in after applying a session-clearing auth change",
       async function() {
         await navigateToAuthStep();
-        const header = await driver.findWait(".test-admin-auth-provider-list-header", 4000);
-        if (await header.getAttribute("aria-expanded") === "false") {
-          await header.click();
-        }
+        // Re-fetch the header inside the retry: the page can still be re-rendering after
+        // the server restart in the before hook, which makes the first reference stale.
+        await gu.waitToPass(async () => {
+          const header = await driver.findWait(".test-admin-auth-provider-list-header", 4000);
+          if (await header.getAttribute("aria-expanded") === "false") {
+            await header.click();
+          }
+        }, 5000);
         const oidcRow = await driver.findContentWait(
           ".test-admin-auth-provider-row", /OIDC/, 4000);
         await oidcRow.find(".test-admin-auth-set-active-button").click();

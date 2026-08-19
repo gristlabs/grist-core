@@ -6,6 +6,7 @@ import {
   getContactSupportUrl,
   getFreeCoachingCallUrl,
   getHelpCenterUrl,
+  getHelpUsImproveSurveyUrl,
   getOnboardingVideoId,
   getPageTitleSuffix,
   getTermsOfServiceUrl,
@@ -24,6 +25,7 @@ import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import {
   getAnonPlaygroundEnabled, getCanAnyoneCreateOrgs,
+  getEditionSource,
   getOnboardingTutorialDocId, getPersonalOrgsEnabled,
   getTemplateOrg,
   getUserPresenceMaxUsers,
@@ -134,7 +136,8 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
     deploymentType: server?.getDeploymentType(),
-    forceEnableEnterprise: isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE),
+    // Previously forceEnableEnterprise. Now reports when any edition is forced via env variable.
+    editionForced: getEditionSource() === "env",
     oauthAppsEnabled: server?.create.areOAuthAppsEnabled(),
     templateOrg: getTemplateOrg(),
     onboardingTutorialDocId: getOnboardingTutorialDocId(),
@@ -147,6 +150,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     userPresenceMaxUsers: getUserPresenceMaxUsers(),
     warnBeforeSharingPublicly: isAffirmative(process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY),
+    helpUsImproveSurveyUrl: getHelpUsImproveSurveyUrl(),
   };
   return {
     ...config,

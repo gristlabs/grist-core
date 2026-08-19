@@ -5,7 +5,7 @@
 import { arrayToString } from "app/common/arrayToString";
 import * as marshal from "app/common/marshal";
 import { SandboxInfo } from "app/common/SandboxInfo";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { getSandboxFlavor } from "app/server/lib/gristSettings";
 import { ISandbox, ISandboxCreationOptions, ISandboxCreator } from "app/server/lib/ISandbox";
 import log from "app/server/lib/log";
@@ -575,7 +575,7 @@ export class NSandboxCreator implements ISandboxCreator {
   }) {
     const flavor = options.defaultFlavor;
     if (!isFlavor(flavor)) {
-      const variants = create.getSandboxVariants?.();
+      const variants = getCreate().getSandboxVariants?.();
       if (!variants?.[flavor]) {
         throw new Error(`Unrecognized sandbox flavor: ${flavor}`);
       } else {
@@ -694,7 +694,7 @@ function _checkPyodideAvailable(): { available: boolean; reason?: string } {
  * Returns a SandboxInfo with full lifecycle details.
  *
  * @param flavor - The sandbox flavor to test (e.g. "gvisor", "pyodide", "unsandboxed").
- *   If not provided, uses `create.NSandbox()` which provides the deployment-specific
+ *   If not provided, uses `getCreate().NSandbox()` which provides the deployment-specific
  *   default (e.g. grist-desktop may default to pyodide, core defaults to unsandboxed).
  *   That path calls `createSandbox()` internally, which respects GRIST_SANDBOX_FLAVOR.
  */
@@ -710,7 +710,7 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
   let sandbox: ISandbox | undefined;
   try {
     // Step 1: Create a sandbox. If a flavor is given, create that exact flavor.
-    // If no flavor is given, use the deployment's default (through create.NSandbox).
+    // If no flavor is given, use the deployment's default (through getCreate().NSandbox).
     const options: ISandboxCreationOptions = {
       comment: "test",
       logCalls: false,
@@ -719,7 +719,7 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
     };
     sandbox = flavor ?
       createConcreteSandbox(flavor, options) :
-      create.NSandbox(options);
+      getCreate().NSandbox(options);
     // The actual flavor may differ from what we asked for, so update it.
     info.flavor = sandbox.getFlavor();
     info.configured = info.flavor !== "unsandboxed";

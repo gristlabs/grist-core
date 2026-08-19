@@ -5,14 +5,13 @@ import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { appSettings, AppSettings } from "app/server/lib/AppSettings";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { getGetGristComHost, readGetGristComConfigFromSettings } from "app/server/lib/GetGristComConfig";
-import { getGlobalConfig } from "app/server/lib/globalConfig";
-import log from "app/server/lib/log";
 import {
   getActiveLoginSystemType,
   getActiveLoginSystemTypeSource,
   NotConfiguredError,
 } from "app/server/lib/loginSystemHelpers";
 import { LOGIN_SYSTEMS } from "app/server/lib/loginSystems";
+import { OIDCConfig } from "app/server/lib/OIDCConfig";
 import { sendOkReply, stringParam } from "app/server/lib/requestUtils";
 
 import * as express from "express";
@@ -90,37 +89,19 @@ export class ConfigBackendAPI {
     // GET /api/config/auth-providers/config?provider=getgrist.com
     app.get("/api/config/auth-providers/config", requireInstallAdmin, expressWrap(async (req, resp) => {
       stringParam(req.query.provider, "provider", { allowed: [GETGRIST_COM_PROVIDER_KEY] });
+      let config: OIDCConfig | undefined;
+      try {
+        config = readGetGristComConfigFromSettings(appSettings);
+      } catch (e) {
+        // Don't throw if provider not configured - just omit extra config info
+        if (!(e instanceof NotConfiguredError)) {
+          throw e;
+        }
+      }
       return sendOkReply(req, resp, {
         GRIST_GETGRISTCOM_SP_HOST: getGetGristComHost(appSettings),
+        ...(config ? { oidcClientId: config.clientId } : {}),
       });
-    }));
-
-    app.get("/api/config/:key", requireInstallAdmin, expressWrap((req, resp) => {
-      log.debug("config: requesting configuration", req.params);
-
-      // Only one key is valid for now
-      if (req.params.key === "edition") {
-        resp.send({ value: getGlobalConfig().edition.get() });
-      } else {
-        resp.status(404).send({ error: "Configuration key not found." });
-      }
-    }));
-
-    app.patch("/api/config", requireInstallAdmin, expressWrap(async (req, resp) => {
-      const config = req.body.config;
-      log.debug("config: received new configuration item", config);
-
-      // Only one key is valid for now
-      if (config.edition !== undefined) {
-        if (config.edition !== getGlobalConfig().edition.get()) {
-          await this._activations.setKey(null);
-        }
-        await getGlobalConfig().edition.set(config.edition);
-
-        resp.send({ msg: "ok" });
-      } else {
-        resp.status(400).send({ error: "Invalid configuration key" });
-      }
     }));
   }
 

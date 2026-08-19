@@ -5,11 +5,11 @@ import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard";
 import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
-import { AuthenticationSection, confirmNoAuthAcknowledgement } from "app/client/ui/AuthenticationSection";
+import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { peekSetupReturnFromGetGristCom, SetupReturnStep } from "app/client/ui/GetGristComProvider";
-import { PermissionsSetupSection } from "app/client/ui/PermissionsSetupSection";
+import { QuickSetupApplyStep } from "app/client/ui/QuickSetupApplyStep";
 import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SANDBOX_PROBE_ID, SandboxSetupSection } from "app/client/ui/SandboxSection";
@@ -174,7 +174,7 @@ export class QuickSetup extends Disposable {
           () => cssAuthSkipRow(
             textButton(
               t("Set up later"),
-              dom.on("click", () => confirmNoAuthAcknowledgement(() => this._advanceStep())),
+              dom.on("click", () => section.confirmNoAuth(() => this._advanceStep())),
               testId("auth-skip"),
             ),
           ),
@@ -195,8 +195,8 @@ export class QuickSetup extends Disposable {
 
   private _buildApplyStep(): DomContents {
     return dom.create((owner) => {
-      const section = PermissionsSetupSection.create(owner);
-      return section.buildDom();
+      const step = QuickSetupApplyStep.create(owner, this._appModel);
+      return step.buildDom();
     });
   }
 }

@@ -2,7 +2,7 @@ import { Role } from "app/common/roles";
 import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { AttachmentStoreProvider, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
 import { DocManager } from "app/server/lib/DocManager";
 import { makeExceptionalDocSession, makeOptDocSession, OptDocSession } from "app/server/lib/DocSession";
@@ -152,7 +152,7 @@ export async function createDocManager(
   } = {}): Promise<DocManager> {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   const tmpDir = options.tmpDir || await createTmpDir();
-  const docStorageManager = options.storageManager || await create.createLocalDocStorageManager(tmpDir);
+  const docStorageManager = options.storageManager || await getCreate().createLocalDocStorageManager(tmpDir);
   const pluginManager = options.pluginManager || await getGlobalPluginManager();
   const attachmentStoreProvider = options.attachmentStoreProvider ?? new AttachmentStoreProvider([], "TEST_INSTALL");
   const store = getDocWorkerMap();

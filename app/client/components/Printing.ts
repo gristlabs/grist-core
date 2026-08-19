@@ -1,5 +1,6 @@
 import BaseView from "app/client/components/BaseView";
 import { CustomView } from "app/client/components/CustomView";
+import { markOverflowingMarkdownCells } from "app/client/lib/markdownOverflow";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
 import { ViewSectionRec } from "app/client/models/DocModel";
@@ -72,7 +73,8 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
 
     // If .print-all-rows element is present (created for scrolly-based views), use it as the
     // start element for the loop below, to ensure it's rendered flexbox-free.
-    const keyElem = sectionElem.querySelector(".print-all-rows") || sectionElem;
+    const allRowsElem = sectionElem.querySelector<HTMLElement>(".print-all-rows");
+    const keyElem = allRowsElem || sectionElem;
 
     // Go through all parents of the element to be printed. For @media print, we override their
     // layout in a heavy-handed way, forcing them all to be non-flexbox and sized to content,
@@ -81,6 +83,21 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
     while (elem) {
       elem.classList.toggle("print-parent", onOff);
       elem = elem.parentElement;
+    }
+
+    // Mark the Markdown cells that a max row height is cutting off. The rows rendered above for
+    // printing are copies (see renderAllRows), which the ResizeObserver that normally does this
+    // never gets to see. They are hidden while "@media print" isn't in effect, and it isn't yet
+    // at this point, so reveal them for as long as it takes to measure. We are inside the
+    // beforeprint handler, so this is synchronous and nothing gets painted in between.
+    if (onOff && allRowsElem) {
+      const prevDisplay = allRowsElem.style.display;
+      allRowsElem.style.display = "block";
+      try {
+        markOverflowingMarkdownCells(allRowsElem);
+      } finally {
+        allRowsElem.style.display = prevDisplay;
+      }
     }
   }
 

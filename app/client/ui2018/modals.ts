@@ -1,5 +1,6 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
+import { enableTabTrap, lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
 import { cssInput } from "app/client/ui/cssInput";
@@ -12,9 +13,10 @@ import { cssMenuElem } from "app/client/ui2018/menus";
 import { waitGrainObs } from "app/common/gutil";
 import { MaybePromise } from "app/plugin/gutil";
 
-import { Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
+import { Computed, Disposable, dom, DomContents, DomElementArg, IDomArgs, input, keyframes,
   MultiHolder, Observable, styled } from "grainjs";
 import { IOpenController, IPopupOptions, PopupControl, popupOpen } from "popweasel";
+import { uniqueId } from "underscore";
 
 const t = makeT("modals");
 
@@ -238,6 +240,7 @@ export function modal(
 
   let close = doClose;
   let dialogDom: HTMLElement;
+  let focusLayer!: FocusLayer;
 
   const modalDom = cssModalBacker(
     dom.create((owner) => {
@@ -255,8 +258,9 @@ export function modal(
         dom.on("click", ev => ev.stopPropagation()),
         noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
         testId("modal-dialog"),
+        { "role": "dialog", "aria-modal": "true" },
       );
-      FocusLayer.create(owner, {
+      focusLayer = FocusLayer.create(owner, {
         defaultFocusElem: dialogDom,
         allowFocus: elem => (elem !== document.body),
         // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
@@ -270,7 +274,12 @@ export function modal(
   );
 
   document.body.appendChild(modalDom);
+  enableTabTrap(modalDom);
   if (variant === "collapsing") { expandModal(); }
+
+  // Focus now that the dialog is attached, so that it never appears without the focus. The
+  // FocusLayer on its own would only get to it after the current task.
+  focusLayer.focusDefaultElem();
 }
 
 export interface ISaveModalOptions {
@@ -506,8 +515,11 @@ export function invokePrompt(
  */
 export async function spinnerModal<T>(
   title: string,
-  promise: Promise<T>): Promise<T> {
-  modal((ctl, owner) => {
+  promise: Promise<T>,
+  options: {
+    body?: DomElementArg,
+  } = {}): Promise<T> {
+  modal((ctl) => {
     // `finally` is missing from es2016, below is a work-around.
     const close = () => ctl.close();
     promise.then(close, close);
@@ -519,6 +531,7 @@ export async function spinnerModal<T>(
         testId("modal-spinner-title"),
       ),
       cssSpinner(loadingSpinner()),
+      options.body ? cssModalBody(options.body) : null,
       testId("modal-spinner"),
     ];
   }, {
@@ -553,7 +566,9 @@ export function modalTooltip(
 ): PopupControl {
   return popupOpen(reference, (ctl: IOpenController) => {
     const element = cssModalTooltip(
+      lockFocusUntilRemoved(ctl),
       domCreator(ctl),
+      { "role": "dialog", "aria-modal": "true" },
     );
     return element;
   }, options);
@@ -626,7 +641,20 @@ export const cssModalDialog = styled("div", `
   }
 `);
 
-export const cssModalTitle = styled("div", `
+const autoLabelledModalTitle = (...args: IDomArgs<HTMLDivElement>) => dom(
+  "div",
+  { id: uniqueId("modal-title-") },
+  (el) => {
+    // Elements are build bottom-up, so our ancestors (incl. the role=dialog container) aren't attached yet at
+    // construction time. Wait for the next tick when the parent should exist.
+    setTimeout(() => {
+      el.closest('[role="dialog"]')?.setAttribute("aria-labelledby", el.id);
+    }, 0);
+  },
+  ...args,
+);
+
+export const cssModalTitle = styled(autoLabelledModalTitle, `
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
   color: ${theme.text};

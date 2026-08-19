@@ -1,36 +1,3 @@
-import _ from "underscore";
-
-/**
- * Given a widget name and a type, return the name of the widget that would
- * actually be used for that type (hopefully the same, unless falling back
- * on a default if widget name is unlisted), and all default configuration
- * information for that widget/type combination.
- * Returns something of form:
- * {
- *   name:"WidgetName",
- *   config: {
- *     cons: "NameOfWidgetClass",
- *     editCons: "NameOfEditorClass",
- *     options: { ... default options for widget ... }
- *   }
- * }
- */
-export function getWidgetConfiguration(widgetName: string, type: string) {
-  const oneTypeDef = typeDefs[type] || typeDefs.Text;
-  if (!(widgetName in oneTypeDef.widgets)) {
-    widgetName = oneTypeDef.default;
-  }
-  return {
-    name: widgetName,
-    config: oneTypeDef.widgets[widgetName],
-  };
-}
-
-export function mergeOptions(options: any, type: string) {
-  const { name, config } = getWidgetConfiguration(options.widget, type);
-  return _.defaults({ widget: name }, options, config.options);
-}
-
 // Contains the list of types with their storage types, possible widgets, default widgets,
 // and defaults for all widget settings
 // The names of widgets are used, instead of the actual classes needed, in order to limit

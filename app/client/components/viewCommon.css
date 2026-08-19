@@ -149,6 +149,46 @@
  */
 .row_height_set .field_clip.markdown {
   display: block;
+  position: relative;
+}
+
+/**
+ * The "overflowing" class, set in markdownOverflow.ts, marks a Markdown cell
+ * that a max row height is cutting off.
+ *
+ * The fade is what makes the ellipsis legible: it can't be given the cell's
+ * background, which may be a conditional style, a diff color, or nothing at
+ * all, so instead it dims whatever text it lands on. Drawing it in the cell's
+ * own text color keeps it working over any of those backgrounds. It is a
+ * ::before so that the ellipsis, being a ::after, paints on top of it.
+ *
+ * The mask is anchored in px, not a percentage, so that the cue keeps the same
+ * size next to the ellipsis instead of stretching with the column.
+ */
+.row_height_set .field_clip.markdown.overflowing::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 8px;
+  background: linear-gradient(to top, var(--grist-actual-cell-color, currentColor), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent calc(100% - 40px), rgb(0, 0, 0) 100%);
+  mask-image: linear-gradient(to right, transparent calc(100% - 40px), rgb(0, 0, 0) 100%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.row_height_set .field_clip.markdown.overflowing::after {
+  content: '…';
+  position: absolute;
+  right: 3px;
+  bottom: 0;
+  /* Matches .field_clip's line-height, so it lands on a normal line's baseline. */
+  line-height: 18px;
+  color: var(--grist-actual-cell-color, currentColor);
+  pointer-events: none;
+  /* Safari needs the prefix here, or the ellipsis ends up in copied text. */
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .row_height_uniform .field_clip {

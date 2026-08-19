@@ -16,6 +16,8 @@ export interface ITestingHooks {
   commSetClientPersistence(ttlMs: number): Promise<number>;
   commSetClientJsonMemoryLimits(limits: ClientJsonMemoryLimits): Promise<ClientJsonMemoryLimits>;
   closeDocs(): Promise<void>;
+  setDocOpenPaused(paused: boolean): Promise<void>;
+  getDocOpenCount(): Promise<number>;
   setDocWorkerActivation(workerId: string, active: "active" | "inactive" | "crash"): Promise<void>;
   flushAuthorizerCache(): Promise<void>;
   flushDocs(): Promise<void>;

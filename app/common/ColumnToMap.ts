@@ -1,4 +1,3 @@
-import * as UserType from "app/client/widgets/UserType";
 import { ColumnToMap } from "app/plugin/CustomSectionAPI";
 
 /**
@@ -18,8 +17,6 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
   public type: string;
   // If true, the column type is strict and cannot be any type.
   public strictType: boolean;
-  // Description of the type (used to show a placeholder).
-  public typeDesc: string;
   // Allow multiple column assignment (like Series in Charts).
   public allowMultiple: boolean;
   constructor(def: string | ColumnToMap) {
@@ -29,8 +26,6 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
     this.optional = typeof def === "string" ? false : (def.optional ?? false);
     this.type = typeof def === "string" ? "Any" : (def.type ?? "Any");
     this.type = this.type.split(",").map(t => t.trim()).filter(Boolean).join(",");
-    this.typeDesc = this.type.split(",")
-      .map(t => String(UserType.typeDefs[t]?.label ?? "any").toLowerCase()).join(", ");
     this.allowMultiple = typeof def === "string" ? false : (def.allowMultiple ?? false);
     this.strictType = typeof def === "string" ? false : (def.strictType ?? false);
   }

@@ -40,9 +40,8 @@ import { BootKeyLoginMiddleware } from "app/server/lib/Boot";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm, verifyCommHttpRequest } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
-import { IGristCoreConfig } from "app/server/lib/configCore";
 import { getAndClearSignupStateCookie } from "app/server/lib/cookieUtils";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { createSavedDoc } from "app/server/lib/createSavedDoc";
 import { addDiscourseConnectEndpoints } from "app/server/lib/DiscourseConnect";
 import { addDocApiRoutes } from "app/server/lib/DocApi";
@@ -139,15 +138,12 @@ export interface FlexServerOptions {
   // Base URL for plugins, if permitted. Defaults to APP_UNTRUSTED_URL.
   pluginUrl?: string;
 
-  // Global grist config options
-  settings?: IGristCoreConfig;
-
   // An existing http.Server to use instead of creating a new one.
   server?: http.Server;
 }
 
 export class FlexServer implements GristServer {
-  public readonly create = create;
+  public readonly create = getCreate();
   public tagChecker: TagChecker;
   public app: express.Express;
   public deps = new Set<string>();
@@ -159,12 +155,12 @@ export class FlexServer implements GristServer {
   public housekeeper: Housekeeper;
   public server: http.Server;
   public httpsServer?: https.Server;
-  public settings?: IGristCoreConfig;
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
   public readonly i18Instance: i18n;
   private _activations: ActivationsManager;
+  private _installationId: string;
   private _comm: Comm;
   private _apiProxy?: DocApiProxy;
   private _socketProxy?: IWebSocketProxy;
@@ -236,8 +232,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
-    this._getLoginSystem = create.getLoginSystem.bind(create);
-    this.settings = options.settings;
+    this._getLoginSystem = this.create.getLoginSystem.bind(this.create);
     this.app = express();
     this.app.set("port", port);
 
@@ -449,6 +444,11 @@ export class FlexServer implements GristServer {
     return this._activations;
   }
 
+  public getInstallationId(): string {
+    if (!this._installationId) { throw new Error("no installation id available"); }
+    return this._installationId;
+  }
+
   public getHomeDBManager(): HomeDBManager {
     if (!this._dbManager) { throw new Error("no home db available"); }
     return this._dbManager;
@@ -475,6 +475,14 @@ export class FlexServer implements GristServer {
 
   public getDocWorkerMap(): IDocWorkerMap | null {
     return this._docWorkerMap ?? null;
+  }
+
+  public getWorkerId(): string | null {
+    return this.worker?.id ?? null;
+  }
+
+  public getDocApiUsageTracker(): DocApiUsageTracker | undefined {
+    return this._docApiUsageTracker;
   }
 
   public getTelemetry(): ITelemetry {
@@ -865,10 +873,10 @@ export class FlexServer implements GristServer {
     this.app.use(/^\/help\//, expressWrap(async (req, res) => {
       res.redirect("https://support.getgrist.com");
     }));
-    // If there is a directory called "static_ext", serve material from there
-    // as well. This isn't used in grist-core but is handy for extensions such
-    // as an Electron app.
-    const staticExtDir = getAppPathTo(this.appRoot, "static") + "_ext";
+    // If there is a static ext directory, serve material from there as well.
+    // This is used to run Grist with full edition extensions downloaded at
+    // runtime, and is also handy for extensions such as an Electron app.
+    const staticExtDir = process.env.GRIST_STATIC_EXT_DIR || getAppPathTo(this.appRoot, "static") + "_ext";
     const staticExtApp = fse.existsSync(staticExtDir) ?
       express.static(staticExtDir, serveAnyOrigin) : null;
     const staticApp = express.static(getAppPathTo(this.appRoot, "static"), serveAnyOrigin);
@@ -973,6 +981,7 @@ export class FlexServer implements GristServer {
     // Report which database we are using, without sensitive credentials.
     this.info.push(["database", getDatabaseUrl(this._dbManager.connection.options, false)]);
     this._activations = new ActivationsManager(this._dbManager);
+    this._installationId = (await this._activations.current()).id;
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }
 
@@ -1438,7 +1447,9 @@ export class FlexServer implements GristServer {
   public addProxy() {
     if (this._check("proxy", "!json", "homedb", "api-mw", "map")) { return; }
 
-    const getOwnWorkerId = () => this.worker?.id ?? null;
+    // WebSocketProxy has no gristServer handle, so it takes this closure; DocApiProxy
+    // asks gristServer.getWorkerId() directly.
+    const getOwnWorkerId = () => this.getWorkerId();
 
     this._socketProxy = this.create.getWebSocketProxy?.(
       this,
@@ -1462,7 +1473,7 @@ export class FlexServer implements GristServer {
       this._socketProxy?.isActive() ? true : hasHomeApi() && !hasDocApi();
 
     this._apiProxy = new DocApiProxy(
-      this._docWorkerMap, this._dbManager, this, getOwnWorkerId, { shouldForward },
+      this._docWorkerMap, this._dbManager, this, { shouldForward },
     );
 
     this._apiProxy.addEndpoints(this.app);
@@ -1656,7 +1667,7 @@ export class FlexServer implements GristServer {
 
     this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
       await getConfiguredAttachmentStoreConfigs(this._disableExternalStorage),
-      (await this.getActivations().current()).id,
+      this.getInstallationId(),
     );
     this._docManager = this._docManager || new DocManager(this._storageManager,
       pluginManager,
@@ -1730,7 +1741,7 @@ export class FlexServer implements GristServer {
         lastSuccessfulStep: "none",
       } as SandboxInfo;
     }
-    // No flavor argument — uses the deployment's default via create.NSandbox().
+    // No flavor argument — uses the deployment's default via getCreate().NSandbox().
     return this._sandboxInfo = await testSandboxFlavor();
   }
 
@@ -2241,11 +2252,6 @@ export class FlexServer implements GristServer {
   public addExtraHomeEndpoints() {
     if (this._check("extraHome")) { return; }
     this.create.addExtraHomeEndpoints(this, this.app);
-  }
-
-  public addExtraDocForwarder() {
-    if (this._check("extraDocForwarder")) { return; }
-    this.create.addExtraDocForwarder(this, this.app);
   }
 
   public getLatestVersionAvailable() {
@@ -3103,7 +3109,6 @@ type Part =
   "loginMiddleware" |
   "map" |
   "extraDoc" |
-  "extraDocForwarder" |
   "extraHome" |
   "middleware" |
   "notifier" |

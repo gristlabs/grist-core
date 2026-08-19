@@ -23,8 +23,11 @@
  * values.
  */
 
+import { COMMUNITY_EDITION, FULL_EDITION, GristEdition } from "app/common/gristUrls";
+import { isAffirmative } from "app/common/gutil";
 import { StringUnion } from "app/common/StringUnion";
 import { AppSettings, appSettings, AppSettingSource } from "app/server/lib/AppSettings";
+import log from "app/server/lib/log";
 
 import { MemoizedFunction } from "lodash";
 import memoize from "lodash/memoize";
@@ -51,6 +54,7 @@ export const RestartRequiredSettingEnvVar = StringUnion(
   "GRIST_ORG_CREATION_ANYONE",
   "GRIST_PERSONAL_ORGS",
   "GRIST_SANDBOX_FLAVOR",
+  "GRIST_SERVER_EDITION",
 );
 export type RestartRequiredSettingEnvVar = typeof RestartRequiredSettingEnvVar.values;
 
@@ -254,6 +258,64 @@ export const getUserPresenceMaxUsers = memoize(() =>
   }),
 );
 
+/** The edition an installation runs when one isn't explicitly set. */
+const DEFAULT_EDITION = COMMUNITY_EDITION;
+
+/**
+ * Returns the edition this server runs resolved in the order below:
+ *
+ *   1. `GRIST_FORCE_ENABLE_ENTERPRISE` (when affirmative)
+ *   2. `GRIST_SERVER_EDITION` (env or db)
+ *   3. {@link DEFAULT_EDITION}
+ *
+ * `GRIST_FORCE_ENABLE_ENTERPRISE` is used by the grist-ee image (which sets it in its
+ * Dockerfile). It only ever forces the full edition on when set to an affirmative value
+ * (e.g. 1, true); when set to anything else, its value is ignored and resolution falls
+ * through to `GRIST_SERVER_EDITION`.
+ *
+ * NOTE: This value is memoized for the life of the server process, so it always reflects
+ * the edition the process is actually running. Changing the value in the database (e.g.
+ * via `PATCH /install/prefs`) does not affect the running process; it only takes effect on
+ * the next start, when the new process re-reads it. This includes restarts triggered by
+ * RestartShell, and calls to maybeManageFullEdition in app/server/lib/bootstrapFullEdition.ts.
+ */
+export const getEdition = memoize((): GristEdition => {
+  if (isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE)) { return FULL_EDITION; }
+
+  const edition = appSettings.flag("edition").readString({
+    envVar: "GRIST_SERVER_EDITION",
+  });
+  if (edition !== undefined) {
+    if (GristEdition.guard(edition)) { return edition; }
+
+    // Don't throw: this is read while rendering pages and while creating the server, and an
+    // unusable value shouldn't take the server down.
+    log.warn("gristSettings: ignoring invalid GRIST_SERVER_EDITION value %j", edition);
+  }
+
+  return DEFAULT_EDITION;
+});
+
+/** Returns whether this server runs the full edition of Grist. */
+export function isFullEdition(): boolean {
+  return getEdition() === FULL_EDITION;
+}
+
+/**
+ * Returns the source of the edition this server runs ("env" or "db") resolved in the order below:
+ *
+ *   1. "env" when `GRIST_FORCE_ENABLE_ENTERPRISE` is affirmative
+ *   2. "env" or "db" if `GRIST_SERVER_EDITION` is set to a valid value
+ *   3. `undefined` (e.g. for {@link DEFAULT_EDITION})
+ */
+export const getEditionSource = memoize((): AppSettingSource | undefined => {
+  if (isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE)) { return "env"; }
+
+  getEdition(); // ensure the flag is read/initialized
+  const { value, source } = appSettings.flag("edition").describe();
+  return typeof value === "string" && GristEdition.guard(value) ? source : undefined;
+});
+
 /**
  * Reloadable settings: settings whose underlying values update dynamically for the life of the
  * server process.
@@ -330,6 +392,7 @@ const settingsByEnvVar: Record<SettingKey, MemoizedFunction> = {
   GRIST_ADMIN_EMAIL: getAdminEmail,
   GRIST_BOOT_KEY: getBootKey,
   GRIST_IN_SERVICE: getInService,
+  GRIST_SERVER_EDITION: getEdition,
 };
 
 /**

@@ -1,10 +1,5 @@
 /**
- * Most of the code is authored by Kitty Giraudel for a11y-dialog https://github.com/KittyGiraudel/a11y-dialog, thanks to her!
- *
- * As keyboard-handling is very specific in Grist, we'd rather copy/paste some base code that can be easily modified,
- * rather than relying on a library.
- *
- * The MIT License (MIT)
+ * This file started as a copy of code authored by Kitty Giraudel for a11y-dialog https://github.com/KittyGiraudel/a11y-dialog, thanks to her!
  *
  * Copyright (c) 2025 Kitty Giraudel
  *
@@ -22,6 +17,60 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
+import { FocusLayer } from "app/client/lib/FocusLayer";
+
+import { Disposable, dom, DomMethod } from "grainjs";
+
+/**
+ * Trap the tab key inside the given element.
+ *
+ * That makes pressing tab and shift+tab loop exclusively through focusable elements that are *in* the element.
+ *
+ * The lock is pretty permissive, only acting when using the Tab key inside the element.
+ * If focus is moved outside the element (e.g. programmatically, or by clicking outside of it), the lock doesn't do
+ * anything until focus is moved back inside the element.
+ *
+ * This means you don't need to think about locks that could collapse between different containers, like two modals
+ * on top of each other.
+ */
+export const enableTabTrap = (element: HTMLElement) => {
+  return dom.onElem(element, "keydown", (event, elem) => {
+    if (event.key === "Tab") {
+      trapTabKey(elem, event);
+    }
+  });
+};
+
+/**
+ * Lock keyboard focus inside a given element until it is removed from the DOM.
+ *
+ * The lock is done through trapping Tab key (see `enableTabTrap`), and pausing Mousetrap
+ * (so that the commands bound on Tab are not triggered when tabbing inside the element).
+ *
+ * This is a useful default to use for popups, modal tooltips and things like that.
+ */
+export function lockFocusUntilRemoved(
+  owner: Disposable,
+  options: {
+    pauseMousetrap?: boolean;
+  } = {},
+): DomMethod<HTMLElement> {
+  const { pauseMousetrap = true } = options;
+
+  return (elem: HTMLElement) => {
+    elem.classList.add(kbFocusHighlighterClass);
+    if (!elem.hasAttribute("tabindex")) {
+      elem.setAttribute("tabindex", "-1");
+    }
+    enableTabTrap(elem);
+    FocusLayer.create(owner, {
+      defaultFocusElem: elem,
+      pauseMousetrap,
+    });
+  };
+}
 
 /**
  * Trap the tab key within the given element.

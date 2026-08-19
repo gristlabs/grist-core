@@ -1,10 +1,11 @@
-import { ApiError } from "app/common/ApiError";
+import { ApiError, ApiErrorDetails } from "app/common/ApiError";
 import {
   ConfigKey,
   ConfigKeyChecker,
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
+import { GristEdition } from "app/common/gristUrls";
 import { InstallPrefs } from "app/common/Install";
 import { PermissionsStatus, PrefSource } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
@@ -126,6 +127,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         return res.status(409).send({
           error:
             "Cannot automatically restart the Grist server to enact changes. Please restart server manually.",
+          details: { code: "RestartUnavailable" } satisfies ApiErrorDetails,
         });
       }
       // We're going down, so we're no longer ready to serve requests.
@@ -182,9 +184,16 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     json({ limit: "1mb" }),
     expressWrap(async (req, res) => {
       const prefs = req.body;
-      await gristServer.getActivations().updatePrefs(prefs);
-
       const { telemetry, envVars } = prefs as InstallPrefs;
+
+      if (envVars && typeof envVars === "object" && "GRIST_SERVER_EDITION" in envVars) {
+        const edition = envVars.GRIST_SERVER_EDITION;
+        if (!GristEdition.guard(edition)) {
+          throw new ApiError(`Invalid GRIST_SERVER_EDITION value: ${edition}`, 400);
+        }
+      }
+
+      await gristServer.getActivations().updatePrefs(prefs);
 
       if (telemetry) {
         // Make sure the Telemetry singleton picks up the changes to telemetry preferences.

@@ -787,7 +787,9 @@
         "Renew": "Renew",
         "Report a problem": "Report a problem",
         "Upgrade Plan": "Upgrade Plan",
-        "Manage billing": "Manage billing"
+        "Manage billing": "Manage billing",
+        "How you could gain access": "How you could gain access",
+        "What's blocking you": "What's blocking you"
     },
     "OnBoardingPopups": {
         "Finish": "Finish",
@@ -1968,7 +1970,12 @@
         "Dismissing...": "Dismissing...",
         "How user actions can reach the outside world": "How user actions can reach the outside world",
         "Outgoing requests": "Outgoing requests",
-        "full Edition": "full Edition"
+        "full Edition": "full Edition",
+        "Apply changes": "Apply changes",
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.",
+        "Switch to Community edition?": "Switch to Community edition?",
+        "Switch to full Grist?": "Switch to full Grist?",
+        "This will also apply your other pending changes:": "This will also apply your other pending changes:"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -3111,7 +3118,25 @@
         "Switch to Full Grist": "Switch to Full Grist",
         "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.",
         "You are running the Grist Community edition.": "You are running the Grist Community edition.",
-        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}."
+        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.",
+        "Community Grist": "Community Grist",
+        "Continue with Community edition": "Continue with Community edition",
+        "Continue with full edition": "Continue with full edition",
+        "Downgrade to Community edition": "Downgrade to Community edition",
+        "Downgrading to the Community edition restarts the server, which may be briefly unavailable.": "Downgrading to the Community edition restarts the server, which may be briefly unavailable.",
+        "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.",
+        "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.",
+        "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.": "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.",
+        "Switch to Community edition": "Switch to Community edition",
+        "Switch to full Grist": "Switch to full Grist",
+        "Switching Grist edition...": "Switching Grist edition...",
+        "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.": "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.",
+        "Switching to full Grist restarts the server, which may be briefly unavailable.": "Switching to full Grist restarts the server, which may be briefly unavailable.",
+        "Upgrade to full Grist": "Upgrade to full Grist",
+        "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.",
+        "Your server will restart automatically once finished.": "Your server will restart automatically once finished.",
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.",
+        "The Community edition is set via environment variable.": "The Community edition is set via environment variable."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Apply and Continue",
@@ -3265,5 +3290,70 @@
         "Connect email delivery": "Connect email delivery",
         "Invite emails": "Invite emails",
         "Use a plan with automations": "Use a plan with automations"
+    },
+    "VersionFooter": {
+        "Compare editions": "Compare editions",
+        "Grist Community edition": "Grist Community edition",
+        "No official support": "No official support",
+        "Not the full edition": "Not the full edition",
+        "Only community support": "Only community support",
+        "Release notes": "Release notes",
+        "Version {{- version}}": "Version {{- version}}"
+    },
+    "RowNumbersMenu": {
+        "Hidden": "Hidden",
+        "Numbers": "Numbers",
+        "Row IDs": "Row IDs",
+        "Row numbers": "Row numbers"
+    },
+    "HelpUsImproveSection": {
+        "A business or organization": "A business or organization",
+        "A couple of quick questions — optional, and only our team sees this.": "A couple of quick questions — optional, and only our team sees this.",
+        "AI response": "AI response",
+        "Conference": {
+            "event": "Conference/event"
+        },
+        "Developer": {
+            "IT": "Developer/IT"
+        },
+        "Education": {
+            "Research Institute": "Education/Research Institute"
+        },
+        "Email is required when subscribing to updates.": "Email is required when subscribing to updates.",
+        "Email:": "Email:",
+        "Friend": {
+            "colleague": "Friend/colleague"
+        },
+        "GitHub": "GitHub",
+        "Help us improve Grist": "Help us improve Grist",
+        "How did you hear about Grist?": "How did you hear about Grist?",
+        "Individual or hobbyist": "Individual or hobbyist",
+        "Nonprofit": "Nonprofit",
+        "Occasional email about new releases and important security notices.": "Occasional email about new releases and important security notices.",
+        "Other": "Other",
+        "Please enter a valid email address.": "Please enter a valid email address.",
+        "Reddit": {
+            "forum": "Reddit/forum"
+        },
+        "Search engine": "Search engine",
+        "Select…": "Select…",
+        "Send me product and security updates": "Send me product and security updates",
+        "Social media": "Social media",
+        "What best describes you?": "What best describes you?"
+    },
+    "QuickSetupApplyStep": {
+        "Apply and go live!": "Apply and go live!",
+        "Applying settings and restarting…": "Applying settings and restarting…",
+        "Back to installation": "Back to installation",
+        "Grist is live!": "Grist is live!",
+        "Our servers may be experiencing issues. Please try again later.": "Our servers may be experiencing issues. Please try again later.",
+        "Please try again.": "Please try again.",
+        "Retry submission": "Retry submission",
+        "Setup completion": "Setup completion",
+        "We couldn't save your details or subscribe you to updates.": "We couldn't save your details or subscribe you to updates.",
+        "We couldn't submit your details or your request to be kept up to date. Please try again.": "We couldn't submit your details or your request to be kept up to date. Please try again.",
+        "We saved your details, but couldn't subscribe you to updates.": "We saved your details, but couldn't subscribe you to updates.",
+        "We subscribed you for product updates, but couldn't save your other details.": "We subscribed you for product updates, but couldn't save your other details.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
     }
 }

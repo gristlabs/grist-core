@@ -359,7 +359,10 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
         menuItemLink(
           onClick,
           hooks.maybeModifyLinkAttrs({
-            href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
+            // View-as-aware so a whole-doc export respects ACLs, like the CSV/TSV/DSV links above.
+            href: pageModel.appModel.api
+              .getDocAPI(doc.id, { propagateViewAs: true })
+              .getDownloadXlsxUrl(),
             target: "_blank", download: "",
           }), t("Microsoft Excel (.xlsx)"), testId("tb-share-option")),
       ],

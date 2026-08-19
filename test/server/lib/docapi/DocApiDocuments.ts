@@ -424,6 +424,25 @@ function addDocumentsTests(getCtx: () => TestContext) {
     }
   });
 
+  it("GET /docs/{did1}/compare/{did2} enforces access to the second doc", async function() {
+    // Comparison forwards a request to the second doc's own worker, which is
+    // where its access is now checked. A user who can read the first doc but not
+    // the second must still be refused.
+    const { serverUrl, docs, flushAuth } = getCtx();
+    const userApiServerUrl = docs.proxiedServer ? serverUrl : undefined;
+    const chimpyApi = makeUserApi(ORG_NAME, "chimpy", { baseUrl: userApiServerUrl });
+    const ws1 = (await chimpyApi.getOrgWorkspaces("current"))[0].id;
+    const docId1 = await chimpyApi.newDoc({ name: "cmpAcl1" }, ws1);
+    const docId2 = await chimpyApi.newDoc({ name: "cmpAcl2" }, ws1);
+    await chimpyApi.updateDocPermissions(docId1, { users: { "kiwi@getgrist.com": "viewers" } });
+    await flushAuth();
+
+    const kiwiApi = makeUserApi(ORG_NAME, "kiwi", { baseUrl: userApiServerUrl });
+    await assert.isRejected(
+      kiwiApi.getDocAPI(docId1).compareDoc(docId2),
+      /403|forbidden|access|denied|not found/i);
+  });
+
   it("GET /docs/{did}/compare tracks changes within a doc", async function() {
     const { userApi } = getCtx();
     // Create a test document.

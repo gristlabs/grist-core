@@ -1,3 +1,5 @@
+import { type ColumnsToMap } from "app/plugin/CustomSectionAPI";
+
 import sortBy from "lodash/sortBy";
 
 /**
@@ -23,6 +25,10 @@ export interface ICustomWidget {
    * Optional desired access level.
    */
   accessLevel?: AccessLevel;
+  /**
+   * Columns to map, which the widget can override in `grist.ready()`.
+   */
+  columns?: ColumnsToMap;
   /**
    * If set, Grist will render the widget after `grist.ready()`.
    *

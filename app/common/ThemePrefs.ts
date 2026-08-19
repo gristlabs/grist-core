@@ -71,6 +71,9 @@ export const tokensCssMapping = {
   bgSecondary: "bg-secondary",
   bgTertiary: "bg-tertiary",
   bgEmphasis: "bg-emphasis",
+  bgWarningSubtle: "bg-warning-subtle",
+
+  borderWarningSubtle: "border-warning-subtle",
 
   decoration: "decoration",
   decorationSecondary: "decoration-secondary",
@@ -763,6 +766,10 @@ export interface SpecificThemeTokens {
    * pronounced bg color, mostly used on selected items
    */
   bgEmphasis: Token;
+
+  bgWarningSubtle: Token;
+
+  borderWarningSubtle: Token;
 
   /**
    * main decoration color, mostly used on borders

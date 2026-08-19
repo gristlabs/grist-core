@@ -23,6 +23,39 @@ if [[ -e ext/buildtools/webpack.config.js ]]; then
   WEBPACK_CONFIG=ext/buildtools/webpack.config.js
 fi
 
+# Records the build's version, channel, and git commit in app/common/version.ts, overriding the
+# stub in stubs/. channel is "release" only for a clean checkout of a release tag (or when
+# GRIST_BUILD_CHANNEL is set, e.g. in Docker, where no .git is present). This is currently used
+# to gate the "Switch to full edition" button on release builds of Grist.
+build_version_file() {
+  local out=app/common/version.ts
+  local tmp="${out}.tmp"
+  local version commit channel
+  version=$(node -p "require('./package.json').version")
+  commit="${GRIST_BUILD_COMMIT:-}"
+  channel="${GRIST_BUILD_CHANNEL:-}"
+  if git rev-parse --git-dir >/dev/null 2>&1; then
+    local dirty=""
+    git diff --quiet HEAD 2>/dev/null || dirty="M"
+    : "${commit:=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)${dirty}}"
+    if [[ -z "$channel" ]]; then
+      local tag
+      tag=$(git describe --tags --exact-match HEAD 2>/dev/null || true)
+      if [[ -z "$dirty" && "$tag" == "v$version" ]]; then channel="release"; else channel="core"; fi
+    fi
+  fi
+  : "${commit:=unknown}"
+  : "${channel:=core}"
+  mkdir -p app/common
+  cat > "$tmp" <<EOF
+export const version = "$version";
+export const channel = "$channel";
+export const gitcommit = "$commit";
+EOF
+  if cmp --silent "$tmp" "$out" 2>/dev/null; then rm "$tmp"; else mv "$tmp" "$out"; fi
+}
+
+build_version_file
 set -x
 node buildtools/sanitize_translations.js
 tsc --build $PROJECT

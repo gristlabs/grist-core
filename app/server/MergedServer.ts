@@ -6,7 +6,6 @@
  */
 
 import { FlexServer, FlexServerOptions } from "app/server/lib/FlexServer";
-import { getGlobalConfig } from "app/server/lib/globalConfig";
 import { getHomeUrl } from "app/server/lib/gristSettings";
 import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
 import log from "app/server/lib/log";
@@ -70,7 +69,6 @@ interface ServerOptions extends FlexServerOptions {
 
 export class MergedServer {
   public static async create(port: number, serverTypes: ServerType[], options: ServerOptions = {}) {
-    options.settings ??= getGlobalConfig();
     const ms = new MergedServer(port, serverTypes, options);
     // We need to know early on whether we will be serving plugins or not.
     if (ms.hasComponent("home")) {
@@ -190,9 +188,6 @@ export class MergedServer {
         this.flexServer.addGoogleAuthEndpoint();
         this.flexServer.addConfigEndpoints();
         this.flexServer.addExtraHomeEndpoints();
-        if (!this.hasComponent("docs")) {
-          this.flexServer.addExtraDocForwarder();
-        }
       }
 
       if (this.hasComponent("docs")) {

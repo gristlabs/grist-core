@@ -17,9 +17,11 @@ import {
   getRowIds,
   getRowIdsFromDocAction,
   isBulkAction,
+  isBulkUpdateRecord,
   isDataAction,
   isSomeAddRecordAction,
   isSomeRemoveRecordAction,
+  isUpdateRecord,
 } from "app/common/DocActions";
 import { CellValue, ColValues, DocAction, getTableId, isSchemaAction } from "app/common/DocActions";
 import { getColIdsFromDocAction, TableDataAction, UserAction } from "app/common/DocActions";
@@ -50,7 +52,7 @@ import { DocClients } from "app/server/lib/DocClients";
 import { OptDocSession } from "app/server/lib/DocSession";
 import { DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY } from "app/server/lib/DocStorage";
 import log from "app/server/lib/log";
-import { IPermissionInfo, MixedPermissionSetWithContext,
+import { IPermissionInfo, mergeMemoSets, MixedPermissionSetWithContext,
   PermissionInfo, PermissionSetWithContext } from "app/server/lib/PermissionInfo";
 import { TablePermissionSetWithContext } from "app/server/lib/PermissionInfo";
 import { integerParam } from "app/server/lib/requestUtils";
@@ -80,8 +82,23 @@ function isAclTable(tableId: string): boolean {
 
 const ADD_OR_UPDATE_RECORD_ACTIONS = ["AddOrUpdateRecord", "BulkAddOrUpdateRecord"];
 
+// Actions whose update can be denied per-column, and whose written columns sit at index 3.
+const COLUMN_GRANULAR_UPDATE_ACTIONS = [
+  "UpdateRecord", "BulkUpdateRecord", "AddOrUpdateRecord", "BulkAddOrUpdateRecord",
+];
+
 function isAddOrUpdateRecordAction([actionName]: UserAction): boolean {
   return ADD_OR_UPDATE_RECORD_ACTIONS.includes(String(actionName));
+}
+
+/**
+ * Is this an action that does nothing but rename attachments? Everything else about
+ * a row of _grist_Attachments is the back end's business.
+ */
+function isAttachmentRenameAction(a: DocAction): boolean {
+  if (!isUpdateRecord(a) && !isBulkUpdateRecord(a)) { return false; }
+  const colIds = getColIdsFromDocAction(a) || [];
+  return colIds.length === 1 && colIds[0] === "fileName";
 }
 
 // A list of key metadata tables that need special handling.  Other metadata tables may
@@ -1451,7 +1468,8 @@ export class GranularAccess implements GranularAccessForBundle {
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
       const accessCheck = await this._getAccessForActionType(docSession, a, "fatal");
-      accessCheck.get(tableAccess);  // will throw if access denied.
+      const permInfo = await this._getAccess(docSession);
+      accessCheck.get(this._focusUpdateMemos(a, tableAccess, permInfo, tableId));  // throws if denied
       return true;
     } else {
       // Any other action might change schema, so continuing could lead
@@ -1518,8 +1536,9 @@ export class GranularAccess implements GranularAccessForBundle {
         throw new Error(`${actionName} cannot yet be used on metadata tables`);
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
+      const permInfo = await this._getAccess(docSession);
       accessChecks.fatal.read.throwIfNotFullyAllowed(tableAccess);
-      accessChecks.fatal.update.throwIfDenied(tableAccess);
+      accessChecks.fatal.update.throwIfDenied(this._focusUpdateMemos(a, tableAccess, permInfo, tableId));
       accessChecks.fatal.create.throwIfDenied(tableAccess);
     });
   }
@@ -1642,19 +1661,48 @@ export class GranularAccess implements GranularAccessForBundle {
       await this.update();
       return;
     }
-    const shares = this._docData.getMetaTable("_grist_Shares");
-    if (shares.getRowIds().length > 0 &&
-      docActions.some(action => isMetadataTable(getTableId(action)))) {
+    // A share carries rules derived from the document metadata, so while a share exists
+    // any metadata change may change the rules. Check the actions too, since _docData is
+    // already updated here and a bundle that removed the last share leaves none to count.
+    const touchesShares = docActions.some(action => getTableId(action) === "_grist_Shares");
+    const haveShares = this._docData.getMetaTable("_grist_Shares").numRecords() > 0;
+    const touchesMetadata = docActions.some(action => isMetadataTable(getTableId(action)));
+    if (touchesShares || (haveShares && touchesMetadata)) {
       await this.update();
       return;
     }
-    if (!shares && !this._ruler.haveRules()) {
+    // No rules means nothing to rebuild. A share would have implied rules, since every
+    // share gets default rules from ACLRulesReader, and share changes were caught above.
+    if (!this._ruler.haveRules()) {
       return;
     }
     // If there is a schema change, redo from scratch for now.
     if (docActions.some(docAction => isSchemaAction(docAction))) {
       await this.update();
     }
+  }
+
+  /**
+   * A table-wide update denial aggregates memos across all columns, so it can surface a memo about
+   * a column the user didn't touch. Return the same verdict and rule type, but with memos scoped to
+   * the columns this update actually touches. No-op for non-update actions or updates with no colIds.
+   *
+   * Update is the only case that needs this: it is the only column-granular data-write permission
+   * (AVAILABLE_BITS_COLUMNS is read/update), so create/delete denials are uniform across columns and
+   * their aggregate memo is already focused. Applies to plain updates and to the update side of an
+   * upsert; both keep the written columns at index 3.
+   */
+  private _focusUpdateMemos(a: DocAction | UserAction, ps: TablePermissionSetWithContext,
+    permInfo: IPermissionInfo, tableId: string): TablePermissionSetWithContext {
+    if (!COLUMN_GRANULAR_UPDATE_ACTIONS.includes(String(a[0]))) { return ps; }
+    const colIds = getColIdsFromDocAction(a as DataAction);
+    // No columns to focus on (e.g. an empty update): fall back to the table-level memos.
+    if (!colIds || colIds.length === 0) { return ps; }
+    return {
+      perms: ps.perms,
+      ruleType: ps.ruleType,
+      getMemos: () => mergeMemoSets(colIds.map(colId => permInfo.getColumnAccess(tableId, colId).getMemos())),
+    };
   }
 
   /**
@@ -1956,7 +2004,8 @@ export class GranularAccess implements GranularAccessForBundle {
       const rowPermInfo = new PermissionInfo(ruler.ruleCollection, input);
       // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
       const rowAccess = rowPermInfo.getTableAccess(tableId);
-      const access = accessCheck.get(rowAccess);
+      // Scope any denial memos to the columns this update touches, as for the table-level checks.
+      const access = accessCheck.get(this._focusUpdateMemos(action, rowAccess, rowPermInfo, tableId));
       if (access === "deny") {
         toRemove.push(idx);
       } else if (access !== "allow" && colValues) {
@@ -2540,7 +2589,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const tableId = getTableId(action);
     const permInfo = await this._getStepAccess(cursor);
     const tableAccess = permInfo.getTableAccess(tableId);
-    const access = accessCheck.get(tableAccess);
+    const access = accessCheck.get(this._focusUpdateMemos(action, tableAccess, permInfo, tableId));
     if (access === "allow") { return; }
     if (access === "mixed") {
       // Deal with row-level access for the mixed condition.
@@ -2717,8 +2766,13 @@ export class GranularAccess implements GranularAccessForBundle {
         if (this._activeBundle?.options?.attachment) {
           return dummyAccessCheck;
         }
-        // Users cannot take actions on _grist_Attachments through the regular
-        // action interface.
+        // Renaming is the one change users may make here, since the attachment editor
+        // offers it. Check it like any other update, so rules still have their say.
+        if (isAttachmentRenameAction(a)) {
+          return accessChecks[severity].update;
+        }
+        // Users cannot take any other action on _grist_Attachments through the
+        // regular action interface.
         throw new Error("_grist_Attachments modification is not allowed");
       }
       // Actions on any metadata table currently require the schemaEdit flag.

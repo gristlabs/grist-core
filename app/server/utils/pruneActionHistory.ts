@@ -1,6 +1,6 @@
 import * as gutil from "app/common/gutil";
 import { ActionHistoryImpl } from "app/server/lib/ActionHistoryImpl";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { DocStorage } from "app/server/lib/DocStorage";
 import * as docUtils from "app/server/lib/docUtils";
 import log from "app/server/lib/log";
@@ -18,7 +18,7 @@ export async function pruneActionHistory(docPath: string, keepN: number) {
     throw new Error("Invalid document: Document should be a valid .grist file");
   }
 
-  const storageManager = await create.createLocalDocStorageManager(".", ".");
+  const storageManager = await getCreate().createLocalDocStorageManager(".", ".");
   const docStorage = new DocStorage(storageManager, docPath);
   const backupPath = gutil.removeSuffix(docPath, ".grist") + "-backup.grist";
 

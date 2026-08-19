@@ -204,7 +204,10 @@ const DEFAULT_LOCALE = getDefaultLocale();
 // Number of seconds an ActiveDoc is retained without any clients.
 // In dev environment, it is convenient to keep this low for quick tests.
 // In production, it is reasonable to stretch it out a bit.
-const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === "production") ? 30 : 5;
+const ACTIVEDOC_TIMEOUT = appSettings.section("externalStorage").flag("activeDocTimeout").requireInt({
+  envVar: "GRIST_ACTIVEDOC_TIMEOUT_SECONDS",
+  defaultValue: process.env.NODE_ENV === "production" ? 30 : 5,
+});
 
 // We'll wait this long between re-measuring sandbox memory.
 const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
@@ -3165,8 +3168,8 @@ export class ActiveDoc extends EventEmitter {
   private _drainMcpMetrics(triggeredBy: DocMetricsTrigger): Record<string, number> {
     if (triggeredBy === "docOpen") { return {}; }
     const metrics: Record<string, number> = {};
-    if (this._mcpToolCalls > 0) { metrics.mcpToolCallsDelta = this._mcpToolCalls; }
-    if (this._mcpUsers.size > 0) { metrics.mcpUsersDelta = this._mcpUsers.size; }
+    metrics.mcpToolCallsDelta = this._mcpToolCalls;
+    metrics.mcpUsersDelta = this._mcpUsers.size;
     this._mcpToolCalls = 0;
     this._mcpUsers.clear();
     return metrics;

@@ -1,6 +1,5 @@
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { reportSuccess } from "app/client/models/errors";
 import { basicButton, bigPrimaryButton, primaryButton } from "app/client/ui2018/buttons";
@@ -29,16 +28,15 @@ export function buildConfirmDelete(
   single = true,
 ) {
   const remember = observable(false);
-  const tooltip = modalTooltip(refElement, ctl =>
+  const tooltip = modalTooltip(refElement, ctl => [
+    dom.onKeyDown({
+      Escape: () => ctl.close(),
+      Enter: () => { onSave(remember.get()); ctl.close(); },
+    }),
     cssContainer(
       dom.autoDispose(remember),
       testId("confirm-deleteRows"),
       testId("confirm-popup"),
-      (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
-      dom.onKeyDown({
-        Escape: () => ctl.close(),
-        Enter: () => { onSave(remember.get()); ctl.close(); },
-      }),
       dom("div", single ?
         t(`Are you sure you want to delete this record?`) :
         t(`Are you sure you want to delete these records?`),
@@ -55,8 +53,8 @@ export function buildConfirmDelete(
         })),
         basicButton(t("Cancel"), testId("confirm-cancel"), dom.on("click", () => ctl.close())),
       ),
-    ), {},
-  );
+    ),
+  ], {});
   // Attach this tooltip to a cell so that it is automatically closed when the cell is disposed.
   // or scrolled out of view (and then disposed).
   dom.onDisposeElem(refElement, () => {
@@ -73,14 +71,13 @@ export function showDeprecatedWarning(
   onClose: (checked: boolean) => void,
 ) {
   const remember = observable(false);
-  const tooltip = modalTooltip(refElement, ctl =>
+  const tooltip = modalTooltip(refElement, ctl => [
+    dom.onKeyDown({
+      Escape: () => { ctl.close(); onClose(remember.get()); },
+      Enter: () => { ctl.close(); onClose(remember.get()); },
+    }),
     cssWideContainer(
       testId("popup-warning-deprecated"),
-      (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
-      dom.onKeyDown({
-        Escape: () => { ctl.close(); onClose(remember.get()); },
-        Enter: () => { ctl.close(); onClose(remember.get()); },
-      }),
       content,
       cssButtons(
         dom.style("margin-top", "12px"),
@@ -94,7 +91,7 @@ export function showDeprecatedWarning(
         ),
       ),
     ),
-  );
+  ]);
   // Attach this warning to a cell so that it is automatically closed when the cell is disposed.
   // or scrolled out of view (and then disposed).
   dom.onDisposeElem(refElement, () => {
@@ -161,15 +158,14 @@ export function showTipPopup(
   const tooltip = modalTooltip(refElement,
     ctl => [
       cssBehavioralPromptModal.cls(""),
+      dom.onKeyDown({
+        Escape: () => ctl.close(),
+        Enter: () => { onClose(dontShowTips.get()); ctl.close(); },
+      }),
       arrow,
       cssBehavioralPromptContainer(
         dom.autoDispose(dontShowTips),
         testId("behavioral-prompt"),
-        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
-        dom.onKeyDown({
-          Escape: () => ctl.close(),
-          Enter: () => { onClose(dontShowTips.get()); ctl.close(); },
-        }),
         cssBehavioralPromptHeader(
           cssHeaderIconAndText(
             icon("Idea"),
@@ -221,13 +217,12 @@ export function showNewsPopup(
   const popup = modalTooltip(refElement,
     ctl => [
       cssNewsPopupModal.cls(""),
+      dom.onKeyDown({
+        Escape: () => { ctl.close(); },
+        Enter: () => { ctl.close(); },
+      }),
       cssNewsPopupContainer(
         testId("behavioral-prompt"),
-        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
-        dom.onKeyDown({
-          Escape: () => { ctl.close(); },
-          Enter: () => { ctl.close(); },
-        }),
         cssNewsPopupCloseButton(
           icon("CrossBig"),
           dom.on("click", () => ctl.close()),

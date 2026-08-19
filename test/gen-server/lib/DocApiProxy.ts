@@ -96,7 +96,7 @@ describe("DocApiProxy", function() {
 
     // create and register proxy
     const docApiProxy = new DocApiProxy(
-      docWorkerMapStub, dbManager, { getOAuthValidator() {} } as any, () => ownWorkerId,
+      docWorkerMapStub, dbManager, { getOAuthValidator() {}, getWorkerId: () => ownWorkerId } as any,
     );
     app.use("/api", addRequestUser.bind(null, dbManager, getDocWorkerMap().getPermitStore("internal"),
       { gristServer: createDummyGristServer() } as any));

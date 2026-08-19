@@ -146,14 +146,8 @@ describe("AdminPanelServer", function() {
       });
 
       it("should allow confirming Community Edition", async function() {
-        // Explicitly pick Community first: on builds where Full Grist is
-        // available the default selection is "enterprise", which would mark
-        // Edition dirty (server is "core") and flip the button text.
-        const community = await driver.findContentWait(".test-edition-community", /Community/, 3000);
-        await community.click();
-        await driver.sleep(100);
-
-        const confirmEdition = await driver.findContentWait("button", /Confirm edition/, 3000);
+        const confirmEdition = await driver.findContentWait(".test-edition-confirm",
+          /Continue with Community edition/, 3000);
         await confirmEdition.click();
         await driver.sleep(300);
 

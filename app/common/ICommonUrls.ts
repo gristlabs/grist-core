@@ -37,6 +37,7 @@ export interface ICommonUrls {
   helpAirtableIntegration: string;
   helpCloudStorage: string;
   integrators: string;
+  editionComparison: string;
   mcp: string; // Support doc for connecting an AI assistant via the MCP server.
   freeCoachingCall: string; // Link to the human help (example: email adress or meeting scheduling tool)
   contactSupport: string; // Link to contact support on error pages (example: email adress or online form).
@@ -66,4 +67,7 @@ export interface ICommonUrls {
   signInWithGristRegister: string; // Registration for Sign in with getgrist.com.
   signInWithGristHelp: string; // Help for Sign in with getgrist.com.
   signInWithGristDocs: string; // Setup docs for Sign in with getgrist.com.
+
+  // Endpoint the quick-setup "Help us improve" survey POSTs to. Empty string hides the survey.
+  helpUsImproveSurvey: string;
 }

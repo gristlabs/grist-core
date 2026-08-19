@@ -59,6 +59,12 @@ export interface IMemoryLoadEstimator {
   getTotalMemoryUsedMB(): number;
 }
 
+export const Deps = {
+  // Called at the start of every openDoc, and a no-op outside tests. Tests replace it to hold an
+  // open in progress. See TestingHooks.setDocOpenPaused().
+  testBeforeOpenDoc: async () => {},
+};
+
 /**
  * DocManager keeps track of "active" Grist documents, i.e. those loaded
  * in-memory, with clients connected to them.
@@ -334,6 +340,8 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     if (typeof options === "string") {
       throw new Error("openDoc call with outdated parameter type");
     }
+
+    await Deps.testBeforeOpenDoc();
 
     const insightLog = insightLogEntry();
     insightLog?.addMeta(client.getLogMeta());

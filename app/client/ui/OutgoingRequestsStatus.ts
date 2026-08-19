@@ -269,7 +269,6 @@ const cssOutReqContainer = styled("div", `
 
 const cssOutReqIntro = styled("p", `
   margin: 0;
-  color: ${theme.lightText};
   line-height: 1.5;
 `);
 
@@ -302,7 +301,6 @@ const cssOutReqRowName = styled("div", `
 `);
 
 const cssOutReqRowBlurb = styled("div", `
-  color: ${theme.lightText};
   font-size: ${vars.mediumFontSize};
   line-height: 1.4;
 `);
@@ -310,7 +308,6 @@ const cssOutReqRowBlurb = styled("div", `
 const cssOutReqRowMeta = styled("div", `
   margin-top: 6px;
   font-size: 0.85em;
-  color: ${theme.lightText};
   font-family: monospace;
   word-break: break-all;
 `);
@@ -318,7 +315,6 @@ const cssOutReqRowMeta = styled("div", `
 const cssOutReqRowNote = styled("div", `
   margin-top: 6px;
   font-size: 0.9em;
-  color: ${theme.lightText};
   font-style: italic;
 `);
 
@@ -371,7 +367,6 @@ const cssOutReqEnv = styled("div", `
   align-items: center;
   gap: 6px;
   font-size: 0.85em;
-  color: ${theme.lightText};
 `);
 
 const cssOutReqEnvLabel = styled("span", `
@@ -423,7 +418,6 @@ const cssOutReqProxyHeadline = styled("div", `
 `);
 
 const cssOutReqProxyDetail = styled("div", `
-  color: ${theme.lightText};
   font-size: ${vars.mediumFontSize};
   line-height: 1.4;
 `);

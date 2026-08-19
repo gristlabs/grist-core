@@ -1,3 +1,4 @@
+import { Memo } from "app/common/ACLPermissions";
 import { LocalActionBundle, SandboxActionBundle } from "app/common/ActionBundle";
 import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
 import { delay } from "app/common/delay";
@@ -13,6 +14,7 @@ import {
   TableColValues,
   TableDataAction,
   UpdateRecord,
+  UserAction,
 } from "app/common/DocActions";
 import { OpenDocOptions } from "app/common/DocListAPI";
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
@@ -952,6 +954,173 @@ describe("GranularAccess", function() {
     await assertDeniedFor(owner.applyUserActions(docId, [
       ["ModifyColumn", "Table2", "A", { formula: "a formula" }],
     ]), ["rule_s"]);
+  });
+
+  it("does not show memos from shadowed lower-precedence rules", async function() {
+    // A column rule that denies shouldn't drag along a shadowed table-default rule's memo.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }]],
+      ["AddRecord", "Table1", null, { A: "test1" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "A" }],  // column
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "Table1", colIds: "*" }],  // table default
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access == EDITOR", permissionsText: "-U", memo: "col_deny",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        // Would grant update, but doesn't apply to the editor: its memo must stay suppressed.
+        resource: -2, aclFormula: "user.Access == OWNER", permissionsText: "+U", memo: "table_allow",
+      }],
+    ]);
+    await assertDeniedWithMemos(editor.getDocAPI(docId).updateRows("Table1", { id: [1], A: ["x"] }),
+      [{ kind: "reason", text: "col_deny" }]);
+  });
+
+  it("keeps a shadowed lower-precedence deny memo", async function() {
+    // The counterpart to the test above. A column rule blocks the edit but has no memo, and a
+    // broader table rule also denies, with one. That broader rule is a real barrier (a reason), not
+    // a false-hope remedy, so its memo is kept even though the column rule settles access first.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }]],
+      ["AddRecord", "Table1", null, { A: "test1" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "A" }],  // column
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "Table1", colIds: "*" }],  // table default
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access == EDITOR", permissionsText: "-U",  // no memo
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -2, aclFormula: "", permissionsText: "-U", memo: "This table is locked",
+      }],
+    ]);
+    await assertDeniedWithMemos(editor.getDocAPI(docId).updateRows("Table1", { id: [1], A: ["x"] }),
+      [{ kind: "reason", text: "This table is locked" }]);
+  });
+
+  it("tags a would-allow rule as a remedy", async function() {
+    // A rule that would grant access but doesn't apply to the user is a "remedy" hint, shown
+    // alongside the "reason" from the rule that actually blocks.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }]],
+      ["AddRecord", "Table1", null, { A: "test1" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access == OWNER", permissionsText: "+U", memo: "owners_only",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "", permissionsText: "-U", memo: "no_edit",
+      }],
+    ]);
+    await assertDeniedWithMemos(editor.getDocAPI(docId).updateRows("Table1", { id: [1], A: ["x"] }),
+      [{ kind: "remedy", text: "owners_only" }, { kind: "reason", text: "no_edit" }]);
+  });
+
+  it("drops a remedy shadowed by an earlier deny in the same rule set", async function() {
+    // The would-allow rule comes after a rule that already denies, so satisfying it couldn't change
+    // the outcome. Its memo is dropped, leaving only the reason.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }]],
+      ["AddRecord", "Table1", null, { A: "test1" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "True", permissionsText: "-U", memo: "locked",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access == OWNER", permissionsText: "+U", memo: "owners_only",
+      }],
+    ]);
+    await assertDeniedWithMemos(editor.getDocAPI(docId).updateRows("Table1", { id: [1], A: ["x"] }),
+      [{ kind: "reason", text: "locked" }]);
+  });
+
+  it("does not show shadowed memos for row-dependent denials", async function() {
+    // As above, but a row-dependent deny, reported via the row-level per-column censoring path.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }]],
+      ["AddRecord", "Table1", null, { A: "x" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "A" }],  // column
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "Table1", colIds: "*" }],  // table default
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: 'rec.A == "x"', permissionsText: "-U", memo: "col_deny",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -2, aclFormula: "user.Access == OWNER", permissionsText: "+U", memo: "table_allow",
+      }],
+    ]);
+    await assertDeniedWithMemos(editor.getDocAPI(docId).updateRows("Table1", { id: [1], A: ["y"] }),
+      [{ kind: "reason", text: "col_deny" }]);
+  });
+
+  it("scopes memos to the touched column when a table-wide update is denied", async function() {
+    // Every column denies update (column A's rule + doc default), so the denial is reported at the
+    // table level. The editor edits column A, so the memo should be column A's reason -- not the
+    // table-default rule's remedy, which only pertains to other columns.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }, { id: "B" }]],
+      ["AddRecord", "Table1", null, { A: "x", B: "y" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "A" }],  // column A
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "Table1", colIds: "*" }],  // table default
+      ["AddRecord", "_grist_ACLResources", -3, { tableId: "*", colIds: "*" }],       // doc default
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "", permissionsText: "-U", memo: "col_deny",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -2, aclFormula: "user.Access == OWNER", permissionsText: "+U", memo: "table_allow",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -3, aclFormula: "", permissionsText: "-U",
+      }],
+    ]);
+    await assertDeniedWithMemos(editor.getDocAPI(docId).updateRows("Table1", { id: [1], A: ["z"] }),
+      [{ kind: "reason", text: "col_deny" }]);
+  });
+
+  it("scopes memos to the touched column for a row-dependent denial", async function() {
+    // A row-dependent deny routes through the per-row path. Every column of this row denies update
+    // (column B's rule plus the row-wide rule), so it throws at the row level. The editor edits
+    // column A, so only the rule that governs column A should be named, not column B's.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }, { id: "B" }]],
+      ["AddRecord", "Table1", null, { A: "lock", B: "y" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "B" }],  // column B
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "Table1", colIds: "*" }],  // table default
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "True", permissionsText: "-U", memo: "B-memo",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -2, aclFormula: 'rec.A == "lock"', permissionsText: "-U", memo: "row-memo",
+      }],
+    ]);
+    await assertDeniedWithMemos(editor.getDocAPI(docId).updateRows("Table1", { id: [1], A: ["z"] }),
+      [{ kind: "reason", text: "row-memo" }]);
+  });
+
+  it("scopes memos to the touched column for an upsert", async function() {
+    // An upsert (AddOrUpdateRecord) that updates column B should name only the rule governing B,
+    // not column A's, even though update is denied table-wide.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }, { id: "B" }]],
+      ["AddRecord", "Table1", null, { A: "x", B: "y" }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "A" }],  // column A
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "Table1", colIds: "*" }],  // table default
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "True", permissionsText: "-U", memo: "A-memo",
+      }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -2, aclFormula: "True", permissionsText: "-U", memo: "T-memo",
+      }],
+    ]);
+    await assertDeniedWithMemos(
+      editor.applyUserActions(docId, [
+        ["BulkAddOrUpdateRecord", "Table1", { A: ["x"] }, { B: ["new"] }, {}],
+      ]),
+      [{ kind: "reason", text: "T-memo" }]);
   });
 
   it("respects table wildcard", async function() {
@@ -4081,10 +4250,84 @@ describe("GranularAccess", function() {
     // Try to modify _grist_Attachments by shady means.
     await assert.isRejected(owner.getDocAPI(docId).addRows("_grist_Attachments", { fileName: ["A", "B"] }),
       /_grist_Attachments modification is not allowed/);
-    await assert.isRejected(owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [1], fileName: ["A"] }),
+    // Renaming is allowed (see the test below), but nothing else about the row is.
+    await assert.isRejected(owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [1], fileIdent: ["A"] }),
       /_grist_Attachments modification is not allowed/);
     await assert.isRejected(owner.getDocAPI(docId).removeRows("_grist_Attachments", [1]),
       /_grist_Attachments modification is not allowed/);
+  });
+
+  // The attachment editor renames files by updating _grist_Attachments.fileName, so
+  // that update needs to survive the lockdown on this table. The lockdown only applies
+  // when there are rules, and a share counts as rules even if the owner wrote none.
+  const attachmentScenarios: { name: string, setup: UserAction[], rulesApply: boolean }[] = [
+    { name: "a plain document", setup: [], rulesApply: false },
+    {
+      name: "a document with rules",
+      rulesApply: true,
+      setup: [
+        ["AddRecord", "_grist_ACLResources", -1, { tableId: "*", colIds: "*" }],
+        ["AddRecord", "_grist_ACLRules", null, {
+          resource: -1, aclFormula: "user.Access in [OWNER]", permissionsText: "all",
+        }],
+      ],
+    },
+    {
+      name: "a document with an unpublished share",
+      rulesApply: true,
+      setup: [
+        // A link id distinct from the one the share tests below use, since
+        // getShareKeyForUrl looks shares up by link id across all documents.
+        ["AddRecord", "_grist_Shares", null, { linkId: "rename-att", options: '{"publish": false}' }],
+      ],
+    },
+  ];
+
+  for (const { name, setup, rulesApply } of attachmentScenarios) {
+    it(`can rename attachments in ${name}`, async function() {
+      await freshDoc();
+      await owner.applyUserActions(docId, [
+        ["AddTable", "Data1", [{ id: "Texts", type: "Attachments" }]],
+        ...setup,
+      ]);
+
+      const i1 = await owner.getDocAPI(docId).uploadAttachment("content1", "1.txt");
+      await owner.getDocAPI(docId).addRows("Data1", { Texts: [[GristObjCode.List, i1]] });
+
+      await assert.isFulfilled(
+        owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [i1], fileName: ["renamed.txt"] }));
+      const rows = await owner.getDocAPI(docId).getRows("_grist_Attachments");
+      assert.deepEqual(rows.fileName, ["renamed.txt"]);
+
+      if (rulesApply) {
+        // No smuggling another column along with the file name.
+        await assert.isRejected(
+          owner.getDocAPI(docId).updateRows("_grist_Attachments",
+            { id: [i1], fileName: ["other.txt"], fileIdent: ["bogus"] }),
+          /_grist_Attachments modification is not allowed/);
+      }
+
+      // The share tests below expect to find only their own shares in the home database.
+      await removeShares(docId, owner);
+    });
+  }
+
+  it("stops applying a share's rules once the share is gone", async function() {
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddRecord", "_grist_Shares", null, { linkId: "share-gone", options: '{"publish": false}' }],
+    ]);
+    const i1 = await owner.getDocAPI(docId).uploadAttachment("content1", "1.txt");
+
+    // A share brings rules with it, which switch on the lockdown of _grist_Attachments.
+    await assert.isRejected(
+      owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [i1], fileIdent: ["x"] }),
+      /_grist_Attachments modification is not allowed/);
+
+    // Removing the last share should take effect right away, without a reload.
+    await removeShares(docId, owner);
+    await assert.isFulfilled(
+      owner.getDocAPI(docId).updateRows("_grist_Attachments", { id: [i1], fileIdent: ["x"] }));
   });
 
   describe("shares", function() {
@@ -4598,6 +4841,18 @@ function assertUnchanged(check: () => PromiseLike<any>) {
 }
 
 async function assertDeniedFor(check: Promise<any>, memos: string[], test = /access rules/) {
+  try {
+    await check;
+    throw new Error("not denied");
+  } catch (e) {
+    assert.match(e?.details?.userError, test);
+    // Memos are now {kind, text}; compare on text so existing expectations keep working.
+    assert.deepEqual((e?.details?.memos ?? []).map((m: any) => m.text), memos);
+  }
+}
+
+// Like assertDeniedFor, but asserts the full tagged memos ({kind, text}).
+async function assertDeniedWithMemos(check: Promise<any>, memos: Memo[], test = /access rules/) {
   try {
     await check;
     throw new Error("not denied");
