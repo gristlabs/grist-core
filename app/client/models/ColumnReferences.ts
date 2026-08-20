@@ -1,12 +1,9 @@
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { makeT } from "app/client/lib/localization";
 import { ColumnRec, TableRec } from "app/client/models/DocModel";
-import { reportMessage } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
 
 import { Observable } from "grainjs";
-
-const t = makeT("ColumnReferences");
 
 /**
  * A single column elsewhere in the document whose formula references a given column.
@@ -49,24 +46,35 @@ export async function fetchColumnReferences(
 }
 
 /**
- * Moves the cursor to a view of the given column, so the user can see the formula that
- * references it. Prefers a section the column is already shown in; falls back to the
- * table's raw data section, which always includes every column.
+ * Shows the given column: same-page columns move the cursor, columns on another page open as
+ * an anchor-link popup so the user keeps their place.
+ * 
+ * Using only one approach for both cases is buggy.
  */
 export async function navigateToColumn(gristDoc: GristDoc, tableId: string, colId: string): Promise<void> {
   const table = findTable(gristDoc, tableId);
   const column = findColumn(table, colId);
   if (!table || !column) { return; }
 
-  const colRef = column.getRowId();
   const shownFields = column.viewFields().all().filter(f => !f.viewSection().isRaw.peek());
   const section = shownFields.length ? shownFields[0].viewSection() : table.rawViewSection();
-  const fieldIndex = section.viewFields.peek().all().findIndex(f => f.colRef.peek() === colRef);
+  const sectionId = section.getRowId();
 
-  await gristDoc.moveToCursorPos({
-    sectionId: section.getRowId(),
-    fieldIndex: fieldIndex >= 0 ? fieldIndex : undefined,
-  });
+  const isOnCurrentPage = gristDoc.viewModel.viewSections.peek().peek()
+    .some(s => s.id.peek() === sectionId);
+
+  if (isOnCurrentPage) {
+    const colRef = column.getRowId();
+    const fieldIndex = section.viewFields.peek().all().findIndex(f => f.colRef.peek() === colRef);
+    await gristDoc.moveToCursorPos({
+      sectionId,
+      fieldIndex: fieldIndex >= 0 ? fieldIndex : undefined,
+    });
+  } else {
+    await urlState().pushUrl({
+      hash: { sectionId, colRef: column.getRowId(), popup: true },
+    });
+  }
 }
 
 /**
@@ -77,9 +85,8 @@ export async function navigateToColumn(gristDoc: GristDoc, tableId: string, colI
 export const pendingReferencesReveal = Observable.create<{ tableId: string, colId: string } | null>(null, null);
 
 /**
- * Selects the given column, opens the creator panel to its config, and requests that its
- * "Formula references" section expand and scroll into view. Used from the delete-confirmation
- * dialog so a user can inspect what's using a column without leaving the flow.
+ * Selects a column, opens its config, and reveals its references section. Used by the
+ * delete-confirmation dialog.
  */
 export async function revealColumnReferences(gristDoc: GristDoc, tableId: string, colId: string): Promise<void> {
   pendingReferencesReveal.set({ tableId, colId });

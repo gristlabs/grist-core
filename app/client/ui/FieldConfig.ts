@@ -23,7 +23,7 @@ import { CursorPos } from "app/plugin/GristAPI";
 
 import {
   bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
-  Observable, styled
+  Observable, styled,
 } from "grainjs";
 import * as ko from "knockout";
 
@@ -452,20 +452,34 @@ export function buildFormulaConfig(
   ]);
 }
 
-// A collapsible "formula references" that shows which other formulas in the document
-// reference this column. Collapsed by default, and fetches nothing until the user expands
-// it, so merely selecting a column in the grid never triggers a sandbox round-trip.
+// Column ("tableId.colId") the user last expanded the references section for. Module-level
+// because the config panel is rebuilt whenever the active section changes - including
+// transiently while a cross-page reference popup is open - so we can restore it afterwards.
+let lastExpandedReferencesKey: string | null = null;
+
+// Collapsible list of other formulas referencing this column. Collapsed by default and fetches
+// nothing until expanded, so selecting a column never costs a sandbox round-trip.
 export function buildReferencesConfig(owner: MultiHolder, origColumn: ColumnRec, gristDoc: GristDoc) {
   const expanded = Observable.create(owner, false);
   const references = Observable.create<ColumnReferenceEntry[] | null>(owner, null);
   let rootElem: HTMLElement | undefined;
 
-  const refresh = () => {
-    const tableId = origColumn.table.peek().tableId.peek();
+  // origColumn is a floating row model that can transiently point at no row (e.g. while the
+  // active section is switching), so table.peek() can be null.
+  const getCurrentColumnKey = (): { tableId: string, colId: string } | null => {
+    if (!origColumn.id.peek()) { return null; }
+    const table = origColumn.table.peek();
+    if (!table) { return null; }
+    const tableId = table.tableId.peek();
     const colId = origColumn.colId.peek();
-    if (!tableId || !colId) { references.set([]); return; }
+    return (tableId && colId) ? { tableId, colId } : null;
+  };
+
+  const refresh = () => {
+    const key = getCurrentColumnKey();
+    if (!key) { references.set([]); return; }
     references.set(null);
-    fetchColumnReferences(gristDoc, tableId, colId)
+    fetchColumnReferences(gristDoc, key.tableId, key.colId)
       .then((result) => { if (!owner.isDisposed()) { references.set(result); } })
       .catch(reportError);
   };
@@ -479,19 +493,25 @@ export function buildReferencesConfig(owner: MultiHolder, origColumn: ColumnRec,
     }
   };
 
-  // Collapse and drop stale results when the selected column changes,
-  // doesn't fetch until re-expanded
+  // Collapse and clear when the selected column changes, unless a reveal was requested for it
+  // (see revealColumnReferences) or we're returning to the column the user had expanded.
   const onColumnMayHaveChanged = () => {
     const pending = pendingReferencesReveal.get();
-    const tableId = origColumn.table.peek().tableId.peek();
-    const colId = origColumn.colId.peek();
-    if (pending?.tableId === tableId && pending.colId === colId) {
+    const key = getCurrentColumnKey();
+    if (key && pending?.tableId === key.tableId && pending.colId === key.colId) {
       pendingReferencesReveal.set(null);
+      lastExpandedReferencesKey = `${key.tableId}.${key.colId}`;
       expandAndReveal();
-    } else {
-      expanded.set(false);
-      references.set(null);
+      return;
     }
+    // Re-fetch rather than reuse, so a restored list can't be stale.
+    if (key && lastExpandedReferencesKey === `${key.tableId}.${key.colId}`) {
+      expanded.set(true);
+      refresh();
+      return;
+    }
+    expanded.set(false);
+    references.set(null);
   };
   owner.autoDispose(origColumn.id.subscribe(onColumnMayHaveChanged));
   owner.autoDispose(pendingReferencesReveal.addListener(onColumnMayHaveChanged));
@@ -499,6 +519,8 @@ export function buildReferencesConfig(owner: MultiHolder, origColumn: ColumnRec,
 
   const toggle = () => {
     const isExpanding = !expanded.get();
+    const key = getCurrentColumnKey();
+    lastExpandedReferencesKey = (isExpanding && key) ? `${key.tableId}.${key.colId}` : null;
     expanded.set(isExpanding);
     if (isExpanding && references.get() === null) {
       refresh();
