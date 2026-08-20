@@ -1517,6 +1517,7 @@ export class DocWorkerApi {
 
         const formTableId = await getRealTableId(String(section.tableRef), { activeDoc, req });
         const formTitle = section.title || getTableName() || formTableId;
+        const sectionShareOptions = safeJsonParse(section.shareOptions, {});
 
         this._grist.getTelemetry().logEvent(req, "visitedForm", {
           full: {
@@ -1531,6 +1532,7 @@ export class DocWorkerApi {
           formLayoutSpec,
           formTableId,
           formTitle,
+          forceAnonymous: Boolean(sectionShareOptions.forceAnonymous),
         });
       }),
     );

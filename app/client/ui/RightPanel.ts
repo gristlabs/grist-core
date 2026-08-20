@@ -958,7 +958,7 @@ export class RightPanel extends Disposable {
   }
 
   private _buildPageSubmissionConfig(owner: MultiHolder, activeSection: ViewSectionRec) {
-    // All of those observables are backed by the layout config.
+    // All of those observables are backed by layout config, except forceAnonymous.
     const submitButtonKo = activeSection.layoutSpecObj.prop("submitText");
     const toComputed = (obs: typeof submitButtonKo) => {
       const result = Computed.create(owner, use => use(obs));
@@ -968,6 +968,7 @@ export class RightPanel extends Disposable {
     const submitButton = toComputed(submitButtonKo);
     const successText = toComputed(activeSection.layoutSpecObj.prop("successText"));
     const successURL = toComputed(activeSection.layoutSpecObj.prop("successURL"));
+    const forceAnonymous = toComputed(activeSection.shareOptionsObj.prop("forceAnonymous"));
     const anotherResponse = toComputed(activeSection.layoutSpecObj.prop("anotherResponse"));
     const redirection = Observable.create(owner, Boolean(successURL.get()));
     owner.autoDispose(redirection.addListener((val) => {
@@ -992,6 +993,12 @@ export class RightPanel extends Disposable {
           { autoGrow: true, save: val => successText.set(val) },
           { placeholder: t("Thank you! Your response has been recorded.") },
         ),
+      ),
+      cssLabel(t("Anonymous answers")),
+      cssRow(
+        labeledSquareCheckbox(forceAnonymous, [
+          t("Anonymize answers from logged-in users"),
+        ]),
       ),
       cssLabel(t("Submit another response")),
       cssRow(

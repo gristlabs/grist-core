@@ -6,6 +6,7 @@ import { urlState } from "app/client/models/gristUrlState";
 import { Form, FormAPI, FormAPIImpl } from "app/client/ui/FormAPI";
 import { ApiError } from "app/common/ApiError";
 import { safeJsonParse } from "app/common/gutil";
+import { ExtendedUser, UserAPI, UserAPIImpl } from "app/common/UserAPI";
 
 import { bundleChanges, Computed, Disposable, Observable } from "grainjs";
 
@@ -14,6 +15,7 @@ const t = makeT("FormModel");
 export interface FormModel {
   readonly form: Observable<Form | null>;
   readonly formLayout: Computed<FormLayoutNode | null>;
+  readonly currentUser: Observable<ExtendedUser | null>;
   readonly submitting: Observable<boolean>;
   readonly submitted: Observable<boolean>;
   readonly error: Observable<string | null>;
@@ -35,11 +37,14 @@ export class FormModelImpl extends Disposable implements FormModel {
     return patchedLayout;
   });
 
+  public readonly currentUser = Observable.create<ExtendedUser | null>(this, null);
+
   public readonly submitting = Observable.create<boolean>(this, false);
   public readonly submitted = Observable.create<boolean>(this, false);
   public readonly error = Observable.create<string | null>(this, null);
 
   private readonly _formAPI: FormAPI = new FormAPIImpl(getHomeUrl());
+  private readonly _userAPI: UserAPI = new UserAPIImpl(getHomeUrl());
 
   constructor() {
     super();
@@ -49,10 +54,20 @@ export class FormModelImpl extends Disposable implements FormModel {
     try {
       bundleChanges(() => {
         this.form.set(null);
+        this.currentUser.set(null);
         this.submitted.set(false);
         this.error.set(null);
       });
-      this.form.set(await this._formAPI.getForm(this._getFetchFormParams()));
+
+      const [form, session] = await Promise.all([
+        this._formAPI.getForm(this._getFetchFormParams()),
+        this._userAPI.getSessionActive().catch(() => null),
+      ]);
+
+      bundleChanges(() => {
+        this.form.set(form);
+        this.currentUser.set(session?.user ?? null);
+      });
     } catch (e: unknown) {
       let error: string | undefined;
       if (e instanceof ApiError) {
@@ -85,6 +100,7 @@ export class FormModelImpl extends Disposable implements FormModel {
       if (value.length > 0 && value[0] instanceof File) {
         const uploadResult = await this._formAPI.createAttachments({
           ...this._getDocIdOrShareKeyParam(),
+          formVsId: this._getFormVsId(),
           upload: value as File[],
         });
         formData.set(key, uploadResult);
@@ -101,6 +117,7 @@ export class FormModelImpl extends Disposable implements FormModel {
           ...this._getDocIdOrShareKeyParam(),
           tableId: form.formTableId,
           colValues,
+          formVsId: this._getFormVsId(),
         }),
         new Promise(resolve => setTimeout(resolve, 1000)),
       ]);
@@ -128,5 +145,11 @@ export class FormModelImpl extends Disposable implements FormModel {
     } else {
       throw new Error('invalid urlState: undefined "doc" or "shareKey"');
     }
+  }
+
+  private _getFormVsId(): number {
+    const { form } = urlState().state.get();
+    if (!form) { throw new Error('invalid urlState: undefined "form"'); }
+    return form.vsId;
   }
 }
