@@ -41,7 +41,8 @@ export function setupAceEditorCompletions(editor: Ace.Editor, options: ICompleti
     return (
       prefix.endsWith(".") ||  // to get fresh attributes of references
       prefix.endsWith(".lookupone(") ||  // to get initial argument suggestions
-      prefix.endsWith(".lookuprecords(")
+      prefix.endsWith(".lookuprecords(") ||
+      /,\s*$/.test(prefix)  // to get suggestions for the next lookup argument
     );
   }.bind(completer);
 
@@ -95,8 +96,18 @@ function initCustomCompleter() {
 
   // The default regex just matches identifiers. We expand it to include periods (to capture
   // attributes) and "$", for Grist column names. In addition, we autocomplete lookup formulas
-  // with the function name, to give suggestions for lookup keyword arguments.
-  const prefixMatchRegex = /\w+\.(?:lookupRecords|lookupOne)\([\w.$\u00A2-\uFFFF]*$|[\w.$\u00A2-\uFFFF]+$/;
+  // with the function name, to give suggestions for lookup keyword arguments. A completed
+  // `lookupOne(...)` or `lookupRecords(...)` call is matched together with the attribute after
+  // it, so that the server can suggest columns of the looked-up table. One level of parens is
+  // allowed inside the arguments (e.g. a function call). A trailing comma inside a still-open
+  // call is matched with everything before it, so the server can suggest a further argument.
+  // Keep in sync with the similar regex in engine.py.
+  const prefixMatchRegex = new RegExp([
+    /\w+\.(?:lookupOne|lookupRecords)\((?:[^()]|\([^()]*\))*\)\.[\w\u00A2-\uFFFF]*$/,
+    /\w+\.(?:lookupRecords|lookupOne)\((?:[^()]|\([^()]*\))*,\s*$/,
+    /\w+\.(?:lookupRecords|lookupOne)\([\w.$\u00A2-\uFFFF]*$/,
+    /[\w.$\u00A2-\uFFFF]+$/,
+  ].map(r => r.source).join("|"));
 
   // Monkey-patch getCompletionPrefix. This is based on the source code in
   // node_modules/ace-builds/src-noconflict/ext-language_tools.js, simplified to do the one thing

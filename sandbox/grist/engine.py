@@ -3,6 +3,7 @@
 The data engine ties the code generated from the schema with the document data, and with
 dependency tracking.
 """
+import ast
 import itertools
 import logging
 import re
@@ -1427,26 +1428,51 @@ class Engine(object):
     """
     table = self.tables[table_id]
 
-    # Table.lookup methods are special to suggest arguments after '('
-    match = re.match(r"(\w+)\.(lookupRecords|lookupOne)\($", txt)
+    # Table.lookup methods are special to suggest arguments after '(' or after a comma, once
+    # at least one argument is already there.
+    match = re.match(r"(\w+)\.(lookupRecords|lookupOne)\(.*$", txt)
     if match:
-      # Get the 'Table1' in 'Table1.lookupRecords('
       lookup_table_id = match.group(1)
       if lookup_table_id in self.tables:
         lookup_table = self.tables[lookup_table_id]
-        # Add a keyword argument with no value for each column name in the lookup table.
+        used_kwargs = _get_used_lookup_kwargs(txt)
+        if used_kwargs is not None:
+          # Add a space after the comma, unless the user already typed one or there isn't one.
+          start = txt if txt.endswith(("(", " ")) else txt + " "
+          # order_by is a keyword argument like any column, not tied to a particular column.
+          arg_names = list(lookup_table.all_columns) + ['order_by']
+          result = [
+            (start + arg_name + "=", None)
+            for arg_name in arg_names
+            if (column.is_visible_column(arg_name) or arg_name in ('id', 'order_by'))
+            and arg_name not in used_kwargs
+          ]
+          # For the first argument, also add specific complete lookups involving reference
+          # columns, e.g. `address=$id)`.
+          if not used_kwargs:
+            result += [
+              (txt + option, None)
+              for option in lookup_autocomplete_options(lookup_table, table, reverse_only=False)
+            ]
+          return sorted(result)
+
+    # A completed `Table.lookupOne(...)` evaluates to a record, and `Table.lookupRecords(...)`
+    # to a RecordSet, whose fields give a list of values instead of a single one. Either way the
+    # field names are the columns of the looked up table, so suggest those after the dot.
+    # rlcompleter can't do this itself, as it never evaluates calls. One level of parens is
+    # allowed inside the arguments (e.g. a function call). Keep in sync with the similar regex
+    # in AceEditorCompletions.ts.
+    match = re.match(r"(\w+)\.(?:lookupOne|lookupRecords)\((?:[^()]|\([^()]*\))*\)\.(\w*)$", txt)
+    if match:
+      lookup_table_id, prefix = match.group(1), match.group(2)
+      if lookup_table_id in self.tables:
+        lookup_table = self.tables[lookup_table_id]
+        start = txt[:len(txt) - len(prefix)]
         result = [
-          txt + col_id + "="
+          (start + col_id, None)
           for col_id in lookup_table.all_columns
-          if column.is_visible_column(col_id) or col_id == 'id'
+          if (column.is_visible_column(col_id) or col_id == 'id') and col_id.startswith(prefix)
         ]
-        # Add specific complete lookups involving reference columns.
-        result += [
-          txt + option
-          for option in lookup_autocomplete_options(lookup_table, table, reverse_only=False)
-        ]
-        # Add a dummy empty example value for each result to produce the correct shape.
-        result = [(r, None) for r in result]
         return sorted(result)
 
     # replace $ with rec. and add a dummy rec object
@@ -1541,6 +1567,26 @@ class Engine(object):
       del self.out_actions.direct[len_stored:]
       del self.out_actions.undo[len_undo:]
       del self.out_actions.retValues[len_ret:]
+
+
+def _get_used_lookup_kwargs(txt):
+  """
+  `txt` is a `Table.lookupOne(...)` or `Table.lookupRecords(...)` call, still open, e.g.
+  `Table.lookupOne(` or `Table.lookupOne(A=1, `. Returns the list of keyword argument names
+  already used (empty if none yet), or None if `txt` isn't parseable as such a call, or if the
+  last argument is an unfinished name rather than a complete `key=value` pair.
+  """
+  tweaked = DOLLAR_REGEX.sub('rec.', txt).rstrip()
+  if tweaked.endswith(','):
+    tweaked = tweaked[:-1]
+  try:
+    tree = ast.parse(tweaked + ')', mode='eval')
+  except SyntaxError:
+    return None
+  call = tree.body
+  if not isinstance(call, ast.Call) or call.args:
+    return None
+  return [kw.arg for kw in call.keywords if kw.arg]
 
 
 # end
