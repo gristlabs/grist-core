@@ -1,4 +1,4 @@
-import { ApplyUAResult, ForkResult, FormulaTimingInfo,
+import { ApplyProposalResponse, ApplyUAResult, ForkResult, FormulaTimingInfo,
   PermissionDataWithExtraUsers, QueryFilters, TimingStatus } from "app/common/ActiveDocAPI";
 import { AssistanceRequest, AssistanceResponse } from "app/common/Assistance";
 import { BaseAPI, IOptions, UploadProgressCallbacks } from "app/common/BaseAPI";
@@ -727,7 +727,7 @@ export interface DocAPI {
   getProposals(options?: {
     outgoing?: boolean
   }): Promise<{ proposals: Proposal[] }>;
-  applyProposal(proposalId: number): Promise<Proposal>;
+  applyProposal(proposalId: number): Promise<ApplyProposalResponse>;
 
   applyUserActions(actions: UserAction[]): Promise<ApplyUAResult>;
 }
@@ -1558,7 +1558,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
-  public async applyProposal(proposalId: number) {
+  public async applyProposal(proposalId: number): Promise<ApplyProposalResponse> {
     return this.requestJson(`${this._url}/proposals/${proposalId}/apply`, {
       method: "POST",
     });
