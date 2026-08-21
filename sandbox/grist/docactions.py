@@ -7,6 +7,22 @@ from objtypes import strict_equal
 log = logging.getLogger(__name__)
 
 class DocActions(object):
+  # Each method here appends to out_actions.undo the inverse action(s) of the
+  # doc action it applies (e.g. RemoveColumn restores the column's data with a
+  # BulkUpdateRecord, then re-adds it with an AddColumn). The server's action
+  # summarizer relies on the exact shape of those inverses: app/common/
+  # ActionLayout.ts `expectedInverses` is a hand-kept catalogue of what each
+  # action emits here, used to split a bundle into summarizable chunks. If you
+  # change which inverse actions a method emits, or their order, update
+  # expectedInverses to match -- test/server/lib/ActionSummaryFuzz.ts checks the
+  # two stay in agreement.
+  #
+  # For freshly-applied bundles the engine also records which stored action
+  # produced each undo (out_actions.undo_owner, populated in useractions and
+  # action_summary), and the summarizer prefers that exact correspondence
+  # (chunkByOwners) over inferring it. The expectedInverses catalogue remains the
+  # fallback for any bundle without that record: all history from before undo_owner
+  # was added (a common case, not a relic), plus engine-less bundles.
   def __init__(self, engine):
     self._engine = engine
 
