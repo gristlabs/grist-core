@@ -114,8 +114,8 @@ export function viewSectionMenu(
         makeSortPanel(viewSection, gristDoc),
         // Filter section.
         makeFilterPanel(viewSection),
-        // Widget options
-        dom.maybe(use => use(viewSection.parentKey) === "custom", () =>
+        // Widget options.
+        dom.maybe(use => use(viewSection.effectiveWidgetType) === "custom", () =>
           makeCustomOptions(viewSection),
         ),
         // [Save] [Revert] buttons
