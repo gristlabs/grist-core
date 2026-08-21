@@ -88,10 +88,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        type: "asset/resource",
-        // Emit hashed asset files into a subfolder that is gitignored, so build outputs
-        // don't get committed by accident (the default emits them at the static/ root).
-        generator: { filename: "assets/[hash][ext]" }
+        type: "asset/resource"
       }
     ]
   },

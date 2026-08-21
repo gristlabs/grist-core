@@ -26,22 +26,9 @@ export const CALENDAR_NAME = "standardCalendar";
 // (which adds timezone helpers). Their shared methods are what the code here relies on.
 export type CalendarDate = Date | TZDate;
 
-// Shared by every calendar section on the page, so it is never cleared: clearing it when one
-// section goes away would break the others.
-let _TZDate: ((date: CalendarDate) => TZDate) | null = null;
-
-export function setTZDate(make: (date: CalendarDate) => TZDate) {
-  _TZDate = make;
-}
-
-/**
- * Wraps a date in TUI's TZDate, which adds the timezone helpers a plain Date lacks. Throws when no
- * calendar has loaded yet, rather than returning a wrong date.
- */
-export function tzDate(date: CalendarDate): TZDate {
-  if (!_TZDate) { throw new Error("Toast UI Calendar is not loaded"); }
-  return _TZDate(date);
-}
+// Wraps a date in TUI's TZDate, which adds the timezone helpers a plain Date lacks. Only a loaded
+// calendar can build one, so it is passed in rather than reached for.
+export type MakeTZDate = (date: CalendarDate) => TZDate;
 
 /**
  * The date columns of one row. Kept separate from CalendarRecord so the index can read three
@@ -72,9 +59,9 @@ export class EventRange {
   public readonly end: CalendarDate;
   public readonly isAllDay: boolean;
 
-  constructor(record: CalendarDates, ctx: EventContext) {
-    const start = adjust(record.startDate, ctx.startType, ctx.docTz);
-    let end = record.endDate ? adjust(record.endDate, ctx.endType, ctx.docTz) : start;
+  constructor(record: CalendarDates, ctx: EventContext, tzDate: MakeTZDate) {
+    const start = adjust(record.startDate, ctx.startType, ctx.docTz, tzDate);
+    let end = record.endDate ? adjust(record.endDate, ctx.endType, ctx.docTz, tzDate) : start;
 
     // Normalize invalid ranges so the event is still visible.
     if (end.valueOf() < start.valueOf()) { end = start; }
@@ -158,7 +145,9 @@ export function buildEvent(
  * a pure type ("Date" or "DateTime"), not a raw one: a stored DateTime type carries its timezone,
  * as in "DateTime:America/New_York", and would not compare equal.
  */
-function adjust(date: CalendarDate, pureType: string, docTz: string): CalendarDate {
+function adjust(
+  date: CalendarDate, pureType: string, docTz: string, tzDate: MakeTZDate,
+): CalendarDate {
   // `timezone` exists on TZDate (untyped) but not on plain Date, and we call this with both.
   const dateTz = (date as { timezone?: string }).timezone;
   if (docTz && docTz !== dateTz && pureType === "DateTime") {
@@ -222,7 +211,9 @@ export type ReadDates = (rowId: number) => CalendarDates | null;
 export class CalendarSource extends RowListener implements RowSource {
   private _ranges = new Map<number, EventRange>();
 
-  constructor(private _readDates: ReadDates, private _ctx: EventContext) {
+  constructor(
+    private _readDates: ReadDates, private _ctx: EventContext, private _tzDate: MakeTZDate,
+  ) {
     super();
   }
 
@@ -291,7 +282,7 @@ export class CalendarSource extends RowListener implements RowSource {
     if (typeof rowId !== "number") { return false; }
     const dates = this._readDates(rowId);
     if (!dates) { return false; }
-    this._ranges.set(rowId, new EventRange(dates, this._ctx));
+    this._ranges.set(rowId, new EventRange(dates, this._ctx, this._tzDate));
     return true;
   }
 }
@@ -320,7 +311,7 @@ export class CalendarRenderer extends RowListener {
   // The rows currently on the grid. A filter change reports its removals and its additions as two
   // separate passes, so a redraw during the first pass cannot see the second; remembering what was
   // drawn lets the next pass compare instead of guess.
-  private _drawnRowIds = new Set<number>();
+  private _drawnEventIds = new Set<number>();
 
   constructor(
     private _cal: CalendarWrapper,
@@ -336,7 +327,7 @@ export class CalendarRenderer extends RowListener {
     // Skip anything a previous redraw already put on the grid, so the 'add' that follows a bulk
     // removal costs nothing when it brings no news.
     const fresh = [...rows].filter((rowId): rowId is number =>
-      typeof rowId === "number" && !this._drawnRowIds.has(rowId));
+      typeof rowId === "number" && !this._drawnEventIds.has(rowId));
     if (!fresh.length) { return; }
     // With a cap in force a new event can displace one already drawn, or fall behind the cap
     // itself, so what belongs on the grid is a property of the whole day and not of the new row.
@@ -352,7 +343,7 @@ export class CalendarRenderer extends RowListener {
       const event = this._build(rowId, range);
       if (sameEvent(this._cal.getEvent(rowId), event)) { continue; }
       this._cal.updateEvent(rowId, event);
-      this._drawnRowIds.add(rowId);
+      this._drawnEventIds.add(rowId);
     }
   }
 
@@ -369,14 +360,14 @@ export class CalendarRenderer extends RowListener {
     } else {
       for (const rowId of rowIds) {
         this._cal.deleteEvent(rowId);
-        this._drawnRowIds.delete(rowId);
+        this._drawnEventIds.delete(rowId);
       }
     }
   }
 
   private _redrawAll() {
     this._cal.clearEvents();
-    this._drawnRowIds.clear();
+    this._drawnEventIds.clear();
     this._drawRows(this._visible.getAllRows());
   }
 
@@ -384,7 +375,7 @@ export class CalendarRenderer extends RowListener {
     const { events, hiddenPerDay } = this._selectEvents(rows);
     // One call for the batch, so TUI re-renders once however many events entered the view.
     if (events.length) { this._cal.createEvents(events); }
-    for (const event of events) { this._drawnRowIds.add(Number(event.id)); }
+    for (const event of events) { this._drawnEventIds.add(Number(event.id)); }
     this._cal.setHiddenCounts(hiddenPerDay);
   }
 

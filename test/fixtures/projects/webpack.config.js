@@ -68,14 +68,6 @@ module.exports = {
       { test: /\.js$/,
         use: ["source-map-loader"],
         enforce: "pre"
-      },
-      {
-        // Needed by lazily-imported client code that pulls in a stylesheet (e.g. the Toast UI
-        // Calendar CSS in app/client/lib/imports.js). Without a rule for .css, webpack tries to
-        // parse it as JavaScript and the whole projects bundle fails to compile.
-        test: /\.css$/,
-        type: "asset/resource",
-        generator: { filename: "build/assets/[hash][ext]" }
       }
     ]
   },
