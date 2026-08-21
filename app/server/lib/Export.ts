@@ -54,6 +54,12 @@ export class ActiveDocSourceDirect implements ActiveDocSource {
 export interface ExportColumn {
   id: number;
   colId: string;
+  /**
+   * The colId of the underlying visible column, as opposed to `colId` which may refer to a
+   * helper display column (e.g. for Reference columns). Used for the `header=colId` export option,
+   * so that exported headers name the field the user configured rather than an internal helper column.
+   */
+  rawColId: string;
   label: string;
   type: string;
   formatter: BaseFormatter;
@@ -233,6 +239,7 @@ export async function doExportTable(
       return {
         id: displayCol.id,
         colId: displayCol.colId,
+        rawColId: tc.colId,
         label: tc.label,
         type: tc.type,
         formatter: createFullFormatterFromDocData(docData, tc.id),
@@ -321,6 +328,7 @@ export async function doExportSection(
     return {
       id: displayCol.id,
       colId: displayCol.colId,
+      rawColId: col.colId,
       label: col.label,
       type: col.type,
       formatter: createFullFormatterFromDocData(docData, col.id, field?.id),
