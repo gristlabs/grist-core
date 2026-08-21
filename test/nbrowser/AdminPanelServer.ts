@@ -300,4 +300,30 @@ describe("AdminPanelServer", function() {
       });
     });
   });
+
+  describe("with the Community edition forced by an env variable", function() {
+    before(async function() {
+      process.env.GRIST_SERVER_EDITION = "community";
+      await server.restart();
+      await gu.session().personalSite.login();
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+    });
+
+    after(async function() {
+      delete process.env.GRIST_SERVER_EDITION;
+      await server.restart();
+    });
+
+    it("should say the edition comes from the environment", async function() {
+      const section = await driver.findWait(".test-edition-section", 3000);
+      assert.match(await section.getText(), /set via environment variable/);
+    });
+
+    it("should not offer to switch edition or activate", async function() {
+      assert.isFalse(await driver.find(".test-edition-switch-to-full").isPresent());
+      assert.isFalse(await driver.find(".test-edition-downgrade").isPresent());
+      assert.isFalse(await driver.find(".test-toggle-enterprise-enterprise-opt-in-section").isPresent());
+    });
+  });
 });
