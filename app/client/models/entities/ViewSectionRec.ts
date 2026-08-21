@@ -309,7 +309,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // True for both legacy shapes of the retired calendar custom widget: the old attached widget
   // ("custom.calendar") and a plain "custom" section pointing at it. Both are rendered with the
   // native calendar (see ViewLayout).
-  isLegacyCalendarWidget: ko.Computed<boolean>;
+  isLegacyCustomCalendarWidget: ko.Computed<boolean>;
   // The widget type to treat this section as - allows newer widgets to replace legacy ones
   // but keep the same parentKey on disk (e.g. custom.calendar).
   // Use this rather than parentKey for anything user-facing.
@@ -523,7 +523,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     renderAfterReady: customDefObj.prop("renderAfterReady"),
   };
 
-  this.isLegacyCalendarWidget = ko.pureComputed(() => {
+  this.isLegacyCustomCalendarWidget = ko.pureComputed(() => {
     const key = this.parentKey();
     return key === "custom.calendar" || (key === "custom" && isLegacyCalendarCustomDef({
       widgetId: this.customDef.widgetId(),
@@ -532,7 +532,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   });
 
   this.effectiveWidgetType = ko.pureComputed<IWidgetType>(() => {
-    if (this.isLegacyCalendarWidget()) { return WidgetType.Calendar; }
+    if (this.isLegacyCustomCalendarWidget()) { return WidgetType.Calendar; }
     return this.parentKey() as IWidgetType;
   });
 

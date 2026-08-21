@@ -299,7 +299,7 @@ export class CalendarView extends BaseView implements CalendarHost {
       type: type ? asChoice(type.get(rowId)) : "",
     });
 
-    const source = CalendarSource.create(this._indexingSource, readDates, ctx);
+    const source = CalendarSource.create(this._indexingSource, readDates, ctx, d => cal.tzDate(d));
     const visible = FilteredRowSource.create(this._visibleSource, inRange(source, cal));
     // The renderer is owned by the set it draws: the two have the same lifetime.
     CalendarRenderer.create(visible, cal, source, visible, readRecord, ctx).subscribeTo(visible);

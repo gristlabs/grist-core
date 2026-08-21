@@ -31,26 +31,16 @@ exports.loadAce = () => import("ace-builds")
 exports.loadEmojiPicker = () => import("app/client/ui/EmojiPicker" /* webpackChunkName: "emojipicker" */);
 exports.loadMomentTimezone = () => import("moment-timezone").then(m => m.default);
 exports.loadPlotly = () => import("plotly.js-basic-dist" /* webpackChunkName: "plotly" */);
-// Toast UI Calendar, used by the native CalendarView. The .css import resolves (via webpack's
-// asset/resource) to a URL; we inject it once as a <link> here so views don't have to deal with
-// dedup / FOUC. The whole loader is memoized so concurrent mounts share the same in-flight
-// promise (no double <link>, no race).
+// Toast UI Calendar, used by the native CalendarView. Its stylesheet is served from static/ (a
+// symlink into node_modules, as swagger-ui.css is) and loaded as a <link>, so it stays out of the
+// bundle. The whole loader is memoized so concurrent mounts share the same in-flight promise (no
+// double <link>, no race).
 let _toastUICalendarPromise = null;
 exports.loadToastUICalendar = () => {
   if (!_toastUICalendarPromise) {
     _toastUICalendarPromise = Promise.all([
       import("@toast-ui/calendar" /* webpackChunkName: "toastui-calendar" */),
-      import("@toast-ui/calendar/dist/toastui-calendar.min.css" /* webpackChunkName: "toastui-calendar" */)
-        .then((css) => new Promise((resolve, reject) => {
-          const href = css.default;
-          if (document.querySelector(`link[href="${href}"]`)) { return resolve(); }
-          const link = document.createElement("link");
-          link.rel = "stylesheet";
-          link.href = href;
-          link.onload = () => resolve();
-          link.onerror = reject;
-          document.head.appendChild(link);
-        })),
+      loadCss("toastui-calendar.min.css"),
     ]).then(([mod]) => ({Calendar: mod.default, TZDate: mod.TZDate}));
     // If loading fails (offline, chunk error), drop the memo so a later mount can retry instead of
     // being stuck with the rejected promise forever.
@@ -61,3 +51,19 @@ exports.loadToastUICalendar = () => {
 exports.loadSearch = () => import("app/client/ui2018/search" /* webpackChunkName: "search" */);
 exports.loadUserManager = () => import("app/client/ui/UserManager" /* webpackChunkName: "usermanager" */);
 exports.loadViewPane = () => import("app/client/components/ViewPane" /* webpackChunkName: "viewpane" */);
+
+// Adds a stylesheet from static/ once, and resolves when the browser has applied it. Reusing an
+// existing <link> matters because a failed load leaves no memo to stop a second attempt.
+function loadCss(fileName) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`link[data-grist-css="${fileName}"]`);
+    if (existing) { return resolve(); }
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = fileName;
+    link.dataset.gristCss = fileName;
+    link.onload = () => resolve();
+    link.onerror = () => reject(new Error(`Failed to load ${fileName}`));
+    document.head.appendChild(link);
+  });
+}
