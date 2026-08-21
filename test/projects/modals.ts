@@ -80,6 +80,26 @@ describe("modals", function() {
     assert.match(await driver.find(".testui-confirm-modal-text").getText(), /Confirmed/);
   });
 
+  it("should answer Enter with Cancel when told to", async function() {
+    await driver.find(".testui-cancel-default-modal-opener").click();
+    await checkOpen();
+    await driver.sendKeys(Key.ENTER);
+    await checkClosed();
+    assert.equal(await driver.find(".testui-cancel-default-modal-text").getText(), "Modal Cancelled");
+
+    // Button order is unchanged; only the styling swaps.
+    await driver.find(".testui-cancel-default-modal-opener").click();
+    await checkOpen();
+    assert.deepEqual(await driver.findAll(".test-modal-dialog button", el => el.getText()),
+      ["OK", "Cancel"]);
+    assert.include(await driver.find(".test-modal-cancel").getAttribute("class"), "-primary");
+    assert.include(await driver.find(".test-modal-confirm").getAttribute("class"), "-danger");
+    // Clicking the action still confirms.
+    await driver.find(".test-modal-confirm").click();
+    await checkClosed();
+    assert.equal(await driver.find(".testui-cancel-default-modal-text").getText(), "Modal Confirmed");
+  });
+
   it("should dispose on close", async function() {
     assert.match(await driver.find(".testui-custom-modal-text").getText(), /Closed/);
     await checkClosed();

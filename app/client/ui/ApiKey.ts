@@ -122,6 +122,7 @@ make API calls for your own account."), testId("description")),
           "You're about to delete an API key. This will cause all future requests \
 using this API key to be rejected. Do you still want to delete?",
         ),
+        defaultCancel: true,
       },
     );
   }

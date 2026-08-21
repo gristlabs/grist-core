@@ -11,6 +11,7 @@ import { Computed, Observable, observable } from "grainjs";
 function setupTest() {
   KeyboardFocusHighlighter.create(null);
   const confirmed = observable(false);
+  const cancelDefaultOutcome = observable("");
   const isOpen = observable(false);
   const isSaveModalOpen = observable(false);
   const testId = makeTestId("testui-");
@@ -30,6 +31,24 @@ function setupTest() {
       ),
       dom("span", " Modal ", dom.text(use => use(confirmed) ? "Confirmed" : "Cancelled"),
         testId("confirm-modal-text"),
+      ),
+    ),
+    dom("div",
+      primaryButton("Confirmation modal defaulting to cancel",
+        dom.on("click", () => {
+          cancelDefaultOutcome.set("");
+          confirmModal("Cancel-by-default header", "OK",
+            async () => cancelDefaultOutcome.set("Confirmed"),
+            {
+              explanation: "Cancel-by-default body",
+              defaultCancel: true,
+              modalOptions: { onCancel: () => cancelDefaultOutcome.set("Cancelled") },
+            });
+        }),
+        testId("cancel-default-modal-opener"),
+      ),
+      dom("span", " Modal ", dom.text(cancelDefaultOutcome),
+        testId("cancel-default-modal-text"),
       ),
     ),
     dom("div",
