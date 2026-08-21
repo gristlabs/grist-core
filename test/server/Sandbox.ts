@@ -270,7 +270,9 @@ describe("Sandbox", function() {
       const mainPyPath = getSandboxPaths(sandboxRoot, "main.py");
       const sandboxContent = await sandbox.pyCall("test_read_file", mainPyPath.sandbox);
       const hostContent = fs.readFileSync(mainPyPath.host, "utf8");
-      assert.equal(sandboxContent, hostContent);
+      // The sandbox reads via python's text mode, which normalizes newlines, while
+      // node reports what is on disk - and git checks files out with CRLF on windows.
+      assert.equal(sandboxContent, hostContent.replace(/\r\n/g, "\n"));
       assert.isAbove(sandboxContent.length, 10);
 
       // Try to add a file using os.system.
@@ -315,7 +317,7 @@ describe("Sandbox", function() {
       try {
         let sandboxContent = "";
         try {
-          sandboxContent = await sandbox.pyCall("test_read_file", path.join("/tmp", fname));
+          sandboxContent = await sandbox.pyCall("test_read_file", path.posix.join("/tmp", fname));
         } catch (e) {
           // File not found or PermissionError is acceptable.
           if (!String(e).match(/FileNotFoundError/) &&
@@ -370,7 +372,7 @@ return 'done'
       }
       try {
         const sandboxRoot = await sandbox.pyCall("test_get_sandbox_root");
-        const mainFile = path.join(sandboxRoot, "main.py");
+        const mainFile = path.posix.join(sandboxRoot, "main.py");
 
         // pyodide works on a copy of the original files
         await sandbox.pyCall("test_write_file", mainFile, "# A rambunctious little edit");
@@ -397,7 +399,7 @@ return 'done'
         this.skip();
       }
       const sandboxRoot = await sandbox.pyCall("test_get_sandbox_root");
-      const mainFile = path.join(sandboxRoot, "main.py");
+      const mainFile = path.posix.join(sandboxRoot, "main.py");
 
       // gvisor mounts the sandbox files as read-only
       await assert.isRejected(
@@ -455,6 +457,9 @@ return 'done'
   });
 });
 
+// Paths inside a sandbox are posix paths whatever the host is, so join them
+// with path.posix. On Windows plain path.join yields backslashes, which the
+// sandbox reads as ordinary characters in a filename rather than separators.
 function getSubDirs(dir: string, root: string): string[] {
   // Walk directories but replace the root with the given root
   return [root, ...fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -462,14 +467,14 @@ function getSubDirs(dir: string, root: string): string[] {
       return [];
     }
     const full = path.join(dir, entry.name);
-    const mapped = path.join(root, entry.name);
+    const mapped = path.posix.join(root, entry.name);
     return getSubDirs(full, mapped);
   })];
 }
 
 function getSandboxPaths(sandboxRoot: string, fname: string) {
   return {
-    sandbox: path.join(sandboxRoot, fname),
+    sandbox: path.posix.join(sandboxRoot, fname),
     host: path.join(testUtils.appRoot, "sandbox/grist", fname),
   };
 }

@@ -21,7 +21,9 @@ fi
 
 EDITION="${GRIST_EDITION:-}"
 if [[ -z "$EDITION" && -e grist-edition ]]; then
-  EDITION="$(cat grist-edition)"
+  # Strip whitespace: set-community-edition writes this file with `echo >`, which
+  # under cmd (so, on Windows) leaves a trailing space and CRLF.
+  EDITION="$(tr -d '[:space:]' < grist-edition)"
 fi
 if [[ -z "$EDITION" ]]; then
   echo "+ No edition selected; defaulting to full edition."

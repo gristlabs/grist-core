@@ -5,6 +5,7 @@ import { getLogMeta } from "app/server/lib/sessionUtils";
 import { OpenMode, SQLiteDB } from "app/server/lib/SQLiteDB";
 
 import { ChildProcess } from "child_process";
+import * as fs from "fs";
 import * as net from "net";
 import * as path from "path";
 
@@ -83,6 +84,23 @@ export function isPathWithin(outer: string, inner: string): boolean {
   const index = rel.indexOf(path.sep);
   const firstDir = index < 0 ? rel : rel.slice(0, index);
   return firstDir !== "..";
+}
+
+/**
+ * Resolve a path to the spelling the OS itself treats as canonical.
+ * Throws if the path does not exist.
+ *
+ * On Linux and macOS this resolves symlinks and does nothing further, which is
+ * all fs.realpath does too. Windows has two more: 8.3 short names
+ * (C:\Users\CHIMP~1\...) and arbitrary casing.
+ *
+ * fs.realpath.native used instead of fs.realpath since, because of sandboxing,
+ * it is important to be consistent with tools outside of node.
+ *
+ * Needed for Deno/Pyodide Windows setup.
+ */
+export function canonicalPath(target: string): Promise<string> {
+  return fromCallback(cb => fs.realpath.native(target, cb));
 }
 
 /**

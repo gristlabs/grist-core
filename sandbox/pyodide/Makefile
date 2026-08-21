@@ -31,6 +31,10 @@ clean_code:
 	rm -rf _build/worker # old path
 	rm -rf _build/pyodide
 
+# Run setup.sh through bash rather than directly: on Windows make falls back to
+# cmd, which cannot execute a .sh, but can run bash - the same reason the
+# fetch_packages recipe below is fine as it is.
+#   https://github.com/actions/runner-images/issues/7253
 setup:
-	./setup.sh
+	bash ./setup.sh
 	make fetch_packages
