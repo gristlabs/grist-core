@@ -181,7 +181,11 @@ function adjust(date: CalendarDate, pureType: string, docTz: string): CalendarDa
  */
 export function makeGristDateTime(date: TZDate, pureType: string, docTz: string): number {
   let unixTime = Math.floor(date.valueOf() / 1000);
-  // getTimezoneOffset has the opposite sign to what a tz-tagged TZDate returns.
+  // This function receives a TZDate that isn't tagged with a timezone, so getTimezoneOffset()
+  // falls through to TZDate's internal Date object implementation. If the TZDate was tagged with a
+  // timezone, getTimezoneOffset() would return TZDate's internal offset variable, which uses the
+  // opposite sign (e.g. 180 and -180). We assume here it's untagged. If this assumption changes,
+  // timezone handling will break.
   const localOffsetMin = -date.getTimezoneOffset();
   const docOffsetMin = !docTz ? localOffsetMin : date.tz(docTz).getTimezoneOffset();
   if (isDateOnlyType(pureType)) {
