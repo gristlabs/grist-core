@@ -24,6 +24,9 @@ import { PasteData } from "app/client/lib/tableUtil";
 import * as tableUtil from "app/client/lib/tableUtil";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import { NEW_FILTER_JSON } from "app/client/models/ColumnFilter";
+import {
+  ColumnReferenceEntry, fetchColumnReferences, revealColumnReferences,
+} from "app/client/models/ColumnReferences";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { isSyntheticRowId } from "app/client/models/DataTableModelWithDiff";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -48,8 +51,10 @@ import { applyRowHeightLimit } from "app/client/ui/RowHeightConfig";
 import { rowNumbersMenu } from "app/client/ui/RowNumbersMenu";
 import { formatForScreenReader } from "app/client/ui/ScreenReaderFormatters";
 import { ITooltipControl, showTooltip } from "app/client/ui/tooltips";
+import { bigBasicButton } from "app/client/ui2018/buttons";
 import { isNarrowScreen, testId } from "app/client/ui2018/cssVars";
 import { closeRegisteredMenu, menu } from "app/client/ui2018/menus";
+import { saveModal } from "app/client/ui2018/modals";
 import BinaryIndexedTree from "app/common/BinaryIndexedTree";
 import { BulkColValues, CellValue, UserAction } from "app/common/DocActions";
 import { isList } from "app/common/gristTypes";
@@ -1176,7 +1181,7 @@ export default class GridView extends BaseView {
   }
 
   // TODO: Replace alerts with custom notifications
-  protected deleteColumns(selection: CopySelection) {
+  protected deleteColumns(selection: CopySelection): Promise<boolean> {
     const fields = selection.fields;
     if (fields.length === this.viewSection.viewFields().peekLength) {
       reportWarning("You can't delete all the columns on the grid.", {
@@ -1186,14 +1191,58 @@ export default class GridView extends BaseView {
     }
     const columns = fields.filter(col => !col.disableModify());
     const colRefs = columns.map(col => col.colRef.peek());
-    if (colRefs.length > 0) {
-      return this.gristDoc.docData.sendAction(
+    if (colRefs.length === 0) {
+      return Promise.resolve(false);
+    }
+    return this._confirmColumnDeletionIfReferenced(columns).then(async (confirmed): Promise<boolean> => {
+      if (!confirmed) { return false; }
+      await this.gristDoc.docData.sendAction(
         ["BulkRemoveRecord", "_grist_Tables_column", colRefs],
         `Removed columns ${columns.map(col => col.colId.peek()).join(", ")} ` +
         `from ${this.tableModel.tableData.tableId}.`,
-      ).then(() => this.clearSelection());
+      );
+      this.clearSelection();
+      return true;
+    });
+  }
+
+  // If any of the given columns are referenced by formulas elsewhere in the document, asks the
+  // user to confirm the deletion, listing what references them. Resolves to whether to proceed.
+  private async _confirmColumnDeletionIfReferenced(columns: ViewFieldRec[]): Promise<boolean> {
+    const tableId = this.tableModel.tableData.tableId;
+    const referencesByColId = new Map<string, ColumnReferenceEntry[]>();
+    await Promise.all(columns.map(async (col) => {
+      const colId = col.colId.peek();
+      referencesByColId.set(colId, await fetchColumnReferences(this.gristDoc, tableId, colId));
+    }));
+    const referencedColumns = columns.filter(col => (referencesByColId.get(col.colId.peek()) || []).length > 0);
+    if (referencedColumns.length === 0) {
+      return true;
     }
-    return Promise.resolve(false);
+    return new Promise<boolean>((resolve) => {
+      saveModal(ctl => ({
+        title: t("Delete column referenced by other formulas?", { count: referencedColumns.length }),
+        body: referencedColumns.map(col => dom("div",
+          t("{{colId}} is referenced by: {{references}}.", {
+            colId: col.colId.peek(),
+            references: (referencesByColId.get(col.colId.peek()) || [])
+              .map(e => `${e.tableLabel}.${e.colLabel}`).join(", "),
+          }),
+        )),
+        saveLabel: t("Delete"),
+        saveFunc: async () => { resolve(true); },
+        extraButtons: bigBasicButton(
+          t("Show references"),
+          dom.on("click", () => {
+            ctl.close();
+            resolve(false);
+            const target = referencedColumns[0];
+            revealColumnReferences(this.gristDoc, tableId, target.colId.peek()).catch(reportError);
+          }),
+          testId("modal-show-references"),
+        ),
+      }), { onCancel: () => resolve(false) });
+    });
   }
 
   protected hideFields(selection: CopySelection) {

@@ -1514,6 +1514,30 @@ class Engine(object):
     results.sort(key=lambda r: r[0][0] if type(r[0]) == tuple else r[0])
     return results
 
+  def find_col_dependents(self, table_id, col_id):
+    """
+    Returns a list of {tableId, colId} for every column whose formula statically references
+    the given column, based on the same name-resolution logic used to rewrite formulas on
+    rename (see useractions._prepare_formula_renames).
+    """
+    seen = set()
+    dependents = []
+    for (formula_info, _pos, ref_table_id, ref_col_id) in self.gencode.grist_names():
+      if (ref_table_id, ref_col_id) != (table_id, col_id):
+        continue
+      (dep_table_id, dep_col_id) = formula_info
+      if (dep_table_id, dep_col_id) == (table_id, col_id):
+        continue
+      # Skip internal helper columns (e.g. the "gristHelper_Display")
+      if not column.is_visible_column(dep_col_id):
+        continue
+      key = (dep_table_id, dep_col_id)
+      if key in seen:
+        continue
+      seen.add(key)
+      dependents.append({"tableId": dep_table_id, "colId": dep_col_id})
+    return dependents
+
   def _get_undo_checkpoint(self):
     """
     You may call _get_undo_checkpoint() and pass its result into _undo_to_checkpoint() to undo

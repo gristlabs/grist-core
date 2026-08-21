@@ -139,6 +139,7 @@ export class DocWorker {
       startBundleUserActions: method("editors", "startBundleUserActions"),
       stopBundleUserActions: method("editors", "stopBundleUserActions"),
       autocomplete: method("viewers", "autocomplete"),
+      findColDependents: method("viewers", "findColDependents"),
       fetchURL: method("viewers", "fetchURL"),
       getActionSummaries: method("viewers", "getActionSummaries"),
       reloadDoc: method("editors", "reloadDoc"),
