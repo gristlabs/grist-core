@@ -275,7 +275,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public static keepDocOpen(target: ActiveDoc, propertyKey: string, descriptor: PropertyDescriptor) {
     const origFunc = descriptor.value;
-    descriptor.value = function (this: ActiveDoc) {
+    descriptor.value = function(this: ActiveDoc) {
       const result = origFunc.apply(this, arguments);
       this._inactivityTimer.disableUntilFinish(timeoutReached(Deps.KEEP_DOC_OPEN_TIMEOUT_MS, result))
         .catch(() => { });
@@ -810,7 +810,7 @@ export class ActiveDoc extends EventEmitter {
     await this.loadDoc(docSession, {
       forceNew: true,
       skipInitialTable: true,
-      ...options
+      ...options,
     });
     // Makes sure docPluginManager is ready in case new doc is used to import new data
     await this.docPluginManager?.ready;
@@ -1701,9 +1701,9 @@ export class ActiveDoc extends EventEmitter {
     return this._applyUserActionsWithExtendedOptions(
       docSession, actions, {
         bestEffort: undo,
-      oldestSource,
-      fromOwnHistory, ...(options || {})
-    });
+        oldestSource,
+        fromOwnHistory, ...(options || {}),
+      });
   }
 
   /**
@@ -1915,7 +1915,7 @@ export class ActiveDoc extends EventEmitter {
     const permitStore = this._server.getPermitStore();
     const permitKey = await permitStore.setPermit({
       docId: forkIds.docId,
-      otherDocId: this.docName
+      otherDocId: this.docName,
     });
     try {
       const url = await this._server.getHomeUrlByDocId(
@@ -2088,7 +2088,7 @@ export class ActiveDoc extends EventEmitter {
       if (!isShared.has(email)) {
         result.attributeTableUsers.push({
           email: user.email, name: user.name || "",
-          id: 0, access: user.access === undefined ? "editors" : user.access
+          id: 0, access: user.access === undefined ? "editors" : user.access,
         });
       }
     }
@@ -2519,7 +2519,7 @@ export class ActiveDoc extends EventEmitter {
       // nothing seems best, as long as we follow the recommendations in migrations.py (never
       // remove/modify/rename metadata tables or columns, or change their meaning).
       this._log.warn(docSession, "Doc is newer (v%s) than this version of Grist (v%s); " +
-        "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
+      "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
     }
 
     if (!this._isSnapshot) {
@@ -3039,8 +3039,8 @@ export class ActiveDoc extends EventEmitter {
     // and DataEngine may still do things serially, but it allows them to be busy simultaneously.
     await bluebird.map(tableNames, async (tableName: string) =>
       this._pyCall("load_table", tableName, await this._fetchTableIfPresent(tableName)),
-      // How many tables to query for and push to the data engine in parallel.
-      { concurrency: 3 });
+    // How many tables to query for and push to the data engine in parallel.
+    { concurrency: 3 });
     return this;
   }
 
@@ -3693,7 +3693,7 @@ export class ActiveDoc extends EventEmitter {
           label: String(columnData.label?.[index] ?? ""),
           isFormula: Boolean(columnData.isFormula?.[index]),
           type: String(columnData.type?.[index] ?? ""),
-        }
+        },
       };
       const otherFieldNames = without(fieldNames, "label", "isFormula", "type");
       for (const key of otherFieldNames) {

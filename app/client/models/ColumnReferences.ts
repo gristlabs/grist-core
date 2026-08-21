@@ -48,7 +48,7 @@ export async function fetchColumnReferences(
 /**
  * Shows the given column: same-page columns move the cursor, columns on another page open as
  * an anchor-link popup so the user keeps their place.
- * 
+ *
  * Using only one approach for both cases is buggy.
  */
 export async function navigateToColumn(gristDoc: GristDoc, tableId: string, colId: string): Promise<void> {
