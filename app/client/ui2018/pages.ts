@@ -3,12 +3,15 @@ import { makeT } from "app/client/lib/localization";
 import { cssEditorInput } from "app/client/ui/HomeLeftPane";
 import { hoverTooltip, overflowTooltip } from "app/client/ui/tooltips";
 import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/TreeViewComponentCss";
+import { attachPageColorPicker, ColorOption } from "app/client/ui2018/ColorSelect";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu, menuDivider, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
 import { unstyledButton, unstyledLink } from "app/client/ui2018/unstyled";
 
-import { Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
+import {
+  Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled, subscribeElem,
+} from "grainjs";
 
 const t = makeT("pages");
 
@@ -26,11 +29,32 @@ export interface PageOptions {
   onCollapseByDefault: (value: boolean) => Promise<void>;
   hasSubPages: () => boolean;
   href: DomElementArg;
+  // A group is a lightweight organizational header with no table/section of
+  // its own: clicking it toggles collapse instead of navigating, and it
+  // shows a folder icon instead of a lettered initial. Reactive (not a
+  // plain boolean) because creating a group is two sequential actions
+  // (AddView, then a follow-up UpdateRecord tagging it) — the row can
+  // render once before the tag lands, and needs to update in place rather
+  // than staying stuck showing the pre-tag state.
+  isGroup: Computed<boolean>;
+  color: Observable<string | undefined>;
+  onSetColor: (value: string | undefined) => Promise<void>;
 }
 
 function isTargetSelected(target: HTMLElement) {
   const parentItemHeader = target.closest("." + itemHeader.className);
   return parentItemHeader ? parentItemHeader.classList.contains("selected") : false;
+}
+
+// Picks black or white, whichever is more readable against `hex`, using the
+// standard YIQ brightness formula. Used so a custom page color (e.g. white)
+// doesn't render its initial-letter/folder-icon invisible against itself.
+function getContrastTextColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? "#000000" : "#FFFFFF";
 }
 
 // build the dom for a document page entry. It shows an icon (for now the first letter of the name,
@@ -51,6 +75,9 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     onCollapseByDefault,
     hasSubPages,
     href,
+    isGroup,
+    color,
+    onSetColor,
   } = options;
   const isRenaming = observable(false);
   const pageMenu = () => [
@@ -66,7 +93,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
       dom.cls("disabled", use => use(isReadonly) || isRemoveDisabled()),
       testId("remove"),
     ),
-    menuItem(
+    isGroup.get() ? null : menuItem(
       onDuplicate,
       t("Duplicate page"),
       dom.cls("disabled", isReadonly),
@@ -123,6 +150,34 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
 
   const splitName = Computed.create(null, name, (use, _name) => splitPageInitial(_name));
 
+  // Tints the page's own initial-letter (or folder) box with its color
+  // instead of using a separate swatch button, and makes that box the
+  // click target to open the color picker.
+  const colorPickerArgs: DomElementArg[] = [
+    dom.style("background-color", use => use(color)?.slice(0, 7) || ""),
+    // Keep the letter/folder-icon readable against a custom background;
+    // "--icon-color" is what the folder icon's mask actually reads (icons
+    // are tinted via a CSS var, not the `color` property/currentColor).
+    dom.style("color", (use) => {
+      const c = use(color)?.slice(0, 7);
+      return c ? getContrastTextColor(c) : "";
+    }),
+    // Custom properties can't be set via dom.style (elem.style[prop] = val
+    // silently no-ops for "--" names); style.setProperty is required.
+    (elem: Element) => subscribeElem(elem, color, (val) => {
+      const c = val?.slice(0, 7);
+      (elem as HTMLElement).style.setProperty("--icon-color", c ? getContrastTextColor(c) : "");
+    }),
+    dom.on("click", (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+    // Prevent dragging to start when un-intentionally holding the mouse
+    // down on the initial box, same as the dots menu below.
+    dom.on("mousedown", ev => ev.stopPropagation()),
+    (elem: Element) => attachPageColorPicker(elem, {
+      color: new ColorOption({ color, allowsNone: true }),
+      onSave: async () => onSetColor(color.get()),
+    }),
+  ];
+
   return pageElem = dom(
     "div",
     dom.autoDispose(lis),
@@ -131,10 +186,18 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
       domComputed(isRenaming, isrenaming => (
         isrenaming ?
           cssPageItem(
-            cssPageInitial(
-              testId("initial"),
-              dom.text(use => use(splitName).initial),
-              cssPageInitial.cls("-emoji", use => use(splitName).hasEmoji),
+            domComputed(isGroup, isGroupNow => isGroupNow ?
+              cssPageInitial(
+                testId("initial"),
+                icon("Folder"),
+                colorPickerArgs,
+              ) :
+              cssPageInitial(
+                testId("initial"),
+                dom.text(use => use(splitName).initial),
+                cssPageInitial.cls("-emoji", use => use(splitName).hasEmoji),
+                colorPickerArgs,
+              ),
             ),
             cssEditorInput(
               {
@@ -151,19 +214,44 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
             // firefox.
           ) :
           cssPageItem(
-            cssPageLink(
-              testId("link"),
-              href,
-              cssPageInitial(
-                testId("initial"),
-                dom.text(use => use(splitName).initial),
-                cssPageInitial.cls("-emoji", use => use(splitName).hasEmoji),
-              ),
-              cssPageName(
-                dom.text(use => use(splitName).displayName),
-                testId("label"),
-                dom.on("click", ev => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
-                overflowTooltip(),
+            domComputed(isGroup, isGroupNow => isGroupNow ?
+              cssPageLink(
+                testId("link"),
+                // Navigate like a regular page so the group can become the
+                // selected/highlighted row (its view has no sections, so this
+                // just shows a blank pane -- but it's what makes the group
+                // clickable/renameable at all; see isTargetSelected below).
+                // Collapse/expand is handled separately by the tree's own
+                // arrow (see TreeViewComponent's itemArrow), not by clicking
+                // anywhere on the row.
+                href,
+                cssPageInitial(
+                  testId("initial"),
+                  icon("Folder"),
+                  colorPickerArgs,
+                ),
+                cssPageName(
+                  dom.text(use => use(splitName).displayName),
+                  testId("label"),
+                  dom.on("click", ev => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+                  overflowTooltip(),
+                ),
+              ) :
+              cssPageLink(
+                testId("link"),
+                href,
+                cssPageInitial(
+                  testId("initial"),
+                  dom.text(use => use(splitName).initial),
+                  cssPageInitial.cls("-emoji", use => use(splitName).hasEmoji),
+                  colorPickerArgs,
+                ),
+                cssPageName(
+                  dom.text(use => use(splitName).displayName),
+                  testId("label"),
+                  dom.on("click", ev => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+                  overflowTooltip(),
+                ),
               ),
             ),
             cssPageMenuTrigger(
@@ -267,7 +355,11 @@ const cssPageInitial = styled("div", `
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
 
+  &:hover {
+    box-shadow: 0 0 0 1px ${theme.controlFg};
+  }
   &-emoji {
     background-color: ${theme.pageInitialsEmojiBg};
     box-shadow: 0 0 0 1px ${theme.pageInitialsEmojiOutline};

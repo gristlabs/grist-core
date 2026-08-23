@@ -219,6 +219,7 @@ export interface GristDoc extends DisposableWithEvents {
   addEmptyTable(): Promise<void>;
   addWidgetToPage(widget: IPageWidget): Promise<void>;
   addNewPage(val: IPageWidget): Promise<void>;
+  addNewPageGroup(): Promise<void>;
   saveViewSection(section: ViewSectionRec, newVal: IPageWidget): Promise<ViewSectionRec>;
   saveLink(linkId: string, sectionId?: number): Promise<any>;
   selectBy(widget: IPageWidget): any[];
@@ -995,6 +996,23 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   }
 
   /**
+   * Creates a new lightweight group header in the Pages tree: a page with no
+   * table/section of its own, just a name and (optionally) a color, used to
+   * organize other pages/tables nested under it.
+   */
+  public async addNewPageGroup(): Promise<void> {
+    await this.docData.bundleActions("Add new group", async () => {
+      const view = await this.docData.sendAction(["AddView", "", "empty", "New Group"]);
+      const pageRec = Object.values(this.docModel.pages.rowModels)
+        .find(p => p && p.viewRef.peek() === view.id);
+      if (pageRec) {
+        await this.docData.sendAction(
+          ["UpdateRecord", "_grist_Pages", pageRec.id.peek(), { options: JSON.stringify({ isGroup: true }) }]);
+      }
+    });
+  }
+
+  /**
    * Sends an action to create a new empty table and switches to that table's primary view.
    */
   public async addEmptyTable(): Promise<void> {
@@ -1591,6 +1609,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       if (type === "chart") {
         await this._ensureOneNumericSeries(sectionRef!);
       }
+      await this._nestNewPageInSourceGroup(table, viewRef);
     }
     if (type === "form") {
       await this._setDefaultFormLayoutSpec(sectionRef!);
@@ -1605,6 +1624,57 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     if (focus) { await this._focus({ viewRef, sectionRef }); }
     if (popups) { this._showNewWidgetPopups(type); }
     return { viewRef, sectionRef };
+  }
+
+  /**
+   * If `sourceTable`'s own page sits directly under a group, nest the
+   * newly created page (`newViewId`) as a sibling within that same group
+   * instead of leaving it at the default (root-level) position. Only goes
+   * one level deep — a source page nested under a plain (non-group) page
+   * is left alone, to avoid inventing ad-hoc hierarchy beyond named groups.
+   * No-op if `sourceTable` isn't an existing-table reference (e.g. "New
+   * Table", or no table selected).
+   */
+  private async _nestNewPageInSourceGroup(
+    sourceTable: number | "New Table" | null, newViewId: number,
+  ): Promise<void> {
+    if (typeof sourceTable !== "number") { return; }
+    const sourceViewId = this.docModel.tables.getRowModel(sourceTable).primaryViewId.peek();
+    const placement = this._findGroupSiblingPosition(sourceViewId);
+    if (!placement) { return; }
+    const newPage = this.docModel.allPages.peek().find(p => p.viewRef.peek() === newViewId);
+    if (!newPage) { return; }
+    await this.docData.sendAction(["UpdateRecord", "_grist_Pages", newPage.id.peek(), placement]);
+  }
+
+  /**
+   * Returns where a new sibling page should be placed to land in the same
+   * group as `sourceViewId`'s page, or null if that page isn't nested
+   * directly under a group (top-level, or nested under a plain page).
+   */
+  private _findGroupSiblingPosition(sourceViewId: number): { indentation: number, pagePos: number } | null {
+    const pages = this.docModel.allPages.peek();
+    const sourcePage = pages.find(p => p.viewRef.peek() === sourceViewId);
+    if (!sourcePage) { return null; }
+    const indentation = sourcePage.indentation.peek();
+    if (indentation === 0) { return null; }
+
+    const idx = pages.indexOf(sourcePage);
+    const parent = pages.slice(0, idx).reverse().find(p => p.indentation.peek() < indentation);
+    if (!parent?.isGroup.get()) { return null; }
+
+    // Append after the group's last existing child at this indentation
+    // level (walk forward from the source page until indentation drops
+    // back to the group's own level, i.e. past the last sibling).
+    let pagePos = sourcePage.pagePos.peek();
+    for (let i = idx + 1; i < pages.length; i++) {
+      const p = pages[i];
+      if (p.indentation.peek() <= parent.indentation.peek()) { break; }
+      if (p.indentation.peek() === indentation) {
+        pagePos = p.pagePos.peek();
+      }
+    }
+    return { indentation, pagePos: pagePos + 1 };
   }
 
   private async _focus({ viewRef, sectionRef}: { viewRef?: number, sectionRef?: number }) {

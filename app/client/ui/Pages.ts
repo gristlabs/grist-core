@@ -99,6 +99,9 @@ function buildDomFromTable(
     onCollapseByDefault: value => pageRec.setAndSaveCollapsed(value),
     hasSubPages: () => item.children().get().length > 0,
     href: urlState().setLinkUrl({ docPage: viewId }),
+    isGroup: pageRec.isGroup,
+    color: pageRec.color,
+    onSetColor: value => pageRec.setAndSaveColor(value),
   };
 
   return buildPageDom(fromKo(pageName), options);
