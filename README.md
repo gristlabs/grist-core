@@ -136,11 +136,7 @@ Here is a list of features available in the full edition of Grist that are not i
   * [MCP server](https://support.getgrist.com/mcp/) (2026)
     - A built-in [Model Context Protocol](https://modelcontextprotocol.io/) endpoint that lets AI clients such as Claude or ChatGPT read and edit Grist documents over JSON-RPC. Enabled with `GRIST_MCP_ENABLED` (see [environment variables](#environment-variables)).
     - With `grist-core` you can still use one of the many community MCP servers that talks to Grist through its [REST API](https://support.getgrist.com/api/). The built-in server saves you that work.
-  * Single sign-on (SSO) via [OIDC](https://support.getgrist.com/install/oidc/) (🇫🇷) or [SAML](https://support.getgrist.com/install/saml/) (2026)
-    - Sign in with your own identity provider, such as Okta, Keycloak, Authentik, or Microsoft Entra ID.
-    - The code is open source, but we only stand behind it on the full edition, and turning on OIDC or SAML requires an activation key.
-    - For years, community members have told us that free enterprise SSO was surprisingly generous, and wouldn't it be better for Grist Labs to stay in business? We agree, but remain generous for individuals and small orgs ([free activation keys](https://www.getgrist.com/free-grist-activation-key-faq/) are available).
-    - Authentication options [Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-grist/) and [forward authentication](https://support.getgrist.com/install/forwarded-headers/) are available in all editions.
+  * Single sign-on (SSO) via [OIDC](https://support.getgrist.com/install/oidc/) or [SAML](https://support.getgrist.com/install/saml/) (2026)
 
 ## Using Grist
 
