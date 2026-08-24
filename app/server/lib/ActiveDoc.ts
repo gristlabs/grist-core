@@ -2663,19 +2663,8 @@ export class ActiveDoc extends EventEmitter {
       this._syncDocUsageToDatabase(true);
       await this._logDocMetrics(docSession, "docClose");
 
-      const closeSucceeded = await safeCallAndWait("storageManager.closeDocument",
+      await safeCallAndWait("storageManager.closeDocument",
         () => this._docManager.storageManager.closeDocument(this.docName));
-
-      // Only release if closeDocument completed: releasing while the flush is still in flight
-      // (timed out) or failed would let another worker reopen a stale/incomplete copy.
-      if (closeSucceeded) {
-        await safeCallAndWait("cleanupAfterClose", () => {
-          return this._docManager.storageManager.cleanupAfterClose(this.docName);
-        });
-      } else {
-        this._log.warn(docSession,
-          "skipping cleanupAfterClose because storageManager.closeDocument did not complete");
-      }
 
       try {
         const dataEngine = this._dataEngine ? await this._getEngine() : null;

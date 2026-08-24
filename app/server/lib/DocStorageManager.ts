@@ -208,10 +208,6 @@ export class DocStorageManager implements IDocStorageManager {
     // nothing to do
   }
 
-  public async cleanupAfterClose(docName: string) {
-    // nothing to do
-  }
-
   public markAsChanged(docName: string): void {
     // nothing to do
   }
