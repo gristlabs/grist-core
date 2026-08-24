@@ -1,6 +1,5 @@
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { isAffirmative } from "app/common/gutil";
-import * as version from "app/common/version";
 import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import log from "app/server/lib/log";
 import { checkPermitKey, formatPermitKey, IPermitStore, Permit } from "app/server/lib/Permit";
@@ -178,29 +177,22 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  *   doc-${docId}-checksum - the docs docMD5, or 'null' if docMD5 is null
  *   doc-${docId}-group - if set, marks the doc as to be served by workers in a given group
  *   workers-lock - a lock used when working with the list of workers
- *   groups - a hash from groupIds (arbitrary strings) to desired number of workers in group
- *   elections-${deployment} - a hash, from groupId to a (serialized json) list of worker ids
  *
  * Assignments of documents to workers can end abruptly at any time.  Clients
  * should be prepared to retry if a worker is not responding or denies that a document
  * is assigned to it.
  *
- * If the groups key is set, workers assign themselves to groupIds to
- * fill the counts specified in groups (in order of groupIds), and
- * once those are exhausted, get assigned to the special group
- * "default".
+ * A worker serves a particular group when it is told to, with GRIST_WORKER_GROUP, and otherwise
+ * serves the group called "default".
  */
 export class DocWorkerMap implements IDocWorkerMap {
   private _client: RedisClient;
   private _clients: RedisClient[];
   private _redlock: Redlock;
 
-  // Optional deploymentKey argument supplies a key unique to the deployment (this is important
-  // for maintaining groups across redeployments only)
-  constructor(_clients?: RedisClient[], private _deploymentKey?: string, private _options?: {
+  constructor(_clients?: RedisClient[], private _options?: {
     permitMsec?: number
   }) {
-    this._deploymentKey = this._deploymentKey || version.version;
     this._clients = _clients || [createClient(process.env.REDIS_URL)];
     this._redlock = new Redlock(this._clients);
     this._client = this._clients[0]!;
@@ -222,27 +214,6 @@ export class DocWorkerMap implements IDocWorkerMap {
         // Accept work only for a specific group.
         // Do not accept work not associated with the specified group.
         await this._client.setAsync(`worker-${info.id}-group`, info.group);
-      } else {
-        // Figure out if worker should belong to a group via elections.
-        // Be careful: elections happen within a single deployment, so are somewhat
-        // unintuitive in behavior. For example, if a document is assigned to a group
-        // but there is no worker available for that group, it may open on any worker.
-        // And if a worker is assigned to a group, it may still end up assigned work
-        // not associated with that group if it is the only worker available.
-        const groups = await this._client.hgetallAsync("groups");
-        if (groups) {
-          const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`) || {};
-          for (const group of Object.keys(groups).sort()) {
-            const count = parseInt(groups[group], 10) || 0;
-            if (count < 1) { continue; }
-            const elected: string[] = JSON.parse(elections[group] || "[]");
-            if (elected.length >= count) { continue; }
-            elected.push(info.id);
-            await this._client.setAsync(`worker-${info.id}-group`, group);
-            await this._client.hsetAsync(`elections-${this._deploymentKey}`, group, JSON.stringify(elected));
-            break;
-          }
-        }
       }
     } finally {
       await lock.unlock();
@@ -261,28 +232,6 @@ export class DocWorkerMap implements IDocWorkerMap {
       await this._client.zremAsync(`workers-available-by-load-${group}`, workerId);
       // At this point, this worker should no longer be receiving new doc assignments, though
       // clients may still be directed to the worker.
-
-      // If we were elected for anything, back out.
-      const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`);
-      if (elections) {
-        if (group in elections) {
-          const elected: string[] = JSON.parse(elections[group]);
-          const newElected = elected.filter(worker => worker !== workerId);
-          if (elected.length !== newElected.length) {
-            if (newElected.length > 0) {
-              await this._client.hsetAsync(`elections-${this._deploymentKey}`, group,
-                JSON.stringify(newElected));
-            } else {
-              await this._client.hdelAsync(`elections-${this._deploymentKey}`, group);
-              delete elections[group];
-            }
-          }
-          // We're the last one involved in elections - remove the key entirely.
-          if (Object.keys(elected).length === 0) {
-            await this._client.delAsync(`elections-${this._deploymentKey}`);
-          }
-        }
-      }
 
       // Now, we start removing the assignments.
       const assignments = await this._client.smembersAsync(`worker-${workerId}-docs`);
