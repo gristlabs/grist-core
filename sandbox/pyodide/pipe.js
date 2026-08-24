@@ -58,12 +58,31 @@ class GristPipe {
   }
 
   async loadCode() {
-    // Load python packages.
+    // Load python packages. Pyodide takes a wheel's package name from the last
+    // "/"-separated part of what it is given, up to the first "-". Windows
+    // separators are not separators to it, so a native path arrives as one long
+    // name: under C:\...\grist-desktop\ every wheel becomes "c:\...\grist", they
+    // collide, and all but the first are discarded as duplicates. Forward
+    // slashes parse correctly, and Windows opens them happily.
     const src = path.join(__dirname, "_build", "packages");
-    const lsty = (await listLibs(src)).available.map(item => item.fullName);
+    const libs = (await listLibs(src)).available;
+    const lsty = libs.map(item => item.fullName.split(path.sep).join("/"));
     await this.pyodide.loadPackage(lsty, {
       messageCallback: (msg) => this.log("[package]", msg),
+      errorCallback: (msg) => this.log("[package error]", msg),
     });
+
+    // loadPackage resolves even when it loaded nothing, reporting trouble only
+    // through errorCallback. Without this check, a failed load first shows up
+    // much later as an ImportError from deep inside the data engine.
+    const loaded = new Set(Object.keys(this.pyodide.loadedPackages || {}));
+    const missing = libs.filter(
+      item => !loaded.has(item.standardName) && !loaded.has(item.name));
+    if (missing.length) {
+      throw new Error(
+        `Pyodide loaded ${loaded.size} of ${libs.length} packages. Missing: ` +
+        missing.map(item => item.name).join(", "));
+    }
 
     // Load Grist data engine code.
     // We mount it as /grist_src, copy to /grist, then unmount.

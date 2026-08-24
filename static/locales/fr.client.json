@@ -243,7 +243,11 @@
     "ColorSelect": {
         "Default cell style": "Style de cellule par défaut",
         "Apply": "Appliquer",
-        "Cancel": "Annuler"
+        "Cancel": "Annuler",
+        "default": "défaut",
+        "fill": "remplir",
+        "none": "aucun",
+        "text": "texte"
     },
     "ColumnFilterMenu": {
         "Filter by Range": "Filtrer par intervalle",
@@ -563,7 +567,10 @@
         "Grid Options": "Options de la grille",
         "Vertical gridlines": "Grille verticale",
         "Horizontal gridlines": "Grille horizontale",
-        "Zebra stripes": "Couleurs alternées"
+        "Zebra stripes": "Couleurs alternées",
+        "Show": "Montrer",
+        "row IDs": "IDs de ligne",
+        "row numbers": "numéros de ligne"
     },
     "GridViewMenus": {
         "Add column": "Ajouter une colonne",
@@ -634,7 +641,11 @@
         "Toggle": "Booléen",
         "Reference": "Référence",
         "Reference List": "Référence multiple",
-        "Attachment": "Pièce jointe"
+        "Attachment": "Pièce jointe",
+        "Row numbers": "Numéros de ligne",
+        "Numbers": "Numéros",
+        "Row IDs": "IDs de ligne",
+        "Hidden": "Masqué"
     },
     "GristDoc": {
         "Import from file": "Importer depuis un fichier",
@@ -773,7 +784,9 @@
         "Notifications": "Notifications",
         "Give feedback": "Donnez votre avis",
         "No notifications": "Aucune notification",
-        "Manage billing": "Gérer la facturation"
+        "Manage billing": "Gérer la facturation",
+        "What's blocking you": "Ce qui vous bloque",
+        "How you could gain access": "Comment vous pourriez obtenir l'accès"
     },
     "OnBoardingPopups": {
         "Finish": "Terminer",
@@ -880,7 +893,8 @@
         "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer.",
         "Submit": "Valider",
         "Thank you! Your response has been recorded.": "Nous vous remercions. Votre réponse a été enregistrée.",
-        "Chart options": "Options du graphique"
+        "Chart options": "Options du graphique",
+        "You may use {{placeholder}} placeholder for the ID of the added record.": "Vous pouvez utiliser {{placeholder}} pour l'ID de l'enregistrement ajouté."
     },
     "RowContextMenu": {
         "Insert row": "Insérer une ligne",
@@ -1464,7 +1478,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Vous pouvez-ajouter des commentaires aux cellules, répondre aux fils de commentaires, et @-mentionner les collaborateurs.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Lorsqu'il est coché, la valeur par défaut de ce champ peut-être préremplie à partir de l'URL en utilisant ses paramètres de requête.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Avec les suggestions, les utilisateurs font des modifications dans une copie personnelle sans modifier le document original, puis ils soumettent ces suggestions à la revue du propriétaire du document avant leur intégration.",
-        "Unpin to hide the button while keeping the filter.": "Désépingler pour masquer le bouton tout en conservant le filtre."
+        "Unpin to hide the button while keeping the filter.": "Désépingler pour masquer le bouton tout en conservant le filtre.",
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Les IDs de ligne sont des identifiants numériques stables et uniques, utilisés par les colonnes de référence pour identifier les enregistrements."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1580,7 +1595,8 @@
     "GridView": {
         "Click to insert": "Cliquer pour insérer",
         "row {{rowNum}} {{colName}}": "ligne {{rowNum}} {{colName}}",
-        "row {{rowNum}} {{colName}} (new row)": "ligne {{rowNum}} {{colName}} (nouvelle ligne)"
+        "row {{rowNum}} {{colName}} (new row)": "ligne {{rowNum}} {{colName}} (nouvelle ligne)",
+        "ID": "ID"
     },
     "SupportGristPage": {
         "GitHub": "GitHub",
@@ -1959,7 +1975,12 @@
         "Dismissing...": "Rejet en cours...",
         "How user actions can reach the outside world": "Comment les actions utilisateurs peuvent joindre le monde extérieur",
         "Outgoing requests": "Requêtes sortantes",
-        "full Edition": "Édition complète"
+        "full Edition": "Édition complète",
+        "Apply changes": "Appliquer les modifications",
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist s'exécute dans un environnement qui ne permet pas de redémarrer depuis l'interface d'administration. Votre changement va être enregistré maintenant, et prendra effet la prochaine fois que vous redémarrerez Grist manuellement.",
+        "Switch to Community edition?": "Basculer sur l'édition communautaire ?",
+        "Switch to full Grist?": "Basculer sur la version complète ?",
+        "This will also apply your other pending changes:": "Cela appliquera également vos autres modifications en attente :"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2019,7 +2040,8 @@
         "Submitting…": "En cours de soumission…",
         "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}",
         "Options for {{-inputLabel}}": "Options pour {{-inputLabel}}",
-        "Search options for {{-inputLabel}}": "Rechercher des options pour {{-inputLabel}}"
+        "Search options for {{-inputLabel}}": "Rechercher des options pour {{-inputLabel}}",
+        "Are you sure you want to reset your form?": "Êtes-vous sûr·e de vouloir réinitialiser votre formulaire ?"
     },
     "widgetTypesMap": {
         "Table": "Table",
@@ -2115,7 +2137,12 @@
         "Enable Full Grist": "Activer la version complète",
         "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Pour continuer à utiliser la version complète de Grist, vous devez\n                  [nous contacter]({{signupLink}}) pour obtenir votre clé d'activation.",
         "You are currently trialing Full Grist.": "Vous êtes actuellement en cours d'essai de la version complète de Grist.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Votre période d'essai a expiré le **{{expireAt}}**. Pour continuer à utiliser la version complète de Grist,\nvous devez [souscrire à la version complète]({{signupLink}}) puis coller votre clé d'activation ci-dessous."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Votre période d'essai a expiré le **{{expireAt}}**. Pour continuer à utiliser la version complète de Grist,\nvous devez [souscrire à la version complète]({{signupLink}}) puis coller votre clé d'activation ci-dessous.",
+        "Copy": "Copier",
+        "Good news: it can stay free.": "Bonne nouvelle : il peut rester gratuit.",
+        "Installation ID": "ID d'installation",
+        "Provide this when requesting an activation key. Keys are tied to your installation ID.": "Fournissez ceci lorsque vous demandez une clé d'activation. Les clés sont reliées à votre ID d'installation.",
+        "[Free activation keys]({{learnMoreLink}}) are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{pricingLink}}).": "Des [clés d'activation gratuites]({{learnMoreLink}}) sont disponibles pour les particuliers et les petites structures représentant moins de 1 million de dollars de financements annuels. Pour des structures plus grandes, voir [nos tarifs]({{pricingLink}})."
     },
     "ViewLayout": {
         "Delete": "Supprimer",
@@ -2486,7 +2513,7 @@
         "Use your screen reader's focus mode, or disable Quick Nav if you use VoiceOver.": "Utilisez le mode focus de votre lecteur d'écran, ou désactivez la navigation rapide si vous utilisez VoiceOver.",
         "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Lisez d'abord la section \"Navigation au clavier\" ci-dessus pour comprendre comment naviguer entre les régions de l'interface : des raccourcis clavier spécifiques doivent être utilisés.",
         "Screen reader navigation": "Navigation avec lecteur d'écran",
-        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Attention : le support des lecteurs d'écran est en cours de développement dans Grist et s'améliore régulièrement. N'hésitez pas à nous faire part de vos retours.",
+        "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Attention : le support des lecteurs d'écran est en cours de développement dans Grist et s'améliore régulièrement. N'hésitez pas à nous faire part de vos retours !",
         "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Même si ce n'est pas obligatoire, vous pouvez activer les améliorations pour lecteurs d'écran pour une meilleure expérience de navigation :",
         "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Nous recommandons d'utiliser Firefox, Chrome ou Edge pour utiliser Grist avec un lecteur d'écran."
     },
@@ -3021,7 +3048,39 @@
         "full": "complète",
         "pricing": "tarification",
         "Community edition": "Édition communautaire",
-        "I understand I am running Grist Community edition": "J'ai compris que je suis en train d'utiliser la version communautaire de Grist"
+        "I understand I am running Grist Community edition": "J'ai compris que je suis en train d'utiliser la version communautaire de Grist",
+        "Cancel": "Annuler",
+        "Community": "Communautaire",
+        "Downgrade": "Déclasser",
+        "Downgrade to Community Edition": "Déclasser vers l'édition communautaire",
+        "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Déclasser vers l'édition communautaire ? Les fonctionnalités de la version complète seront désactivées après le redémarrage. Cette action est irréversible.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Pour les automatisations, le serveur MCP, l'assistant IA, le support OIDC / SAML, les notifications par courriel, les contrôles administrateur, les logs d'audit et plus encore, basculez vers la version complète de Grist."
+        },
+        "Free activation keys": "Clés d'activation gratuites",
+        "Restart Grist to apply this change.": "Redémarrez Grist pour appliquer cette modification.",
+        "Switch to Full Grist": "Basculer sur la version complète",
+        "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "Ce serveur exécute la version complète de Grist avec une sécurité avancée, la gouvernance, le serveur MCP, les automatisations, les notifications par courriel et des fonctionnalités de collaboration.",
+        "You are running the Grist Community edition.": "Vous exécutez la version communautaire de Grist.",
+        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} sont disponibles pour les particuliers et les petites structures totalisant moins de 1 million de dollars de financements annuels. Pour des structures plus grandes, voir {{pricingLink}}.",
+        "Community Grist": "Édition communautaire de Grist",
+        "Continue with Community edition": "Continuer avec la version communautaire",
+        "Continue with full edition": "Continuer avec la version complète",
+        "Downgrade to Community edition": "Déclasser vers la version communautaire",
+        "Downgrading to the Community edition restarts the server, which may be briefly unavailable.": "Le déclassement vers la version communautaire redémarre le serveur, qui pourrait être brièvement indisponible.",
+        "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Pour les automatisations, le serveur MCP, l'assistant IA, le support OIDC, les notifications par courriel, les contrôles administrateur, les logs d'audit et plus encore, basculez vers la version complète de Grist.",
+        "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "Les fonctionnalités de la version complète de Grist telles que les notifications par courriel, les automatisations, le serveur MCP, et le support OIDC et SAML seront désactivées après le redémarrage. Vous pourrez toujours réactiver la version complète par la suite.",
+        "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.": "Grist basculera vers l'édition communautaire après le redémarrage, ce qui désactivera les fonctionnalités de la version complète. Vous ne perdrez pas vos données et vous n'aurez pas à réinstaller Grist.",
+        "Switch to Community edition": "Basculer vers l'édition communautaire",
+        "Switch to full Grist": "Basculer vers la version complète",
+        "Switching Grist edition...": "Changement d'édition de Grist...",
+        "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.": "Le basculement vers la version complète s'accompagne d'un téléchargement des extensions requises. Cela peut prendre quelques minutes, durant lesquelles le serveur sera indisponible.",
+        "Switching to full Grist restarts the server, which may be briefly unavailable.": "Le basculement vers la version complète de Grist redémarre le serveur, qui pourrait être brièvement indisponible.",
+        "Upgrade to full Grist": "Mettre à jour vers la version complète",
+        "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Vous pouvez revenir à tout moment vers l'édition communautaire. Vous ne perdrez pas vos données et n'aurez pas à réinstaller Grist.",
+        "Your server will restart automatically once finished.": "Votre serveur redémarrera automatiquement à la fin de l'opération.",
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} sont disponibles pour les particuliers et les structures totalisant moins de 1 million de dollars de financements annuels. Pour de plus grandes structures, voir {{pricingLink}}. Démarrez dès maintenant votre essai de 30 jours.",
+        "The Community edition is set via environment variable.": "L'édition communautaire est définie via une variable d'environnement."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Appliquer et poursuivre",
@@ -3160,7 +3219,7 @@
         "Unchecked": "Non coché",
         "heading {{- text}}": "titre {{- text}}",
         "link {{- label}}": "lien {{- label}}",
-        "list: {{- items}}": "liste: {{- items}}",
+        "list: {{- items}}": "liste : {{- items}}",
         "{{- text}} (link)": "{{- text}} (lien)"
     },
     "AdminAccessDeniedCard": {
@@ -3180,7 +3239,9 @@
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Les visiteurs qui ne sont pas connectés peuvent créer et éditer des documents en mode bac à sable. Désactiver pour imposer la connexion avant de pouvoir créer un document.",
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Les visiteurs qui ne sont pas connectés peuvent voir les documents publiques. C'est nécessaire pour le partage de liens et les formulaires.",
         "off": "désactivé",
-        "on": "activé"
+        "on": "activé",
+        "Sends anonymous usage metrics to Grist Labs. No document contents are collected. Configurable anytime from the admin panel.": "Envoie des statistiques d'usage anonymes à Grist Labs. Le contenu des documents n'est pas collecté. Configurable à tout moment depuis le panneau d'administration.",
+        "Share product telemetry": "Partager la télémétrie du produit"
     },
     "OutgoingRequestsStatus": {
         "Allowed: any host (*)": "Autorisé : tous les hôtes (*)",
@@ -3206,5 +3267,121 @@
         "not configured": "non configuré",
         "review": "revue",
         "unfiltered": "non filtré"
+    },
+    "McpConnectBanner": {
+        "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Nouveau !** Connectez Grist à Claude et ChatGPT. [Essayer maintenant]({{mcp}})"
+    },
+    "AdminSetupRequests": {
+        "1 request": "1 demande",
+        "Clear": "Effacer",
+        "For": "Pour",
+        "Setup requests": "Demandes de configuration",
+        "Setup steps users have asked for": "Étapes de configuration que les utilisateurs ont demandées",
+        "already done": "déjà fait",
+        "{{count}} requests_one": "{{count}} demandes",
+        "{{count}} requests_other": "{{count}} demandes"
+    },
+    "NotificationsAndAutomationsNudge": {
+        "1 person has asked for this.": "1 personne a demandé ceci.",
+        "Add a note": "Ajouter une note",
+        "Ask questions and build formulas in plain language.": "Poser des questions et construire des formulaires en texte clair.",
+        "Ask the admin for this": "Demander à l'administrateur pour cela",
+        "Everything below is waiting on": "Tout ce qui se trouve ci-dessous est en attente",
+        "Get emailed when data changes, or when someone comments or mentions you.": "Être notifié·e par courriel lorsque la donnée change, ou quand quelqu'un commente ou vous mentionne.",
+        "Next step": "Prochaine étape",
+        "Next step for everything below": "Prochaine étape pour tout ce qui se trouve ci-dessous",
+        "Note sent.": "Note envoyée.",
+        "Notifications and Automations": "Notifications et automatisations",
+        "React to changes in your data automatically with custom emails, webhook calls, and more.": "Réagir automatiquement aux changements de vos données avec des courriels personnalisés, des appels webhook et plus encore.",
+        "Setting these up is done by whoever manages this Grist installation.": "La configuration de ces paramètres est faite par les personnes qui gèrent cette instance de Grist.",
+        "Some of these features are ready; others need more setup on this install.": "Quelques-une de ces fonctionnalités sont prêtes ; d'autres nécessitent des configurations additionnelles sur cette instance.",
+        "These features need additional setup on this install.": "Ces fonctionnalités demandent une configuration additionnelle sur cette instance.",
+        "This document can run automations, send notifications, and use an AI assistant.": "Ce document peut exécuter des automatisations, envoyer des notifications, et utiliser un assistant IA.",
+        "Waiting on": "En attente",
+        "When you share a document, new members get an email invite.": "Lorsque vous partagez un document, les nouveaux membres reçoivent une invitation par courriel.",
+        "Why do you want this? Press Enter to send.": "Pourquoi souhaitez-vous ceci ? Appuyez sur Entrée pour envoyer.",
+        "You and 1 other have asked for this.": "Vous et 1 autre personne ont demandé cela.",
+        "You and {{count}} others have asked for this._one": "Vous et {{count}} autres personnes ont demandé cela.",
+        "You and {{count}} others have asked for this._other": "Vous et {{count}} autres personnes ont demandé cela.",
+        "You've asked for this.": "Vous avez demandé cela.",
+        "{{count}} people have asked for this._one": "{{count}} personnes ont demandé cela.",
+        "{{count}} people have asked for this._other": "{{count}} personnes ont demandé cela.",
+        "{{done}} of {{total}} steps": "{{done}} étapes effectuées sur {{total}}"
+    },
+    "SetupSteps": {
+        "AI Assistant": "Assistant IA",
+        "Automations": "Automatisations",
+        "Change & comment notifications": "Notifications en cas de changements et de commentaires",
+        "Choose full Grist edition": "Choisir la version complète de Grist",
+        "Connect a task queue (Redis)": "Connecter une application de mise en attente des tâches (Redis)",
+        "Connect an AI provider": "Connecter un fournisseur d'IA",
+        "Connect email delivery": "Connecter un fournisseur de messagerie",
+        "Invite emails": "Courriels d'invitation",
+        "Use a plan with automations": "Utiliser un plan avec des automatisations"
+    },
+    "VersionFooter": {
+        "Compare editions": "Comparer les éditions",
+        "Grist Community edition": "Édition communautaire de Grist",
+        "No official support": "Aucun support officiel",
+        "Not the full edition": "Pas la version complète",
+        "Only community support": "Seulement le support communautaire",
+        "Release notes": "Notes de version",
+        "Version {{- version}}": "Version {{- version}}"
+    },
+    "RowNumbersMenu": {
+        "Hidden": "Masqué",
+        "Numbers": "Numéros",
+        "Row IDs": "IDs de ligne",
+        "Row numbers": "Numéros de ligne"
+    },
+    "HelpUsImproveSection": {
+        "A business or organization": "Une entreprise ou une organisation",
+        "A couple of quick questions — optional, and only our team sees this.": "Quelques questions rapides — facultatif, et seule votre équipe peut voir ceci.",
+        "AI response": "Réponse d'IA",
+        "Conference": {
+            "event": "Conférence / événement"
+        },
+        "Developer": {
+            "IT": "Développeur / IT"
+        },
+        "Education": {
+            "Research Institute": "Éducation / Institut de recherche"
+        },
+        "Email is required when subscribing to updates.": "Un courriel est nécessaire pour s'abonner aux mises à jour.",
+        "Email:": "Courriel :",
+        "Friend": {
+            "colleague": "Ami / collègue"
+        },
+        "GitHub": "GitHub",
+        "Help us improve Grist": "Aidez-nous à améliorer Grist",
+        "How did you hear about Grist?": "Comment avez-vous entendu parler de Grist ?",
+        "Individual or hobbyist": "Particulier ou amateur",
+        "Nonprofit": "Organisation à but non lucratif",
+        "Occasional email about new releases and important security notices.": "Messages occasionnels à propos des nouvelles versions et des notifications de sécurité importantes.",
+        "Other": "Autre",
+        "Please enter a valid email address.": "Merci de saisir une adresse courriel valide.",
+        "Reddit": {
+            "forum": "Reddit / forum"
+        },
+        "Search engine": "Moteur de recherche",
+        "Select…": "Sélectionner…",
+        "Send me product and security updates": "Envoyez-moi des notifications de sécurité et des informations sur le produit",
+        "Social media": "Réseaux sociaux",
+        "What best describes you?": "Qu'est-ce qui vous décrit le mieux ?"
+    },
+    "QuickSetupApplyStep": {
+        "Apply and go live!": "Appliquez et lancez !",
+        "Applying settings and restarting…": "Application des paramètres et redémarrage…",
+        "Back to installation": "Retour à l'installation",
+        "Grist is live!": "Grist est en ligne !",
+        "Our servers may be experiencing issues. Please try again later.": "Nos serveurs rencontrent peut-être des problèmes. Merci de réessayer ultérieurement.",
+        "Please try again.": "Merci de réessayer.",
+        "Retry submission": "Réessayer la soumission",
+        "Setup completion": "Fin du paramétrage",
+        "We couldn't save your details or subscribe you to updates.": "Nous n'avons pas pu sauvegarder vos informations ou vous abonner aux mises à jour.",
+        "We couldn't submit your details or your request to be kept up to date. Please try again.": "Nous n'avons pas pu soumettre vos informations ou votre demande d'être tenu informé des mises à jour. Merci de réessayer.",
+        "We saved your details, but couldn't subscribe you to updates.": "Nous avons enregistré vos informations, mais n'avons pas pu vous abonner aux mises à jour.",
+        "We subscribed you for product updates, but couldn't save your other details.": "Nous vous avons abonné aux mises à jour du produit, mais n'avons pas pu sauvegarder vos autres informations.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Vos changements de configuration ont été appliqués et le serveur a été redémarré. Grist est désormais en service et disponible pour les utilisateurs."
     }
 }
