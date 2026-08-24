@@ -69,7 +69,8 @@
         "Permission to access the document in full by all users": "Berechtigung für alle Benutzer auf das komplette Dokument zuzugreifen",
         "Permission to access the document in full by unrestricted users": "Berechtigung für uneingeschränkte Benutzer auf das komplette Dokument zuzugreifen",
         "Special rules for templates": "Besondere Regeln für Vorlagen",
-        "This options should be off if Editors' access is to be limited. ": "Diese Option sollte deaktiviert sein, wenn der Zugriff von Bearbeitern eingeschränkt werden soll. "
+        "This options should be off if Editors' access is to be limited. ": "Diese Option sollte deaktiviert sein, wenn der Zugriff von Bearbeitern eingeschränkt werden soll. ",
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Zugriffsregeln \n\nSie haben keine Berechtigung, die Zugriffsregeln für dieses Dokument anzuzeigen oder zu bearbeiten."
     },
     "AccountPage": {
         "API": "API",
@@ -2371,5 +2372,24 @@
     },
     "GridViewMenusDateHelpers": {
         "Years until": "Jahre bis"
+    },
+    "QuickSetupApplyStep": {
+        "Please try again.": "Bitte noch einmal probierern.",
+        "Our servers may be experiencing issues. Please try again later.": "Unsere Server scheinen ein Problem zu haben. Bitte probiere es später nochmal.",
+        "Grist is live!": "Grist ist online!",
+        "Back to installation": "Zurück zur Installation",
+        "Apply and go live!": "Anwenden und online gehen!"
+    },
+    "HelpUsImproveSection": {
+        "Individual or hobbyist": "Einzelperson oder Hobbynutzer",
+        "Nonprofit": "Ehrenamtliche Oerganisation",
+        "Occasional email about new releases and important security notices.": "Gelegentliche Emails über neue Versionen und wichtige Sicherheitsupdates.",
+        "Other": "Anderes",
+        "Please enter a valid email address.": "Bitte gib eine gültige Emailadresse ein.",
+        "Reddit": {
+            "forum": "Reddit/Forum"
+        },
+        "Search engine": "Suchmaschine",
+        "Select…": "Wähle…"
     }
 }
