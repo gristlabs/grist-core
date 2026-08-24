@@ -142,9 +142,9 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
 }
 
 /**
- * Returns the request's session id, but only if that session was authenticated with a
- * boot key. Callers use it to keep that one session when sessions are cleared after an
- * auth change: it was not vouched for by the login provider being replaced, and the
+ * Returns the request's session id, but only if a boot key login is that session's
+ * only login. Callers use it to keep that one session when sessions are cleared after
+ * an auth change: it was not vouched for by the login provider being replaced, and the
  * operator can sign in again with the same key anyway. Any other session returns
  * undefined and is cleared as usual.
  */
@@ -155,8 +155,12 @@ export async function getBootKeySessionId(
   const sessionId = sessions.getSessionIdFromRequest(req);
   if (!sessionId) { return undefined; }
 
-  const user = await sessions.getOrCreateSessionFromRequest(req, { sessionId }).getScopedSession();
-  return user.authProvider === BOOT_KEY_PROVIDER_KEY ? sessionId : undefined;
+  // Note that we don't use getScopedSession here to avoid org-session mismatches:
+  // the boot-key login may have happened on a URL with an org in the path, while
+  // this request may have a different org or none at all.
+  const users = await sessions.getOrCreateSessionFromRequest(req, { sessionId }).getSessionUsers();
+  const isBootKeyOnlySession = users.length === 1 && users[0]?.authProvider === BOOT_KEY_PROVIDER_KEY;
+  return isBootKeyOnlySession ? sessionId : undefined;
 }
 
 function getAdminProfile(): UserProfile | undefined {
