@@ -314,7 +314,6 @@ export async function useLocalDoc(srcPath: string, storageManager: any, alias: s
   // On HostedStorageManager in S3_WITHOUT_CACHE mode this may also schedule a background cache wipe;
   // wait for it here (when available) so callers don't race the teardown.
   await storageManager.closeDocument(docName);
-  await storageManager._closing?.get(docName);
   return docName;
 }
 

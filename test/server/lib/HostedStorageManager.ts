@@ -379,12 +379,6 @@ class TestStore {
     return false;
   }
 
-  public async waitForWipe(docId: string): Promise<void> {
-    // `_closing` tracks the whole close (flush + any local cache wipe), so awaiting it waits
-    // for the wipe to complete.
-    return await this.storageManager["_closing"].get(docId);
-  }
-
   // Wipes the doc worker's local document store.
   public async removeAll(): Promise<void> {
     const fnames = await fse.readdir(this._localDirectory);
@@ -787,9 +781,6 @@ describe("HostedStorageManager", function() {
           // Closing the doc should wipe the local cache when an external storage
           // backend is configured.
           await store.closeDoc(doc);
-
-          // Wait for the (possible) wipe of the doc
-          await store.waitForWipe(docId);
 
           const message = (cacheType: string) =>
             `the ${cacheType} should have ${cacheRemainsAfterClosing ? "remained" : "NOT remained"} after the document is closed`;
@@ -1243,7 +1234,6 @@ describe("HostedStorageManager", function() {
         await testStore.docManager.fetchDoc(docSession, docName);
         assert.isTrue(await fse.pathExists(docPath), "the document cache should exist as long as it remains open");
       });
-      await testStore.waitForWipe(docName);
     });
   });
 
