@@ -2591,17 +2591,13 @@ export class ActiveDoc extends EventEmitter {
     const docSession = makeExceptionalDocSession("system");
     this._log.debug(docSession, "shutdown starting");
 
-    // Returns true if `func` completed successfully, false if it timed out or threw.
-    const safeCallAndWait = async (funcDesc: string, func: () => Promise<unknown>): Promise<boolean> => {
+    const safeCallAndWait = async (funcDesc: string, func: () => Promise<unknown>) => {
       try {
-        if (await timeoutReached(Deps.SHUTDOWN_ITEM_TIMEOUT_MS, func(), { rethrow: true })) {
+        if (await timeoutReached(Deps.SHUTDOWN_ITEM_TIMEOUT_MS, func())) {
           this._log.error(docSession, `${funcDesc} timed out`);
-          return false;
         }
-        return true;
       } catch (err) {
         this._log.error(docSession, `${funcDesc} failed`, err);
-        return false;
       }
     };
 
