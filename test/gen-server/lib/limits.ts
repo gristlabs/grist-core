@@ -519,8 +519,9 @@ describe("limits", function() {
     }), /No more team members permitted/);
 
     // Users given access to only a doc or workspace are org guests, not members, and
-    // are limited by the share limits instead.
-    await setFeatures({ maxUsersPerOrg: 2, maxSharesPerDoc: 5, workspaces: true });
+    // are limited by the share limits instead. The site is at its limit here rather than
+    // over it, since an over-limit site is read-only and cannot create the doc.
+    await setFeatures({ maxUsersPerOrg: 3, maxSharesPerDoc: 5, workspaces: true });
     const wsId = await api.newWorkspace({ name: "members" }, "docs");
     const docId = await api.newDoc({ name: "doc" }, wsId);
     await assert.isFulfilled(api.updateDocPermissions(docId, {

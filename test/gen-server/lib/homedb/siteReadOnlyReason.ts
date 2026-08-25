@@ -2,7 +2,7 @@ import { Features, SUSPENDED_PLAN } from "app/common/Features";
 import { BillingAccount } from "app/gen-server/entity/BillingAccount";
 import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
-import { Deps, HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { setPlan } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
@@ -102,11 +102,8 @@ describe("siteReadOnlyReason", function() {
     assert.equal(await reason(), "suspended");
   });
 
-  it("reports a site over its member limit, once the clamp is on", async function() {
+  it("reports a site over its member limit", async function() {
     await setUserLimit(0);
-    assert.isUndefined(await reason());
-
-    sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
     assert.equal(await reason(), "users");
 
     // A site at its limit is left alone.
@@ -115,7 +112,6 @@ describe("siteReadOnlyReason", function() {
   });
 
   it("counts members only when nothing cheaper has already answered", async function() {
-    sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
     await setUserLimit(0);
     const counted = sandbox.spy(dbManager, "getCachedOrgBillableMemberCount");
 
@@ -131,7 +127,6 @@ describe("siteReadOnlyReason", function() {
   });
 
   it("prefers the cause with the most to say when several apply", async function() {
-    sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
     await setUserLimit(0);
     await setGoodStanding(false);
     await setPlan(dbManager, nasa, SUSPENDED_PLAN);

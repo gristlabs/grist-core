@@ -128,10 +128,6 @@ export interface BillingAccountStatus {
   stripeStatus?: string;
   currentPeriodStart?: string;
   currentPeriodEnd?: string;
-  // Set when the site has more billable members than its plan allows. Sent to everyone, not
-  // only to those told billableMemberCount, since an editor who cannot lift the limit still
-  // stands to lose write access by it, and can pass the warning to someone who can act.
-  overUserLimit?: boolean;
   // Used only for tests
   message?: string;
 }

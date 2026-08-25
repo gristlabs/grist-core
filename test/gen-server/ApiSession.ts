@@ -1,7 +1,6 @@
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { AccessOptionWithRole } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
-import { Deps } from "app/gen-server/lib/homedb/HomeDBManager";
 import { getCanAnyoneCreateOrgs, getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
@@ -10,7 +9,6 @@ import axios from "axios";
 import { AxiosRequestConfig } from "axios";
 import { assert } from "chai";
 import omit from "lodash/omit";
-import * as sinon from "sinon";
 
 const nobody: AxiosRequestConfig = {
   responseType: "json",
@@ -23,7 +21,6 @@ describe("ApiSession", function() {
   testUtils.setTmpLogLevel("error");
 
   const regular = "chimpy@getgrist.com";
-  const sandbox = sinon.createSandbox();
 
   beforeEach(async function() {
     this.timeout(5000);
@@ -32,7 +29,6 @@ describe("ApiSession", function() {
   });
 
   afterEach(async function() {
-    sandbox.restore();
     await server.stop();
   });
 
@@ -154,7 +150,7 @@ describe("ApiSession", function() {
       assert.isNumber(resp.data.org.billableMemberCount);
     });
 
-  it("GET /api/session/access/active reports being over the limit separately from being held read-only",
+  it("GET /api/session/access/active says why an over-limit site is read-only",
     async function() {
       const chimpyId = await server.dbManager.testGetId("Chimpy") as number;
       const nasaId = await server.dbManager.testGetId("NASA") as number;
@@ -162,26 +158,17 @@ describe("ApiSession", function() {
         { users: { "kiwi@getgrist.com": "editors" } });
       await setUserLimit(1);
 
-      // Kiwi is an editor, so is not told the count, but is told the site is over its limit,
-      // which is what a banner needs to warn them before anything is taken away.
+      // Kiwi is an editor, so is not told the count, but is told why the site is read-only,
+      // since their write access goes with it.
       const kiwiCookie = await server.getCookieLogin("nasa", { email: "kiwi@getgrist.com", name: "Kiwi" });
       let resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, kiwiCookie);
       assert.equal(resp.status, 200);
       assert.isUndefined(resp.data.org.billableMemberCount);
-      assert.isTrue(resp.data.org.billingAccount.status.overUserLimit);
-      // Documents are not held read-only while the clamp is off, so nothing says they are.
-      assert.isUndefined(resp.data.org.readOnlyReason);
-
-      // Turning the clamp on says why the site is read-only, without disturbing the warning.
-      sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
-      resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, kiwiCookie);
-      assert.isTrue(resp.data.org.billingAccount.status.overUserLimit);
       assert.equal(resp.data.org.readOnlyReason, "users");
 
-      // A site within its limit is told neither, clamp or no clamp.
+      // A site within its limit is not held read-only.
       await setUserLimit(10);
       resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, kiwiCookie);
-      assert.isUndefined(resp.data.org.billingAccount.status?.overUserLimit);
       assert.isUndefined(resp.data.org.readOnlyReason);
     });
 
@@ -194,7 +181,6 @@ describe("ApiSession", function() {
     await server.dbManager.updateOrgPermissions({ userId: chimpyId }, nasaId,
       { users: { "kiwi@getgrist.com": "editors" } });
     await setUserLimit(1);
-    sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
 
     const cookie = await server.getCookieLogin("nasa", { email: "charon@getgrist.com", name: "Charon" });
     const resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, cookie);

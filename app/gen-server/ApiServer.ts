@@ -603,23 +603,11 @@ export class ApiServer {
         // Report the member count when the plan caps it, so the client can warn as the site
         // approaches the cap rather than only failing when someone is added.
         const userLimit = await this._dbManager.getUserLimitStatus(org.data);
-        if (userLimit) {
-          // The number itself is billing detail, and goes only to those who can act on it.
-          if (org.data.access === OWNER || org.data.billingAccount.isManager) {
-            org.data.billableMemberCount = userLimit.count;
-          }
-          // Being over the limit goes to everyone, since it affects everyone, and is said
-          // before documents are held read-only rather than at the moment they are.
-          if (userLimit.overLimit) {
-            org.data.billingAccount.status = {
-              ...org.data.billingAccount.status,
-              overUserLimit: true,
-            };
-          }
-        }
-        // Report the api calls made this month, so a banner on any page can warn before a
-        // script stops working.
         if (org.data.access === OWNER || org.data.billingAccount.isManager) {
+          // The number itself is billing detail, and goes only to those who can act on it.
+          org.data.billableMemberCount = userLimit?.count;
+          // Report the api calls made this month, so a banner on any page can warn before a
+          // script stops working.
           org.data.apiUsage = (await this._getApiCallsUsage(org.data)).apiCalls;
         }
         // Why the site's documents are held read-only, if they are. Handing over the count

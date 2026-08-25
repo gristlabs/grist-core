@@ -160,11 +160,6 @@ export const Deps = {
       envVar: "GRIST_POSTGRES_USE_PREPARED_STATEMENTS",
       defaultValue: false,
     }),
-  // Whether a site with more billable members than its plan allows is held read-only.
-  // Adding members past the limit is refused regardless; this is only about sites that were
-  // already over it when the limit arrived. Off until the sites affected have been told it is
-  // coming, at which point this becomes unconditional and goes away.
-  readOnlyOverUserLimit: false,
 };
 
 // Name of a special workspace with examples in it.
@@ -190,8 +185,6 @@ export interface UserLimitStatus {
   count: number;
   // Whether there are more of them than the plan allows.
   overLimit: boolean;
-  // Whether documents are held read-only as a result.
-  readOnly: boolean;
 }
 
 // Maps from userId to group name, or null to inherit.
@@ -651,15 +644,13 @@ export class HomeDBManager implements HomeDBAuth {
     const count = manager ?
       await this.getOrgBillableMemberCount(org.id, manager) :
       await this.getCachedOrgBillableMemberCount(org.id);
-    const overLimit = count > limit;
-    return { count, overLimit, readOnly: overLimit && Deps.readOnlyOverUserLimit };
+    return { count, overLimit: count > limit };
   }
 
   /**
    * Why a site's documents are held read-only, or undefined if they are not. Everything that
    * holds a site read-only is decided here, so that what a user is told cannot drift from what
-   * is enforced. Causes are checked cheapest first, which leaves the member count until last,
-   * where it is skipped entirely while that clamp is off.
+   * is enforced. Causes are checked cheapest first, which leaves the member count until last.
    *
    * Pass userLimit if the caller has already looked the count up, so that the site is
    * counted once and the two answers cannot come from different reads.
@@ -673,9 +664,8 @@ export class HomeDBManager implements HomeDBAuth {
       return billingAccount.product?.name === SUSPENDED_PLAN ? "suspended" : "plan";
     }
     if (!billingAccount.inGoodStanding) { return "billing"; }
-    if (!Deps.readOnlyOverUserLimit) { return undefined; }
     const userLimit = options.userLimit ?? await this.getUserLimitStatus(org, options.manager);
-    return userLimit?.readOnly ? "users" : undefined;
+    return userLimit?.overLimit ? "users" : undefined;
   }
 
   /**

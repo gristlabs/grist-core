@@ -1,13 +1,11 @@
 import { Features } from "app/common/Features";
 import { Organization } from "app/common/UserAPI";
 import { Product } from "app/gen-server/entity/Product";
-import { Deps } from "app/gen-server/lib/homedb/HomeDBManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { createTmpDir } from "test/server/docTools";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";
-import * as sinon from "sinon";
 
 /**
  * Tests holding a site read-only when it has more billable members than its plan allows.
@@ -19,7 +17,6 @@ describe("userLimit", function() {
   let nasa: Organization;
   let docId: string;
   let originalFeatures: Features;
-  const sandbox = sinon.createSandbox();
 
   testUtils.setTmpLogLevel("error");
   this.timeout("10s");
@@ -39,10 +36,6 @@ describe("userLimit", function() {
   after(async function() {
     await setUserLimit(originalFeatures.maxUsersPerOrg);
     await home.stop();
-  });
-
-  afterEach(function() {
-    sandbox.restore();
   });
 
   // Change the limit on the plan the site is on, which is how a site comes to be over it:
@@ -76,20 +69,10 @@ describe("userLimit", function() {
     }
   }
 
-  it("does nothing while the flag is off", async function() {
+  it("holds an over-limit site read-only", async function() {
     // Put the site over its limit: chimpy plus kiwi, with a limit of one.
     await setMembers({ "kiwi@getgrist.com": "editors" });
     await setUserLimit(1);
-    await assertCanWrite(true);
-    // Creating documents is unaffected too, which is the other place the clamp applies.
-    const nasaApi = await home.createHomeApi("Chimpy", "nasa");
-    const wsId = (await nasaApi.getOrgWorkspaces("current"))[0].id;
-    const newDocId = await nasaApi.newDoc({ name: "still allowed" }, wsId);
-    await nasaApi.deleteDoc(newDocId);
-  });
-
-  it("holds an over-limit site read-only once the flag is on", async function() {
-    sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
     await assertCanWrite(false);
 
     // New documents are refused too, rather than being created in a site that cannot edit them.
@@ -99,13 +82,11 @@ describe("userLimit", function() {
   });
 
   it("leaves a site at its limit alone", async function() {
-    sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
     await setUserLimit(2);
     await assertCanWrite(true);
   });
 
   it("restores access when the site comes back under the limit", async function() {
-    sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
     await setUserLimit(1);
     await assertCanWrite(false);
 
@@ -116,7 +97,6 @@ describe("userLimit", function() {
   });
 
   it("does nothing on a plan with no member limit", async function() {
-    sandbox.stub(Deps, "readOnlyOverUserLimit").value(true);
     // Lift the limit before adding, since adding past it is refused while it applies.
     await setUserLimit(undefined);
     await setMembers({ "kiwi@getgrist.com": "editors" });
