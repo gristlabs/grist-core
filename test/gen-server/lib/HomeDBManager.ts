@@ -421,6 +421,45 @@ describe("HomeDBManager", function() {
     assert.equal(finalDoc.workspace.org.billingAccount.getEffectiveFeatures().maxDocsPerOrg, 2);
   });
 
+  it("isUserOnPaidPlan counts only non-guest members of paid orgs", async function() {
+    const newUser = (name: string) => home.getUserByLogin(`${name}@getgrist.com`,
+      { profile: { email: `${name}@getgrist.com`, name } });
+    const owner = await newUser("paidowner");
+    const other = await newUser("paidother");
+    const orgId = (await home.addOrg(owner, { name: "paidorg", domain: "paidorg" },
+      teamOptions)).data!.id;
+
+    // Owning a team org is not enough without an active subscription.
+    assert.equal(await home.isUserOnPaidPlan(owner.id), false, "unpaid org owner");
+    await home.updateBillingAccount({ userId: owner.id }, orgId, async (ba) => {
+      ba.stripeSubscriptionId = "sub_paidorg";
+    });
+    assert.equal(await home.isUserOnPaidPlan(owner.id), true, "paid org owner");
+
+    // A fresh user, with only a free personal org, is not on a paid plan.
+    assert.equal(await home.isUserOnPaidPlan(other.id), false, "fresh user");
+
+    // Being a guest of the paid org (guests are free to add in unlimited numbers -
+    // anyone shared on a single doc becomes one) must not confer the entitlement.
+    const ws = home.unwrapQueryResult(await home.getOrgWorkspaces({ userId: owner.id }, orgId))[0];
+    const doc = (await home.addDocument({ userId: owner.id }, ws.id, { name: "Doc" })).data!;
+    await home.updateDocPermissions({ userId: owner.id, urlId: doc.id },
+      { users: { "paidother@getgrist.com": "editors" } });
+    assert.equal(await home.isUserOnPaidPlan(other.id), false, "org guest");
+
+    // Nor must an org-level share with everyone@ (support-only to set up).
+    await home.updateOrgPermissions({ userId: owner.id }, orgId,
+      { users: { "support@getgrist.com": "owners" } });
+    await home.updateOrgPermissions({ userId: home.getSupportUserId() }, orgId,
+      { users: { "everyone@getgrist.com": "viewers" } });
+    assert.equal(await home.isUserOnPaidPlan(other.id), false, "everyone-share");
+
+    // Org membership in any non-guest role, even viewer, does qualify.
+    await home.updateOrgPermissions({ userId: owner.id }, orgId,
+      { users: { "paidother@getgrist.com": "viewers" } });
+    assert.equal(await home.isUserOnPaidPlan(other.id), true, "org viewer");
+  });
+
   it("can fork docs", async function() {
     const user1 = await home.getUserByLogin("kiwi@getgrist.com");
     const user1Id = user1.id;

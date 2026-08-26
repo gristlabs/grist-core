@@ -1054,6 +1054,24 @@ export class HomeDBManager implements HomeDBAuth {
     return result;
   }
 
+  // Returns whether the user is a non-guest member of at least one org on a paid
+  // plan. Entitlement for paid-only account features (e.g. SMS two-factor auth) is
+  // by org membership rather than by a single org context, since a user may belong
+  // to several orgs. "Paid" is the same calculated flag surfaced elsewhere.
+  //
+  // Guests don't qualify: they are free to add in unlimited numbers (anyone shared
+  // on a single doc becomes one), while non-guest members are seats the org pays
+  // for. Access via a public share with everyone@ doesn't qualify either.
+  public async isUserOnPaidPlan(userId: number): Promise<boolean> {
+    let qb = this._orgs();
+    qb = this._filterByOrgGroups(qb, userId, null, { ignoreEveryoneShares: true });
+    qb = qb.andWhere("groups.name IN (:...nonGuestGroups)",
+      { nonGuestGroups: this.defaultNonGuestGroupNames });
+    qb = this._addBillingAccount(qb, userId);
+    const orgs = await qb.getMany();
+    return orgs.some(org => Boolean(org.billingAccount?.paid));
+  }
+
   // Returns the doc with access information for the calling user only.
   // TODO: The return type of this function includes the workspace and org with the owner
   // properties set, as documented in app/common/UserAPI. The return type of this function
