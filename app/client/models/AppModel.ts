@@ -67,6 +67,9 @@ export interface TopAppModel {
   orgs: Observable<Organization[]>;
   users: Observable<FullUser[]>;
 
+  // Whether orgs/users have been fetched at least once; before that they are empty.
+  sessionLoaded: Observable<boolean>;
+
   // Reinitialize the app. This is called when org or user changes.
   initialize(): void;
 
@@ -166,6 +169,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly appObs = Observable.create<AppModel | null>(this, null);
   public readonly orgs = Observable.create<Organization[]>(this, []);
   public readonly users = Observable.create<FullUser[]>(this, []);
+  public readonly sessionLoaded = Observable.create<boolean>(this, false);
   public readonly plugins: LocalPlugin[] = [];
   private readonly _gristConfig? = this._window.gristConfig;
   // Keep a list of available widgets, once requested, so we don't have to
@@ -248,6 +252,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     bundleChanges(() => {
       this.users.set(data.users);
       this.orgs.set(data.orgs);
+      this.sessionLoaded.set(true);
     });
   }
 
@@ -441,7 +446,8 @@ export class AppModelImpl extends Disposable implements AppModel {
   }
 
   public async showNewSiteModal(plan?: PlanSelection) {
-    if (this.planName) {
+    // With no current org there is no plan, but creating a site still makes sense.
+    if (this.planName || !this.currentOrg) {
       await buildNewSiteModal(this, {
         appModel: this,
         plan,

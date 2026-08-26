@@ -1572,7 +1572,13 @@
     "WelcomeSitePicker": {
         "Welcome back": "Welcome back",
         "You can always switch sites using the account menu.": "You can always switch sites using the account menu.",
-        "You have access to the following Grist sites.": "You have access to the following Grist sites."
+        "You have access to the following Grist sites.": "You have access to the following Grist sites.",
+        "No sites available": "No sites available",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "Personal sites are turned off on this installation, and you aren't a member of any team site yet.",
+        "Create a team site": "Create a team site",
+        "Ask an administrator to add you to a team site.": "Ask an administrator to add you to a team site.",
+        "Sign in to see your sites": "Sign in to see your sites",
+        "Sign in": "Sign in"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPTION"

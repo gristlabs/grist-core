@@ -147,6 +147,74 @@ describe("AdminPanelPermissions", function() {
     await server.restart();
   });
 
+  // With personal sites off and no team site, /welcome/teams used to render an empty list of
+  // sites, which reads as a broken Grist.
+  describe("welcome page with personal sites off", function() {
+    before(async function() {
+      process.env.GRIST_PERSONAL_ORGS = "false";
+      // Restrict team creation too, so the non-admin case is reachable.
+      process.env.GRIST_ORG_CREATION_ANYONE = "false";
+      await server.restart(true); // clear database
+    });
+
+    after(async function() {
+      delete process.env.GRIST_PERSONAL_ORGS;
+      delete process.env.GRIST_ORG_CREATION_ANYONE;
+      await server.restart(true);
+    });
+
+    // There is no personal site to log into with personal sites off, so attach the session
+    // profile to no org at all rather than going through gu.Session.
+    async function loginAs(user: gu.TestUser) {
+      const { name, email } = gu.translateUser(user);
+      await gu.simulateLogin(name, email);
+      await driver.get(`${server.getHost()}/welcome/teams`);
+    }
+
+    it("points the install admin at creating a team site", async function() {
+      await loginAs("user1");
+      const panel = await driver.findWait(".test-welcome-no-sites", 3000);
+      assert.match(await panel.getText(), /Personal sites are turned off/);
+      // Admins are exempt from GRIST_ORG_CREATION_ANYONE, so they get the button.
+      assert.isTrue(await driver.find(".test-welcome-create-team-site").isPresent());
+    });
+
+    it("tells other users to ask an admin", async function() {
+      await loginAs("user2");
+      await driver.findWait(".test-welcome-no-sites", 3000);
+      assert.isFalse(await driver.find(".test-welcome-create-team-site").isPresent());
+      assert.match(await driver.find(".test-welcome-ask-admin").getText(), /Ask an administrator/);
+    });
+
+    it("tells signed-out visitors to sign in", async function() {
+      await gu.removeLogin();
+      await driver.get(`${server.getHost()}/welcome/teams`);
+      const panel = await driver.findWait(".test-welcome-no-sites", 3000);
+      assert.isTrue(await driver.find(".test-welcome-sign-in").isPresent());
+      // Nothing about how the installation is configured, which they cannot act on.
+      assert.notMatch(await panel.getText(), /Personal sites are turned off/);
+      assert.isFalse(await driver.find(".test-welcome-ask-admin").isPresent());
+      assert.isFalse(await driver.find(".test-welcome-create-team-site").isPresent());
+    });
+  });
+
+  // Signing out is the same dead end with personal sites on: the page used to greet anonymous
+  // visitors with "Welcome back" and offer anon@getgrist.com as a site to enter.
+  describe("welcome page when signed out", function() {
+    before(async function() {
+      process.env.GRIST_PERSONAL_ORGS = "true";
+      await server.restart(true); // clear database
+    });
+
+    it("offers sign-in rather than a list of nothing", async function() {
+      await gu.removeLogin();
+      await driver.get(`${server.getHost()}/welcome/teams`);
+      const panel = await driver.findWait(".test-welcome-no-sites", 3000);
+      assert.isTrue(await driver.find(".test-welcome-sign-in").isPresent());
+      assert.notMatch(await panel.getText(), /Welcome back|anon@getgrist.com/);
+    });
+  });
+
   async function isToggleChecked(permKey: string): Promise<boolean> {
     const el = await driver.find(`.test-permissions-setup-perm-${permKey} label`);
     const cls = await el.getAttribute("class");
