@@ -37,6 +37,7 @@ import table as table_module
 from timing import DummyTiming
 from user import User # pylint:disable=wrong-import-order
 import useractions
+import usertypes
 import column
 import urllib_patch  # noqa imported for side effect # pylint:disable=unused-import
 
@@ -820,6 +821,7 @@ class Engine(object):
     changes = None
     cleaned = []    # this lists row_ids that can be removed from dirty_rows once we are no
                     # longer iterating on it.
+    is_any_column = isinstance(col.type_obj, usertypes.Any)
     try:
       require_count = len(require_rows)
       for i, row_id in enumerate(itertools.chain(require_rows, dirty_rows)):
@@ -891,6 +893,14 @@ class Engine(object):
             if not changes:
               changes = self._changes_map.setdefault(node, [])
             changes.append((row_id, previous, value))
+            col.set(row_id, value)
+          elif is_any_column:
+            # The new value is equal to the old one, making set() look like a skippable no-op.
+            # But equal values can differ subtly; in particular, Records inside Any values carry
+            # Relation objects, which go stale when a table or column is renamed. So we prefer
+            # the fresh value (with no change to report) when set() is cheap, as it is for Any
+            # columns. Other columns hold only plain data, and their set() may be costly, so
+            # for them we skip it as usual.
             col.set(row_id, value)
 
         exclude.add(row_id)
