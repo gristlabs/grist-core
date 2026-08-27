@@ -163,6 +163,9 @@ export class FlexServer implements GristServer {
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
   public readonly i18Instance: i18n;
+  // True until an identity is derived. Only a server holding a document is asked, and by
+  // then it has one.
+  private _publicUrlIsGuessed: boolean = true;
   private _activations: ActivationsManager;
   private _installationId: string;
   private _comm: Comm;
@@ -492,6 +495,10 @@ export class FlexServer implements GristServer {
 
   public getWorkerId(): string | null {
     return this.worker?.id ?? null;
+  }
+
+  public publicUrlIsGuessed(): boolean {
+    return this._publicUrlIsGuessed;
   }
 
   public getDocApiUsageTracker(): DocApiUsageTracker | undefined {
@@ -2452,6 +2459,7 @@ export class FlexServer implements GristServer {
           docWorkerId: process.env.GRIST_DOC_WORKER_ID,
           appDocInternalUrl: process.env.APP_DOC_INTERNAL_URL,
           appDocUrl: process.env.APP_DOC_URL,
+          appHomeUrl: process.env.APP_HOME_URL,
           fleet: isAffirmative(process.env.GRIST_FLEET),
           gristHost: process.env.GRIST_HOST,
           redisLocalAddress: await getRedisLocalAddress(workers.getRedisClient()),
@@ -2466,6 +2474,7 @@ export class FlexServer implements GristServer {
             () => this.createWorkerUrl() : undefined,
         });
         this.worker = identity.info;
+        this._publicUrlIsGuessed = identity.publicUrlIsGuessed;
         if (process.env.GRIST_WORKER_GROUP) {
           this.worker.group = process.env.GRIST_WORKER_GROUP;
         }

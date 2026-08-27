@@ -818,23 +818,6 @@ export function parseSubdomain(host: string | undefined): { org?: string, base?:
 const localhostRegex = /^localhost(?::(\d+))?$/i;
 
 /**
- * Like parseSubdomain, but throws an error if neither of these cases apply:
- *   - host can be parsed into a valid subdomain and a valid base domain.
- *   - host is localhost:NNNN
- * An empty object is only returned when host is localhost:NNNN.
- */
-export function parseSubdomainStrictly(host: string | undefined): { org?: string, base?: string } {
-  if (!host) { throw new Error("host not known"); }
-  const result = parseSubdomain(host);
-  if (result.org) { return result; }
-  if (!host.match(localhostRegex)) {
-    throw new Error(`host not understood: ${host}`);
-  }
-  // Host is localhost[:NNNN], no org available.
-  return {};
-}
-
-/**
  * For a packaged version of Grist that requires activation, this
  * summarizes the current state. Not applicable to grist-core.
  * This is the thing that is send via sendAppPage (so this is embedded in HTML).

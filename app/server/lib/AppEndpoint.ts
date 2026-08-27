@@ -11,11 +11,11 @@ import { TELEMETRY_TEMPLATE_SIGNUP_COOKIE_NAME } from "app/common/Telemetry";
 import { Document as APIDocument, PublicDocWorkerUrlInfo } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
+import { assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser, isSingleUserMode,
   RequestWithLogin } from "app/server/lib/Authorizer";
 import { DocStatus, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import {
-  customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getSelfPrefix, getWorker, useWorkerPool,
+  customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getSelfPrefix, getWorker,
 } from "app/server/lib/DocWorkerUtils";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { DocTemplate, GristServer } from "app/server/lib/GristServer";
@@ -62,14 +62,24 @@ export function attachAppEndpoint(options: AttachOptions): void {
     // However - as long as it exists in the codebase, it needs to be tested (e.g. for security).
     // Therefore allow the "uploads" special docId to bypass proxying and resolve to a real worker URL.
     // This should be removed when the /uploads endpoint is, and ideally should never be used outside tests.
-    const useSelfPrefix = isSocketProxyActive() && req.params.docId !== "uploads";
-    const docId = req.params.docId === "uploads" ? "import" : req.params.docId;
+    const needsWorkerUrl = req.params.docId === "uploads";
+    const selfWorkerId = gristServer.getWorkerId();
+    const docId = needsWorkerUrl ? "import" : req.params.docId;
 
     const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(
-      docId, docWorkerMap, gristServer.getTag(), { useSelfPrefix },
+      docId, docWorkerMap, gristServer.getTag(), {
+        useSelfPrefix: isSocketProxyActive() && !needsWorkerUrl,
+        selfWorkerId,
+      },
     );
-    const info: PublicDocWorkerUrlInfo = selfPrefix ?
-      { docWorkerUrl: null, docWorkerId: null, selfPrefix } :
+    // The document is here and nothing gave this server a public address, so the address the
+    // client arrived on is the best there is. Not so for an upload, which is claimed on the
+    // server that took it, and so is answered with an address that reaches that server and no
+    // other, whatever the case.
+    const stayHere = !needsWorkerUrl && docWorker?.id === selfWorkerId &&
+      gristServer.publicUrlIsGuessed();
+    const info: PublicDocWorkerUrlInfo = (selfPrefix || stayHere) ?
+      { docWorkerUrl: null, docWorkerId: null, selfPrefix: selfPrefix ?? getSelfPrefix(gristServer.getTag()) } :
       {
         docWorkerUrl: customizeDocWorkerUrl(docWorker!.publicUrl, req),
         docWorkerId: docWorker!.id,
@@ -154,9 +164,13 @@ export function attachAppEndpoint(options: AttachOptions): void {
     let body: DocTemplate;
     let docStatus: DocStatus | undefined;
     const docId = doc.id;
-    if (!useWorkerPool()) {
+    const selfWorkerId = gristServer.getWorkerId();
+    if (isSingleUserMode()) {
       body = await gristServer.getDocTemplate();
     } else {
+      // A single Grist server comes here too, finds the document is its own, and builds the page
+      // itself without fetching anything.
+      //
       // The reason to pass through app.html fetched from docWorker is in case it is a different
       // version of Grist (could be newer or older).
       // TODO: More must be done for correct version tagging of URLs: <base href> assumes all
@@ -167,9 +181,12 @@ export function attachAppEndpoint(options: AttachOptions): void {
         Accept: "application/json",
         ...getTransitiveHeaders(req, { includeOrigin: true }),
       };
-      const workerInfo = await getWorker(docWorkerMap, docId, `/${docId}/app.html`, { headers });
+      const workerInfo = await getWorker(docWorkerMap, docId, `/${docId}/app.html`, { headers },
+        { selfWorkerId });
       docStatus = workerInfo.docStatus;
-      body = await workerInfo.resp.json();
+      // No response means the document is here, and the page this server builds is the one the
+      // fetch would have returned.
+      body = workerInfo.resp ? await workerInfo.resp.json() : await gristServer.getDocTemplate();
     }
     logOpenDocumentEvents(mreq, { server: gristServer, doc, urlId });
     if (doc.type === "template") {
@@ -189,11 +206,13 @@ export function attachAppEndpoint(options: AttachOptions): void {
       });
     }
 
-    // If there's no doc status, we're in single server mode.
+    // If there's no doc status, we're in single user mode.
     // Return a selfprefix result to tell the client that it can route directly to this server.
     // If this is left undefined, the client just fetches the doc worker info from the /doc/worker endpoint instead.
     // If the socket proxy is active, this server should be used as a relay/proxy.
-    const publicUrlInfo: PublicDocWorkerUrlInfo = isSocketProxyActive() || !docStatus ?
+    // A document on this server is the same case, when the address it publishes is a guess.
+    const isHere = docStatus?.docWorker.id === selfWorkerId && gristServer.publicUrlIsGuessed();
+    const publicUrlInfo: PublicDocWorkerUrlInfo = (isSocketProxyActive() || !docStatus || isHere) ?
       { selfPrefix: getSelfPrefix(gristServer.getTag()), docWorkerUrl: null, docWorkerId: null } :
       {
         selfPrefix: null,

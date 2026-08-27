@@ -1,6 +1,6 @@
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { WebhookMessageType } from "app/common/CommTypes";
-import { safeJsonParse } from "app/common/gutil";
+import { safeJsonParse, tryParseUrl } from "app/common/gutil";
 import {
   EmailAction,
   TriggerAction,
@@ -62,7 +62,7 @@ const TRIGGER_MAX_ATTEMPTS =
   process.env.GRIST_TRIGGER_MAX_ATTEMPTS ? parseInt(process.env.GRIST_TRIGGER_MAX_ATTEMPTS, 10) : 20;
 
 function extractHost(url: string): string {
-  try { return new URL(url).host; } catch { return url; }
+  return tryParseUrl(url)?.host ?? url;
 }
 
 export interface ActionQueue<T extends ActionPayload = ActionPayload> {

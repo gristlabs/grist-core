@@ -9,6 +9,8 @@
  * GRIST_ROUTER_URL has already handed this server a name.
  */
 
+import { parseSubdomain } from "app/common/gristUrls";
+import { tryParseUrl } from "app/common/gutil";
 import { DocWorkerInfo } from "app/server/lib/DocWorkerMap";
 
 import { format as formatUrl } from "url";
@@ -36,6 +38,11 @@ export type AddressSource =
 export interface DocWorkerIdentity {
   info: DocWorkerInfo;
   addressSource: AddressSource;
+
+  // Whether info.publicUrl is only this server's own guess at how the outside world reaches
+  // it. APP_DOC_URL and GRIST_ROUTER_URL both supply a real address; with neither, the url
+  // is just what this server calls itself, and a client does better keeping the one it has.
+  publicUrlIsGuessed: boolean;
 }
 
 // Everything an identity is derived from. The settings arrive as arguments rather than being read
@@ -50,6 +57,10 @@ export interface DocWorkerIdentityContext {
   // APP_DOC_URL: this server's public address. Distinct for each worker, since it is how a client
   // is routed to the one holding a document, so it can name a worker as well as reach it.
   appDocUrl?: string;
+
+  // APP_HOME_URL: the address clients arrive on. Read here only to tell whether they arrive by
+  // subdomain, which decides whether APP_DOC_URL needs one.
+  appHomeUrl?: string;
 
   // GRIST_FLEET: whether this server is part of a fleet, which proxies clients on from whichever
   // server they reach. Refused alongside APP_DOC_URL, which a fleet has no use for.
@@ -109,7 +120,22 @@ export async function deriveDocWorkerIdentity(
     return {
       info: { id: allocated.host, publicUrl: workerUrl, internalUrl: workerUrl },
       addressSource: "GRIST_ROUTER_URL",
+      publicUrlIsGuessed: false,
     };
+  }
+
+  // APP_DOC_URL is where clients are sent. Where APP_HOME_URL routes orgs by subdomain, an address
+  // with no subdomain of its own is rebuilt under the base domain a client arrives on, naming
+  // another server. Checked at startup, where the operator can act on it.
+  if (ctx.appDocUrl) {
+    const publicHostname = tryParseUrl(ctx.appDocUrl)?.hostname;
+    if (!publicHostname) {
+      throw new Error(`APP_DOC_URL is not a url: ${ctx.appDocUrl}`);
+    }
+    if (parseSubdomain(tryParseUrl(ctx.appHomeUrl)?.hostname).base &&
+      !parseSubdomain(publicHostname).org) {
+      throw new Error(`APP_DOC_URL (${ctx.appDocUrl}) has no subdomain, but APP_HOME_URL routes by one`);
+    }
   }
 
   const publicUrl = (ctx.appDocUrl || ctx.ownUrl) + `/v/${ctx.tag}/`;
@@ -122,6 +148,7 @@ export async function deriveDocWorkerIdentity(
       internalUrl: internal.url,
     },
     addressSource: internal.source,
+    publicUrlIsGuessed: !ctx.appDocUrl,
   };
 }
 
@@ -245,11 +272,9 @@ function urlForHost(host: string, port: number): string {
 // stable wherever that address is. A server returning at a different address is a different worker.
 // The address is the one peers use, or the one clients do where that is all the operator gave.
 export function makeWorkerId(url: string): string {
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    // A broken address should still name a worker, and fail where it is used.
+  const parsed = tryParseUrl(url);
+  if (!parsed) {
+    // A broken address should still name a worker.
     return sanitizeIdPart(url) || FALLBACK_ID_PART;
   }
   // Every part that routes: the port tells workers apart on a shared host, the path on a shared

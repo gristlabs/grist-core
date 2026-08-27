@@ -274,6 +274,7 @@ describe("uploads", function() {
               getRawDocById: sandbox.stub().resolves({ id: "doc123" }),
             }),
             getTag: () => "tag1",
+            getWorkerId: () => null,
           } as any;
 
           const req = {

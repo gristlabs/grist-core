@@ -32,9 +32,6 @@ if (!debugging) {
 setDefaultEnv("GRIST_SESSION_COOKIE", "grist_core2");
 
 setDefaultEnv("GRIST_SERVE_SAME_ORIGIN", "true");
-if (!process.env.DOC_WORKER_COUNT) {
-  setDefaultEnv("GRIST_SINGLE_PORT", "true");
-}
 setDefaultEnv("GRIST_DEFAULT_PRODUCT", "Free");
 
 if (!process.env.GRIST_SINGLE_ORG) {

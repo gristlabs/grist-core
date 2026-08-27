@@ -5,8 +5,11 @@ import {
   makeWorkerId,
 } from "app/server/lib/DocWorkerIdentity";
 
+import { promisifyAll } from "bluebird";
 import { assert } from "chai";
-import { createClient } from "redis";
+import { createClient, RedisClient } from "redis";
+
+promisifyAll(RedisClient.prototype);
 
 // Everything an identity is derived from arrives in the context, so these tests state their
 // inputs: nothing is stubbed, and nothing is inherited from the environment or the machine.
@@ -167,6 +170,42 @@ describe("DocWorkerIdentity", function() {
         appDocInternalUrl: "http://docs-1.internal:9999",
         fleet: true,
       })), /APP_DOC_URL cannot be set with GRIST_FLEET/);
+    });
+
+    it("refuses an APP_DOC_URL that is not a url", async function() {
+      setHostname("docs-1");
+      await assert.isRejected(deriveDocWorkerIdentity(makeContext({
+        appDocUrl: "localhost",
+      })), /APP_DOC_URL is not a url/);
+    });
+
+    it("refuses an address with no subdomain where the home has one", async function() {
+      // A client's request carries the base domain of the home address, and a worker address with
+      // no subdomain to keep is rebuilt under it, naming a server that is not this one.
+      setHostname("docs-1");
+      await assert.isRejected(deriveDocWorkerIdentity(makeContext({
+        appHomeUrl: "https://grist.example.com",
+        appDocUrl: "https://grist.app",
+      })), /APP_DOC_URL .* has no subdomain/);
+    });
+
+    it("allows an address with no subdomain where the home has none", async function() {
+      // The ordinary self-hosted setup: one domain, orgs in the path, nothing to rebuild.
+      setHostname("docs-1");
+      const identity = await deriveDocWorkerIdentity(makeContext({
+        appHomeUrl: "https://grist.app",
+        appDocUrl: "https://grist.app",
+      }));
+      assert.equal(identity.info.publicUrl, "https://grist.app/v/tag1/");
+    });
+
+    it("allows a worker given a subdomain of its own", async function() {
+      setHostname("docs-1");
+      const identity = await deriveDocWorkerIdentity(makeContext({
+        appHomeUrl: "https://grist.example.com",
+        appDocUrl: "https://docs-1.example.com",
+      }));
+      assert.equal(identity.info.publicUrl, "https://docs-1.example.com/v/tag1/");
     });
 
     it("allows a fleet that leaves APP_DOC_URL unset", async function() {
@@ -411,6 +450,45 @@ describe("DocWorkerIdentity", function() {
         }),
       }));
       assert.equal(identity.info.id, "docworker-17");
+    });
+  });
+
+  describe("whether the public url is a guess", function() {
+    // A client is sent to that url to reach a document, so whether anything outside can be
+    // expected to reach it there decides whether the client is sent at all.
+    it("is a guess where nobody named this server", async function() {
+      setHostname("docs-1");
+      const identity = await deriveDocWorkerIdentity(makeContext());
+      assert.equal(identity.info.publicUrl, "http://localhost:8484/v/tag1/");
+      assert.isTrue(identity.publicUrlIsGuessed);
+    });
+
+    it("is not a guess where APP_DOC_URL named it", async function() {
+      setHostname("docs-1");
+      const identity = await deriveDocWorkerIdentity(makeContext({
+        appDocUrl: "https://docs-1.example.com",
+      }));
+      assert.isFalse(identity.publicUrlIsGuessed);
+    });
+
+    it("is not a guess where a router allocated it", async function() {
+      setHostname("docs-1");
+      const identity = await deriveDocWorkerIdentity(makeContext({
+        createWorkerUrl: async () => ({
+          url: "https://docworker-17.example.com", host: "docworker-17",
+        }),
+      }));
+      assert.isFalse(identity.publicUrlIsGuessed);
+    });
+
+    it("is a guess where only the address peers use was named", async function() {
+      // APP_DOC_INTERNAL_URL is for reaching this server from inside, and says nothing about how
+      // the outside world does.
+      setHostname("docs-1");
+      const identity = await deriveDocWorkerIdentity(makeContext({
+        appDocInternalUrl: "http://docs-1.internal:8484",
+      }));
+      assert.isTrue(identity.publicUrlIsGuessed);
     });
   });
 

@@ -97,7 +97,6 @@ describe("DocApiReverseProxy", function() {
       GRIST_DATA_DIR: dataDir,
       APP_HOME_URL: proxy.serverUrl,
       GRIST_ORG_IN_PATH: "true",
-      GRIST_SINGLE_PORT: "0",
       APP_HOME_INTERNAL_URL: home.serverUrl,
       GRIST_EXTERNAL_ATTACHMENTS_MODE: "test",
     };
