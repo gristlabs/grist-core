@@ -536,7 +536,8 @@ export class ApiServer {
     }));
 
     this._app.post("/api/users/:userId/disable", requireInstallAdmin, expressWrap(async (req, res) => {
-      await this._changeUserDisablement(req, new Date(), req.body.reason?.toString());
+      const reason = optStringParam(req.body.reason, "reason");
+      await this._changeUserDisablement(req, new Date(), reason);
       await sendOkReply(req, res);
     }));
 
