@@ -191,6 +191,19 @@ describe("ApiSession", function() {
     assert.equal(resp.data.org.readOnlyReason, "users");
   });
 
+  it("GET /api/session/access/active survives a member cap on the merged org's plan", async function() {
+    // The merged org is reported with id 0, which must not be fed to the member count (there
+    // is no site to count). A cap can reach a personal org's plan via a features override.
+    await setUserLimit(10);
+
+    const cookie = await server.getCookieLogin("docs", { email: regular, name: "Chimpy" });
+    const resp = await axios.get(`${serverUrl}/o/docs/api/session/access/active`, cookie);
+    assert.equal(resp.status, 200);
+    assert.equal(resp.data.org.id, 0);
+    assert.isUndefined(resp.data.org.billableMemberCount);
+    assert.isUndefined(resp.data.org.readOnlyReason);
+  });
+
   it("GET /api/session/access/active returns orgErr when org is forbidden", async function() {
     const cookie = await server.getCookieLogin("nasa", { email: "kiwi@getgrist.com", name: "Kiwi" });
 

@@ -636,6 +636,9 @@ export class HomeDBManager implements HomeDBAuth {
   public async getUserLimitStatus(
     org: Organization, manager?: EntityManager,
   ): Promise<UserLimitStatus | undefined> {
+    // The merged org can't count members (since its org.id is 0), and shouldn't, even if a member
+    // cap somehow reaches a personal org's plan.
+    if (this.isMergedOrg(org.id)) { return undefined; }
     const limit = org.billingAccount?.getEffectiveFeatures().maxUsersPerOrg;
     if (limit === undefined) { return undefined; }
     // A caller in a transaction counts within it. The cache is shared between requests, so
