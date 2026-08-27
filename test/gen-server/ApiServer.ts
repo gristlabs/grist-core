@@ -1162,6 +1162,7 @@ describe("ApiServer", function() {
   it("POST /api/users/{uid}/disable tells the disabled user why", async function() {
     const chimpyUser = await dbManager.getUserByLogin(chimpyEmail);
     const chimpyId = chimpyUser.id;
+    const chimpylandOrgId = await dbManager.testGetId("Chimpyland");
     const did = await dbManager.testGetId("Jupiter");
     try {
       // Ham wields the banHAMmer again, but this time explains himself.
@@ -1175,10 +1176,11 @@ describe("ApiServer", function() {
       assert.equal(resp.status, 403);
       assert.equal(resp.data.error, "User is disabled (Reason: Too many bananas)");
 
-      // Chimpy may still read their own profile, which carries the reason too.
-      resp = await axios.get(`${homeUrl}/api/session/access/active`, chimpy);
+      // But the reason is not shared with Charon, who can only know that Chimpy is banned and when
+      resp = await axios.get(`${homeUrl}/api/orgs/${chimpylandOrgId}`, charon);
       assert.equal(resp.status, 200);
-      assert.equal(resp.data.user.disabledReason, "Too many bananas");
+      assert.exists(resp.data.owner.disabledAt);
+      assert.notExists(resp.data.owner.disabledReason);
 
       // Giving chimpy a second chance forgets the reason as well.
       resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, {}, ham);
