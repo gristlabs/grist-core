@@ -236,6 +236,7 @@ describe("ChoiceList", function() {
     await gu.getCell({ rowNum: 1, col: "B" }).click();
     await gu.enterCell("fake");
     await getEditorInput().click();
+    await gu.autocomplete.wait("");
     const blueChoice = await driver.findContent(".test-autocomplete li", /Blue/);
     assert.equal(
       await blueChoice.find(".test-choice-list-editor-item-label").getCssValue("background-color"),
@@ -310,6 +311,7 @@ describe("ChoiceList", function() {
 
     // Double-click to open dropdown and select a token.
     await driver.withActions(a => a.doubleClick(gu.getCell({ rowNum: 1, col: "B" })));
+    await gu.autocomplete.wait("");
     await driver.findContent(".test-autocomplete li", /Black/).click();
     assert.deepEqual(await getEditorTokens(), ["Blue", "Green", "Black"]);
 
@@ -403,6 +405,7 @@ describe("ChoiceList", function() {
     await gu.waitAppFocus();
     await driver.sendKeys(Key.ENTER);
     await gu.waitForCellEditor();
+    await gu.autocomplete.wait("");
     await driver.findContent(".test-autocomplete li", /Green/).click();
     assert.deepEqual(await getEditorTokens(), ["Green"]);
 
@@ -416,6 +419,7 @@ describe("ChoiceList", function() {
 
     // Type another token, and click the "+" button in autocomplete. New token should be valid.
     await driver.sendKeys("Apricot");
+    await gu.autocomplete.wait("Apricot");
     const newChoice = await driver.find(".test-autocomplete .test-choice-list-editor-new-item");
     assert.equal(await newChoice.getText(), "Apricot");
     assert.equal(
@@ -426,7 +430,7 @@ describe("ChoiceList", function() {
       await newChoice.find(".test-choice-list-editor-item-label").getCssValue("color"),
       DEFAULT_TEXT,
     );
-    await driver.find(".test-autocomplete .test-choice-list-editor-new-item").click();
+    await newChoice.click();
     assert.deepEqual(await getEditorTokens(), ["Green", "Orange", "Apricot"]);
     assert.deepEqual(await getEditorTokensIsInvalid(), [false, true, false]);
     assert.deepEqual(
