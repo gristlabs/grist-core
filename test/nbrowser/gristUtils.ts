@@ -4187,19 +4187,19 @@ namespace gristUtils {
   };
 
   /**
- * Helper for the autocomplete dropdown offered by the Choice, Choice List, Reference and Reference
- * List editors.
- *
- * Its items are rebuilt asynchronously, and a list that has caught up with what the user typed
- * looks exactly like one that has not, so the editor tags the menu with the search text its items
- * were built for (see data-ac-search-text in app/client/lib/autocomplete.ts). Waiting for
- * ".test-autocomplete" alone is not enough: the menu is in the DOM before its first results are,
- * and one on its way out is still there for the next read, so both read as an empty or a wrong
- * list with nothing to say so.
- */
-  // Selector for the dropdown once it is showing results; with `text`, only the dropdown showing
-  // the results for that search text (the whole content of the editor's textbox).
+   * Helper for the autocomplete dropdown offered by the Choice, Choice List, Reference and Reference
+   * List editors.
+   *
+   * Its items are rebuilt asynchronously, and a list that has caught up with what the user typed
+   * looks exactly like one that has not, so the editor tags the menu with the search text its items
+   * were built for (see data-ac-search-text in app/client/lib/autocomplete.ts). Waiting for
+   * ".test-autocomplete" alone is not enough: the menu is in the DOM before its first results are,
+   * and one on its way out is still there for the next read, so both read as an empty or a wrong
+   * list with nothing to say so.
+   */
   function autocompleteMenu(text?: string) {
+    // Selector for the dropdown once it is showing results; with `text`, only the dropdown showing
+    // the results for that search text (the whole content of the editor's textbox).
     return text === undefined ?
       ".test-autocomplete[data-ac-search-text]" :
       `.test-autocomplete[data-ac-search-text=${JSON.stringify(text)}]`;
