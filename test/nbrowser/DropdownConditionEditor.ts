@@ -104,25 +104,25 @@ describe("DropdownConditionEditor", function() {
 
       // Check that autocomplete values are filtered.
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Supervisor",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
       await gu.getCell(1, 4).click();
       await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Trainee",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
       await gu.getCell(1, 6).click();
       await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Trainee",
         "Supervisor",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
 
       // Change the column type to Choice List and check values are still filtered.
       await gu.setType("Choice List", { apply: true });
@@ -133,10 +133,10 @@ describe("DropdownConditionEditor", function() {
       await gu.getCell(1, 4).click();
       await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Trainee",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
     });
 
     it("removes dropdown conditions", async function() {
@@ -146,21 +146,21 @@ describe("DropdownConditionEditor", function() {
 
       // Check that autocomplete values are no longer filtered.
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Trainee",
         "Supervisor",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
 
       // Change the column type back to Choice and check values are still no longer filtered.
       await gu.setType("Choice", { apply: true });
       assert.isFalse(await driver.find(".test-field-dropdown-condition").isPresent());
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Supervisor",
         "Trainee",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
       await gu.waitAppFocus();
     });
 
@@ -189,10 +189,10 @@ describe("DropdownConditionEditor", function() {
       // Check that the autocomplete dropdown also reports an error.
       await gu.sendKeys(Key.ENTER);
       assert.equal(
-        await driver.find(".test-autocomplete-no-items-message").getText(),
+        await driver.findWait(".test-autocomplete-no-items-message", 1000).getText(),
         "Error in dropdown condition",
       );
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
     });
   });
 
@@ -228,43 +228,43 @@ describe("DropdownConditionEditor", function() {
 
       // Check that autocomplete values are filtered.
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Pavan Madilyn",
         "Marie Ziyad",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
 
       // Should be no options on row 2 because of $id != 2 part of condition.
       await gu.getCell(2, 2).click();
       await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
 
       // Row 3 should be like row 1.
       await gu.getCell(2, 3).click();
       await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Pavan Madilyn",
         "Marie Ziyad",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
 
       await gu.getCell(2, 4).click();
       await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
-      assert.isEmpty(await driver.findAll(".test-autocomplete li", el => el.getText()));
-      await gu.sendKeys(Key.ESCAPE);
+      assert.isEmpty(await gu.autocomplete.getOptions());
+      await gu.autocomplete.close();
       await gu.getCell(2, 6).click();
       await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Marie Ziyad",
         "Pavan Madilyn",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
 
       // Change the column type to Reference List and check values are still filtered.
       await gu.setType("Reference List", { apply: true });
@@ -275,8 +275,8 @@ describe("DropdownConditionEditor", function() {
       await gu.getCell(2, 4).click();
       await gu.waitAppFocus();
       await gu.sendKeys(Key.ENTER);
-      assert.isEmpty(await driver.findAll(".test-autocomplete li", el => el.getText()));
-      await gu.sendKeys(Key.ESCAPE);
+      assert.isEmpty(await gu.autocomplete.getOptions());
+      await gu.autocomplete.close();
     });
 
     it("removes dropdown conditions", async function() {
@@ -286,27 +286,27 @@ describe("DropdownConditionEditor", function() {
 
       // Check that autocomplete values are no longer filtered.
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Emma Thamir",
         "Holger Klyment",
         "Marie Ziyad",
         "Olivier Bipin",
         "Pavan Madilyn",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
 
       // Change the column type back to Reference and check values are still no longer filtered.
       await gu.setType("Reference", { apply: true });
       assert.isFalse(await driver.find(".test-field-dropdown-condition").isPresent());
       await gu.sendKeys(Key.ENTER);
-      assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+      assert.deepEqual(await gu.autocomplete.getOptions(), [
         "Emma Thamir",
         "Holger Klyment",
         "Marie Ziyad",
         "Olivier Bipin",
         "Pavan Madilyn",
       ]);
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
     });
 
     it("reports errors", async function() {
@@ -338,10 +338,10 @@ describe("DropdownConditionEditor", function() {
       await gu.sendKeys(Key.ENTER);
 
       assert.equal(
-        await driver.findWait(".test-autocomplete-no-items-message", 100).getText(),
+        await driver.findWait(".test-autocomplete-no-items-message", 1000).getText(),
         "Error in dropdown condition",
       );
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
 
       // Check evaluation errors are also reported in the dropdown.
       await driver.find(".test-field-dropdown-condition").click();
@@ -351,10 +351,10 @@ describe("DropdownConditionEditor", function() {
       await gu.sendKeys(Key.ENTER);
 
       assert.equal(
-        await driver.findWait(".test-autocomplete-no-items-message", 100).getText(),
+        await driver.findWait(".test-autocomplete-no-items-message", 1000).getText(),
         "Error in dropdown condition",
       );
-      await gu.sendKeys(Key.ESCAPE);
+      await gu.autocomplete.close();
     });
   });
 
@@ -383,13 +383,11 @@ describe("DropdownConditionEditor", function() {
 
     // Check that user1 (who is an admin) can see dropdown values.
     await gu.sendKeys(Key.ENTER);
-    await waitForDropdown();
-
-    assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), [
+    assert.deepEqual(await gu.autocomplete.getOptions(), [
       "Trainee",
       "Supervisor",
     ]);
-    await gu.sendKeys(Key.ESCAPE);
+    await gu.autocomplete.close();
 
     // Switch to user2 (who is not an admin), and check that they can't see any dropdown values.
     const session = await gu.session().user("user2").login();
@@ -397,11 +395,7 @@ describe("DropdownConditionEditor", function() {
     await gu.getCell(1, 1).click();
     await gu.waitAppFocus();
     await gu.sendKeys(Key.ENTER);
-    assert.deepEqual(await driver.findAll(".test-autocomplete li", el => el.getText()), []);
-    await gu.sendKeys(Key.ESCAPE);
+    assert.deepEqual(await gu.autocomplete.getOptions(), []);
+    await gu.autocomplete.close();
   });
 });
-
-async function waitForDropdown() {
-  await driver.findWait(".test-autocomplete li", 100);
-}

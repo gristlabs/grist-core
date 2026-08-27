@@ -4186,6 +4186,48 @@ namespace gristUtils {
     },
   };
 
+  /**
+   * Helper for the autocomplete dropdown offered by the Choice, Choice List, Reference and Reference
+   * List editors.
+   *
+   * Its items are rebuilt asynchronously, and a list that has caught up with what the user typed
+   * looks exactly like one that has not, so the editor tags the menu with the search text its items
+   * were built for (see data-ac-search-text in app/client/lib/autocomplete.ts). Waiting for
+   * ".test-autocomplete" alone is not enough: the menu is in the DOM before its first results are,
+   * and one on its way out is still there for the next read, so both read as an empty or a wrong
+   * list with nothing to say so.
+   */
+  function autocompleteMenu(text?: string) {
+    // Selector for the dropdown once it is showing results; with `text`, only the dropdown showing
+    // the results for that search text (the whole content of the editor's textbox).
+    return text === undefined ?
+      ".test-autocomplete[data-ac-search-text]" :
+      `.test-autocomplete[data-ac-search-text=${JSON.stringify(text)}]`;
+  }
+
+  export const autocomplete = {
+    /**
+     * Waits for the dropdown to be showing results. Pass `text` when known: it is what tells the
+     * latest keystroke's list from the one before it.
+     */
+    async wait(text?: string) {
+      await driver.findWait(autocompleteMenu(text), 1000);
+    },
+
+    /** Returns the first `limit` options offered, once the dropdown is showing them. */
+    async getOptions(text?: string, limit?: number): Promise<string[]> {
+      await this.wait(text);
+      return (await driver.findAll(`${autocompleteMenu(text)} li`, el => el.getText())).slice(0, limit);
+    },
+
+    /** Dismisses the dropdown with Escape, and waits for it to be gone. */
+    async close() {
+      await sendKeys(Key.ESCAPE);
+      await driver.wait(async () => !await driver.find(".test-autocomplete").isPresent(), 1000,
+        "autocomplete did not close");
+    },
+  };
+
   export async function switchUser(email: string) {
     await driver.findWait(".test-user-icon", 1000).click();
     await driver.findContentWait(".test-usermenu-other-email", exactMatch(email), 1000).click();
