@@ -1,6 +1,6 @@
 {
     "ACUserManager": {
-        "Enter email address": "E-Mail Adresse eingeben",
+        "Enter email address": "E-Mail-Adresse eingeben",
         "Invite new member": "Neues Mitglied einladen",
         "We'll email an invite to {{email}}": "Wir schicken eine Einladung zu {{email}}"
     },
@@ -79,7 +79,7 @@
         "Allow signing in to this account with Google": "Anmeldung bei diesem Konto mit Google zulassen",
         "Change password": "Passwort ändern",
         "Edit": "Bearbeiten",
-        "Email": "E-mail",
+        "Email": "E-Mail",
         "Login method": "Anmeldemethode",
         "Name": "Name",
         "Names only allow letters, numbers and certain special characters": "Bei den Namen sind nur Buchstaben, Zahlen und bestimmte Sonderzeichen erlaubt",
@@ -2391,5 +2391,11 @@
         },
         "Search engine": "Suchmaschine",
         "Select…": "Wähle…"
+    },
+    "OpenAccessibilityModal": {
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Bildschrimleser-Verbesserungen aktivieren (Tastaturkürzel: {{shortcut}})"
+    },
+    "ScreenReaderConfig": {
+        "Enable screen reader improvements": "Bildschrimleser-Verbesserungen aktivieren"
     }
 }
