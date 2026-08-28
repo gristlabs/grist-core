@@ -2468,7 +2468,9 @@
         "Quotes in fields are doubled": "Quotes in fields are doubled",
         "Skip leading whitespace": "Skip leading whitespace",
         "Start with row": "Start with row",
-        "Character encoding. See [the supported codecs]({{link}})": "Character encoding. See [the supported codecs]({{link}})"
+        "Character encoding. See [the supported codecs]({{link}})": "Character encoding. See [the supported codecs]({{link}})",
+        "Excludes (list of tables separated by semicolon)": "Excludes (list of tables separated by semicolon)",
+        "Includes (list of tables separated by semicolon)": "Includes (list of tables separated by semicolon)"
     },
     "OpenAccessibilityModal": {
         " or ": " or ",
