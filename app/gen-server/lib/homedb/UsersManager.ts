@@ -735,6 +735,36 @@ export class UsersManager {
     });
   }
 
+  /**
+   * Updates the login email of the user with `email` to `newEmail`. The user record is
+   * preserved, and with it everything the user owns or has access to. The user's name
+   * is cleared, to be filled from their profile at next login.
+   *
+   * Throws if a user with `newEmail` already exists.
+   */
+  public async updateUserEmail(email: string, newEmail: string, transaction?: EntityManager): Promise<void> {
+    await this._runInTransaction(transaction, async (manager) => {
+      const user = await this.getExistingUserByLogin(email, manager);
+      if (!user) {
+        throw new Error(`user with email "${email}" not found`);
+      }
+
+      // If a user with `newEmail` exists, we can't assign it to another user
+      // without violating the uniqueness constraint on the `email` column in the
+      // `logins` table. For now, just inform the user.
+      if (await this.getExistingUserByLogin(newEmail, manager)) {
+        throw new Error(`cannot replace "${email}" with "${newEmail}" ` +
+          "because a user with that email already exists");
+      }
+
+      const login = user.logins[0];
+      login.email = normalizeEmail(newEmail);
+      login.displayEmail = newEmail;
+      user.name = "";
+      await manager.save([login, user]);
+    });
+  }
+
   public async getUsers({ type }: { type?: UserType } = {}) {
     return await User.find({
       relations: ["logins"],

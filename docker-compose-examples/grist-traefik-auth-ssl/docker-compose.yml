@@ -4,17 +4,12 @@ services:
     environment:
       # Set DEBUG=1 for verbose logs.
       DEBUG: ${DEBUG:-}
-      # Sets the header to look at for authentication
-      GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
       # Forces Grist to only use a single team called 'my-grist-team'
-      GRIST_SINGLE_ORG: my-grist-team   # alternatively, GRIST_ORG_IN_PATH: "true" for multi-team operation
+      GRIST_SINGLE_ORG: my-grist-team
       # Force users to login (disable anonymous access)
       GRIST_FORCE_LOGIN: true
       # Base URL Grist redirects to when navigating. Change GRIST_DOMAIN in .env to your domain.
       APP_HOME_URL: https://${GRIST_DOMAIN:-grist.localhost}
-      # Email of the administrator account. Must match a user in
-      # ./configs/traefik-dynamic-config.yml.
-      GRIST_ADMIN_EMAIL: ${GRIST_ADMIN_EMAIL:-test@example.com}
     volumes:
       # Where to store persistent data, such as documents.
       - ${PERSIST_DIR:-./persist}/grist:/persist
@@ -22,24 +17,32 @@ services:
       - "traefik.http.services.grist.loadbalancer.server.port=8484"
       - "traefik.http.routers.grist.rule=Host(`${GRIST_DOMAIN:-grist.localhost}`)"
       - "traefik.http.routers.grist.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.grist-auth.rule=Host(`${GRIST_DOMAIN:-grist.localhost}`) && (PathPrefix(`/auth/login`) || PathPrefix(`/_oauth`))"
-      - "traefik.http.routers.grist-auth.middlewares=grist-basic-auth@file"
-      - "traefik.http.routers.grist-auth.tls.certresolver=letsencrypt"
 
   traefik:
     image: traefik:latest
+    # Command-line based configuration, in the style of Traefik's own
+    # examples, e.g. https://doc.traefik.io/traefik/getting-started/docker/
+    command:
+      # Read routing config from docker labels.
+      - "--providers.docker"
+      # A secure entrypoint using TLS encryption.
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+      # An insecure entrypoint that redirects to the secure one.
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # Automatic certificates. Let's Encrypt requires a real email
+      # (it refuses the placeholder), and uses it for expiry notices.
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-my_email@example.com}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
     ports:
       # HTTP Ports
       - "80:80"
       - "443:443"
-      # The Web UI (enabled by --api.insecure=true)
-      # - "8080:8080"
     volumes:
-      # Set the config file for traefik - this is loaded automatically.
-      - ./configs/traefik-config.yml:/etc/traefik/traefik.yml
-      # Set the config file for the dynamic config, such as middleware.
-      - ./configs/traefik-dynamic-config.yml:/etc/traefik/dynamic/dynamic-config.yml
-      # Certificate location, if automatic certificate setup is enabled.
+      # Certificate storage.
       - ${PERSIST_DIR:-./persist}/acme:/acme
       # Traefik reads routing labels via this socket. If you run Docker as root, that grants
       # this container root access; consider rootless Docker, a socket proxy, or a config file:

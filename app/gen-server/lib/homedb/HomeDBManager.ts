@@ -684,6 +684,13 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   /**
+   * @see UsersManager.prototype.updateUserEmail
+   */
+  public async updateUserEmail(email: string, newEmail: string, transaction?: EntityManager): Promise<void> {
+    return this._usersManager.updateUserEmail(email, newEmail, transaction);
+  }
+
+  /**
    * Returns a QueryResult for the given organization.  The orgKey
    * can be a string (the domain from url) or the id of an org.  If it is
    * null, the user's personal organization is returned.

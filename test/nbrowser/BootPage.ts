@@ -444,6 +444,124 @@ describe("BootPage", function() {
     });
   });
 
+  describe("no-authentication installs keep their identity", function() {
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
+    before(async function() {
+      await server.removeLogin();
+
+      oldEnv = new testUtils.EnvironmentSnapshot();
+
+      process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
+      // An installation from before first-run setup renamed the default user:
+      // an admin email is recorded, but the default user still exists and owns
+      // everything created so far.
+      process.env.GRIST_ADMIN_EMAIL = "legacyadmin@example.com";
+      process.env.GRIST_IN_SERVICE = "true";
+
+      delete process.env.GRIST_DEFAULT_EMAIL;
+      delete process.env.GRIST_BOOT_KEY;
+      delete process.env.DOC_ID_NEW_USER_INFO;
+
+      await server.restart(true);
+
+      const db = await server.getDatabase();
+      await db.getUserByLogin("you@example.com");
+    });
+
+    after(async function() {
+      oldEnv.restore();
+
+      await server.restart();
+    });
+
+    it("signs in as the default user while it exists", async function() {
+      await driver.get(server.getHost());
+      await gu.waitForDocMenuToLoad();
+      await driver.findWait(".test-user-sign-in", 2000).click();
+      await gu.waitForDocMenuToLoad();
+      const { name, email } = await gu.getUser();
+      assert.deepEqual({ name, email }, { name: "You", email: "you@example.com" });
+    });
+  });
+
+  describe("first-time admin email takeover", function() {
+    let oldEnv: testUtils.EnvironmentSnapshot;
+    let defaultUserId = 0;
+
+    before(async function() {
+      await server.removeLogin();
+
+      oldEnv = new testUtils.EnvironmentSnapshot();
+
+      process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
+      process.env.GRIST_BOOT_KEY = "abc123";
+
+      // With GRIST_DEFAULT_EMAIL unset, the placeholder identity is minimal
+      // login's you@example.com fallback.
+      delete process.env.GRIST_DEFAULT_EMAIL;
+      delete process.env.GRIST_ADMIN_EMAIL;
+      delete process.env.DOC_ID_NEW_USER_INFO;
+      delete process.env.GRIST_IN_SERVICE;
+
+      await server.restart(true);
+
+      // On a fresh installation, resources created before setup belong to the
+      // placeholder user (e.g. the GRIST_SINGLE_ORG org). Create that user
+      // here to stand in for them.
+      const db = await server.getDatabase();
+      const user = await db.getUserByLogin("you@example.com");
+      defaultUserId = user.id;
+    });
+
+    after(async function() {
+      oldEnv.restore();
+
+      await server.restart();
+    });
+
+    it("renames the default user to the admin email entered at boot", async function() {
+      await driver.get(`${server.getHost()}/boot`);
+      await waitForBootPage();
+      await driver.find(".test-boot-page-boot-key-input").doClear().sendKeys("abc123");
+      await driver.find(".test-boot-page-check-key").click();
+      await gu.waitForServer();
+      await driver.find(".test-boot-page-email-input").doClear().sendKeys("owner@example.com");
+      await driver.find(".test-boot-page-continue").click();
+      await gu.waitForServer();
+      await gu.waitForAdminPanel();
+      const { name, email } = await gu.getUser();
+      assert.deepEqual({ name, email }, { name: "owner", email: "owner@example.com" });
+
+      // The default user was renamed, preserving the user record and with it
+      // everything it owns.
+      const db = await server.getDatabase();
+      const admin = await db.getExistingUserByLogin("owner@example.com");
+      assert.equal(admin?.id, defaultUserId);
+      assert.isUndefined(await db.getExistingUserByLogin("you@example.com"));
+    });
+
+    it("does not rename again once an admin email is configured", async function() {
+      await driver.get(`${server.getHost()}/boot`);
+      await waitForBootPage();
+      await driver.find(".test-boot-page-boot-key-input").doClear().sendKeys("abc123");
+      await driver.find(".test-boot-page-check-key").click();
+      await gu.waitForServer();
+      await driver.find(".test-boot-page-email-input").doClear().sendKeys("other@example.com");
+      await driver.find(".test-boot-page-continue").click();
+      await gu.waitForServer();
+      await gu.waitForAdminPanel();
+
+      // The new admin gets their own user; the previous admin's user is untouched.
+      const db = await server.getDatabase();
+      const other = await db.getExistingUserByLogin("other@example.com");
+      assert.exists(other);
+      assert.notEqual(other!.id, defaultUserId);
+      const previous = await db.getExistingUserByLogin("owner@example.com");
+      assert.equal(previous?.id, defaultUserId);
+    });
+  });
+
   describe("with GRIST_IN_SERVICE set to true", function() {
     let oldEnv: testUtils.EnvironmentSnapshot;
 

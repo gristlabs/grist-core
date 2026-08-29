@@ -9,7 +9,9 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { expressWrap, secureJsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession } from "app/server/lib/GristServer";
 import { getAdminEmail, getBootKey, invalidateReloadableSettings } from "app/server/lib/gristSettings";
+import log from "app/server/lib/log";
 import { getFallbackLoginProvider } from "app/server/lib/loginSystemHelpers";
+import { getDefaultProfile } from "app/server/lib/MinimalLogin";
 import { stringParam } from "app/server/lib/requestUtils";
 
 import express, { Express, Request } from "express";
@@ -93,8 +95,8 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
 
     app.post("/boot/login", express.json(), expressWrap(async (req, res) => {
       const bootKey = stringParam(req.body.bootKey, "bootKey");
-      const adminEmail = stringParam(req.body.adminEmail, "adminEmail");
-      if (!isEmail(adminEmail)) {
+      const newAdminEmail = stringParam(req.body.adminEmail, "adminEmail");
+      if (!isEmail(newAdminEmail)) {
         throw new ApiError("Invalid admin email", 400);
       }
 
@@ -103,12 +105,29 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
         throw new ApiError("Invalid boot key", 401);
       }
 
-      const profile = getAdminProfile();
-      if (!profile || normalizeEmail(profile.email) !== normalizeEmail(adminEmail)) {
+      const adminEmail = getAdminEmail();
+      if (!adminEmail || normalizeEmail(adminEmail) !== normalizeEmail(newAdminEmail)) {
+        const db = this._server.getHomeDBManager();
         const activations = this._server.getActivations();
         const envVars = (await activations.current()).prefs?.envVars || {};
-        const newEnvVars = { GRIST_ADMIN_EMAIL: adminEmail };
-        await activations.updateEnvVars(newEnvVars);
+        const newEnvVars = { GRIST_ADMIN_EMAIL: newAdminEmail };
+        // One transaction, so that the rename and the admin email cannot come apart.
+        await db.runInTransaction(undefined, async (manager) => {
+          // The admin user so far was the default user, and is now becoming the newly
+          // configured email. Resources created before setup, such as the
+          // GRIST_SINGLE_ORG org, already belong to the default user. Rename that
+          // user to the newly configured email, to ensure that email owns them. The
+          // rename is only possible before the new email exists, so needs to be done
+          // before the first request authenticated with the new user.
+          const defaultEmail = getDefaultProfile().email;
+          if (!adminEmail &&
+            await db.getExistingUserByLogin(defaultEmail, manager) &&
+            !await db.getExistingUserByLogin(newAdminEmail, manager)) {
+            log.info(`Renaming user "${defaultEmail}" to the new admin email "${newAdminEmail}"`);
+            await db.updateUserEmail(defaultEmail, newAdminEmail, manager);
+          }
+          await activations.updateEnvVars(newEnvVars, manager);
+        });
         appSettings.setEnvVars({ ...envVars, ...newEnvVars });
         invalidateReloadableSettings("GRIST_ADMIN_EMAIL");
       }

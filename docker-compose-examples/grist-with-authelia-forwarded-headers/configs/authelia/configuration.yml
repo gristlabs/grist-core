@@ -1,0 +1,44 @@
+# Minimal Authelia configuration for guarding Grist's sign-in path via
+# Traefik's forwardAuth middleware.
+#
+# Authelia's full configuration template, with all available options:
+# https://github.com/authelia/authelia/blob/master/config.template.yml
+
+server:
+  address: 'tcp://:9091/'
+  endpoints:
+    authz:
+      # The endpoint Traefik's forwardAuth middleware calls to check whether
+      # the user is signed in.
+      forward-auth:
+        implementation: 'ForwardAuth'
+
+log:
+  level: 'info'
+
+authentication_backend:
+  file:
+    path: '/config/users_database.yml'
+    watch: true
+
+# Signing in with username and password is enough to access anything.
+access_control:
+  default_policy: 'one_factor'
+
+session:
+  cookies:
+    # APP_DOMAIN is interpolated from the environment (see docker-compose.yml).
+    # The session cookie covers the auth. subdomain serving the portal.
+    - domain: '{{ mustEnv "APP_DOMAIN" }}'
+      authelia_url: 'https://auth.{{ mustEnv "APP_DOMAIN" }}'
+      default_redirection_url: 'https://{{ mustEnv "APP_DOMAIN" }}'
+
+storage:
+  local:
+    path: '/persist/db.sqlite3'
+
+# Password reset emails and similar notifications are written to a file.
+# Configure an SMTP server here for a real deployment.
+notifier:
+  filesystem:
+    filename: '/persist/notification.txt'

@@ -14,7 +14,7 @@ import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
 import { maybeManageFullEdition, resolveFullEditionWorker } from "app/server/lib/bootstrapFullEdition";
 import { updateDb } from "app/server/lib/dbUtils";
-import { getAdminEmail, invalidateReloadableSettings } from "app/server/lib/gristSettings";
+import { getAdminEmail, getHomeUrl, invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
 import { getDefaultEmail } from "app/server/lib/InstallAdmin";
 import log from "app/server/lib/log";
@@ -129,24 +129,7 @@ async function setUpAdminEmail(db: HomeDBManager) {
         }
 
         log.info(`Replacing "${onRestartReplaceEmailWithAdmin}" with GRIST_ADMIN_EMAIL ("${adminEmail}").`);
-        const user = await db.getExistingUserByLogin(onRestartReplaceEmailWithAdmin, manager);
-        if (!user) {
-          throw new Error(`user with email "${onRestartReplaceEmailWithAdmin}" not found`);
-        }
-
-        // If a user with `adminEmail` exists, we can't assign it to another user
-        // without violating the uniqueness constraint on the `email` column in the
-        // `logins` table. For now, just inform the user.
-        if (await db.getExistingUserByLogin(adminEmail, manager)) {
-          throw new Error(`cannot replace "${onRestartReplaceEmailWithAdmin}" with "${adminEmail}" ` +
-            "because a user with that email already exists");
-        }
-
-        const login = user.logins[0];
-        login.email = normalizeEmail(adminEmail);
-        login.displayEmail = adminEmail;
-        user.name = "";
-        await manager.save([login, user]);
+        await db.updateUserEmail(onRestartReplaceEmailWithAdmin, adminEmail, manager);
         log.info(`Successfully replaced "${onRestartReplaceEmailWithAdmin}" with GRIST_ADMIN_EMAIL ("${adminEmail}").`);
       }
     });
@@ -192,12 +175,6 @@ async function setUpSingleOrg(db: HomeDBManager) {
 }
 
 export async function main() {
-  console.log("Welcome to Grist.");
-  if (!debugging) {
-    console.log(`In quiet mode, see http://localhost:${G.port} to use.`);
-    console.log("For full logs, re-run with DEBUG=1");
-  }
-
   if (shouldRunAsRestartShell()) {
     // Shell owns the socket and manages a forked worker. Returns the
     // RestartShell handle instead of a FlexServer.
@@ -208,6 +185,13 @@ export async function main() {
         return ext && !ctx.hasSpawnFailed(ext.key) ? ext : { entryPoint: __filename };
       },
     });
+  }
+
+  // Under a RestartShell, this prints in the worker, so that it repeats after
+  // every restart and is not duplicated by the shell process.
+  console.log("Welcome to Grist.");
+  if (!debugging) {
+    console.log("In quiet mode. For full logs, re-run with DEBUG=1");
   }
 
   if (process.env.GRIST_PROMCLIENT_PORT) {
@@ -278,6 +262,10 @@ export async function main() {
   if (isUnderRestartShell()) {
     await signalRestartShellReady();
   }
+
+  // Print via console.log to stay visible in quiet mode; the bind host is not
+  // a usable destination, so without a configured URL fall back to localhost.
+  console.log(`Grist is available at ${getHomeUrl() || `http://localhost:${G.port}`}`);
 
   if (fullEditionRestartRequested) {
     if (process.send && canRestart()) {

@@ -1,6 +1,9 @@
 services:
   grist:
-    image: gristlabs/grist:latest
+    image: ${GRIST_IMAGE:-gristlabs/grist:latest}
+    environment:
+      # Set DEBUG=1 for verbose logs.
+      DEBUG: ${DEBUG:-}
     volumes:
       # Where to store persistent data, such as documents.
       - ${PERSIST_DIR:-./persist}/grist:/persist

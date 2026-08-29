@@ -2966,9 +2966,9 @@
     },
     "ChangeAdminModal": {
         "Enter new admin email": "Enter new admin email",
-        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.": "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.",
         "New admin": "New admin",
-        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.",
+        "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.": "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.",
         "An account with {{email}} already exists.": "An account with {{email}} already exists."
     },
     "startDocAirtableImport": {
