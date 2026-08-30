@@ -101,7 +101,8 @@
         "Enterprise": "Företagsversion",
         "OAuth apps": "OAuth appar",
         "Accessibility": "Tillgänglighet",
-        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth appar låter dig ansluta externa integrationer till denna Gristserver på ett säkrare och bekvämare sätt än att använda API-nycklar.\n\nOAuth appar är tillgängliga i [fullversionen av Grist]({{fullGrist}})."
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth appar låter dig ansluta externa integrationer till denna Gristserver på ett säkrare och bekvämare sätt än att använda API-nycklar.\n\nOAuth appar är tillgängliga i [fullversionen av Grist]({{fullGrist}}).",
+        "Personal site": "Personlig sajt"
     },
     "AccountWidget": {
         "Access Details": "Tillgångsdetaljer",
@@ -2820,7 +2821,8 @@
         "Or connect your own identity provider": "Eller anslut din egen identitetsleverantör",
         "Skip authentication setup?": "Hoppa över inställning av autentisering?",
         "Choose how people sign in. You can change this anytime after setup.": "Välj hur användare loggar in. Du kan ändra detta när som helst efter uppstart.",
-        "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Vem som helst som kan nå denna server kan komma åt alla data utan att logga in. Du kan ställa in autentisering senare från administrationspanelen."
+        "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Vem som helst som kan nå denna server kan komma åt alla data utan att logga in. Du kan ställa in autentisering senare från administrationspanelen.",
+        "Activate": "Aktiv"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
