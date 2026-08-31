@@ -134,9 +134,16 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
     write: (setter, val) => setter(this.column().description, val),
   }));
   // displayLabel displays label by default but switches to the more helpful colId whenever a
-  // formula field in the view is being edited.
+  // formula field in the view is being edited. Only the edited table gets the "$" prefix, since
+  // for other tables it would not be a same-row reference. Clicking a column inserts this exact
+  // text into the formula, so the two must stay in step.
   this.displayLabel = modelUtil.savingComputed({
-    read: () => docModel.editingFormula() ? "$" + this.origCol().colId() : this.origCol().label(),
+    read: () => {
+      if (!docModel.editingFormula()) { return this.origCol().label(); }
+      const editedTable = docModel.editingFormulaTableId();
+      const colId = this.origCol().colId();
+      return this.origCol().table().tableId() === editedTable?.tableId ? "$" + colId : colId;
+    },
     write: (setter, val) => setter(this.column().label, val),
   });
 
