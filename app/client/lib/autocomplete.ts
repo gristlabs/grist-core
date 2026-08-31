@@ -61,6 +61,8 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   // Currently selected element.
   protected _selected: HTMLElement | null = null;
 
+  // The menu element, tagged with the search text its items were built for.
+  private _menuElem: HTMLElement;
   private _popper: Popper;
   private _mouseOver: { reset(): void };
   private _lastAsTyped: string;
@@ -76,7 +78,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     super();
 
     const content = cssMenuWrap(
-      cssMenu(
+      this._menuElem = cssMenu(
         { class: _options.menuCssClass || "" },
         dom.style("min-width", _triggerElem.getBoundingClientRect().width + "px"),
         this._maybeShowNoItemsMessage(),
@@ -193,6 +195,12 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     this._highlightFunc = acResults.highlightFunc;
     this._items.set(acResults.items);
     this._extraItems.set(acResults.extraItems);
+
+    // Report the search text these items were built for. Searching is asynchronous, so between a
+    // keystroke and the arrival of its results the menu still holds the previous keystroke's items,
+    // with nothing in the DOM to tell the two apart; tests wait on this to know which list they are
+    // reading. Set after the items, so it never describes a list that is not rendered yet.
+    this._menuElem.setAttribute("data-ac-search-text", inputVal);
 
     // Plain update() (which is deferred) may be better, but if _setSelected() causes scrolling
     // before the positions are updated, it causes the entire page to scroll horizontally.

@@ -101,7 +101,14 @@
         "Enterprise": "Enterprise",
         "OAuth apps": "OAuth apps",
         "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).",
-        "Accessibility": "Accessibility"
+        "Accessibility": "Accessibility",
+        "No usage data to show.": "No usage data to show.",
+        "Personal site": "Personal site",
+        "Usage summary": "Usage summary",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "You have **{{left}} of {{limit}}** monthly **API** calls left",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left",
+        "You have **{{limit}}** monthly **API** calls": "You have **{{limit}}** monthly **API** calls",
+        "You have **{{limit}}** one time **AI Assistant** credits": "You have **{{limit}}** one time **AI Assistant** credits"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -2813,7 +2820,32 @@
         "Choose how people sign in. You can change this anytime after setup.": "Choose how people sign in. You can change this anytime after setup.",
         "Continue without authentication": "Continue without authentication",
         "Or connect your own identity provider": "Or connect your own identity provider",
-        "Skip authentication setup?": "Skip authentication setup?"
+        "Skip authentication setup?": "Skip authentication setup?",
+        "Activate": "Activate",
+        "Activate: {{name}}": "Activate: {{name}}",
+        "Address this.": "Address this.",
+        "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.",
+        "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.",
+        "Hide installation ID": "Hide installation ID",
+        "I have a key": "I have a key",
+        "I understand this server will run with no authentication": "I understand this server will run with no authentication",
+        "Meanwhile, finish setting up": "Meanwhile, finish setting up",
+        "Missing activation key": "Missing activation key",
+        "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.": "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.",
+        "Other methods": "Other methods",
+        "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.": "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.",
+        "Request activation key": "Request activation key",
+        "Requires activation key": "Requires activation key",
+        "Revert": "Revert",
+        "Show installation ID": "Show installation ID",
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).",
+        "Start your key request": "Start your key request",
+        "Switch to: {{name}}": "Switch to: {{name}}",
+        "Was: {{name}}": "Was: {{name}}",
+        "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.",
+        "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.",
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} is active but is outside the supported set without a Full Grist activation key. ",
+        "{{name}} requires an activation key": "{{name}} requires an activation key"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2837,7 +2869,8 @@
         "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.",
         "Recommended": "Recommended",
         "Use getgrist.com sign-in": "Use getgrist.com sign-in",
-        "You can switch to OIDC, SAML, or another method at any time.": "You can switch to OIDC, SAML, or another method at any time."
+        "You can switch to OIDC, SAML, or another method at any time.": "You can switch to OIDC, SAML, or another method at any time.",
+        "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping.": "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping."
     },
     "AirtableImportUI": {
         "Back": "Back",
@@ -3061,7 +3094,8 @@
         "Skip and Continue": "Skip and Continue",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
         "macOS sandbox": "macOS sandbox",
-        "Sandbox": "Sandbox"
+        "Sandbox": "Sandbox",
+        "Revert": "Revert"
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmed",
@@ -3159,7 +3193,8 @@
         "Account settings": "Account settings",
         "Developer": "Developer",
         "Profile": "Profile",
-        "Authorized apps": "Authorized apps"
+        "Authorized apps": "Authorized apps",
+        "Personal site": "Personal site"
     },
     "SettingsLayout": {
         "Authentication": "Authentication",
@@ -3361,5 +3396,11 @@
         "We saved your details, but couldn't subscribe you to updates.": "We saved your details, but couldn't subscribe you to updates.",
         "We subscribed you for product updates, but couldn't save your other details.": "We subscribed you for product updates, but couldn't save your other details.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+    },
+    "InstallationIdBlock": {
+        "Copy": "Copy",
+        "Copy to clipboard": "Copy to clipboard",
+        "Installation ID": "Installation ID",
+        "Installation ID copied to clipboard": "Installation ID copied to clipboard"
     }
 }

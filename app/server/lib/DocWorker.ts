@@ -10,7 +10,7 @@ import { Client } from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
 import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocSession, docSessionFromRequest } from "app/server/lib/DocSession";
-import { filterDocumentInPlace } from "app/server/lib/filterUtils";
+import { filterDocumentInPlace, makeFilterOptions } from "app/server/lib/filterUtils";
 import { GristServer } from "app/server/lib/GristServer";
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import log from "app/server/lib/log";
@@ -92,13 +92,8 @@ export class DocWorker {
       removeHistory = true;
     }
 
-    await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath, {
-      removeData,
-      removeHistory,
-      removeFullCopiesSpecialRight: true,
-      markAction: true,
-      disableTriggers: true,
-    });
+    await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath,
+      makeFilterOptions({ removeData, removeHistory }));
     // NOTE: We may want to reconsider the mimeType used for Grist files.
     return res.type("application/x-sqlite3")
       .download(

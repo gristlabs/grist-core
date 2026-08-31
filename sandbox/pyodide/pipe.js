@@ -58,30 +58,21 @@ class GristPipe {
   }
 
   async loadCode() {
-    // Load python packages. Pyodide takes a wheel's package name from the last
-    // "/"-separated part of what it is given, up to the first "-". Windows
-    // separators are not separators to it, so a native path arrives as one long
-    // name: under C:\...\grist-desktop\ every wheel becomes "c:\...\grist", they
-    // collide, and all but the first are discarded as duplicates. Forward
-    // slashes parse correctly, and Windows opens them happily.
+    // Load python packages. Pyodide names a wheel after the last "/"-separated
+    // part of its path, so hand it forward slashes: a native Windows path is
+    // all one part, leaving every wheel with the same name but the first
+    // discarded as a duplicate.
     const src = path.join(__dirname, "_build", "packages");
     const libs = (await listLibs(src)).available;
-    const lsty = libs.map(item => item.fullName.split(path.sep).join("/"));
-    await this.pyodide.loadPackage(lsty, {
-      messageCallback: (msg) => this.log("[package]", msg),
-      errorCallback: (msg) => this.log("[package error]", msg),
-    });
-
-    // loadPackage resolves even when it loaded nothing, reporting trouble only
-    // through errorCallback. Without this check, a failed load first shows up
-    // much later as an ImportError from deep inside the data engine.
-    const loaded = new Set(Object.keys(this.pyodide.loadedPackages || {}));
-    const missing = libs.filter(
-      item => !loaded.has(item.standardName) && !loaded.has(item.name));
-    if (missing.length) {
-      throw new Error(
-        `Pyodide loaded ${loaded.size} of ${libs.length} packages. Missing: ` +
-        missing.map(item => item.name).join(", "));
+    const loaded = await this.pyodide.loadPackage(
+      libs.map(item => item.fullName.replaceAll(path.sep, "/")), {
+        messageCallback: (msg) => this.log("[package]", msg),
+        errorCallback: (msg) => this.log("[package error]", msg),
+      });
+    // loadPackage resolves even when it loaded nothing, so check. Otherwise the
+    // first sign of trouble is an ImportError from inside the data engine.
+    if (loaded.length !== libs.length) {
+      throw new Error(`Pyodide loaded ${loaded.length} of ${libs.length} packages`);
     }
 
     // Load Grist data engine code.

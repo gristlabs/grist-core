@@ -13,11 +13,12 @@ import { guessExt } from "app/server/lib/guessExt";
 import log from "app/server/lib/log";
 import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
 import { optStringParam } from "app/server/lib/requestUtils";
-import { isPathWithin } from "app/server/lib/serverUtils";
+import { canonicalPath, isPathWithin } from "app/server/lib/serverUtils";
 import * as shutdown from "app/server/lib/shutdown";
 import { drainWhenSettled } from "app/server/utils/streams";
 
 import stream from "node:stream";
+import * as os from "os";
 import * as path from "path";
 
 import { fromCallback } from "bluebird";
@@ -409,14 +410,19 @@ interface TmpDirResult {
  * cleanup callback with an asynchronous version.
  */
 export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResult> {
-  const fullOptions = { prefix: "grist-upload-", unsafeCleanup: true, ...options };
+  const fullOptions = {
+    prefix: "grist-upload-",
+    unsafeCleanup: true,
+    tmpdir: await canonicalPath(os.tmpdir()),
+    ...options,
+  };
 
   const [tmpDir, tmpCleanup]: [string, CleanupCB] = await fromCallback(
     (cb: any) => tmp.dir(fullOptions, cb), { multiArgs: true });
 
   // The `tmp` library sometimes forcibly resolves the path,
   // doing it here makes it predictable behaviour and resistant to library behaviour changes.
-  const realTmpDir = await fse.realpath(tmpDir);
+  const realTmpDir = await canonicalPath(tmpDir);
 
   async function cleanupCallback() {
     // Using fs-extra is better because it's asynchronous.

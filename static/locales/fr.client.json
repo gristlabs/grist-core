@@ -102,7 +102,14 @@
         "Accessibility": "Accessibilité",
         "Enterprise": "Entreprise",
         "OAuth apps": "Applications OAuth",
-        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Les applications OAuth vous permettent de connecter des intégrations externes à ce serveur Grist avec plus de sécurité et de praticité qu'avec une clé d'API.\n\nLes applications OAuth sont disponible avec la [version complète de Grist]({{fullGrist}})."
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Les applications OAuth vous permettent de connecter des intégrations externes à ce serveur Grist avec plus de sécurité et de praticité qu'avec une clé d'API.\n\nLes applications OAuth sont disponible avec la [version complète de Grist]({{fullGrist}}).",
+        "No usage data to show.": "Aucun usage de donnée à afficher.",
+        "Personal site": "Espace personnel",
+        "Usage summary": "Résumé de l'utilisation",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "Il vous reste **{{left}} sur {{limit}}** appels **API** mensuels",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "Il vous reste **{{left}} sur {{limit}}** crédits uniques d'**Assistant IA**",
+        "You have **{{limit}}** monthly **API** calls": "Vous avez le droit à **{{limit}}** appels **API** par mois",
+        "You have **{{limit}}** one time **AI Assistant** credits": "Vous avez le droit à **{{limit}}** crédits uniques d'**Assistant IA**"
     },
     "AccountWidget": {
         "Sign in": "Se connecter",
@@ -2729,7 +2736,8 @@
         "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Idéal pour tester et prototyper. Connectez-vous avec un compte getgrist.com, sans fournisseur d'identité à configurer.",
         "Recommended": "Recommandé",
         "Use getgrist.com sign-in": "Utilisez la connexion getgrist.com",
-        "You can switch to OIDC, SAML, or another method at any time.": "Vous pouvez changer pour l'OIDC, le SAML ou n'importe quelle méthode à tout moment."
+        "You can switch to OIDC, SAML, or another method at any time.": "Vous pouvez changer pour l'OIDC, le SAML ou n'importe quelle méthode à tout moment.",
+        "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping.": "Connexion d'utilisateur pas un compte getgrist.com. Simple à configurer. Facile pour tester et prototyper."
     },
     "AuthenticationSection": {
         "Active": "Active",
@@ -2850,7 +2858,31 @@
         "Choose how people sign in. You can change this anytime after setup.": "Choisir comment les personnes se connectent. Vous pouvez changer cela n'importe quand après l'installation.",
         "Continue without authentication": "Continuez sans authentification",
         "Or connect your own identity provider": "Ou connectez votre propre fournisseur d'identité",
-        "Skip authentication setup?": "Sauter l’installation de l'authentification ?"
+        "Skip authentication setup?": "Sauter l’installation de l'authentification ?",
+        "I have a key": "J'ai une clé",
+        "I understand this server will run with no authentication": "Je comprends que ce serveur fonctionnera sans autentification",
+        "Meanwhile, finish setting up": "En attendant, terminez l'installation",
+        "Missing activation key": "Clé d'activation manquante",
+        "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.": "Seul votre reverse proxy doit pouvoir contacter le backend de Grist directement, sinon vos utilisateurs pourrons outrepasser l’authentification.",
+        "Other methods": "Autres méthodes",
+        "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.": "Sélectionnez une méthode de connexion : la connexion via getgrist.com, le transfert d'entêtes (pour les installations avec reverse proxy), ou continuez sans authentification.",
+        "Request activation key": "Demander une clé d'activation",
+        "Requires activation key": "Nécessite une clé d'activation",
+        "Revert": "Annuler",
+        "Show installation ID": "Montrer votre Identifiant d'installation",
+        "Start your key request": "Démarrer votre demande de clé",
+        "Switch to: {{name}}": "Passer à : {{name}}",
+        "Was: {{name}}": "Précédemment : {{name}}",
+        "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "Lorsque votre clé vous parviendra, entrez dans la section **Édition**, et passer à **{{name}}** là bas.",
+        "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "Vous allez recevoir un e-mail de réponse, normalement dans les 5 prochains jours ouvrés. Votre clé sera liée à cette installation.",
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} est actif mais est en dehors de l'ensemble pris en charge sans clé d'activation de la version Complète de Grist. ",
+        "{{name}} requires an activation key": "{{name}} nécessite une clé d'activation",
+        "Activate": "Activer",
+        "Activate: {{name}}": "Activer : {{name}}",
+        "Address this.": "Occupez-vous de ça.",
+        "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Tout le monde peut accéder aux données sans connexion. Viable uniquement sur les réseaux privés ou pour des installations temporaires.",
+        "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Toute personne ayant accès à ce serveur pourra accéder à la donnée sans se connecter. Choisissez l'une des méthodes de connexion ci-dessous.",
+        "Hide installation ID": "Masquer l'Identifiant d'installation"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
@@ -2997,7 +3029,8 @@
         "macOS Sandbox": "Bac à sable macOS",
         "Sandbox": "Bac à sable",
         "No sandbox": "Pas de sandbox",
-        "macOS sandbox": "Sandbox macOS"
+        "macOS sandbox": "Sandbox macOS",
+        "Revert": "Annuler"
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmé",
@@ -3097,7 +3130,8 @@
         "Account settings": "Paramètres du compte",
         "Developer": "Développeur",
         "Profile": "Profil",
-        "Authorized apps": "Applications autorisées"
+        "Authorized apps": "Applications autorisées",
+        "Personal site": "Espace personnel"
     },
     "SettingsLayout": {
         "Authentication": "Authentification",
@@ -3383,5 +3417,11 @@
         "We saved your details, but couldn't subscribe you to updates.": "Nous avons enregistré vos informations, mais n'avons pas pu vous abonner aux mises à jour.",
         "We subscribed you for product updates, but couldn't save your other details.": "Nous vous avons abonné aux mises à jour du produit, mais n'avons pas pu sauvegarder vos autres informations.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Vos changements de configuration ont été appliqués et le serveur a été redémarré. Grist est désormais en service et disponible pour les utilisateurs."
+    },
+    "InstallationIdBlock": {
+        "Copy": "Copier",
+        "Copy to clipboard": "Copier dans le presse-papier",
+        "Installation ID": "Identifiant d'installation",
+        "Installation ID copied to clipboard": "Identifiant d'installation copié dans le presse-papier"
     }
 }

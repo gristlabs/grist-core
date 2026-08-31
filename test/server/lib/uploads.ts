@@ -1,3 +1,4 @@
+import { canonicalPath } from "app/server/lib/serverUtils";
 import { createTmpDir, Deps, fetchDoc, fetchURL, moveUpload, UploadSet } from "app/server/lib/uploads";
 import { globalUploadSet } from "app/server/lib/uploads";
 import { createFile } from "test/server/docTools";
@@ -38,6 +39,27 @@ describe("uploads", function() {
       // Check that neither file nor directory exist.
       assert.isFalse(await fse.pathExists(filePath));
       assert.isFalse(await fse.pathExists(tmpDir));
+    });
+
+    it("should return fully canonical paths, including for nested dirs", async function() {
+      // Imports are staged in a tmp dir nested inside the one handed to the sandbox as
+      // a read permission (see moveUpload), so both have to be canonical for the
+      // sandbox's own canonicalizing permission checks to match.
+      const { tmpDir, cleanupCallback } = await createTmpDir({ prefix: "test-uploads-" });
+      try {
+        assert.strictEqual(await canonicalPath(tmpDir), tmpDir);
+
+        const nested = await createTmpDir({ dir: tmpDir, prefix: "test-nested-" });
+        try {
+          assert.strictEqual(await canonicalPath(nested.tmpDir), nested.tmpDir);
+          // DocPluginManager passes import paths to the sandbox relative to the outer dir.
+          assert.isFalse(path.relative(tmpDir, nested.tmpDir).startsWith(".."));
+        } finally {
+          await nested.cleanupCallback();
+        }
+      } finally {
+        await cleanupCallback();
+      }
     });
   });
 
