@@ -157,9 +157,11 @@ describe("Formulas", function() {
     assert.deepEqual(await gu.getVisibleGridCells("C", [1, 2, 3]), ["true", "false", "true"]);
 
     // ISERR considers exceptions but not AltText values.
+    const revert = await gu.begin();
     await gu.addColumn("D");
     await gu.enterFormula("(ISERR($B)");
     assert.deepEqual(await gu.getVisibleGridCells("D", [1, 2, 3]), ["false", "false", "true"]);
+    await revert();
   });
 
   it("should support formulas returning unmarshallable or weird values", async function() {
@@ -407,5 +409,84 @@ return [
     await driver.findContentWait(".ace_content", /^Friends\.lookupRecords\($/, 1000);
     await driver.sendKeys(Key.ESCAPE, Key.ESCAPE);
     await gu.waitAppFocus();
+  });
+
+  it("should insert column id when clicking a cell in another table", async function() {
+    const revert = await gu.begin();
+    await gu.addNewSection("Table", "New Table");
+    const otherSection = await gu.getActiveSectionTitle();
+
+    await gu.getSection("Films").click();
+    await gu.addColumn("D");
+    await gu.getCell({ col: "D", rowNum: 1, section: "Films" }).click();
+    await gu.waitAppFocus();
+    await driver.sendKeys("=");
+    await gu.waitAppFocus(false);
+
+    // Another table has no "$" prefix, since it would not be a same-row reference.
+    const otherCell = gu.getCell({ col: "A", rowNum: 1, section: otherSection });
+    await driver.withActions(actions => actions.move({ origin: otherCell }));
+    assert.equal(await driver.find(".test-column-formula-tooltip").getText(), "Click to insert A");
+    await otherCell.click();
+
+    await driver.findContentWait(".ace_content", /^A$/, 1000);
+    assert.equal(await gu.getActiveSectionTitle(), "FILMS");
+
+    await driver.sendKeys(Key.ESCAPE);
+    await revert();
+  });
+
+  it("should insert $colId when clicking another section of the same table", async function() {
+    const revert = await gu.begin();
+    await gu.addNewSection("Table", "Films");
+    const otherSection = "Films copy";
+    await gu.renameActiveSection(otherSection);
+
+    await gu.getSection("FILMS").click();
+    await gu.addColumn("D");
+    await gu.getCell({ col: "D", rowNum: 1, section: "FILMS" }).click();
+    await gu.waitAppFocus();
+    await driver.sendKeys("=");
+    await gu.waitAppFocus(false);
+
+    const otherCell = gu.getCell({ col: "$Title", rowNum: 1, section: otherSection });
+    await driver.withActions(actions => actions.move({ origin: otherCell }));
+    assert.equal(await driver.find(".test-column-formula-tooltip").getText(), "Click to insert $Title");
+    await otherCell.click();
+
+    await driver.findContentWait(".ace_content", /^\$Title$/, 1000);
+
+    await driver.sendKeys(Key.ESCAPE);
+    await revert();
+  });
+
+  it("should save the formula on Enter after clicking a cell in another table", async function() {
+    const revert = await gu.begin();
+    await gu.addNewSection("Table", "New Table");
+    const otherSection = await gu.getActiveSectionTitle();
+
+    await gu.getSection("Films").click();
+    await gu.addColumn("E");
+    await gu.getCell({ col: "E", rowNum: 1, section: "Films" }).click();
+    await gu.waitAppFocus();
+    await driver.sendKeys("=");
+    await gu.waitAppFocus(false);
+
+    const otherCell = gu.getCell({ col: "A", rowNum: 1, section: otherSection });
+    await driver.withActions(actions => actions.move({ origin: otherCell }));
+    await otherCell.click();
+    await driver.findContentWait(".ace_content", /^A$/, 1000);
+
+    await driver.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+
+    assert.equal(await driver.find(".ace_content").isPresent(), false);
+    const api = session.createHomeApi().getDocAPI(docId);
+    const columns = await api.getRecords("_grist_Tables_column");
+    const colE = columns.find(col => col.fields.colId === "E");
+    assert.equal(colE?.fields.isFormula, true);
+    assert.equal(colE?.fields.formula, "A");
+
+    await revert();
   });
 });
