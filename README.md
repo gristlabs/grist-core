@@ -494,8 +494,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org |
 | GRIST_HELP_CENTER | set the help center link ref |
 | GRIST_TERMS_OF_SERVICE_URL | if set, adds terms of service link |
-| FREE_COACHING_CALL_URL | set the link to the human help (example: email adress or meeting scheduling tool) |
-| GRIST_CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email adress or online form) |
+| GRIST_CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email address or online form) |
 | GRIST_ONBOARDING_VIDEO_ID | set the ID of the YouTube video shown on the homepage and during onboarding |
 | GRIST_CUSTOM_COMMON_URLS | overwrite the default commons URLs. Its value is expected to be a JSON object and a subset of the [ICommonUrls interface](./app/common/ICommonUrls.ts). |
 | GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default) |

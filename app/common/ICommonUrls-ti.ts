@@ -44,7 +44,7 @@ export const ICommonUrls = t.iface([], {
   "integrators": "string",
   "editionComparison": "string",
   "mcp": "string",
-  "freeCoachingCall": "string",
+  "freeCoachingCall": t.union("string", "undefined"),
   "contactSupport": "string",
   "termsOfService": t.union("string", "undefined"),
   "onboardingTutorialVideoId": "string",

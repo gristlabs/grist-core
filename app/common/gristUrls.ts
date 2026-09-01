@@ -1182,9 +1182,8 @@ export function getTermsOfServiceUrl(): string | undefined {
   return getCustomizableValue("termsOfServiceUrl", "GRIST_TERMS_OF_SERVICE_URL") || undefined;
 }
 
-export function getFreeCoachingCallUrl(): string {
-  const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
-  return getCustomizableValue("freeCoachingCallUrl", "FREE_COACHING_CALL_URL") || defaultUrl;
+export function getFreeCoachingCallUrl(): string | undefined {
+  return getCustomizableValue("freeCoachingCallUrl", "FREE_COACHING_CALL_URL") || undefined;
 }
 
 export function getContactSupportUrl(): string {
