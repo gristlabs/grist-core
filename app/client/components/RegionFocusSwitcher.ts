@@ -86,7 +86,6 @@ export class RegionFocusSwitcher extends Disposable {
       },
       nextJumpTarget: () => this._jump("next"),
       prevJumpTarget: () => this._jump("prev"),
-      focusSectionHeader: () => this._jump("next"),
       cancel: this._onEscapeKeypress.bind(this),
     }, this, true));
 

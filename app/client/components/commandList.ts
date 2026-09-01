@@ -430,6 +430,8 @@ export const groups: CommendGroupDef[] = [{
       desc: () => t("Toggle creator panel keyboard focus"),
       alwaysOn: true,
     }, {
+      // This only gets its own command so it can be listed as separate keyboard shortcut.
+      // The actual command that triggers things with Ctrl+i is nextJumpTarget.
       name: "focusSectionHeader",
       keys: ["Ctrl+i"],
       desc: () => t("When focused on a widget, move focus between widget and widget header"),
