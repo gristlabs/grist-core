@@ -3077,17 +3077,18 @@ export class HomeDBManager implements HomeDBAuth {
     return await this._getOrCreateLimitAndReset(accountId, limitType, false);
   }
 
-  public async removeLimit(scope: Scope, limitType: LimitType): Promise<void> {
-    await this._connection.transaction(async (manager) => {
-      const org = await this._org(scope, false, scope.org ?? null, { manager, needRealOrg: true })
-        .innerJoinAndSelect("orgs.billingAccount", "billing_account")
-        .innerJoinAndSelect("billing_account.product", "product")
-        .leftJoinAndSelect("billing_account.limits", "limit", "limit.type = :limitType", { limitType })
-        .getOne();
-      const existing = org?.billingAccount?.limits?.[0];
-      if (existing) {
-        await manager.remove(existing);
-      }
+  public async removeLimit(
+    accountId: number,
+    limitType: LimitType,
+    transaction?: EntityManager,
+  ): Promise<void> {
+    await this.runInTransaction(transaction, async (manager) => {
+      await manager.createQueryBuilder()
+        .delete()
+        .from(Limit)
+        .where("billing_account_id = :accountId", { accountId })
+        .andWhere("type = :limitType", { limitType })
+        .execute();
     });
   }
 

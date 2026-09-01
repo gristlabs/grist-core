@@ -1659,13 +1659,13 @@ describe("GranularAccess", function() {
     await gu.toggleSidePanel("right", "open");
     await driver.find(".test-right-tab-field").click();
     await driver.find(".test-field-set-trigger").click();
-    await gu.waitAppFocus(false);
+    await gu.waitForAceEditor(driver, { hasFocus: true });
     await gu.sendKeys("user.Name", Key.ENTER);
     await gu.waitForServer();
     await driver.findWait(".test-field-formula-apply-on-changes", 1000).click();
     await gu.waitForServer();
     await driver.findWait(".test-field-triggers-select", 3000).click();
-    await driver.findContentWait(".test-field-triggers-dropdown label", "Any field", 100).click();
+    await driver.findContentWait(".test-field-triggers-dropdown label", "Any field", 1000).click();
     await driver.find(".test-trigger-deps-apply").click();
     await gu.waitForServer();
 
