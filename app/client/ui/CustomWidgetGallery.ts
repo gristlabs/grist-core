@@ -317,8 +317,11 @@ class CustomWidgetGallery extends Disposable {
   private async _save() {
     if (this._saveDisabled.get()) { return; }
 
-    if (await this._validateSelectedWidget()) {
-      await this._saveSelectedWidget();
+    // Pass a snapshot of the _selectedWidgetId value, since it may get cleared or disposed if the
+    // user clears the selection or closes the dialog, while the widget is being added.
+    const selectedWidgetId = this._selectedWidgetId.get()!;
+    if (await this._validateSelectedWidget(selectedWidgetId)) {
+      await this._saveSelectedWidget(selectedWidgetId);
       this._ctl.close();
     }
   }
@@ -328,8 +331,8 @@ class CustomWidgetGallery extends Disposable {
    * - it is by default for all widgets
    * - it is for "custom url widgets" if the url input follows url format and the user confirmed the security risk modal
    */
-  private async _validateSelectedWidget() {
-    const isCustomUrlWidget = this._selectedWidgetId.get() === CUSTOM_URL_WIDGET_ID;
+  private async _validateSelectedWidget(selectedWidgetId: string) {
+    const isCustomUrlWidget = selectedWidgetId === CUSTOM_URL_WIDGET_ID;
     if (isCustomUrlWidget) {
       // reportValidity will trigger native browser validation, showing a message to the user if the url is invalid
       const isValidUrl = this._customUrlInput?.reportValidity();
@@ -347,7 +350,7 @@ class CustomWidgetGallery extends Disposable {
     }
   }
 
-  private async _saveSelectedWidget() {
+  private async _saveSelectedWidget(selectedWidgetId: string) {
     await this._gristDoc.docData.bundleActions(
       "Save selected custom widget",
       async () => {
@@ -365,11 +368,10 @@ class CustomWidgetGallery extends Disposable {
           }
           section = newSection;
         }
-        const selectedWidgetId = this._selectedWidgetId.get();
         if (selectedWidgetId === CUSTOM_URL_WIDGET_ID) {
           return this._saveCustomUrlWidget(section);
         } else {
-          return this._saveRemoteWidget(section);
+          return this._saveRemoteWidget(section, selectedWidgetId);
         }
       },
     );
@@ -392,8 +394,8 @@ class CustomWidgetGallery extends Disposable {
     await section.saveCustomDef();
   }
 
-  private async _saveRemoteWidget(section: ViewSectionRec) {
-    const [pluginId, widgetId] = this._selectedWidgetId.get()!.split(":");
+  private async _saveRemoteWidget(section: ViewSectionRec, selectedWidgetId: string) {
+    const [pluginId, widgetId] = selectedWidgetId.split(":");
     const { customDef } = section;
     if (customDef.pluginId.peek() === pluginId && customDef.widgetId.peek() === widgetId) {
       return;
@@ -401,7 +403,7 @@ class CustomWidgetGallery extends Disposable {
 
     const selectedWidget = matchWidget(this._widgets.get() ?? [], { widgetId, pluginId });
     if (!selectedWidget) {
-      throw new Error(`Widget ${this._selectedWidgetId.get()} not found`);
+      throw new Error(`Widget ${selectedWidgetId} not found`);
     }
 
     bundleChanges(() => {
