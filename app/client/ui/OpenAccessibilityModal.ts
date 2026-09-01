@@ -113,7 +113,7 @@ const keyboardSection = () => {
   const nextRegionShortcut = dom("span", getCssKeys(allCommands.nextRegion.humanKeys));
   const prevRegionShortcut = dom("span", getCssKeys(allCommands.prevRegion.humanKeys));
   const creatorPanelShortcut = dom("span", getCssKeys(allCommands.creatorPanel.humanKeys));
-  const focusSectionHeaderShortcut = dom("span", getCssKeys(allCommands.focusSectionHeader.humanKeys));
+  const nextJumpTargetShortcut = dom("span", getCssKeys(allCommands.nextJumpTarget.humanKeys));
   const shortcutsModal = dom("span", getCssKeys(allCommands.shortcuts.humanKeys));
   const accessibilityModal = dom("span", getCssKeys(allCommands.accessibility.humanKeys));
   return cssSection(
@@ -137,8 +137,8 @@ const keyboardSection = () => {
       dom("li", t("Finally, the right panel – or the creator panel – is only available \
 through its own shortcut and is not included in the next and previous region cycle.")),
     ),
-    dom("p", t("When focus is on a widget, {{focusSectionHeaderShortcut}} toggles focus between the widget and its \
-header.", { focusSectionHeaderShortcut })),
+    dom("p", t("When focus is on a widget, {{nextJumpTargetShortcut}} toggles focus between the widget and its \
+header.", { nextJumpTargetShortcut })),
     dom("p", t("When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making \
 it easier to quickly navigate inside that panel.")),
     cssModalSubheading(t("Other important keyboard shortcuts"), { "role": "heading", "aria-level": 3 }),
