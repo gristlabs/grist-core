@@ -146,6 +146,75 @@ export function colorButton(options: ColorButtonOptions): Element {
   return iconBtn;
 }
 
+export interface PageColorButtonOptions {
+  color: ColorOption;
+  onSave(): Promise<void>;
+  onRevert?(): void;
+}
+
+/**
+ * Wires a single-color picker popup onto an *existing* element (e.g. a
+ * page's own initial-letter box in the Pages tree), rather than creating a
+ * separate swatch button — as opposed to `colorButton`/`colorSelect`,
+ * which build their own dedicated "T" trigger for cell/header text+fill
+ * styling.
+ */
+export function attachPageColorPicker(trigger: Element, options: PageColorButtonOptions): void {
+  const domCreator = (ctl: IOpenController) => buildPageColorPicker(ctl, options);
+  setPopupToCreateDom(trigger, domCreator, { ...defaultMenuOptions, placement: "bottom-end" });
+}
+
+function buildPageColorPicker(
+  ctl: IOpenController,
+  options: PageColorButtonOptions,
+): Element {
+  const { color, onSave, onRevert } = options;
+  const colorModel = ColorModel.create(null, color.color);
+  const notChanged = Computed.create(null, use => use(colorModel.needsSaving) === false);
+
+  function revert() {
+    onRevert?.();
+    if (!onRevert) { colorModel.revert(); }
+    ctl.close();
+  }
+
+  ctl.onDispose(async () => {
+    if (!notChanged.get()) {
+      try {
+        await onSave();
+      } catch (e) {
+        onRevert?.();
+        if (!onRevert) { colorModel.revert(); }
+      }
+    }
+    colorModel.dispose();
+    notChanged.dispose();
+  });
+
+  return cssContainer(
+    dom.cls(gristFloatingMenuClass),
+    cssComponents(
+      dom.create(PickerComponent, colorModel, { title: t("color"), ...color }),
+    ),
+    (elem: any) => { setTimeout(() => elem.focus(), 0); },
+    onKeyDown({
+      Escape: () => { revert(); },
+      Enter: () => { ctl.close(); },
+    }),
+    cssButtonRow(
+      primaryButton(t("Apply"),
+        dom.on("click", () => ctl.close()),
+        dom.boolAttr("disabled", notChanged),
+        testId("colors-save"),
+      ),
+      basicButton(t("Cancel"),
+        dom.on("click", () => revert()),
+        testId("colors-cancel"),
+      ),
+    ),
+  );
+}
+
 interface ColorPickerOptions {
   styleOptions: StyleOptions;
   onSave?(): Promise<void>;

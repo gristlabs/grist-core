@@ -529,6 +529,10 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     return Promise.resolve();
   }
 
+  public async addNewPageGroup(): Promise<void> {
+    return Promise.resolve();
+  }
+
   public async saveViewSection(section: ViewSectionRec, newVal: IPageWidget): Promise<ViewSectionRec> {
     return Promise.resolve(section);
   }

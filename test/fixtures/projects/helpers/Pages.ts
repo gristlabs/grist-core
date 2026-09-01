@@ -79,6 +79,9 @@ function buildDom(id: number) {
   const isCollapsedByDefault = Computed.create(null, () => false);
   const onCollapseByDefault = async () => {};
   const hasSubPages = () => false;
+  const isGroup = Computed.create(null, () => false);
+  const color = Observable.create<string | undefined>(null, undefined);
+  const onSetColor = async (value: string | undefined) => color.set(value);
   return buildPageDom(
     page.name,
     {
@@ -93,6 +96,9 @@ function buildDom(id: number) {
       onCollapseByDefault,
       hasSubPages,
       href: "#",
+      isGroup,
+      color,
+      onSetColor,
     },
     testId("page"),
     dom.onMatch(".test-docpage-link", "click", () => {
