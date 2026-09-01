@@ -792,6 +792,10 @@ export const kbJumperAnchor = (): DomElementArg => ([
   (el) => {
     if (!isProgrammaticallyFocusable(el, true) && el.getAttribute("tabindex") === null) {
       el.setAttribute("tabindex", "-1");
+      // Make sure mouse clicks on anchors don't interfere with the Clipboard.
+      // Without this, clicking an anchor area, then pressing Ctrl+v to paste something inside a cell wouldn't
+      // work, as the focus wouldn't be on the hidden clipboard element but would be on the clicked anchor area)
+      el.classList.add("ignore_tabindex");
     }
   },
 ]);
