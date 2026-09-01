@@ -216,6 +216,7 @@ export class VisibleFieldsConfig extends Disposable {
     });
     return [
       dom("div", { "role": "group", "aria-labelledby": "visible-fields-label", "tabindex": "-1" },
+        dom.cls("ignore_tabindex"),
         kbFallbackGroup(true),
         cssHeader(
           cssFieldListHeader(
@@ -259,6 +260,7 @@ export class VisibleFieldsConfig extends Disposable {
         ),
       ),
       dom("div", { "role": "group", "aria-labelledby": "hidden-fields-label", "tabindex": "-1" },
+        dom.cls("ignore_tabindex"),
         kbFallbackGroup(true),
         cssHeader(
           cssHeaderButton(
