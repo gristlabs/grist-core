@@ -787,7 +787,7 @@ export const kbJumperClass = "kb_jumper_anchor";
  * Add this dom element arg to an element you want to be able to jump to/from with the nextJumpTarget and
  * prevJumpTarget commands.
  */
-export const kbJumperAnchor = (el: HTMLElement): DomElementArg => ([
+export const kbJumperAnchor = (): DomElementArg => ([
   dom.cls(kbJumperClass),
   (el) => {
     if (!isProgrammaticallyFocusable(el, true) && el.getAttribute("tabindex") === null) {
