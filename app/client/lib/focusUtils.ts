@@ -150,7 +150,7 @@ export function focusAdjacentFocusable(container: HTMLElement, delta: 1 | -1, op
   }
 
   let i = focusables.indexOf(active);
-  if (i < 0) {
+  if (i < 0 && fallbackTargetIndex >= 0) {
     targets[fallbackTargetIndex]?.focus();
     return true;
   }
