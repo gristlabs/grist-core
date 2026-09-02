@@ -8,6 +8,7 @@ import {
   fromTableDataAction,
   TableColValues,
   TableRecordValue,
+  toTableDataAction,
   UserAction,
 } from "app/common/DocActions";
 import { DocData } from "app/common/DocData";
@@ -23,6 +24,8 @@ import {
 } from "app/common/gristTypes";
 import { buildUrlId, parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
 import { isAffirmative, safeJsonParse } from "app/common/gutil";
+import { compilePredicateFormula, getPredicateFormulaProperties } from "app/common/PredicateFormula";
+import { EmptyRecordView, RecordView } from "app/common/RecordView";
 import { schema, SchemaTypes } from "app/common/schema";
 import { MetaRowRecord, MetaTableData } from "app/common/TableData";
 import {
@@ -1453,8 +1456,19 @@ export class DocWorkerApi {
         }
 
         // Cache the table reads based on tableId. We are caching only the promise, not the result.
-        const table = _.memoize((tableId: string) =>
-          readTable(req, activeDoc, tableId, {}, {}).then(r => asRecords(r, { includeId: true })));
+        const tableData = _.memoize((tableId: string) =>
+          readTable(req, activeDoc, tableId, {}, {}));
+        // Keep returned reference values scoped to the caller/share, while published-share
+        // predicates may inspect condition-only columns without exposing those columns publicly.
+        const predicateTableData = _.memoize(async (tableId: string) => {
+          if (!linkId) { return tableData(tableId); }
+
+          const { tableData: fullTableData } = await handleSandboxError(
+            tableId, [], activeDoc.fetchTable(makeExceptionalDocSession("system"), tableId, true));
+          return fromTableDataAction(fullTableData);
+        });
+        const table = _.memoize(async (tableId: string) =>
+          asRecords(await tableData(tableId), { includeId: true }));
 
         const getTableValues = async (tableId: string, colId: string) => {
           const records = await table(tableId);
@@ -1463,7 +1477,10 @@ export class DocWorkerApi {
 
         const Tables = metaTable("_grist_Tables");
 
-        const getRefTableValues = async (col: MetaRowRecord<"_grist_Tables_column">) => {
+        const getRefTableValues = async (
+          col: MetaRowRecord<"_grist_Tables_column">,
+          options: { dropdownCondition?: { parsed?: string } },
+        ) => {
           const refTableId = getReferencedTableId(col.type);
           let refColId: string;
           if (col.visibleCol) {
@@ -1476,8 +1493,35 @@ export class DocWorkerApi {
           }
           if (!refTableId || typeof refTableId !== "string" || !refColId) { return []; }
 
-          const values = await getTableValues(refTableId, refColId);
-          return values.filter(([_id, value]) => !isBlankValue(value));
+          const values = (await getTableValues(refTableId, refColId))
+            .filter(([_id, value]) => !isBlankValue(value));
+          const dropdownCondition = options.dropdownCondition;
+          if (!dropdownCondition?.parsed) { return values; }
+
+          try {
+            const parsed = JSON.parse(dropdownCondition.parsed);
+            const { recColIds } = getPredicateFormulaProperties(parsed);
+
+            // A published form represents a new record whose current field values live only in
+            // the browser. Conditions depending on `rec` / `$col` therefore need a dynamic
+            // options endpoint; preserve the current behavior for those conditions for now.
+            if (recColIds?.length) { return values; }
+
+            const predicate = compilePredicateFormula(parsed, { variant: "dropdown-condition" });
+            const user = (await activeDoc.getUser(docSession)).toUserInfo();
+            const refTableData = toTableDataAction(refTableId, await predicateTableData(refTableId));
+            const rowIndexes = new Map(refTableData[2].map((rowId, index) => [rowId, index]));
+
+            return values.filter(([id]) => {
+              const rowIndex = rowIndexes.get(id);
+              if (rowIndex === undefined) { return false; }
+
+              return predicate({ user, rec: new EmptyRecordView(), choice: new RecordView(refTableData, rowIndex) });
+            });
+          } catch {
+            // Match the regular reference editor's fail-closed behavior for invalid conditions.
+            return [];
+          }
         };
 
         const formFields = await Promise.all(fields.map(async (field) => {
@@ -1496,7 +1540,7 @@ export class DocWorkerApi {
             question: options.question || col.label || colId,
             options,
             type,
-            refValues: isFullReferencingType(col.type) ? await getRefTableValues(col) : null,
+            refValues: isFullReferencingType(col.type) ? await getRefTableValues(col, options) : null,
           }] as const;
         }));
         const formFieldsById = Object.fromEntries(formFields);
