@@ -30,8 +30,8 @@ export interface UrlStateSpec<IUrlState> {
   needPageLoad(prevState: IUrlState, newState: IUrlState): boolean;
 
   // Give the implementation a chance to complete outstanding work, e.g. if there is unsaved
-  // data in the page state that would get destroyed.
-  delayPushUrl(prevState: IUrlState, newState: IUrlState): Promise<void>;
+  // data in the page state that would get destroyed. Return false to abort navigation.
+  delayPushUrl(prevState: IUrlState, newState: IUrlState): Promise<boolean>;
 }
 
 export type UpdateFunc<IUrlState> = (prevState: IUrlState) => IUrlState;
@@ -77,7 +77,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
       (options.avoidReload || !this._stateImpl.needPageLoad(prevState, newState)));
 
     if (samePage) {
-      await this._stateImpl.delayPushUrl(prevState, newState);
+      if (!await this._stateImpl.delayPushUrl(prevState, newState)) { return; }
       try {
         if (options.replace) {
           this._window.history.replaceState(null, "", newUrl);

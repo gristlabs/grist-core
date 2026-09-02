@@ -256,3 +256,14 @@ export async function startEditingAccessRules() {
   await driver.findWait(".test-rule-set", 200);
   await gu.waitForServer();  // Assert also for any validity checking to complete.
 }
+
+/**
+ * Reset unsaved ACL edits if the Reset button is shown.
+ */
+export async function revertAccessRules() {
+  const revert = driver.find(".test-rules-revert");
+  if (await revert.isPresent() && await revert.isDisplayed()) {
+    await revert.click();
+    await gu.waitForServer();
+  }
+}
