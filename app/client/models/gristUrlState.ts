@@ -178,10 +178,15 @@ export class UrlStateImpl {
    * Complete outstanding work before changes that would destroy page state, e.g. if there are
    * edits to be saved.
    */
-  public async delayPushUrl(prevState: IGristUrlState, newState: IGristUrlState): Promise<void> {
+  public async delayPushUrl(prevState: IGristUrlState, newState: IGristUrlState): Promise<boolean> {
     if (newState.docPage !== prevState.docPage) {
-      return unsavedChanges.saveChanges();
+      if (!await unsavedChanges.canLeavePage()) {
+        return false;
+      }
+      await unsavedChanges.saveChanges();
+      return true;
     }
+    return true;
   }
 }
 
