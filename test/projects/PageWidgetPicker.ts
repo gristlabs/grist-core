@@ -201,8 +201,8 @@ describe("PageWidgetPicker", () => {
     // select 'New Table'
     await driver.findContent(".test-wselect-table", /New Table/).doClick();
 
-    // check that 'Chart' and 'Custom' are disabled
-    assert.deepEqual(await findAllDisabled("type"), ["Chart", "Custom"]);
+    // check that 'Chart', 'Calendar' and 'Custom' are disabled
+    assert.deepEqual(await findAllDisabled("type"), ["Chart", "Calendar", "Custom"]);
     assert.deepEqual(await findAllDisabled("table"), []);
 
     // click 'Chart'
@@ -219,6 +219,14 @@ describe("PageWidgetPicker", () => {
     // check that addBtn is not disabled anymore
     assert.equal(await addBtn.getAttribute("disabled"), null);
 
+    // summarizing the table disables Form, which has nothing to submit into.
+    await driver.findContent(".test-wselect-table", /Companies/).find(".test-wselect-pivot").doClick();
+    assert.deepEqual(await findAllDisabled("type"), ["Form"]);
+
+    // un-summarizing brings it back
+    await driver.findContent(".test-wselect-table", /Companies/).find(".test-wselect-pivot").doClick();
+    assert.deepEqual(await findAllDisabled("type"), []);
+
     // set option IsNewPage to true and reopen picker
     await closePicker();
     await setOption({ isNewPage: true });
@@ -227,9 +235,10 @@ describe("PageWidgetPicker", () => {
     // select `Table` type
     await driver.findContent(".test-wselect-type", /Table/).doClick();
 
-    // select 'New Table' and  check that 'single', 'detail', 'chart', 'custom' are disabled
+    // select 'New Table' and check that 'single', 'detail', 'chart', 'calendar', 'custom' are disabled
     await driver.findContent(".test-wselect-table", /New Table/).doClick();
-    assert.deepEqual(await findAllDisabled("type"), ["Card", "Card List", "Chart", "Custom"]);
+    assert.deepEqual(await findAllDisabled("type"),
+      ["Card", "Card List", "Chart", "Calendar", "Custom"]);
     assert.deepEqual(await findAllDisabled("table"), []);
 
     // select 'Companies' and check that none are disabled

@@ -32,7 +32,7 @@ export function buildCollapsedSectionDom(options: {
     );
   }
   const vs: ViewSectionRec = gristDoc.docModel.viewSections.getRowModel(sectionRowId);
-  const typeComputed = Computed.create(null, use => getWidgetTypes(use(vs.parentKey) as any).icon);
+  const typeComputed = Computed.create(null, use => getWidgetTypes(use(vs.effectiveWidgetType)).icon);
   return cssMiniSection(
     testId(`collapsed-section-${sectionRowId}`),
     testId(`collapsed-section`),
