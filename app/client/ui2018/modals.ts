@@ -286,6 +286,7 @@ export interface ISaveModalOptions {
   title: DomElementArg;           // Normally just a string.
   body: DomElementArg;            // Content of the dialog.
   saveLabel?: DomElementArg;      // Normally just a string; defaults to "Save".
+  cancelLabel?: DomElementArg;    // Normally just a string; defaults to "Cancel".
   saveDisabled?: Observable<boolean>;   // Optional observable for when to disable Save button.
   saveFunc: () => Promise<unknown>;     // Called on Save; dialog closes when promise is fulfilled.
   hideCancel?: boolean;           // If set, hide the Cancel button
@@ -371,7 +372,7 @@ export function saveModal(
           testId("modal-confirm"),
         ),
         options.extraButtons,
-        options.hideCancel ? null : buttonStyles.cancel(t("Cancel"),
+        options.hideCancel ? null : buttonStyles.cancel(options.cancelLabel || t("Cancel"),
           dom.on("click", cancel),
           testId("modal-cancel"),
         ),
