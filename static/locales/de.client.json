@@ -146,8 +146,8 @@
         "Key": "Schlüssel",
         "Memory Error": "Speicherfehler",
         "Translators: please translate this only when your language is ready to be offered to users": "Übersetzer: Bitte übersetzen Sie dies erst, wenn Ihre Sprache bereit ist, Benutzern angeboten zu werden",
-        "Disabled screen reader improvements": "Bildschrimleser-Verbesserungen deaktiviert",
-        "Enabled screen reader improvements": "Bildschrimleser-Verbesserungen aktiviert"
+        "Disabled screen reader improvements": "Bildschirmleser-Verbesserungen deaktiviert",
+        "Enabled screen reader improvements": "Bildschirmleser-Verbesserungen aktiviert"
     },
     "AppHeader": {
         "Home page": "Startseite",
@@ -747,8 +747,8 @@
     "LeftPanelCommon": {
         "Help Center": "Hilfe-Center",
         "Accessibility": "Barrierefreiheit",
-        "(Screen reader improvements enabled)": "(Bildschrimleser-Verbesserungen aktiviert)",
-        "Screen reader improvements enabled": "Bildschrimleser-Verbesserungen aktiviert"
+        "(Screen reader improvements enabled)": "(Bildschirmleser-Verbesserungen aktiviert)",
+        "Screen reader improvements enabled": "Bildschirmleser-Verbesserungen aktiviert"
     },
     "MakeCopyMenu": {
         "As template": "Als Vorlage",
@@ -998,7 +998,7 @@
     },
     "ThemeConfig": {
         "Appearance ": "Aussehen ",
-        "Switch appearance automatically to match system": "Schalten Sie das Aussehen automatisch auf das System",
+        "Switch appearance automatically to match system": "Aussehen automatisch an das System anpassen",
         "Light": "Hell"
     },
     "Tools": {
@@ -1594,7 +1594,7 @@
         "Opt in to Telemetry": "Melden Sie sich für Telemetrie an",
         "Opted In": "Angemeldet",
         "Support Grist page": "Support Grist-Seite",
-        "Admin Panel": "Administrations Bereich",
+        "Admin Panel": "Admin-Bereich",
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Wir danken Ihnen! Wir wissen Ihr Vertrauen und Ihre Unterstützung sehr zu schätzen. Sie können sich jederzeit unter {{link}} im Benutzermenü abmelden."
     },
     "SupportGristPage": {
@@ -1822,7 +1822,7 @@
         "Select all": "Alle auswählen"
     },
     "AdminPanel": {
-        "Admin Panel": "Administrations Bereich",
+        "Admin Panel": "Admin-Bereich",
         "Current": "Aktuell",
         "Support Grist": "Unterstützen Sie Grist",
         "Telemetry": "Telemetrie",
@@ -1889,7 +1889,8 @@
         "default": "standard",
         "more...": "mehr...",
         "no authentication": "keine Authentifizierung",
-        "unavailable": "nicht verfügbar"
+        "unavailable": "nicht verfügbar",
+        "disabled": "deaktiviert"
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -2051,7 +2052,7 @@
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Daten behalten und Widget löschen. Die Tabelle bleibt verfügbar in {{rawDataLink}}"
     },
     "AdminPanelName": {
-        "Admin Panel": "Administrations Bereich"
+        "Admin Panel": "Admin-Bereich"
     },
     "CustomWidgetGallery": {
         "(Missing info)": "(Fehlende Informationen)",
@@ -2117,7 +2118,7 @@
         "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "Dadurch wird die Referenzspalte {{refCol}} in der Tabelle {{refTable}} gelöscht. Die Referenzspalte {{myName}} bleibt in der aktuellen Tabelle {{myTable}} erhalten."
     },
     "SupportGristButton": {
-        "Admin Panel": "Administrations Bereich",
+        "Admin Panel": "Admin-Bereich",
         "Close": "Schließen",
         "Opted In": "Angemeldet",
         "Support Grist": "Unterstützen Sie Grist",
@@ -2171,7 +2172,7 @@
         "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "Sie können das Streaming von Audit-Ereignissen von Grist zu einem externen SIEM-System (Security Information and Event Management) einrichten, wenn Sie {{upgradePlanButton}}."
     },
     "DocList": {
-        "Rename and set icon": "Symbol umbenennen und einstellen",
+        "Rename and set icon": "Umbenennen und Symbol einstellen",
         "Pin": "Anheften",
         "Pinned": "Angeheftet",
         "Recent": "Neueste",
@@ -2200,7 +2201,7 @@
         "Enter document name": "Geben Sie den Dokumentnamen ein",
         "Icon": "Symbol",
         "Name": "Name",
-        "Rename and set icon": "Symbol umbenennen und einstellen",
+        "Rename and set icon": "Umbenennen und Symbol einstellen",
         "Reset icon": "Symbol zurücksetzen",
         "Choose icon": "Symbol auswählen",
         "Choose color": "Farbe wählen"
@@ -2393,9 +2394,29 @@
         "Select…": "Wähle…"
     },
     "OpenAccessibilityModal": {
-        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Bildschrimleser-Verbesserungen aktivieren (Tastaturkürzel: {{shortcut}})"
+        "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Bildschirmleser-Verbesserungen aktivieren (Tastaturkürzel: {{shortcut}})",
+        " or ": " oder "
     },
     "ScreenReaderConfig": {
-        "Enable screen reader improvements": "Bildschrimleser-Verbesserungen aktivieren"
+        "Enable screen reader improvements": "Bildschirmleser-Verbesserungen aktivieren",
+        "Press {{accessibilityModalShortcut}} for more information about screen reader navigation.": "{{accessibilityModalShortcut}} drücken, um weitere Informationen zum Bildschirmleser zu erhalten."
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Unbenanntes Dokument"
+    },
+    "ProposedChangesPage": {
+        "Learn more": "Mehr erfahren"
+    },
+    "TriggersPageUpsell": {
+        "Learn more.": "Mehr erfahren."
+    },
+    "BackupsSection": {
+        "Learn more.": "Mehr erfahren."
+    },
+    "EditionSection": {
+        "Learn more.": "Mehr erfahren."
+    },
+    "AuthenticationSection": {
+        "disabled": "deaktiviert"
     }
 }
