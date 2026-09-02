@@ -1,4 +1,5 @@
 import { MenuCommand } from "app/client/components/commandList";
+import { normalizeText } from "app/client/lib/ACIndex";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { testPendingMenuActions } from "app/client/lib/testPendingOps";
@@ -10,6 +11,7 @@ import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { cssSelectBtn } from "app/client/ui2018/select";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 
 import {
   BindableValue, Computed, dom, DomContents, DomElementArg, DomElementMethod, IDomArgs,
@@ -73,6 +75,10 @@ export interface SearchableMenuItem {
 
 /**
  * Builds the contents of a menu with a search input that filters `menuItems` by their `cleanText`.
+ *
+ * Escape clears the search when it is non-empty (and keeps the menu open); a second Escape closes
+ * the menu via weasel's usual handling. Items' `cleanText` should typically be produced with
+ * `normalizeText` so matching is accent-insensitive.
  */
 export function searchableMenu(
   menuItems: MaybeObsArray<SearchableMenuItem>,
@@ -81,11 +87,18 @@ export function searchableMenu(
   const { searchInputPlaceholder, searchInputArgs = [], buildEmptyMessage } = options;
 
   const searchValue = Observable.create(null, "");
+  let searchInput: HTMLInputElement | undefined;
   const setSearchValue = debounce((value: string) => {
     if (!searchValue.isDisposed()) { searchValue.set(value); }
   }, 100);
+  const clearSearch = () => {
+    setSearchValue.cancel();
+    if (searchInput) { searchInput.value = ""; }
+    if (!searchValue.isDisposed()) { searchValue.set(""); }
+    searchInput?.focus();
+  };
   const filteredItems = Computed.create(null, (use) => {
-    const cleanSearchValue = use(searchValue).trim().toLowerCase();
+    const cleanSearchValue = normalizeText(use(searchValue));
     const items = Array.isArray(menuItems) ? menuItems : use(menuItems);
     return items.filter(item => item.cleanText.includes(cleanSearchValue));
   });
@@ -97,16 +110,33 @@ export function searchableMenu(
       cssMenuSearch(
         cssMenuSearchIcon("Search"),
         cssMenuSearchInput(
+          (elem) => { searchInput = elem; },
           dom.on("input", (_ev, elem) => { setSearchValue(elem.value); }),
+          dom.onKeyDown({
+            Escape$: (ev) => {
+              if (searchInput?.value || searchValue.get()) {
+                clearSearch();
+                ev.stopPropagation();
+              }
+            },
+          }),
           { placeholder: searchInputPlaceholder },
           testId("searchable-menu-input"),
           ...searchInputArgs,
         ),
+        dom.maybe(searchValue, () => cssMenuSearchClear(
+          icon("CrossSmall"),
+          { "aria-label": t("Clear search") },
+          testId("searchable-menu-input-clear"),
+          dom.on("click", () => clearSearch()),
+        )),
       ),
     ),
     menuDivider(),
     dom.domComputed(
-      use => Boolean(buildEmptyMessage) && use(filteredItems).length === 0,
+      use => Boolean(buildEmptyMessage) &&
+        Boolean(use(searchValue).trim()) &&
+        use(filteredItems).length === 0,
       isEmpty => isEmpty ?
         buildEmptyMessage!() :
         dom.forEach(filteredItems, (item) => {
@@ -960,6 +990,13 @@ const cssMenuSearchInput = styled("input", `
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
   }
+`);
+
+const cssMenuSearchClear = styled(unstyledButton, `
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  --icon-color: ${theme.menuItemIconFg};
 `);
 
 type MenuDefinition = MenuItem[];

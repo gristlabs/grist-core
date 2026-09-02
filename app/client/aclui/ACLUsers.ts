@@ -1,3 +1,4 @@
+import { normalizeText } from "app/client/lib/ACIndex";
 import { makeT } from "app/client/lib/localization";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -5,7 +6,9 @@ import { createUserImage } from "app/client/ui/UserImage";
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
   cssMemberSecondary, cssMemberText } from "app/client/ui/UserItem";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
-import { menu, menuGroup, menuItemLink } from "app/client/ui2018/menus";
+import {
+  menu, menuGroup, menuItemLink, menuSubHeader, searchableMenu, SearchableMenuItem,
+} from "app/client/ui2018/menus";
 import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
 import { IGristUrlState, userOverrideParams } from "app/common/gristUrls";
 import { waitGrainObs } from "app/common/gutil";
@@ -14,15 +17,24 @@ import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL } from "app/common/UserAPI";
 import { compareUsersForDisplay, getRealAccess, UserAccessData } from "app/common/UserAPI";
 import { getUserRoleText } from "app/common/UserAPI";
 
-import { Disposable, dom, Observable, styled } from "grainjs";
+import { Disposable, dom, DomContents, DomElementArg, Observable, styled } from "grainjs";
 import noop from "lodash/noop";
 import { IMenuOptions } from "popweasel";
 
 const t = makeT("ACLUsers");
 const userT = makeT("UserManagerModel");
 
+const FILTER_THRESHOLD = 10;
+
+/** cleanText that only matches an empty search, used for group headers. */
+const HEADER_CLEAN_TEXT = "\u0000";
+
 function isSpecialEmail(email: string) {
   return email === ANONYMOUS_USER_EMAIL || email === EVERYONE_EMAIL;
+}
+
+function userCleanText(user: UserAccessData): string {
+  return normalizeText(`${user.name || ""} ${user.email || ""}`);
 }
 
 export class ACLUsersPopup extends Disposable {
@@ -79,6 +91,16 @@ export class ACLUsersPopup extends Disposable {
         (user: UserAccessData) => this._buildUserRow(user, { resetDocPage });
       const buildExampleUserRow =
         (user: UserAccessData) => this._buildUserRow(user, { isExampleUser: true, resetDocPage });
+
+      if (this.getUsers().length > FILTER_THRESHOLD) {
+        return [
+          cssUsers.cls(""),
+          ...this._buildSearchableMenu(
+            this._buildGroupedSearchableItems(buildRow, buildExampleUserRow),
+          ),
+        ];
+      }
+
       return [
         cssUsers.cls(""),
         this._shareUsers.length > 0 ? menuGroup(
@@ -104,6 +126,20 @@ export class ACLUsersPopup extends Disposable {
   public menu(options: IMenuOptions) {
     return menu(() => {
       this.load().catch(noop);
+
+      if (this.getUsers().length > FILTER_THRESHOLD) {
+        return this._buildSearchableMenu(
+          this.allUsers.get().map(user => ({
+            cleanText: userCleanText(user),
+            builder: () => menuItemLink(
+              `${user.name || user.email} (${getUserRoleText(user)})`,
+              testId("acl-user-access"),
+              this._viewAs(user),
+            ),
+          })),
+        );
+      }
+
       return [
         { "aria-labelledby": "view-as-menu-header" },
         cssMenuHeader("view as", {
@@ -117,6 +153,53 @@ export class ACLUsersPopup extends Disposable {
         )),
       ];
     }, options);
+  }
+
+  private _buildSearchableMenu(items: SearchableMenuItem[]): DomElementArg[] {
+    return searchableMenu(items, {
+      searchInputPlaceholder: t("Filter by name or email"),
+      searchInputArgs: [
+        testId("acl-user-filter"),
+        // Focus the filter once the menu has opened (weasel focuses the menu first).
+        (elem) => { setTimeout(() => elem.focus(), 0); },
+      ],
+      buildEmptyMessage: () => cssNoResults(
+        t("No matching users"),
+        testId("acl-user-filter-empty"),
+      ),
+    });
+  }
+
+  private _buildGroupedSearchableItems(
+    buildRow: (user: UserAccessData) => Element,
+    buildExampleUserRow: (user: UserAccessData) => Element,
+  ): SearchableMenuItem[] {
+    const items: SearchableMenuItem[] = [];
+    const addGroup = (
+      heading: DomContents,
+      users: UserAccessData[],
+      build: (user: UserAccessData) => Element,
+    ) => {
+      if (users.length === 0) { return; }
+      // Header only appears when the search is empty (see HEADER_CLEAN_TEXT).
+      items.push({
+        cleanText: HEADER_CLEAN_TEXT,
+        builder: () => menuSubHeader(heading),
+      });
+      for (const user of users) {
+        items.push({
+          cleanText: userCleanText(user),
+          builder: () => build(user),
+        });
+      }
+    };
+
+    addGroup(t("Shared users"), this._shareUsers, buildRow);
+    addGroup(t("Other users from table"), this._attributeTableUsers, buildExampleUserRow);
+    if (this._showExampleUsers()) {
+      addGroup(t("Example Users"), this._exampleUsers, buildExampleUserRow);
+    }
+    return items;
   }
 
   private async _fetchData() {
@@ -192,4 +275,10 @@ const cssMenuHeader = styled("div", `
   text-transform: uppercase;
   font-size: ${vars.xsmallFontSize};
   color: ${theme.darkText};
+`);
+
+const cssNoResults = styled("div", `
+  margin: 8px 24px;
+  font-style: italic;
+  color: ${theme.lightText};
 `);

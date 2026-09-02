@@ -1244,7 +1244,8 @@
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
         "Select fields": "Select fields",
         "Upgrade now": "Upgrade now",
-        "Loading...": "Loading..."
+        "Loading...": "Loading...",
+        "Clear search": "Clear search"
     },
     "modals": {
         "Cancel": "Cancel",
@@ -1300,7 +1301,9 @@
         "Users from table": "Users from table",
         "View as": "View as",
         "Other users from table": "Other users from table",
-        "Shared users": "Shared users"
+        "Shared users": "Shared users",
+        "Filter by name or email": "Filter by name or email",
+        "No matching users": "No matching users"
     },
     "TypeTransform": {
         "Apply": "Apply",
