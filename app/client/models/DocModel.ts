@@ -159,8 +159,10 @@ export class DocModel extends Disposable {
   // Flag for tracking whether document is in formula-editing mode
   public editingFormula: ko.Observable<boolean> = ko.observable(false);
 
-  // Table of the column whose formula is currently being edited. Holds an object, not a plain id,
-  // so that an editor being disposed can tell whether the entry is still its own.
+  // Table of the column whose formula is currently being edited, when there is one. It is kept
+  // apart from editingFormula, because an editor does not have to belong to a table (e.g. code
+  // that is not saved in a column). Holds an object, not a plain id, so that an editor being
+  // disposed can tell whether the entry is still its own.
   public editingFormulaTableId = ko.observable<{ tableId: string } | null>(null);
 
   // If the doc has a docTour. Used also to enable the UI button to restart the tour.
