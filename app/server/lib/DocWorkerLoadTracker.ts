@@ -4,6 +4,7 @@ import { DocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { appSettings } from "app/server/lib/AppSettings";
 import { DocManager, IMemoryLoadEstimator } from "app/server/lib/DocManager";
 import { DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import { readLoadIntervalMs } from "app/server/lib/docWorkerSettings";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
 
@@ -16,14 +17,7 @@ export const Deps = {
       envVar: "GRIST_DOC_WORKER_MAX_MEMORY_MB",
       minValue: 1,
     }),
-  docWorkerUpdateLoadIntervalMs: appSettings
-    .section("docWorker")
-    .flag("updateLoadIntervalMs")
-    .requireInt({
-      envVar: "GRIST_DOC_WORKER_UPDATE_LOAD_INTERVAL_MS",
-      minValue: 1,
-      defaultValue: 5 * 1000,
-    }),
+  docWorkerUpdateLoadIntervalMs: readLoadIntervalMs(),
   docWorkerUpdateLoadVarianceMs: appSettings
     .section("docWorker")
     .flag("updateLoadVarianceMs")
@@ -98,6 +92,14 @@ export class DocWorkerLoadTracker {
    */
   public stop() {
     this._interval.disable();
+  }
+
+  /**
+   * Stops, and waits for a report already in flight. Used where what the worker has said is about
+   * to be cleared, a late report otherwise leaving a claim behind it.
+   */
+  public async stopAndFinish() {
+    await this._interval.disableAndFinish();
   }
 
   /**
@@ -191,9 +193,15 @@ export class DocWorkerLoadTracker {
   }
 
   private async _updateLoad() {
-    await this._docWorkerMap.setWorkerLoad(
-      this._docWorkerInfo,
-      await this.getLoad(),
-    );
+    let load: number;
+    try {
+      load = await this.getLoad();
+    } catch (e) {
+      // A worker that cannot measure itself is still running, so the claim is sent alone. Its
+      // own failure is swallowed, the error being reported the one worth reporting.
+      await this._docWorkerMap.recordWorkerAlive(this._docWorkerInfo.id).catch(() => {});
+      throw e;
+    }
+    await this._docWorkerMap.setWorkerLoad(this._docWorkerInfo, load);
   }
 }

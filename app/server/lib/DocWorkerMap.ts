@@ -58,7 +58,15 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
   // release existing assignments.
   setWorkerAvailability(workerId: string, available: boolean): Promise<void>;
 
+  // How loaded a worker is, which is taken as the worker saying that it is running, as well.
   setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void>;
+
+  // Say that this worker is running, where there is no load to say it with. Said by the worker
+  // itself, on the timer that reports its load.
+  recordWorkerAlive(workerId: string): Promise<void>;
+
+  // Whether a worker has said it is running within the time it said it would.
+  isWorkerAlive(workerId: string): Promise<boolean>;
 
   isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean>;
 

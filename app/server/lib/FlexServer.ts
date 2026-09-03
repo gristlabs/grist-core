@@ -2487,6 +2487,10 @@ export class FlexServer implements GristServer {
           await this.createWorkerUrl();
         }
       }
+      // Said before registering, so that a registration never exists without it. The moment
+      // between the two would otherwise show a registration with no word from a worker behind it.
+      // Refreshed from here on by the load tracker, on the timer that reports load.
+      await workers.recordWorkerAlive(this.worker.id);
       await workers.addWorker(this.worker);
       await workers.setWorkerAvailability(this.worker.id, true);
     } catch (err) {
@@ -2498,7 +2502,9 @@ export class FlexServer implements GristServer {
 
   private async _removeSelfAsWorker(workers: IDocWorkerMap, docWorkerId: string) {
     this._healthy = false;
-    this._docWorkerLoadTracker?.stop();
+    // Deregistering matters more than a last report, so a failed one must not stop it.
+    await this._docWorkerLoadTracker?.stopAndFinish().catch(
+      err => log.warn(`DocWorker ${docWorkerId} could not finish reporting itself: ${err}`));
     await workers.removeWorker(docWorkerId);
     if (process.env.GRIST_ROUTER_URL) {
       await axios.get(process.env.GRIST_ROUTER_URL,

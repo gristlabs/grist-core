@@ -707,4 +707,71 @@ describe("DocWorkerMap", function() {
       }
     });
   }
+
+  describe("worker liveness", function() {
+    let workers: DocWorkerMap;
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
+    const workerA: DocWorkerInfo = {
+      id: "aliveTestWorkerA",
+      publicUrl: "http://a.example.com",
+      internalUrl: "http://10.0.0.1:8484",
+    };
+
+    before(function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      // The claim lasts a few turns of the timer that reports it, so its lifetime follows this.
+      process.env.GRIST_DOC_WORKER_UPDATE_LOAD_INTERVAL_MS = "5000";
+      workers = new DocWorkerMap([cli]);
+    });
+
+    after(function() {
+      oldEnv.restore();
+    });
+
+    afterEach(async function() {
+      if (cli) { await cli.flushdbAsync(); }
+    });
+
+    it("says nothing was heard from a registration nothing is behind", async function() {
+      // What a worker killed without deregistering leaves, an entry that looks like any other.
+      await cli.hmsetAsync(`worker-${workerA.id}`, { ...workerA });
+      await cli.saddAsync("workers", workerA.id);
+      assert.isFalse(await workers.isWorkerAlive(workerA.id));
+    });
+
+    it("says nothing was heard once a worker stops saying", async function() {
+      await workers.addWorker(workerA);
+      await workers.recordWorkerAlive(workerA.id);
+      assert.isTrue(await workers.isWorkerAlive(workerA.id));
+      // Left to expire, rather than kept until something clears it. Five turns of the timer that
+      // reports it, which is 25 seconds where the interval is left at its default.
+      assert.equal(await cli.ttlAsync(`worker-${workerA.id}-alive`), 25);
+
+      await cli.delAsync(`worker-${workerA.id}-alive`);
+      assert.isFalse(await workers.isWorkerAlive(workerA.id));
+    });
+
+    it("forgets what a worker said when it goes", async function() {
+      await workers.addWorker(workerA);
+      await workers.recordWorkerAlive(workerA.id);
+
+      await workers.removeWorker(workerA.id);
+      assert.equal(await cli.existsAsync(`worker-${workerA.id}-alive`), 0);
+      assert.isFalse(await workers.isWorkerAlive(workerA.id));
+    });
+
+    it("records the load and the claim in one call", async function() {
+      // The load half is an update of an entry already there, which does nothing at all where the
+      // worker is not in that set, so it is asserted on the key rather than on the call.
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+
+      await workers.setWorkerLoad(workerA, 0.25);
+      assert.isTrue(await workers.isWorkerAlive(workerA.id));
+      assert.equal(await cli.ttlAsync(`worker-${workerA.id}-alive`), 25);
+      assert.equal(
+        Number(await cli.zscoreAsync("workers-available-by-load-default", workerA.id)), 0.25);
+    });
+  });
 });
