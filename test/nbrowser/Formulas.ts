@@ -347,7 +347,11 @@ return [
     await gu.waitToPass(async () => {
       await driver.findContent(".ace_autocomplete .ace_line span", /DIAN/).click();
     });
-    // Switch to the new tab, and wait for the page to load.
+    // Switch to the new tab, and wait for the page to load. Chrome opens the tab
+    // asynchronously, so wait for the handle to show up before switching.
+    await gu.waitToPass(async () => {
+      assert.lengthOf(await driver.getAllWindowHandles(), 2);
+    });
     let handles = await driver.getAllWindowHandles();
     await driver.switchTo().window(handles[1]);
     await gu.waitForUrl("support.getgrist.com");
