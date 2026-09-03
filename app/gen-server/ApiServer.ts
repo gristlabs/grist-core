@@ -541,12 +541,13 @@ export class ApiServer {
     }));
 
     this._app.post("/api/users/:userId/disable", requireInstallAdmin, expressWrap(async (req, res) => {
-      await this._changeUserDisabledDate(req, new Date());
+      const reason = optStringParam(req.body.reason, "reason");
+      await this._changeUserDisablement(req, new Date(), reason);
       await sendOkReply(req, res);
     }));
 
     this._app.post("/api/users/:userId/enable", requireInstallAdmin, expressWrap(async (req, res) => {
-      await this._changeUserDisabledDate(req, null);
+      await this._changeUserDisablement(req, null);
       await sendOkReply(req, res);
     }));
 
@@ -904,14 +905,22 @@ export class ApiServer {
     return result;
   }
 
-  private async _changeUserDisabledDate(req: express.Request, disabledAt: Date | null) {
+  private async _changeUserDisablement(req: express.Request, disabledAt: Date, disabledReason?: string): Promise<void>;
+  // Enforce the type of disabledReason to be undefined when the disabledAt date is null.
+  private async _changeUserDisablement(req: express.Request, disabledAt: null): Promise<void>;
+  private async _changeUserDisablement(
+    req: express.Request, disabledAt: Date | null, disabledReason?: string,
+  ): Promise<void> {
     const mreq = req as RequestWithLogin;
     const userId = mreq.userId;
     const targetUserId = integerParam(req.params.userId, "userId");
     if (targetUserId === userId) {
       throw new ApiError("you cannot disable yourself", 400);
     }
-    await this._dbManager.updateUser(targetUserId, { disabledAt });
+    await this._dbManager.updateUser(targetUserId, {
+      disabledAt,
+      disabledReason: disabledReason || null,
+    });
   }
 
   private async _hardDeleteWorkspace(req: Request, wsId: number) {

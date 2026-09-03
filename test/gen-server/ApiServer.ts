@@ -1159,6 +1159,57 @@ describe("ApiServer", function() {
     }
   });
 
+  it("POST /api/users/{uid}/disable tells the disabled user why", async function() {
+    const chimpyUser = await dbManager.getUserByLogin(chimpyEmail);
+    const chimpyId = chimpyUser.id;
+    const chimpylandOrgId = await dbManager.testGetId("Chimpyland");
+    const did = await dbManager.testGetId("Jupiter");
+    try {
+      // Ham wields the banHAMmer again, but this time explains himself.
+      let resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`,
+        { reason: "Too many bananas" }, ham);
+      assert.equal(resp.status, 200);
+      assert.equal((await dbManager.getUser(chimpyId))?.disabledReason, "Too many bananas");
+
+      // Chimpy is told the reason whenever a request of theirs is rejected.
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 403);
+      assert.equal(resp.data.error, "User is disabled (Reason: Too many bananas)");
+
+      // But the reason is not shared with Charon, who can only know that Chimpy is banned and when
+      resp = await axios.get(`${homeUrl}/api/orgs/${chimpylandOrgId}`, charon);
+      assert.equal(resp.status, 200);
+      assert.exists(resp.data.owner.disabledAt);
+      assert.notExists(resp.data.owner.disabledReason);
+
+      // Giving chimpy a second chance forgets the reason as well.
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, {}, ham);
+      assert.equal(resp.status, 200);
+      assert.isNull((await dbManager.getUser(chimpyId))?.disabledReason);
+
+      // The reason is optional: a stale one must not resurface when it is omitted.
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, {}, ham);
+      assert.equal(resp.status, 200);
+      assert.isNull((await dbManager.getUser(chimpyId))?.disabledReason);
+
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 403);
+      assert.equal(resp.data.error, "User is disabled (Reason: No reason provided)");
+
+      // Well, Ham changed their mind and now gives a reason
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { reason: "You stole my banana, nasty one!" }, ham);
+      assert.equal(resp.status, 200);
+
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 403);
+      assert.equal(resp.data.error, "User is disabled (Reason: You stole my banana, nasty one!)");
+    } finally {
+      chimpyUser.disabledAt = null;
+      chimpyUser.disabledReason = null;
+      await chimpyUser.save();
+    }
+  });
+
   // Unauthorized folks can currently check if a document uuid exists and that's ok,
   // arguably, because uuids don't leak anything sensitive.
   it("GET /api/docs/{did} returns 404 without org access for nonexistent doc", async function() {

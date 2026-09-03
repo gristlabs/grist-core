@@ -2487,6 +2487,7 @@ export class HomeDBManager implements HomeDBAuth {
       return {
         ...this.makeFullUser(u),
         loginEmail: undefined,    // Not part of PermissionData.
+        disabledReason: undefined,  // Only the disabled user and admins get to know the reason.
         access,
         isMember: access !== "guests",
       };
@@ -2544,6 +2545,7 @@ export class HomeDBManager implements HomeDBAuth {
       return {
         ...this.makeFullUser(u),
         loginEmail: undefined,    // Not part of PermissionData.
+        disabledReason: undefined,  // Only the disabled user and admins get to know the reason.
         access: wsMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(orgMap[u.id] || null),
         isMember: orgAccess && orgAccess !== "guests",
@@ -2629,6 +2631,7 @@ export class HomeDBManager implements HomeDBAuth {
         ...this.makeFullUser(u),
         firstLoginAt: undefined, // Not part of PermissionData.
         loginEmail: undefined,    // Not part of PermissionData.
+        disabledReason: undefined,  // Only the disabled user and admins get to know the reason.
         access: docMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(
           roles.getStrongestRole(wsMap[u.id] || null, inheritFromOrg),
