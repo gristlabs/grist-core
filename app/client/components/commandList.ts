@@ -53,6 +53,9 @@ export type CommandName =
   "nextRegion" |
   "prevRegion" |
   "creatorPanel" |
+  "focusSectionHeader" |
+  "nextJumpTarget" |
+  "prevJumpTarget" |
   "shiftDown" |
   "shiftUp" |
   "shiftRight" |
@@ -425,6 +428,23 @@ export const groups: CommendGroupDef[] = [{
       name: "creatorPanel",
       keys: ["Ctrl+Alt+o"],
       desc: () => t("Toggle creator panel keyboard focus"),
+      alwaysOn: true,
+    }, {
+      // This only gets its own command so it can be listed as separate keyboard shortcut.
+      // The actual command that triggers things with Ctrl+i is nextJumpTarget.
+      name: "focusSectionHeader",
+      keys: ["Ctrl+i"],
+      desc: () => t("When focused on a widget, move focus between widget and widget header"),
+      alwaysOn: true,
+    }, {
+      name: "nextJumpTarget",
+      keys: ["Ctrl+i"],
+      desc: () => t("When focused on a page panel, focus next landmark"),
+      alwaysOn: true,
+    }, {
+      name: "prevJumpTarget",
+      keys: ["Ctrl+Shift+I"],
+      desc: () => t("When focused on a page panel, focus previous landmark"),
       alwaysOn: true,
     }, {
       name: "viewAsCard",
