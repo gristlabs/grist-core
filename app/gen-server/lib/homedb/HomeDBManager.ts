@@ -1183,12 +1183,11 @@ export class HomeDBManager implements HomeDBAuth {
       if (!doc.workspace.org.billingAccount.product) {
         throw new ApiError("billing account has no product", 500);
       }
-      if (this.isReadonly() ||
-        await this.getSiteReadOnlyReason(doc.workspace.org, { manager: transaction })
-      ) {
-        // Don't allow any access to docs that is stronger than "viewers".
-        doc.access = roles.getWeakestRole("viewers", doc.access);
-      }
+      // Record that the document is held read-only; don't weaken the role to impose it. The
+      // role governs reading, access rules and downloads, which should not be affected.
+      // Edits are refused in GranularAccess.checkUserActions.
+      doc.readOnlyReason = this.isReadonly() ? "installRestricted" :
+        await this.getSiteReadOnlyReason(doc.workspace.org, { manager: transaction });
       // Place ownership information in the doc's workspace.
       (doc.workspace as any).owner = doc.workspace.org.owner;
     }
@@ -5678,9 +5677,11 @@ export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<
     const doc = await docPromise;
     const removed = Boolean(doc.removedAt || doc.workspace.removedAt);
     const disabled = Boolean(doc.disabledAt);
-    return { docId: doc.id, access: doc.access, removed, disabled, cachedDoc: doc };
+    return { docId: doc.id, access: doc.access, removed, disabled,
+      readOnlyReason: doc.readOnlyReason ?? null, cachedDoc: doc };
   } catch (error) {
-    return { docId: null, access: null, removed: null, disabled: null, error };
+    return { docId: null, access: null, removed: null, disabled: null,
+      readOnlyReason: null, error };
   }
 }
 

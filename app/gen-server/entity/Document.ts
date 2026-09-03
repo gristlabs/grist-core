@@ -1,7 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { DocumentUsage } from "app/common/DocUsage";
 import { Role } from "app/common/roles";
-import { DocumentOptions, DocumentProperties, documentPropertyKeys, DocumentType,
+import { DocReadOnlyReason, DocumentOptions, DocumentProperties, documentPropertyKeys, DocumentType,
   NEW_DOCUMENT_CODE } from "app/common/UserAPI";
 import { AclRuleDoc } from "app/gen-server/entity/AclRule";
 import { Alias } from "app/gen-server/entity/Alias";
@@ -49,6 +49,9 @@ export class Document extends Resource {
 
   // Property set for forks, containing access the fetching user has on the trunk.
   public trunkAccess?: Role | null;
+
+  // Property set when edits are refused, whatever the access above allows.
+  public readOnlyReason?: DocReadOnlyReason;
 
   // a computed column with permissions.
   // {insert: false} makes sure typeorm doesn't try to put values into such

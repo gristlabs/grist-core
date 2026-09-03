@@ -229,11 +229,12 @@ export class DocApiTriggers {
     withDoc: (callback: WithDocHandler) => RequestHandler,
     checkOwner: (req: RequestWithLogin) => Promise<boolean>,
     middlewares: {
-      isOwner: RequestHandler;
+      isOwnerRead: RequestHandler;
+      isOwnerWrite: RequestHandler;
       canEdit: RequestHandler;
     },
   }) {
-    const { isOwner, canEdit } = options.middlewares;
+    const { isOwnerRead, isOwnerWrite, canEdit } = options.middlewares;
     const { withDoc, checkOwner } = options;
 
     // Like withDoc, but only one such callback can run at a time per active doc.
@@ -404,7 +405,8 @@ export class DocApiTriggers {
     }
 
     // Add a new webhook and trigger
-    this._app.post("/api/docs/:docId/webhooks", isOwner, validate(WebhookSubscribeCollectionChecker),
+    this._app.post("/api/docs/:docId/webhooks", isOwnerWrite,
+      validate(WebhookSubscribeCollectionChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhooks: WebhookSubscription[] = [];
         for (const webhook of req.body.webhooks) {
@@ -423,7 +425,8 @@ export class DocApiTriggers {
      * This and the /triggers routes are intentionally absent from OAuthValidator's allowlist, so
      * OAuth reaches them only as default-deny.
      */
-    this._app.post("/api/docs/:docId/tables/:tableId/_subscribe", isOwner, validate(WebhookSubscribeChecker),
+    this._app.post("/api/docs/:docId/tables/:tableId/_subscribe", isOwnerWrite,
+      validate(WebhookSubscribeChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhook = await registerWebhook(activeDoc, req, req.body);
         res.json(registeredWebhook);
@@ -438,7 +441,7 @@ export class DocApiTriggers {
     );
 
     // Clears all outgoing webhooks in the queue for this document.
-    this._app.delete("/api/docs/:docId/webhooks/queue", isOwner,
+    this._app.delete("/api/docs/:docId/webhooks/queue", isOwnerWrite,
       withDocTriggersLock(async (activeDoc, req, res) => {
         await activeDoc.clearWebhookQueue();
         await activeDoc.sendWebhookNotification();
@@ -448,13 +451,13 @@ export class DocApiTriggers {
     );
 
     // Remove webhook and trigger created above
-    this._app.delete("/api/docs/:docId/webhooks/:webhookId", isOwner,
+    this._app.delete("/api/docs/:docId/webhooks/:webhookId", isOwnerWrite,
       withDocTriggersLock(removeWebhook),
     );
 
     // Update a webhook
     this._app.patch(
-      "/api/docs/:docId/webhooks/:webhookId", isOwner, validate(WebhookPatchChecker),
+      "/api/docs/:docId/webhooks/:webhookId", isOwnerWrite, validate(WebhookPatchChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
@@ -486,7 +489,7 @@ export class DocApiTriggers {
     );
 
     // Clears a single webhook in the queue for this document.
-    this._app.delete("/api/docs/:docId/webhooks/queue/:webhookId", isOwner,
+    this._app.delete("/api/docs/:docId/webhooks/queue/:webhookId", isOwnerWrite,
       withDocTriggersLock(async (activeDoc, req, res) => {
         const webhookId = req.params.webhookId;
         await activeDoc.clearSingleWebhookQueue(webhookId);
@@ -497,7 +500,7 @@ export class DocApiTriggers {
     );
 
     // Lists all webhooks and their current status in the document.
-    this._app.get("/api/docs/:docId/webhooks", isOwner,
+    this._app.get("/api/docs/:docId/webhooks", isOwnerRead,
       withDocTriggersLock(async (activeDoc, req, res) => {
         res.json(await activeDoc.webhooksSummary());
       }),
@@ -506,7 +509,7 @@ export class DocApiTriggers {
     // --- Trigger CRUD endpoints ---
 
     // List all triggers
-    this._app.get("/api/docs/:docId/triggers", isOwner,
+    this._app.get("/api/docs/:docId/triggers", isOwnerRead,
       withDocTriggersLock(async (activeDoc, req, res) => {
         const docData = activeDoc.docData!;
         const triggersTable = docData.getMetaTable("_grist_Triggers");
@@ -536,7 +539,8 @@ export class DocApiTriggers {
     );
 
     // Add triggers
-    this._app.post("/api/docs/:docId/triggers", isOwner, validate(TriggerAddRequestChecker),
+    this._app.post("/api/docs/:docId/triggers", isOwnerWrite,
+      validate(TriggerAddRequestChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         if (activeDoc.isFork) {
           throw new ApiError("Unsaved document copies cannot have triggers", 400);
@@ -580,7 +584,8 @@ export class DocApiTriggers {
     );
 
     // Update triggers
-    this._app.patch("/api/docs/:docId/triggers", isOwner, validate(TriggerUpdateRequestChecker),
+    this._app.patch("/api/docs/:docId/triggers", isOwnerWrite,
+      validate(TriggerUpdateRequestChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         if (activeDoc.isFork) {
           throw new ApiError("Unsaved document copies cannot have triggers", 400);
@@ -651,7 +656,8 @@ export class DocApiTriggers {
     );
 
     // Remove triggers
-    this._app.post("/api/docs/:docId/triggers/delete", isOwner, validate(TriggerDeletionRequestChecker),
+    this._app.post("/api/docs/:docId/triggers/delete", isOwnerWrite,
+      validate(TriggerDeletionRequestChecker),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const { ids } = req.body as TriggerDeletionRequest;
 
@@ -691,7 +697,7 @@ export class DocApiTriggers {
 
     // Monitoring endpoints — read-only, no lock needed.
 
-    this._app.get("/api/docs/:docId/triggers/monitor", isOwner,
+    this._app.get("/api/docs/:docId/triggers/monitor", isOwnerRead,
       withDoc(async (activeDoc, req, res) => {
         const entries = await activeDoc.notifMgr?.getDeliveryLog(activeDoc.docName) ?? [];
         const delivered: TriggerDeliveryRecord[] = entries.map((e) => {

@@ -137,7 +137,8 @@ export class DocWorker {
       autocomplete: method("viewers", "autocomplete"),
       fetchURL: method("viewers", "fetchURL"),
       getActionSummaries: method("viewers", "getActionSummaries"),
-      reloadDoc: method("editors", "reloadDoc"),
+      // Reloading changes nothing in the document, so it works while it is held read-only.
+      reloadDoc: method("editors", "reloadDoc", { writes: false }),
       fork: method("viewers", "fork"),
       checkAclFormula: method("viewers", "checkAclFormula"),
       getAclResources: method("viewers", "getAclResources"),
@@ -149,7 +150,7 @@ export class DocWorker {
       stopTiming: method("owners", "stopTiming"),
       getAssistantState: method("owners", "getAssistantState"),
       listActiveUserProfiles: method(null, "listActiveUserProfiles"),
-      applyProposal: method("owners", "applyProposal"),
+      applyProposal: method("owners", "applyProposal", { writes: true }),
       getAssistance: method("viewers", "getAssistance"),
     });
   }
@@ -214,11 +215,12 @@ export class DocWorker {
  * enforces the same parallel and daily usage limits as the REST API.
  */
 function activeDocMethod(tracker: DocApiUsageTracker | undefined,
-  role: "viewers" | "editors" | "owners" | null, methodName: string) {
+  role: "viewers" | "editors" | "owners" | null, methodName: string,
+  options: { writes?: boolean } = {}) {
   return async (client: Client, docFD: number, ...args: any[]): Promise<any> => {
     const docSession = client.getDocSession(docFD);
     const activeDoc = docSession.activeDoc;
-    if (role) { await docSession.authorizer.assertAccess(role); }
+    if (role) { await docSession.authorizer.assertAccess(role, { writes: options.writes }); }
     // Include a basic log record for each ActiveDoc method call.
     log.rawDebug("activeDocMethod", activeDoc.getLogMeta(docSession, methodName));
 

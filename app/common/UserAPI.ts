@@ -88,8 +88,8 @@ export interface OrganizationWithoutAccessInfo extends OrganizationProperties {
   // members are added, and with what is billed.
   billableMemberCount?: number;
   // Set when the site's documents are held read-only, saying why. Comes from the same
-  // method that does the holding, so what a user is told cannot drift from what is
-  // enforced. Sent to everyone, since read-only affects everyone on the site.
+  // method that decides it, so what a user is told cannot drift from what is enforced.
+  // Sent to everyone, since read-only affects everyone on the site.
   readOnlyReason?: SiteReadOnlyReason;
   // Api calls made this month, set only when the org's plan limits them
   // (billingAccount.features.maxApiCallsPerOrgMonth), and only for owners and billing
@@ -103,6 +103,10 @@ export interface OrganizationWithoutAccessInfo extends OrganizationProperties {
 //  - billing: the subscription is not in good standing.
 //  - users: the site has more billable members than its plan allows.
 export type SiteReadOnlyReason = "suspended" | "plan" | "billing" | "users";
+
+// Why a document refuses edits: the site-wide causes, plus "installRestricted" for the whole
+// installation. Only edits are affected; the user's role is unchanged.
+export type DocReadOnlyReason = SiteReadOnlyReason | "installRestricted";
 
 // Organization information plus the user's access level
 export interface Organization extends OrganizationWithoutAccessInfo {
@@ -254,6 +258,8 @@ export interface Document extends DocumentProperties {
   access: roles.Role;
   trunkAccess?: roles.Role | null;
   forks?: Fork[];
+  // Why edits are refused, whatever the access above allows.
+  readOnlyReason?: DocReadOnlyReason;
 }
 
 export interface Fork {

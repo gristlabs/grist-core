@@ -75,6 +75,7 @@ import {
   RowCounts,
 } from "app/common/DocUsage";
 import { normalizeEmail } from "app/common/emails";
+import { readOnlyError } from "app/common/ErrorWithCode";
 import { Features, Product } from "app/common/Features";
 import { isHiddenCol } from "app/common/gristTypes";
 import { commonUrls, parseUrlId } from "app/common/gristUrls";
@@ -162,6 +163,7 @@ import { getDefaultLocale } from "app/server/lib/ServerLocale";
 import {
   getDocSessionAccess,
   getDocSessionAccessOrNull,
+  getDocSessionReadOnlyReason,
   getDocSessionShare,
   getDocSessionUsage,
   getLogMeta,
@@ -889,6 +891,7 @@ export class ActiveDoc extends EventEmitter {
     if (!await this._granularAccess.isOwner(docSession)) {
       throw new ApiError("Only owners can replace a document.", 403);
     }
+    this._assertNotHeldReadOnly(docSession);
     this._log.debug(docSession, "ActiveDoc.replace starting shutdown");
 
     // During replacement, it is important for all hands to be off the document. So we
@@ -1234,6 +1237,7 @@ export class ActiveDoc extends EventEmitter {
     if (!await this.isOwner(docSession)) {
       throw new ApiError("Insufficient access to upload an attachment archive", 403);
     }
+    this._assertNotHeldReadOnly(docSession);
 
     const fallbackStoreId = this._getDocumentSettings().attachmentStoreId;
     const results: ArchiveUploadResult = {
@@ -1879,6 +1883,9 @@ export class ActiveDoc extends EventEmitter {
     if (!user || !await this.canDownload(docSession)) {
       throw new ApiError("Insufficient access to document to copy it entirely", 403);
     }
+    // Forking creates a document, and is refused while this one is held read-only. The check
+    // is here because the internal create-fork request carries a permit, which is not refused.
+    this._assertNotHeldReadOnly(docSession);
     const userId = user.id;
     const isAnonymous = this._docManager.isAnonymous(userId);
 
@@ -2226,6 +2233,7 @@ export class ActiveDoc extends EventEmitter {
     if (!await this.isOwner(docSession)) {
       throw new Error("cannot remove snapshots, access denied");
     }
+    this._assertNotHeldReadOnly(docSession);
     return this._docManager.storageManager.removeSnapshots(this.docName, snapshotIds);
   }
 
@@ -2233,6 +2241,7 @@ export class ActiveDoc extends EventEmitter {
     if (!await this.isOwner(docSession)) {
       throw new Error("cannot delete actions, access denied");
     }
+    this._assertNotHeldReadOnly(docSession);
     await this._actionHistory.deleteActions(keepN);
   }
 
@@ -2585,6 +2594,17 @@ export class ActiveDoc extends EventEmitter {
       });
     }
     return result;
+  }
+
+  /**
+   * Refuse a whole-document operation while the document is held read-only. checkUserActions
+   * covers edits to a document's contents; replacing, discarding snapshots or history, and
+   * writing attachment files all reach past it.
+   */
+  private _assertNotHeldReadOnly(docSession: OptDocSession) {
+    if (getDocSessionReadOnlyReason(docSession)) {
+      throw readOnlyError();
+    }
   }
 
   private async _doShutdownImpl(options: { beforeShutdown?: () => Promise<void> }): Promise<void> {

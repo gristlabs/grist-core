@@ -649,7 +649,8 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
 
   const isPreFork = openMode === "fork";
   const isTemplate = type === DOCTYPE_TEMPLATE && (isFork || isPreFork);
-  const isEditable = !isSnapshot && (canEdit(doc.access) || isPreFork);
+  // A document can be held read-only whatever the access level, so check both.
+  const isEditable = !isSnapshot && ((canEdit(doc.access) && !doc.readOnlyReason) || isPreFork);
   return {
     ...doc,
     isFork,

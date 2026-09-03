@@ -1,6 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { OpenDocMode } from "app/common/DocListAPI";
-import { ErrorWithCode } from "app/common/ErrorWithCode";
+import { ErrorWithCode, readOnlyError } from "app/common/ErrorWithCode";
 import { ActivationState } from "app/common/gristUrls";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { canEdit, canView, getWeakestRole } from "app/common/roles";
@@ -704,10 +704,11 @@ export async function getOrSetDocAuth(
       mreq.docAuth = await dbManager.getDocAuthCached({ urlId, userId: effectiveUserId, org: mreq.org });
 
       // A permit with a user set to the anonymous user and linked to this document
-      // gets updated to full access.
+      // gets updated to full access, and is not refused when the document is held read-only,
+      // since permits are the server's own requests. Site deletion deletes documents this way.
       if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId() &&
         mreq.specialPermit.docId === mreq.docAuth.docId) {
-        mreq.docAuth = { ...mreq.docAuth, access: "owners" };
+        mreq.docAuth = { ...mreq.docAuth, access: "owners", readOnlyReason: null };
       }
     }
   }
@@ -723,6 +724,10 @@ interface AssertAccessOptions {
   // As above, but for disabled docs, which are normally otherwise
   // disallowed in all cases.
   allowDisabled?: boolean,
+  // Whether the request changes the document, which decides if it is refused while the
+  // document is held read-only. Defaults to asking for edit access, which is a fair guess
+  // for callers that have no more to say.
+  writes?: boolean,
 }
 
 export function assertAccess(
@@ -763,6 +768,12 @@ export function assertAccess(
 
   if (role === "owners" && docAuth.access !== "owners") {
     throw new ErrorWithCode("AUTH_NO_OWNER", "No owner access", details);
+  }
+
+  // Writes fail here, with a clear error and no document loaded. Not the real enforcement:
+  // that is checkUserActions.
+  if ((options.writes ?? (role === "editors")) && docAuth.readOnlyReason) {
+    throw readOnlyError(details);
   }
 }
 

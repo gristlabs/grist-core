@@ -54,12 +54,15 @@ describe("userLimit", function() {
     await nasaApi.updateOrgPermissions("current", { users });
   }
 
-  // Note the cheat borrowed from suspension.ts: calling getDoc() invalidates docAuthCache,
-  // without which the change in access level takes a few seconds to become visible.
+  // Note the cheat: calling getDoc() invalidates docAuthCache, without which the change
+  // takes a few seconds to become visible.
   async function assertCanWrite(expected: boolean) {
     const nasaApi = await home.createHomeApi("Chimpy", "nasa");
     const docApi = nasaApi.getDocAPI(docId);
-    assert.equal((await nasaApi.getDoc(docId)).access, expected ? "owners" : "viewers");
+    // Being held read-only refuses edits without changing the user's role.
+    const doc = await nasaApi.getDoc(docId);
+    assert.equal(doc.access, "owners");
+    assert.equal(doc.readOnlyReason, expected ? undefined : "users");
     // Reading is unaffected either way.
     await assert.isFulfilled(docApi.getRows("Table1"));
     if (expected) {
