@@ -2,7 +2,7 @@ import { EngineCode } from "app/common/DocumentSettings";
 import { OptDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
 import { getLogMeta } from "app/server/lib/sessionUtils";
-import { OpenMode, SQLiteDB } from "app/server/lib/SQLiteDB";
+import { ISQLiteDB, OpenMode, quoteIdent, SQLiteDB } from "app/server/lib/SQLiteDB";
 
 import { ChildProcess } from "child_process";
 import * as fs from "fs";
@@ -146,8 +146,9 @@ export function getDatabaseUrl(options: ConnectionOptions, includeCredentials: b
 
 /**
  * Collect checks to be applied to incoming documents that are alleged to be
- * Grist documents. For now, the only check is a sqlite-level integrity check,
- * as suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
+ * Grist documents. There is a sqlite-level integrity check, as suggested by
+ * https://www.sqlite.org/security.html#untrusted_sqlite_database_files, and a
+ * check that the ids in the schema have the shape Grist itself produces.
  */
 export async function checkAllegedGristDoc(docSession: OptDocSession, fname: string) {
   const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_READONLY);
@@ -162,8 +163,48 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
       });
       throw new Error(`Document failed integrity checks - is it corrupted? Event ID: ${uuid}`);
     }
+    await assertCompatibleSchemaIds(db);
   } finally {
     await db.close();
+  }
+}
+
+// Grist's id sanitizer only ever produces ids of the shape SANITIZED_ID below; system tables
+// also take a "_grist_"/"_gristsys_" prefix. A schema with any other id shape did not come from
+// Grist. The pattern is a superset of the sanitizer's output, so it never rejects a real Grist id.
+const SYSTEM_TABLE_PREFIXES = ["_grist_", "_gristsys_"];
+const SANITIZED_ID = /^[A-Za-z][A-Za-z0-9_]*$/;
+
+export function isCompatibleColId(id: string): boolean {
+  return SANITIZED_ID.test(id);
+}
+
+export function isCompatibleTableId(id: string): boolean {
+  if (isCompatibleColId(id)) { return true; }
+  // A system prefix is only allowed ahead of an otherwise ordinary id.
+  return SYSTEM_TABLE_PREFIXES.some(
+    prefix => id.startsWith(prefix) && isCompatibleColId(id.slice(prefix.length)));
+}
+
+/**
+ * Check that every table and column id in the raw SQLite schema has the shape Grist's id
+ * sanitizer produces, throwing on the first that does not.
+ */
+export async function assertCompatibleSchemaIds(db: ISQLiteDB): Promise<void> {
+  const tables = await db.all("SELECT name FROM sqlite_master WHERE type='table'");
+  for (const t of tables) {
+    const tableId = String(t.name);
+    if (!isCompatibleTableId(tableId)) {
+      throw new Error(`Document has an unexpected table id ${JSON.stringify(tableId)}`);
+    }
+    const infoRows = await db.all(`PRAGMA table_info(${quoteIdent(tableId)})`);
+    for (const info of infoRows) {
+      const colId = String(info.name);
+      if (!isCompatibleColId(colId)) {
+        throw new Error(`Document has an unexpected column id ` +
+          `${JSON.stringify(colId)} in table ${JSON.stringify(tableId)}`);
+      }
+    }
   }
 }
 
