@@ -2573,7 +2573,8 @@
         "Your suggestions": "Your suggestions",
         "experiment": "experiment",
         "original document": "original document",
-        "Undo dismissal": "Undo dismissal"
+        "Undo dismissal": "Undo dismissal",
+        "Could not apply this suggestion: {{detail}}": "Could not apply this suggestion: {{detail}}"
     },
     "commandList": {
         "Show accessibility options": "Show accessibility options",

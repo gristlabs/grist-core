@@ -5,6 +5,9 @@ import { ApiData, VirtualDoc, VirtualSection } from "app/client/components/Virtu
 import { makeT } from "app/client/lib/localization";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
 import { ColumnRec } from "app/client/models/DocModel";
+// Without this, `reportError` silently resolves to the DOM global of the
+// same name, which raises an error event and shows the user nothing.
+import { reportError, UserError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { docListHeader } from "app/client/ui/DocMenuCss";
 import { buildOriginalUrlId } from "app/client/ui/ShareMenu";
@@ -215,11 +218,14 @@ and is subject to change and withdrawal.`,
                     dom.on("click", async () => {
                       const outcome = await this.gristDoc.docComm.applyProposal(proposal.shortId);
                       this._updateProposal(proposal, outcome.proposal);
-                      // For the moment, send debug information to console
-                      for (const change of outcome.log.changes) {
-                        if (change.fail) {
-                          reportError(new Error(change.msg));
-                        }
+                      // Nothing was applied, so say why and leave Accept in
+                      // place to try again.
+                      const failure = outcome.log.changes.find(c => c.kind === "error");
+                      if (failure) {
+                        reportError(new UserError(
+                          t("Could not apply this suggestion: {{detail}}", { detail: failure.msg }),
+                          { key: "proposal-apply-failed" },
+                        ));
                       }
                     }),
                     testId("apply"),

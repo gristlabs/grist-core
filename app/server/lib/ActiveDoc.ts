@@ -996,9 +996,12 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Apply a proposal to the document. The proposal is applied as a set of linked action groups
-   * for ease of undo, meaning each action group has a linkId refering to the previous one, and
-   * a otherId set to the first (or root) action group.
+   * Apply a proposal to the document. The proposal lands as a single action bundle, so it
+   * either applies in full or leaves the document untouched, and undoing it is one step.
+   *
+   * Note that the engine write and the proposal's status change are two separate writes with
+   * no transaction spanning them: a crash in between leaves the document patched and the
+   * proposal still open, and accepting it again would duplicate any rows it added.
    */
   public async applyProposal(docSession: OptDocSession, proposalId: number, options?: {
     dismiss?: boolean,
