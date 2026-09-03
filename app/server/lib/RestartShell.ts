@@ -15,7 +15,7 @@ import {
   ShellToWorker,
   WorkerToShell,
 } from "app/server/lib/RestartShellWorker";
-import { listenPromise } from "app/server/lib/serverUtils";
+import { cleanEnv, listenPromise } from "app/server/lib/serverUtils";
 import * as shutdownLib from "app/server/lib/shutdown";
 
 import * as childProcess from "child_process";
@@ -324,7 +324,7 @@ export class RestartShell {
     delete env.GRIST_RESTART_SHELL;
 
     const c = childProcess.fork(spec.entryPoint, [], {
-      env,
+      env: cleanEnv(env),
       stdio: ["inherit", "inherit", "inherit", "ipc"],
     });
 

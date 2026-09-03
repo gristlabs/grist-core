@@ -19,6 +19,7 @@ import {
 } from "app/server/lib/SandboxControl";
 import { checkPyodideDeno, getPyodideSettings } from "app/server/lib/SandboxPyodide";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
+import { cleanEnv } from "app/server/lib/serverUtils";
 import * as shutdown from "app/server/lib/shutdown";
 
 import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from "child_process";
@@ -880,13 +881,13 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     child = spawn(
       command,
       args,
-      { cwd, ...spawnOptions },
+      { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
     );
   } else {
     log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
-      { cwd, ...spawnOptions },
+      { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
     );
   }
 
@@ -1052,7 +1053,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
     ...commandParts,
     ...pythonArgs,
     ...appendArgs,
-  ]);
+  ], { env: cleanEnv() });
   log.rawDebug("cannot do process control via docker yet", { ...options.logMeta });
   return { name: "docker", child, control: () => new NoProcessControl(child) };
 }
@@ -1152,7 +1153,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const profileString = profile.join("\n");
   const child = spawn("/usr/bin/sandbox-exec",
     [...options.testSandboxArgs, "-p", profileString, command, ...pythonArgs, ...appendArgs],
-    { cwd, env });
+    { cwd, env: cleanEnv(env) });
   return {
     name: "macSandboxExec",
     child,
@@ -1381,7 +1382,10 @@ function realpathSync(src: string) {
   }
 }
 
-function adjustedSpawn(cmd: string, args: string[], options?: SpawnOptionsWithoutStdio) {
+function adjustedSpawn(cmd: string, args: string[], options: SpawnOptionsWithoutStdio = {}) {
+  // Pass only own environment variables through to the subprocess (see cleanEnv).
+  // With no options.env, cleanEnv defaults to process.env, as spawn would.
+  options = { ...options, env: cleanEnv(options.env) };
   const oomScoreAdj = process.env.GRIST_SANDBOX_OOM_SCORE_ADJ;
   if (oomScoreAdj) {
     return spawn("choom", ["-n", oomScoreAdj, "--", cmd, ...args], options);

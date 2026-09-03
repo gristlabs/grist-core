@@ -17,6 +17,14 @@ import { v4 as uuidv4 } from "uuid";
 // This method previously lived in this file. Re-export to avoid changing imports all over.
 export { timeoutReached } from "app/common/gutil";
 
+// Copy an environment's own keys onto a null-prototype object, so nothing inherited
+// through the prototype chain leaks into a spawned subprocess. child_process builds the
+// child's environment by iterating the env object with `for..in`, which walks the prototype
+// chain; a null-prototype copy forwards only the environment's own variables.
+export function cleanEnv(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  return Object.assign(Object.create(null), env);
+}
+
 /**
  * Promisify a node-style callback function. E.g.
  *    fromCallback(cb => someAsyncFunc(someArgs, cb));
