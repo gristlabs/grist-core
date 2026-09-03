@@ -1430,13 +1430,13 @@ class Engine(object):
 
     # Table.lookup methods are special to suggest arguments after '(' or after a comma, once
     # at least one argument is already there.
-    match = re.match(r"(\w+)\.(lookupRecords|lookupOne)\(.*$", txt)
+    match = re.match(r"(\w+)\.(lookupRecords|lookupOne)\(", txt)
     if match:
       lookup_table_id = match.group(1)
       if lookup_table_id in self.tables:
         lookup_table = self.tables[lookup_table_id]
         used_kwargs = _get_used_lookup_kwargs(txt)
-        if used_kwargs is not None:
+        if used_kwargs is not None: # None means that the user is still typing
           # Add a space after the comma, unless the user already typed one or there isn't one.
           start = txt if txt.endswith(("(", " ")) else txt + " "
           # order_by is a keyword argument like any column, not tied to a particular column.
@@ -1534,8 +1534,12 @@ class Engine(object):
     ]
 
     # If we changed the prefix (expanding the $ symbol) we now need to change it back.
+    # Function matches are tuples, whose names never contain the prefix.
     if tweaked_txt != txt:
-      results = [(txt + result[len(tweaked_txt):], value) for result, value in results]
+      results = [
+        (result if isinstance(result, tuple) else txt + result[len(tweaked_txt):], value)
+        for result, value in results
+      ]
     # pylint:disable=unidiomatic-typecheck
     results.sort(key=lambda r: r[0][0] if type(r[0]) == tuple else r[0])
     return results

@@ -99,13 +99,13 @@ function initCustomCompleter() {
   // with the function name, to give suggestions for lookup keyword arguments. A completed
   // `lookupOne(...)` or `lookupRecords(...)` call is matched together with the attribute after
   // it, so that the server can suggest columns of the looked-up table. One level of parens is
-  // allowed inside the arguments (e.g. a function call). A trailing comma inside a still-open
-  // call is matched with everything before it, so the server can suggest a further argument.
+  // allowed inside the arguments (e.g. a function call). Inside a still-open call, everything
+  // before a partially typed argument is matched too, so the server can suggest a further
+  // argument after a comma.
   // Keep in sync with the similar regex in engine.py.
   const prefixMatchRegex = new RegExp([
     /\w+\.(?:lookupOne|lookupRecords)\((?:[^()]|\([^()]*\))*\)\.[\w\u00A2-\uFFFF]*$/,
-    /\w+\.(?:lookupRecords|lookupOne)\((?:[^()]|\([^()]*\))*,\s*$/,
-    /\w+\.(?:lookupRecords|lookupOne)\([\w.$\u00A2-\uFFFF]*$/,
+    /\w+\.(?:lookupRecords|lookupOne)\((?:(?:[^()]|\([^()]*\))*,)?\s*[\w.$\u00A2-\uFFFF]*$/,
     /[\w.$\u00A2-\uFFFF]+$/,
   ].map(r => r.source).join("|"));
 
