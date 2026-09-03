@@ -26,13 +26,15 @@ import { decodeObject, RaisedException } from "app/plugin/objtypes";
 import { Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe } from "grainjs";
 import debounce from "lodash/debounce";
 
+import type { KoReactive } from "app/client/models/modelUtil";
+
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;
 const t = makeT("FormulaEditor");
 
 export interface IFormulaEditorOptions extends Options {
   cssClass?: string;
-  editingFormula: ko.Computed<boolean>;
+  editingFormula: KoReactive<boolean>;
   column: ColumnRec;
   field?: ViewFieldRec;
   canDetach?: boolean;
@@ -73,6 +75,9 @@ export class FormulaEditor extends NewBaseEditor {
 
     if (!options.readonly) {
       const docModel = options.gristDoc.docModel;
+      // Set here rather than next to editingFormula, which is a flag on the field that turns on
+      // later (only once the user types after a double-click) and is cleared from several places.
+      // The edited table is known as soon as the editor opens, and belongs to this editor alone.
       const editedTable = { tableId: options.column.table.peek().tableId.peek() };
       docModel.editingFormulaTableId(editedTable);
       this.onDispose(() => {
@@ -500,7 +505,7 @@ export function openFormulaEditor(options: {
   column?: ColumnRec,
   // Associated formula from a view field. If provided together with column, this field is used
   field?: ViewFieldRec,
-  editingFormula: ko.Computed<boolean>,
+  editingFormula: KoReactive<boolean>,
   // Needed to get exception value, if any.
   editRow?: DataRowModel,
   // Element over which to position the editor.
@@ -513,7 +518,7 @@ export function openFormulaEditor(options: {
   setupCleanup: (
     owner: Disposable,
     doc: GristDoc,
-    editingFormula: ko.Computed<boolean>,
+    editingFormula: KoReactive<boolean>,
     save: () => Promise<void>,
   ) => void,
 }): FormulaEditor {

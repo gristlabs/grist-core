@@ -67,6 +67,8 @@ import {
 } from "grainjs";
 import debounce from "lodash/debounce";
 
+import type { KoReactive } from "app/client/models/modelUtil";
+
 const t = makeT("Importer");
 // Custom testId that can be appended conditionally.
 const testId = makeTestId("test-importer-");
@@ -1277,7 +1279,7 @@ export class Importer extends DisposableWithEvents {
    * focus.
    */
   private _setupFormulaEditorCleanup(
-    owner: Disposable, _doc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
+    owner: Disposable, _doc: GristDoc, editingFormula: KoReactive<boolean>, _saveEdit: () => Promise<unknown>,
   ) {
     const saveEdit = () => _saveEdit().catch(reportError);
 

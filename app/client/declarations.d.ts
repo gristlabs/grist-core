@@ -110,6 +110,8 @@ declare module "app/client/models/modelUtil" {
     setAndSaveOrRevert(value: T): Promise<void>;
   }
 
+  type KoReactive<T> = ko.Observable<T> | ko.Computed<T>;
+
   type KoSaveableObservable<T> = ko.Observable<T> & SaveInterface<T>;
   type KoSaveableComputed<T> = ko.Computed<T> & SaveInterface<T>;
 

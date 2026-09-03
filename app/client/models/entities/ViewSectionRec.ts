@@ -317,8 +317,6 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // re-computing the filter when selectedRows changes.
   selectedRowsActive: ko.Computed<boolean>;
 
-  editingFormula: ko.Computed<boolean>;
-
   // Selected fields (columns) for the section.
   selectedFields: ko.Observable<ViewFieldRec[]>;
 
@@ -468,12 +466,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // All table columns associated with this view section, excluding any hidden helper columns.
   this.columns = this.autoDispose(ko.pureComputed(() => this.table().visibleColumns()));
-  this.editingFormula = ko.pureComputed({
-    read: () => docModel.editingFormula(),
-    write: (val) => {
-      docModel.editingFormula(val);
-    },
-  });
   const defaultOptions: ViewSectionOptions = {
     verticalGridlines: true,
     horizontalGridlines: true,
