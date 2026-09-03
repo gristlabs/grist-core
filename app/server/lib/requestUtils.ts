@@ -45,7 +45,7 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 const INTERNAL_FIELDS = new Set([
   "apiKey", "billingAccountId", "firstLoginAt", "lastConnectionAt", "filteredOut", "ownerId", "gracePeriodStart",
   "stripeCustomerId", "stripeSubscriptionId", "stripeProductId", "userId", "isFirstTimeUser", "allowGoogleLogin",
-  "authSubject", "usage", "createdBy", "unsubscribeKey",
+  "authSubject", "usage", "createdBy", "unsubscribeKey", "disabledReason",
 ]);
 
 /**
@@ -303,8 +303,9 @@ export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T | und
       // Do not include removedAt field if it is not set.  It is not relevant to regular
       // situations where the user is working with non-deleted resources.
       if (key === "removedAt" && value === null) { return undefined; }
-      // Same for disabledAt
+      // Same for disabledAt and disabledReason
       if (key === "disabledAt" && value === null) { return undefined; }
+      if (key === "disabledReason" && value === null) { return undefined; }
       // Don't bother sending option fields if there are no options set.
       if (key === "options" && value === null) { return undefined; }
       // Don't prune anything that is explicitly allowed.

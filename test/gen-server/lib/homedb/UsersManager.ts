@@ -464,6 +464,7 @@ describe("UsersManager", function() {
           prefs: prefWithoutOrg.prefs,
           firstLoginAt: null,
           disabledAt: null,
+          disabledReason: null,
         });
       });
 

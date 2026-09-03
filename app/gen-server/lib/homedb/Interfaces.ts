@@ -33,6 +33,7 @@ export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
   disabledAt?: Date | null;
+  disabledReason?: string | null;
   options?: Partial<UserOptions>;
 }
 

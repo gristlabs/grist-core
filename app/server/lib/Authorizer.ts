@@ -574,7 +574,9 @@ export async function addRequestUser(
     );
 
     if (!isSessionGetRequest) {
-      throw new ApiError("User is disabled", 403);
+      throw new ApiError(mreq.t("access.userDisabled", {
+        reason: mreq.user.disabledReason || mreq.t("access.userDisabledReasonMissing"),
+      }), 403);
     }
   }
 
