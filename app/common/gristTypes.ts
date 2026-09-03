@@ -345,6 +345,10 @@ export function isDateLikeType(type: string) {
   return type === "Date" || type.startsWith("DateTime");
 }
 
+export function isDateOnlyType(type: string) {
+  return type === "Date";
+}
+
 export function isFullReferencingType(type: string) {
   return type.startsWith("Ref:") || isRefListType(type);
 }

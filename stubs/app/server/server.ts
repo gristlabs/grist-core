@@ -219,7 +219,7 @@ export async function main() {
   setDefaultEnv("GRIST_SERVERS", "home,docs,static");
   if (process.env.GRIST_SERVERS?.includes("home")) {
     // By default, we will now start an untrusted port alongside a
-    // home server, for bundled custom widgets.
+    // home server, for custom widgets served from plugins.
     // Suppress with GRIST_UNTRUSTED_PORT=''
     setDefaultEnv("GRIST_UNTRUSTED_PORT", "0");
   }

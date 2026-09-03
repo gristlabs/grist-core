@@ -126,7 +126,7 @@
         "Upgrade Plan": "Changer d'offre",
         "Support Grist": "Soutenir Grist",
         "Billing account": "Facturation",
-        "Activation": "Activer",
+        "Activation": "Activation",
         "Sign up": "S'inscrire",
         "Use This Template": "Utiliser ce modèle",
         "Site settings": "Paramètres du site",
@@ -2882,7 +2882,8 @@
         "Address this.": "Occupez-vous de ça.",
         "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Tout le monde peut accéder aux données sans connexion. Viable uniquement sur les réseaux privés ou pour des installations temporaires.",
         "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Toute personne ayant accès à ce serveur pourra accéder à la donnée sans se connecter. Choisissez l'une des méthodes de connexion ci-dessous.",
-        "Hide installation ID": "Masquer l'Identifiant d'installation"
+        "Hide installation ID": "Masquer l'Identifiant d'installation",
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Le single sign-on avec **OIDC** ou **SAML** est officiellement supporté dans la version complète de Grist et nécessite une clé d'activation — voir [le tableau de prix]({{pricingLink}}). Les particuliers et les petites organisations peuvent demander une [clé d'activation gratuite]({{faqLink}})."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
