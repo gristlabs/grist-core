@@ -249,7 +249,7 @@ export class ConditionalStyle extends Disposable {
         const vsi = section.viewInstance();
         const editorHolder = openFormulaEditor({
           gristDoc: this._gristDoc,
-          editingFormula: section.editingFormula,
+          editingFormula: this._gristDoc.docModel.editingFormula,
           column,
           editRow: vsi?.moveEditRowToCursor(),
           refElem,
