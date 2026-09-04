@@ -753,6 +753,7 @@ export class HomeDBManager implements HomeDBAuth {
     qb = qb.addOrderBy("coalesce(prefs.org_id, 0)", "DESC");
     qb = qb.addOrderBy("coalesce(prefs.user_id, 0)", "DESC");
     const result: QueryResult<any> = await this._verifyAclPermissions(qb, {
+      scope,
       markedPermissions: options?.requirePermissions !== undefined,
     });
     if (result.status === 200) {
@@ -1221,6 +1222,9 @@ export class HomeDBManager implements HomeDBAuth {
     const promise = this.getDocImpl(key, transaction);
     await mapSetOrClear(this._docAuthCache, stringifyDocAuthKey(key), makeDocAuthResult(promise));
     const doc = await promise;
+    if (scope.filter?.([doc]).length === 0) {
+      throw new ApiError("document not found", 404);
+    }
     // Filter the result for removed / non-removed documents.
     if (!scope.showAll && (scope.showRemoved ?
       (doc.removedAt === null && doc.workspace.removedAt === null) :
@@ -3733,7 +3737,7 @@ export class HomeDBManager implements HomeDBAuth {
     const { urlId: docId, userId } = scope;
     const docQb = this._doc(scope, { accessStyle: "openNoPublic", manager });
     // The following combination throws ApiError for insufficient access.
-    const doc = this.unwrapQueryResult(await this._verifyAclPermissions(docQb))[0];
+    const doc = this.unwrapQueryResult(await this._verifyAclPermissions(docQb, { scope }))[0];
 
     const records = await manager.createQueryBuilder()
       .select("doc_pref")

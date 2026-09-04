@@ -2,9 +2,11 @@ import { FREE_PLAN, STUB_PLAN, TEAM_PLAN } from "app/common/Features";
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { NEW_DOCUMENT_CODE } from "app/common/UserAPI";
+import { Document } from "app/gen-server/entity/Document";
 import { getAnonymousFeatures, Product } from "app/gen-server/entity/Product";
 import { Share } from "app/gen-server/entity/Share";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { Resource, ResourceFilter } from "app/gen-server/lib/homedb/Interfaces";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
 
@@ -350,6 +352,34 @@ describe("HomeDBManager", function() {
       workspaces: true,
       vanityDomain: true,
     });
+  });
+
+  it("getDoc respects scope.filter", async function() {
+    const urlId = "sampledocid_6";
+    const userId = await home.testGetId("Chimpy") as number;
+    const scope = { userId, urlId };
+
+    const keepAll: ResourceFilter = <T extends Resource>(entities: T[]): T[] => entities;
+    const dropAll: ResourceFilter = () => [];
+    const onlyDocs = (ids: string[]): ResourceFilter =>
+      <T extends Resource>(entities: T[]): T[] =>
+        entities.filter(entity => entity instanceof Document && ids.includes(entity.id));
+
+    const unfiltered = await home.getDoc(scope);
+    assert.equal(unfiltered.id, urlId);
+    assert.equal((await home.getDoc({ ...scope, filter: keepAll })).id, urlId);
+    assert.equal((await home.getDoc({ ...scope, filter: onlyDocs([urlId]) })).id, urlId);
+
+    await assert.isRejected(home.getDoc({ ...scope, filter: dropAll }), /document not found/);
+    await assert.isRejected(home.getDoc({ ...scope, filter: onlyDocs(["sampledocid_5"]) }),
+      /document not found/);
+
+    home.flushDocAuthCache();
+    await assert.isRejected(home.getDoc({ ...scope, filter: dropAll }), /document not found/);
+    const cached = await home.getDocAuthCached({ urlId, userId, org: undefined });
+    assert.equal(cached.docId, urlId);
+    assert.isUndefined(cached.error);
+    assert.equal(cached.access, unfiltered.access);
   });
 
   it("reads proper features for a doc", async function() {
