@@ -8,13 +8,14 @@ import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } 
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { peekSetupReturnFromGetGristCom, SetupReturnStep } from "app/client/ui/GetGristComProvider";
+import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
 import { QuickSetupApplyStep } from "app/client/ui/QuickSetupApplyStep";
 import { quickSetupContinueButton, QuickSetupSection } from "app/client/ui/QuickSetupContinueButton";
 import { QuickSetupServerStep } from "app/client/ui/QuickSetupServerStep";
 import { SANDBOX_PROBE_ID, SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { Stepper } from "app/client/ui2018/Stepper";
 import { InstallAPIImpl } from "app/common/InstallAPI";
+import { SetupReturnStep } from "app/common/loginProviders";
 
 import { Disposable, dom, DomContents, makeTestId, observable, Observable, styled } from "grainjs";
 

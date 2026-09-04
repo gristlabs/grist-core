@@ -24,6 +24,7 @@
 
 /* eslint-disable @import-x/order */
 
+import "app/server/lib/lockdown";
 import * as path from "path";
 
 import { addPath } from "app-module-path";

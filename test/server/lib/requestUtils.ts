@@ -284,11 +284,11 @@ describe("requestUtils", function() {
       try {
         const front = await makeProxyServer(backend);
         try {
-          const source = axios.CancelToken.source();
-          const response = axios.get(front.url, { cancelToken: source.token });
+          const controller = new AbortController();
+          const response = axios.get(front.url, { signal: controller.signal });
           await promiseBackendReceived;
-          source.cancel("canceled for testing");
-          await assert.isRejected(response, /canceled for testing/);
+          controller.abort();
+          await assert.isRejected(response, /canceled/);
           // The close event on the backend is observed asynchronously after the socket teardown.
           await new Promise(r => setTimeout(r, 50));
           sinon.assert.called(backendCloseSpy);

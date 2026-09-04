@@ -1,3 +1,4 @@
+import "app/server/lib/lockdown";
 import * as gutil from "app/common/gutil";
 import { ActionHistoryImpl } from "app/server/lib/ActionHistoryImpl";
 import { getCreate } from "app/server/lib/create";

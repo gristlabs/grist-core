@@ -4,6 +4,8 @@
  * By default, starts up on port 8484.
  */
 
+import "app/server/lib/lockdown";
+
 import { normalizeEmail } from "app/common/emails";
 import { commonUrls } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";

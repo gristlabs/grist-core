@@ -5,6 +5,7 @@
  *
  */
 
+import "app/server/lib/lockdown";
 import { FlexServer, FlexServerOptions } from "app/server/lib/FlexServer";
 import { getHomeUrl } from "app/server/lib/gristSettings";
 import { initializeAppSettings } from "app/server/lib/initializeAppSettings";

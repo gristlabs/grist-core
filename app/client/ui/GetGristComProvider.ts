@@ -10,7 +10,7 @@ import { cssModalWidth, modal } from "app/client/ui2018/modals";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { commonUrls } from "app/common/gristUrls";
-import { GETGRIST_COM_PROVIDER_KEY } from "app/common/loginProviders";
+import { GETGRIST_COM_PROVIDER_KEY, SETUP_RETURN_KEY, SetupReturnStep } from "app/common/loginProviders";
 import { components } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
@@ -92,16 +92,6 @@ Also ideal for testing and prototyping."),
 // localStorage breadcrumb that carries the user from getgrist.com's
 // "Return to Admin Panel" button (which hard-codes /admin) back into the
 // wizard at the step they were on, with the configure modal reopened.
-//
-// Read by AdminPanel, QuickSetup, and AuthenticationSection during page
-// boot. Cleared only on user-driven dismissal of the modal -- not on
-// plain disposal -- so a transient re-mount (the AppModel reinitializes
-// during boot) leaves it intact for the next mount to act on.
-export const SETUP_RETURN_KEY = "grist:getgristComSetupReturn";
-
-/** Currently always "auth", typed for future steps. */
-export type SetupReturnStep = "auth";
-
 export function armSetupReturnFromGetGristCom(step: SetupReturnStep): void {
   getStorage().setItem(SETUP_RETURN_KEY, step);
 }

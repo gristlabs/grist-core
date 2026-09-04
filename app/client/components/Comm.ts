@@ -23,18 +23,16 @@
  */
 
 import { GristWSConnection } from "app/client/components/GristWSConnection";
-import * as dispose from "app/client/lib/dispose";
 import * as log from "app/client/lib/log";
 import { ApiError } from "app/common/ApiError";
 import {
   CommClientConnect, CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent,
 } from "app/common/CommTypes";
+import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { UserAction } from "app/common/DocActions";
 import { DocListAPI, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
 import { GristServerAPI } from "app/common/GristServerAPI";
 import { getInitialDocAssignment } from "app/common/urlUtils";
-
-import { Events as BackboneEvents } from "backbone";
 
 /**
  * A request that is currently being processed.
@@ -61,7 +59,7 @@ function isCommResponseError(msg: CommResponse | CommResponseError): msg is Comm
  * Comm object provides the interfaces to communicate with the server.
  * Each method that calls to the server returns a promise for the response.
  */
-export class Comm extends dispose.Disposable implements GristServerAPI, DocListAPI {
+export class Comm extends DisposableWithEvents implements GristServerAPI, DocListAPI {
   // methods defined by GristServerAPI
   public logout = this._wrapMethod("logout");
   public updateProfile = this._wrapMethod("updateProfile");
@@ -82,10 +80,6 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   public pendingRequests: Map<number, CommRequestInFlight>;
   public nextRequestNumber: number = 0;
 
-  protected listenTo: BackboneEvents["listenTo"];            // set by Backbone
-  protected trigger: BackboneEvents["trigger"];              // set by Backbone
-  protected stopListening: BackboneEvents["stopListening"];  // set by Backbone
-
   // This is a map from docId to the connection for the server that manages
   // that docId.  In classic Grist, which doesn't have fixed docIds or multiple
   // servers, the key is always "null".
@@ -94,9 +88,10 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   private _singleWorkerMode: boolean = getInitialDocAssignment() === null;  // is this classic Grist?
   private _reportError?: (err: Error) => void;  // optional callback for errors
 
-  public create(reportError?: (err: Error) => void) {
+  constructor(reportError?: (err: Error) => void) {
+    super();
     this._reportError = reportError;
-    this.autoDisposeCallback(() => {
+    this.onDispose(() => {
       for (const connection of this._connections.values()) { connection.dispose(); }
       this._connections.clear();
     });
@@ -428,8 +423,6 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     return this._makeRequest.bind(this, null, null, name);
   }
 }
-
-Object.assign(Comm.prototype, BackboneEvents);
 
 function reqMatchesConnection(reqDocId: string | null, connDocId: string | null) {
   return reqDocId === connDocId || !reqDocId || !connDocId;

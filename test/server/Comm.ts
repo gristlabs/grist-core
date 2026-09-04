@@ -336,7 +336,7 @@ describe("Comm", function() {
       });
 
       // Cast with BackboneEvents to allow using cliComm.on().
-      const cliComm = ClientComm.create() as ClientComm & BackboneEvents;
+      const cliComm = ClientComm.create(null) as ClientComm & BackboneEvents;
       cliComm.useDocConnection(docId);
       cleanup.push(async () => cliComm.dispose());      // Dispose after this test ends.
 
@@ -1020,7 +1020,7 @@ describe("Comm", function() {
         it(`should ${c.expected === RESEND ? "send again" : c.expected === WAIT ? "wait" : "reject"}: ` +
           `${c.name}`, function() {
           stubWorkerConfig();
-          const cliComm = ClientComm.create() as ClientComm & BackboneEvents;
+          const cliComm = ClientComm.create(null) as ClientComm & BackboneEvents;
           cleanup.push(async () => cliComm.dispose());
 
           // The connection the clientConnect arrived on, and another the request may have used.

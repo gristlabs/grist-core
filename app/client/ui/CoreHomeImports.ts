@@ -1,11 +1,12 @@
 import { PluginScreen } from "app/client/components/PluginScreen";
 import { guessTimezone } from "app/client/lib/guessTimezone";
 import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
-import { checkBrowserUploadSizeLimit, EXTENSIONS_IMPORTABLE_AS_DOC } from "app/client/lib/uploads";
+import { checkBrowserUploadSizeLimit } from "app/client/lib/uploads";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { openFilePicker } from "app/client/ui/FileDialog";
 import { ImportProgress } from "app/client/ui/ImportProgress";
 import { byteString } from "app/common/gutil";
+import { EXTENSIONS_IMPORTABLE_AS_DOC } from "app/common/uploads";
 
 /**
  * Imports a document and returns its docId, or null if no files were selected.

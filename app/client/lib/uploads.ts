@@ -30,11 +30,6 @@ export interface SelectFileOptions {
   // e.g. [".jpg", ".png"]
 }
 
-// This list coincides with the extensions defined in core/plugins/manifest.yml
-export const EXTENSIONS_IMPORTABLE_WITHIN_DOC = [".xlsx", ".json", ".csv", ".tsv", ".dsv"];
-
-export const EXTENSIONS_IMPORTABLE_AS_DOC = [".grist", ".csv", ".tsv", ".dsv", ".txt", ".xlsx", ".xlsm"];
-
 // Browser-side size-limit guard for DocAPI.upload. Caller guarantees we're in a browser
 // (typeof window !== "undefined"); .grist files are exempt from the import limit because they
 // can legitimately be very large (attachments, on-demand tables, restored backups, ...).

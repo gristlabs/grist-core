@@ -186,7 +186,7 @@ ENV \
   GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING} \
   GRIST_EXT_FULL_EDITION_BASE_URL=${GRIST_EXT_FULL_EDITION_BASE_URL} \
   GVISOR_FLAGS="-unprivileged -ignore-cgroups" \
-  NODE_OPTIONS="--no-deprecation" \
+  NODE_OPTIONS="--no-deprecation --disable-proto=delete" \
   NODE_ENV=production \
   TYPEORM_DATABASE=/persist/home.sqlite3
 

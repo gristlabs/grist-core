@@ -976,7 +976,7 @@ class InMemoryDocModel extends DocModel {
  */
 class InMemoryApp extends DisposableWithEvents implements App {
   public allCommands = commands.allCommands;
-  public comm = this.autoDispose(Comm.create());
+  public comm = this.autoDispose(Comm.create(null));
   public clientScope = this.autoDispose(ClientScope.create());
   public features = ko.computed(() => ({} as ISupportedFeatures));
   constructor(public topAppModel: TopAppModel) {

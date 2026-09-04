@@ -14,9 +14,11 @@ describe("cleanEnv", function() {
   const MARKER = "GRIST_TEST_INHERITED_MARKER";
   const OWN = "GRIST_TEST_OWN_MARKER";
 
-  afterEach(function() {
-    delete (Object.prototype as any)[MARKER];
-  });
+  // An env whose MARKER is inherited rather than own, as a polluted Object.prototype would
+  // provide. (Object.prototype itself is non-extensible in server processes; see lockdown.ts.)
+  function envWithInherited(): NodeJS.ProcessEnv {
+    return Object.assign(Object.create({ [MARKER]: "leaked" }), { PATH: process.env.PATH });
+  }
 
   function childSees(env: any, name: string): string {
     return spawnSync(process.execPath,
@@ -25,14 +27,20 @@ describe("cleanEnv", function() {
   }
 
   it("does not pass inherited properties to the child", function() {
-    (Object.prototype as any)[MARKER] = "leaked";
-    assert.equal(childSees(cleanEnv({ PATH: process.env.PATH }), MARKER), "undefined");
-    // A process.env-based env is cleaned too.
-    assert.equal(childSees(cleanEnv(), MARKER), "undefined");
+    assert.equal(childSees(cleanEnv(envWithInherited()), MARKER), "undefined");
   });
 
   it("passes the environment's own variables to the child", function() {
     assert.equal(childSees(cleanEnv({ [OWN]: "kept", PATH: process.env.PATH }), OWN), "kept");
+  });
+
+  it("defaults to process.env", function() {
+    process.env[OWN] = "kept";
+    try {
+      assert.equal(childSees(cleanEnv(), OWN), "kept");
+    } finally {
+      delete process.env[OWN];
+    }
   });
 
   it("preserves the environment's own variables", function() {
@@ -43,10 +51,10 @@ describe("cleanEnv", function() {
 
   it("returns an object with no prototype", function() {
     assert.equal(Object.getPrototypeOf(cleanEnv({ FOO: "bar" })), null);
+    assert.equal(Object.getPrototypeOf(cleanEnv()), null);
   });
 
   it("control: a plain object would forward an inherited property", function() {
-    (Object.prototype as any)[MARKER] = "leaked";
-    assert.equal(childSees({ PATH: process.env.PATH }, MARKER), "leaked");
+    assert.equal(childSees(envWithInherited(), MARKER), "leaked");
   });
 });

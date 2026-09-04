@@ -1,4 +1,4 @@
-import { SETUP_RETURN_KEY } from "app/client/ui/GetGristComProvider";
+import { SETUP_RETURN_KEY } from "app/common/loginProviders";
 import { FALLBACK_PROVIDER_KEY, FORWARD_AUTH_PROVIDER_KEY } from "app/common/loginProviders";
 import { toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";

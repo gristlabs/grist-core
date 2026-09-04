@@ -1,3 +1,4 @@
+import "app/server/lib/lockdown";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
 import { getCreate } from "app/server/lib/create";

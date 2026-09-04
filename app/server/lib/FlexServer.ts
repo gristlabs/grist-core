@@ -1,3 +1,4 @@
+import "app/server/lib/lockdown";
 import { ApiError } from "app/common/ApiError";
 import { ICustomWidget } from "app/common/CustomWidget";
 import { delay } from "app/common/delay";

@@ -76,7 +76,9 @@ const fileTransportOptions = {
   stream: process.stderr,
   level: process.env.GRIST_LOG_LEVEL || "debug",
   timestamp: log.timestamp,
-  colorize: true,
+  // Not colorized: winston 2's colorizer runs 'colors' code that is
+  // incompatible with --disable-proto (or lockdown.ts) which Grist now uses.
+  colorize: false,
   json: logAsJson,
 };
 

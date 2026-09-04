@@ -1,12 +1,11 @@
 import { BehavioralPromptsManager } from "app/client/components/BehavioralPromptsManager";
 import { ScreenReaderAnnouncer } from "app/client/components/ScreenReaderAnnouncer";
-import { hooks } from "app/client/Hooks";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { sessionStorageObs } from "app/client/lib/localStorageObs";
 import { error } from "app/client/lib/log";
 import { reportError, setErrorNotifier } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
-import { getHomeUrl } from "app/client/models/homeUrl";
+import { newUserAPIImpl } from "app/client/models/homeUrl";
 import { Notifier } from "app/client/models/NotifyModel";
 import { getUserPrefObs, getUserPrefsObs, markAsSeen } from "app/client/models/UserPrefs";
 import { getFlavor, ProductFlavor } from "app/client/ui/CustomThemes";
@@ -27,7 +26,7 @@ import { getTagManagerScript } from "app/common/tagManager";
 import { getDefaultThemePrefs, ThemePrefs } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import { ExtendedUser } from "app/common/UserAPI";
-import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl } from "app/common/UserAPI";
+import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI } from "app/common/UserAPI";
 
 import { bundleChanges, Computed, Disposable, Observable, subscribe } from "grainjs";
 
@@ -557,10 +556,4 @@ export function getOrgNameOrGuest(org: Organization | null, user: FullUser | nul
     return "@Guest";
   }
   return getOrgName(org);
-}
-
-export function newUserAPIImpl(): UserAPIImpl {
-  return new UserAPIImpl(getHomeUrl(), {
-    fetch: hooks.fetch,
-  });
 }

@@ -46,3 +46,15 @@ const NON_AUTH_PROVIDERS = new Set([
 export function isRealProvider(key: string | undefined): boolean {
   return !!key && !NON_AUTH_PROVIDERS.has(key);
 }
+
+// Storage key marking that the user left for getgrist.com setup and should be
+// returned to the setup flow on coming back.
+//
+// Read by AdminPanel, QuickSetup, and AuthenticationSection during page
+// boot. Cleared only on user-driven dismissal of the modal -- not on
+// plain disposal -- so a transient re-mount (the AppModel reinitializes
+// during boot) leaves it intact for the next mount to act on.
+export const SETUP_RETURN_KEY = "grist:getgristComSetupReturn";
+
+/** Currently always "auth", typed for future steps. */
+export type SetupReturnStep = "auth";

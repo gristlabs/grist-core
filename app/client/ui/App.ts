@@ -51,7 +51,7 @@ export class AppImpl extends DisposableWithEvents implements App {
   // Used by #newui code to avoid a dependency on commands.js, and by tests to issue commands.
   public allCommands = commands.allCommands;
 
-  public comm = this.autoDispose(Comm.create(this._checkError.bind(this)));
+  public comm = this.autoDispose(Comm.create(null, this._checkError.bind(this)));
   public clientScope: ClientScope;
   public features: ko.Computed<ISupportedFeatures>;
   public topAppModel: TopAppModel;    // Exposed because used by test/nbrowser/gristUtils.

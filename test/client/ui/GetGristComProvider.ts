@@ -3,8 +3,8 @@ import {
   armSetupReturnFromGetGristCom,
   clearSetupReturnFromGetGristCom,
   peekSetupReturnFromGetGristCom,
-  SETUP_RETURN_KEY,
 } from "app/client/ui/GetGristComProvider";
+import { SETUP_RETURN_KEY } from "app/common/loginProviders";
 import { setTmpMochaGlobals } from "test/client/clientUtil";
 
 import { assert } from "chai";
