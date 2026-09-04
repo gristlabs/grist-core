@@ -73,11 +73,10 @@ Here are some specific feature highlights of Grist (🇫🇷 marks heavy French 
     - [SCIM](https://support.getgrist.com/install/scim/) for standard user and group provisioning (🇫🇷).
   * [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
   * Access control options.
-    - (You'll need SSO logins set up to make use of these options; [`grist-omnibus`](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
+    - (You'll need logins set up to make use of these options — see [Logins](#logins))
     - Share [individual documents](https://support.getgrist.com/sharing/), workspaces, or [team sites](https://support.getgrist.com/team-sharing/).
     - Control access to [individual rows, columns, and tables](https://support.getgrist.com/access-rules/).
     - Control access based on cell values and user attributes.
-    - [OIDC](https://support.getgrist.com/install/oidc/) (🇫🇷) and [SAML](https://support.getgrist.com/install/saml/) support for single sign-on.
   * Collaboration.
     - [Comments](https://support.getgrist.com/sharing/#comments) on cells, with threaded replies and @-mentions.
     - See who else is viewing a document in real time.
@@ -107,7 +106,7 @@ Here is a list of features available in the full edition of Grist that are not i
 
   * [GristConnect](https://support.getgrist.com/install/grist-connect/) (2022)
     - Any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins.
-    - GristConnect is a niche feature built for a specific client which you probably don't care about – `OIDC` and `SAML` support *is* part of `grist-core` and covers most authentication use cases.
+    - GristConnect is a niche feature built for a specific client which you probably don't care about.
   * [Azure back-end for document storage](https://support.getgrist.com/install/cloud-storage/#azure) (2022)
     - With `grist-core` you can store document versions in anything S3-compatible, which covers a lot of services, but not Azure specifically. The Azure back-end fills that gap.
     - Unless you are a Microsoft shop you probably don't care about this.
@@ -137,6 +136,7 @@ Here is a list of features available in the full edition of Grist that are not i
   * [MCP server](https://support.getgrist.com/mcp/) (2026)
     - A built-in [Model Context Protocol](https://modelcontextprotocol.io/) endpoint that lets AI clients such as Claude or ChatGPT read and edit Grist documents over JSON-RPC. Enabled with `GRIST_MCP_ENABLED` (see [environment variables](#environment-variables)).
     - With `grist-core` you can still use one of the many community MCP servers that talks to Grist through its [REST API](https://support.getgrist.com/api/). The built-in server saves you that work.
+  * Single sign-on (SSO) via [OIDC](https://support.getgrist.com/install/oidc/) or [SAML](https://support.getgrist.com/install/saml/) (2026)
 
 ## Using Grist
 
@@ -339,7 +339,7 @@ in a limited anonymous mode.
 
 The friendliest way to get sign-in set up is the Quick setup page that
 appears on a fresh install. It lets you pick an admin email and an
-authentication method (e.g. OIDC, SAML) from a short menu. See
+authentication method from a short menu. See
 [First-run setup](https://support.getgrist.com/install/first-run-setup/)
 for the full walkthrough. You can revisit those same settings later
 from the [Admin Panel](#the-admin-panel).
@@ -356,8 +356,13 @@ You can change your name in `Profile Settings` in
 the [User Menu](https://support.getgrist.com/glossary/#user-menu).
 
 For multi-user operation, or if you wish to access Grist across the
-public internet, you'll want to connect it to your own Single Sign-On service.
-There are a lot of ways to do this, including [SAML and forward authentication](https://support.getgrist.com/self-managed/#how-do-i-set-up-authentication).
+public internet, you'll want to connect it to a Single Sign-On service.
+[Sign in with getgrist.com](https://support.getgrist.com/install/sign-in-with-grist/)
+and [forward authentication](https://support.getgrist.com/install/forwarded-headers/)
+are available in all editions; connecting directly to your own identity
+provider via [OIDC](https://support.getgrist.com/install/oidc/) or
+[SAML](https://support.getgrist.com/install/saml/) is
+[fully supported](#features-not-in-grist-core) with an activation key.
 Grist has been tested with [Authentik](https://goauthentik.io/), [Auth0](https://auth0.com/),
 and Google/Microsoft sign-ins via [Dex](https://dexidp.io/).
 
@@ -420,8 +425,8 @@ Grist can be configured in many ways. Here are the main environment variables it
 | Variable | Purpose |
 | -------- | ------- |
 | ALLOWED_WEBHOOK_DOMAINS | comma-separated list of permitted domains to use in webhooks (e.g. webhook.site,zapier.com). You can set this to `*` to allow all domains, but if doing so, we recommend using a carefully locked-down proxy (see `GRIST_PROXY_FOR_UNTRUSTED_URLS`) if you do not entirely trust users. Otherwise services on your internal network may become vulnerable to manipulation. |
-| APP_DOC_URL | doc worker url, set when starting an individual doc worker (other servers will find doc worker urls via redis) |
-| APP_DOC_INTERNAL_URL | like `APP_DOC_URL` but used by the home server to reach the server using an internal domain name resolution (like in a docker environment). It only makes sense to define this value in the doc worker. Defaults to `APP_DOC_URL`. |
+| APP_DOC_URL | the url a browser should use to reach this doc worker. In a multi-server setup, if not using `GRIST_FLEET`, every doc worker must be reachable by the browser at a public url of its own. If not using `GRIST_ROUTER_URL` to assign those automatically, `APP_DOC_URL` needs setting in practice. Wherever it is set it must be distinct for each worker, since it is how a client reaches the worker holding a document, and, where `APP_DOC_INTERNAL_URL` is unset, how other servers reach it too. Behind a single front end that means a path per worker, such as `https://grist.example.com/dw/worker-1`. Setting it alongside `GRIST_FLEET` is refused at startup, since a fleet routes clients through whichever server they reach and never uses it. |
+| APP_DOC_INTERNAL_URL | like `APP_DOC_URL` but used by other servers to reach this one using an internal domain name resolution (like in a docker environment). It only makes sense to define this value in the doc worker. Defaults to `APP_DOC_URL`. If both are unset, an address is derived from `GRIST_HOST`, or from the interface this server reaches Redis on. Workers that share a host can be told apart by path, and the id derived from this url includes it. |
 | APP_HOME_URL | url prefix for home api (home and doc servers need this) |
 | APP_HOME_INTERNAL_URL | like `APP_HOME_URL` but used by the home and the doc servers to reach any home workers using an internal domain name resolution (like in a docker environment). Defaults to `APP_HOME_URL` |
 | APP_STATIC_URL | url prefix for static resources |
@@ -441,6 +446,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented |
 | GRIST_DEFAULT_PRODUCT | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts. |
 | GRIST_DEFAULT_LOCALE | Locale to use as fallback when Grist cannot honour the browser locale. Defaults to `en-US`. Should match a locale code found in `app/common/LocaleCodes.ts`. |
+| GRIST_DOC_WORKER_ID | identity of a doc worker, which must be distinct for every server sharing a Redis. Leave it unset to have one derived. Two servers sharing a value can open the same document at once. |
 | GRIST_DOMAIN | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com". |
 | GRIST_EDITION | selects which edition the `yarn install` hook sets up, `full` or `community`. Takes precedence over the `grist-edition` file written by `yarn run set-full-edition` / `yarn run set-community-edition`. Defaults to `full`. See [Building from source](#building-from-source). |
 | GRIST_SKIP_EXT_AUTOSETUP | set to `1` to skip the `yarn install` hook that downloads the full-edition `ext` material. Useful where extensions are installed by other means (Docker builds, grist-desktop, grist-static). See [Building from source](#building-from-source). |
@@ -450,7 +456,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default. |
 | GRIST_HEADERS_TIMEOUT_MS | if set, override nodes's server.headersTimeout flag. |
 | GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`, `automations`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |
-| GRIST_HOST | hostname to use when listening on a port. |
+| GRIST_HOST | hostname to use when listening on a port. Also decides the address a doc worker publishes for its peers, and the identity derived from it: set it to `0.0.0.0` to listen on every interface, and leave it unset to listen only on `localhost`. |
 | GRIST_PROXY_FOR_UNTRUSTED_URLS | Full URL of proxy for delivering webhook payloads. Default value is `direct` for delivering payloads without proxying. |
 | HTTPS_PROXY or https_proxy | Full URL of reverse web proxy (corporate proxy) for fetching the custom widgets repository or the OIDC config from the issuer. |
 | GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*. |
@@ -466,6 +472,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_MAX_PARALLEL_REQUESTS_PER_DOC| max number of concurrent API requests allowed per document (default is 10, set to 0 for unlimited) |
 | GRIST_MAX_UPLOAD_ATTACHMENT_MB | max allowed size for attachments (0 or empty for unlimited). |
 | GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) (0 or empty for unlimited). |
+| GRIST_ACTIVEDOC_TIMEOUT_SECONDS | Number of seconds a document is kept open without any clients before it is closed. Defaults to 30s when NODE_ENV=production is set, otherwise to 5s. |
 | GRIST_OFFER_ALL_LANGUAGES | if set, all translated langauages are offered to the user (by default, only languages with a special 'good enough' key set are offered to user). |
 | GRIST_ORG_IN_PATH | if true, encode org in path rather than domain |
 | GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all. |
@@ -478,7 +485,6 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_SESSION_COOKIE | if set, overrides the name of Grist's cookie |
 | GRIST_SESSION_DOMAIN | if set, associates the cookie with the given domain - otherwise defaults to GRIST_DOMAIN |
 | GRIST_SESSION_SECRET | a key used to encode sessions |
-| GRIST_SKIP_BUNDLED_WIDGETS | if set, Grist will ignore any bundled widgets included via NPM packages. |
 | GRIST_SQLITE_MODE | if set to `wal`, use SQLite in [WAL mode](https://www.sqlite.org/wal.html), if set to `sync`, use SQLite with [SYNCHRONOUS=full](https://www.sqlite.org/pragma.html#pragma_synchronous)
 | GRIST_ANON_PLAYGROUND | When set to `false` deny anonymous users access to the home page (but documents can still be shared to anonymous users). Defaults to `true`, unless GRIST_ORG_CREATION_ANYONE is `false`. |
 | GRIST_FORCE_LOGIN | Setting it to `true` is similar to setting `GRIST_ANON_PLAYGROUND: false` but it blocks any anonymous access (thus any document shared publicly actually requires the users to be authenticated before consulting them) |
@@ -488,8 +494,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_TEMPLATE_ORG | set to an org "domain" to show public docs from that org |
 | GRIST_HELP_CENTER | set the help center link ref |
 | GRIST_TERMS_OF_SERVICE_URL | if set, adds terms of service link |
-| FREE_COACHING_CALL_URL | set the link to the human help (example: email adress or meeting scheduling tool) |
-| GRIST_CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email adress or online form) |
+| GRIST_CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email address or online form) |
 | GRIST_ONBOARDING_VIDEO_ID | set the ID of the YouTube video shown on the homepage and during onboarding |
 | GRIST_CUSTOM_COMMON_URLS | overwrite the default commons URLs. Its value is expected to be a JSON object and a subset of the [ICommonUrls interface](./app/common/ICommonUrls.ts). |
 | GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default) |
@@ -514,9 +519,8 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_SNAPSHOT_KEEP | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made |
 | GRIST_PROMCLIENT_PORT | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️. |
 | GRIST_ENABLE_SCIM | optional. If set, enable the [SCIM API Endpoint](https://support.getgrist.com/install/scim/) (experimental) |
-| GRIST_LOGIN_SYSTEM_TYPE | optional. If set, explicitly selects which login system to use. Valid values: `saml`, `oidc`, `forward-auth`, `minimal`. If not set, Grist will automatically detect and use the first configured login system. |
-| GRIST_OIDC_... | optional. Environment variables used to configure OpenID authentification. See [OpenID Connect](https://support.getgrist.com/install/oidc/) documentation for full related list of environment variables. |
-| GRIST_SAML_... | optional. Environment variables used to configure SAML authentification. See [SAML](https://support.getgrist.com/install/saml/) documentation for full related list of environment variables. |
+| GRIST_OIDC_... | optional. Environment variables used to configure OpenID authentification. See [OpenID Connect](https://support.getgrist.com/install/oidc/) documentation for full related list of environment variables. See also [Logins](#logins). |
+| GRIST_SAML_... | optional. Environment variables used to configure SAML authentification. See [SAML](https://support.getgrist.com/install/saml/) documentation for full related list of environment variables. See also [Logins](#logins). |
 | GRIST_IDP_EXTRA_PROPS | optional. If set, defines which extra fields returned by your identity provider will be stored in the users table of the home database (in the `options.ssoExtraInfo` object). Usage: 'onekey,anotherkey'. |
 | GRIST_FEATURE_FORM_FRAMING | optional. Configures a border around a rendered form that is added for security reasons; Can be set to: `border` or `minimal`. Defaults to `border`. |
 | GRIST_TRUTHY_VALUES | optional. Comma-separated list of extra words that should be considered as truthy by the data engine beyond english defaults. Ex: "oui,ja,si" |

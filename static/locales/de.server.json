@@ -18,6 +18,6 @@
         "accountByEmail": "Administratorkonto gesetzt durch `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
     },
     "DocApi": {
-        "UntitledDocument": "Unbetiteltes Dokument"
+        "UntitledDocument": "Unbenanntes Dokument"
     }
 }

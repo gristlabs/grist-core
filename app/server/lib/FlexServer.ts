@@ -40,9 +40,8 @@ import { BootKeyLoginMiddleware } from "app/server/lib/Boot";
 import { forceSessionChange } from "app/server/lib/BrowserSession";
 import { Comm, verifyCommHttpRequest } from "app/server/lib/Comm";
 import { ConfigBackendAPI } from "app/server/lib/ConfigBackendAPI";
-import { IGristCoreConfig } from "app/server/lib/configCore";
 import { getAndClearSignupStateCookie } from "app/server/lib/cookieUtils";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { createSavedDoc } from "app/server/lib/createSavedDoc";
 import { addDiscourseConnectEndpoints } from "app/server/lib/DiscourseConnect";
 import { addDocApiRoutes } from "app/server/lib/DocApi";
@@ -50,6 +49,9 @@ import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocManager } from "app/server/lib/DocManager";
 import { getSqliteMode } from "app/server/lib/DocStorage";
 import { DocWorker } from "app/server/lib/DocWorker";
+import {
+  DEFAULT_HOST, deriveDocWorkerIdentity, DocWorkerIdentity, getRedisLocalAddress,
+} from "app/server/lib/DocWorkerIdentity";
 import { DocWorkerLoadTracker, getDocWorkerLoadTracker } from "app/server/lib/DocWorkerLoadTracker";
 import { DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { expressWrap, jsonErrorHandler, secureJsonErrorHandler } from "app/server/lib/expressWrap";
@@ -100,6 +102,7 @@ import { setupLocale } from "app/server/localization";
 import * as http from "http";
 import * as https from "https";
 import net, { AddressInfo } from "net";
+import * as os from "os";
 import * as path from "path";
 
 import axios from "axios";
@@ -129,7 +132,7 @@ const latestVersionChannel = "latestVersionAvailable";
 
 // Host that the HTTP server binds to. Shared with RestartShell so
 // shell and child agree on the same value.
-export function getGristHost() { return process.env.GRIST_HOST || "localhost"; }
+export function getGristHost() { return process.env.GRIST_HOST || DEFAULT_HOST; }
 
 export interface FlexServerOptions {
   dataDir?: string;
@@ -139,15 +142,12 @@ export interface FlexServerOptions {
   // Base URL for plugins, if permitted. Defaults to APP_UNTRUSTED_URL.
   pluginUrl?: string;
 
-  // Global grist config options
-  settings?: IGristCoreConfig;
-
   // An existing http.Server to use instead of creating a new one.
   server?: http.Server;
 }
 
 export class FlexServer implements GristServer {
-  public readonly create = create;
+  public readonly create = getCreate();
   public tagChecker: TagChecker;
   public app: express.Express;
   public deps = new Set<string>();
@@ -159,12 +159,15 @@ export class FlexServer implements GristServer {
   public housekeeper: Housekeeper;
   public server: http.Server;
   public httpsServer?: https.Server;
-  public settings?: IGristCoreConfig;
   public worker: DocWorkerInfo;
   public electronServerMethods: ElectronServerMethods;
   public readonly docsRoot: string;
   public readonly i18Instance: i18n;
+  // True until an identity is derived. Only a server holding a document is asked, and by
+  // then it has one.
+  private _publicUrlIsGuessed: boolean = true;
   private _activations: ActivationsManager;
+  private _installationId: string;
   private _comm: Comm;
   private _apiProxy?: DocApiProxy;
   private _socketProxy?: IWebSocketProxy;
@@ -236,8 +239,7 @@ export class FlexServer implements GristServer {
 
   constructor(public port: number, public name: string = "flexServer",
     public readonly options: FlexServerOptions = {}) {
-    this._getLoginSystem = create.getLoginSystem.bind(create);
-    this.settings = options.settings;
+    this._getLoginSystem = this.create.getLoginSystem.bind(this.create);
     this.app = express();
     this.app.set("port", port);
 
@@ -396,6 +398,15 @@ export class FlexServer implements GristServer {
     return (addr && typeof addr === "object") ? addr.port : this.port;
   }
 
+  // The address the listening socket ended up bound to, with the bind's own resolution of
+  // GRIST_HOST already applied. As with the port, under RestartShell the socket belongs to the
+  // shell, which passes down what it bound. Undefined where there is no listening socket, or
+  // where it is a pipe.
+  public getBoundAddress(): string | undefined {
+    const addr = this.server?.address();
+    return (addr && typeof addr === "object") ? addr.address : process.env.GRIST_BOUND_ADDRESS;
+  }
+
   /**
    * Get interface to job queues.
    */
@@ -449,6 +460,11 @@ export class FlexServer implements GristServer {
     return this._activations;
   }
 
+  public getInstallationId(): string {
+    if (!this._installationId) { throw new Error("no installation id available"); }
+    return this._installationId;
+  }
+
   public getHomeDBManager(): HomeDBManager {
     if (!this._dbManager) { throw new Error("no home db available"); }
     return this._dbManager;
@@ -475,6 +491,18 @@ export class FlexServer implements GristServer {
 
   public getDocWorkerMap(): IDocWorkerMap | null {
     return this._docWorkerMap ?? null;
+  }
+
+  public getWorkerId(): string | null {
+    return this.worker?.id ?? null;
+  }
+
+  public publicUrlIsGuessed(): boolean {
+    return this._publicUrlIsGuessed;
+  }
+
+  public getDocApiUsageTracker(): DocApiUsageTracker | undefined {
+    return this._docApiUsageTracker;
   }
 
   public getTelemetry(): ITelemetry {
@@ -911,13 +939,13 @@ export class FlexServer implements GristServer {
     this.addOrg();
     addPluginEndpoints(this, await this._addPluginManager());
 
-    // Serve bundled custom widgets on the plugin endpoint.
+    // Serve custom widgets from plugins on the plugin endpoint.
     const places = getWidgetsInPlugins(this, "");
     if (places.length > 0) {
       // For all widgets served in place, replace any copies of
       // grist-plugin-api.js with this app's version of it.
       // This is perhaps a bit rude, but beats the alternative
-      // of either using inconsistent bundled versions, or
+      // of either using inconsistent versions, or
       // requiring network access.
       this.app.use(/^\/widgets\/.*\/(grist-plugin-api.js)$/, expressWrap(async (req, res) =>
         res.sendFile(req.params[0], { root: getAppPathTo(this.appRoot, "static") })));
@@ -973,6 +1001,7 @@ export class FlexServer implements GristServer {
     // Report which database we are using, without sensitive credentials.
     this.info.push(["database", getDatabaseUrl(this._dbManager.connection.options, false)]);
     this._activations = new ActivationsManager(this._dbManager);
+    this._installationId = (await this._activations.current()).id;
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }
 
@@ -1438,7 +1467,9 @@ export class FlexServer implements GristServer {
   public addProxy() {
     if (this._check("proxy", "!json", "homedb", "api-mw", "map")) { return; }
 
-    const getOwnWorkerId = () => this.worker?.id ?? null;
+    // WebSocketProxy has no gristServer handle, so it takes this closure; DocApiProxy
+    // asks gristServer.getWorkerId() directly.
+    const getOwnWorkerId = () => this.getWorkerId();
 
     this._socketProxy = this.create.getWebSocketProxy?.(
       this,
@@ -1462,7 +1493,7 @@ export class FlexServer implements GristServer {
       this._socketProxy?.isActive() ? true : hasHomeApi() && !hasDocApi();
 
     this._apiProxy = new DocApiProxy(
-      this._docWorkerMap, this._dbManager, this, getOwnWorkerId, { shouldForward },
+      this._docWorkerMap, this._dbManager, this, { shouldForward },
     );
 
     this._apiProxy.addEndpoints(this.app);
@@ -1656,7 +1687,7 @@ export class FlexServer implements GristServer {
 
     this._attachmentStoreProvider = this._attachmentStoreProvider || new AttachmentStoreProvider(
       await getConfiguredAttachmentStoreConfigs(this._disableExternalStorage),
-      (await this.getActivations().current()).id,
+      this.getInstallationId(),
     );
     this._docManager = this._docManager || new DocManager(this._storageManager,
       pluginManager,
@@ -1730,7 +1761,7 @@ export class FlexServer implements GristServer {
         lastSuccessfulStep: "none",
       } as SandboxInfo;
     }
-    // No flavor argument — uses the deployment's default via create.NSandbox().
+    // No flavor argument — uses the deployment's default via getCreate().NSandbox().
     return this._sandboxInfo = await testSandboxFlavor();
   }
 
@@ -1762,7 +1793,8 @@ export class FlexServer implements GristServer {
       this._redirectToLoginWithoutExceptionsMiddleware,
     ];
 
-    this.app.get("/account(/developer|/authorized-apps)?", ...middleware, expressWrap(async (req, resp) => {
+    const accountPaths = "/account(/developer|/authorized-apps|/personal-site)?";
+    this.app.get(accountPaths, ...middleware, expressWrap(async (req, resp) => {
       return this._sendAppPage(req, resp, { path: "app.html", status: 200, config: {} });
     }));
 
@@ -2234,18 +2266,13 @@ export class FlexServer implements GristServer {
     // Need to be an admin to change the Grist config
     const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
 
-    const configBackendAPI = new ConfigBackendAPI(this.getActivations());
+    const configBackendAPI = new ConfigBackendAPI(this.getActivations(), this);
     configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
   }
 
   public addExtraHomeEndpoints() {
     if (this._check("extraHome")) { return; }
     this.create.addExtraHomeEndpoints(this, this.app);
-  }
-
-  public addExtraDocForwarder() {
-    if (this._check("extraDocForwarder")) { return; }
-    this.create.addExtraDocForwarder(this, this.app);
   }
 
   public getLatestVersionAvailable() {
@@ -2428,30 +2455,33 @@ export class FlexServer implements GristServer {
       // it always will be.  In testing, we may disconnect and reconnect the
       // worker.  We only need to determine docWorkerId and this.worker once.
       if (!this.worker) {
-        if (process.env.GRIST_ROUTER_URL) {
-          // register ourselves with the load balancer first.
-          const w = await this.createWorkerUrl();
-          const url = `${w.url}/v/${this.tag}/`;
-          // TODO: we could compute a distinct internal url here.
-          this.worker = {
-            id: w.host,
-            publicUrl: url,
-            internalUrl: url,
-          };
-        } else {
-          const url = (process.env.APP_DOC_URL || this.getOwnUrl()) + `/v/${this.tag}/`;
-          this.worker = {
-            // The worker id should be unique to this worker.
-            id: process.env.GRIST_DOC_WORKER_ID || `testDocWorkerId_${this.port}`,
-            publicUrl: url,
-            internalUrl: process.env.APP_DOC_INTERNAL_URL || url,
-          };
-        }
-        this.info.push(["docWorkerId", this.worker.id]);
-
+        const identity = await deriveDocWorkerIdentity({
+          docWorkerId: process.env.GRIST_DOC_WORKER_ID,
+          appDocInternalUrl: process.env.APP_DOC_INTERNAL_URL,
+          appDocUrl: process.env.APP_DOC_URL,
+          appHomeUrl: process.env.APP_HOME_URL,
+          fleet: isAffirmative(process.env.GRIST_FLEET),
+          gristHost: process.env.GRIST_HOST,
+          redisLocalAddress: await getRedisLocalAddress(workers.getRedisClient()),
+          hostname: os.hostname(),
+          // Read now rather than earlier: the socket is up, so the port and the address it landed
+          // on are settled.
+          port: this.getOwnPort(),
+          boundAddress: this.getBoundAddress(),
+          ownUrl: this.getOwnUrl(),
+          tag: this.tag,
+          createWorkerUrl: process.env.GRIST_ROUTER_URL ?
+            () => this.createWorkerUrl() : undefined,
+        });
+        this.worker = identity.info;
+        this._publicUrlIsGuessed = identity.publicUrlIsGuessed;
         if (process.env.GRIST_WORKER_GROUP) {
           this.worker.group = process.env.GRIST_WORKER_GROUP;
         }
+        this.info.push(["docWorkerId", this.worker.id]);
+        this.info.push(["docWorkerInternalUrl", this.worker.internalUrl]);
+        this.info.push(["docWorkerAddressSource", identity.addressSource]);
+        this._warnIfPeersCannotReachUs(identity, workers);
       } else {
         if (process.env.GRIST_ROUTER_URL) {
           await this.createWorkerUrl();
@@ -2475,6 +2505,15 @@ export class FlexServer implements GristServer {
         { params: { act: "remove", port: this.getOwnPort() } });
       log.info(`DocWorker unregistered itself via ${process.env.GRIST_ROUTER_URL}`);
     }
+  }
+
+  private _warnIfPeersCannotReachUs(identity: DocWorkerIdentity, workers: IDocWorkerMap) {
+    // Without Redis there is only ever one server, and nobody else needs this address.
+    if (!workers.getRedisClient() || identity.addressSource !== "none") { return; }
+    log.warn(
+      `DocWorker ${identity.info.id} has no address peers can reach, so published ` +
+      `${identity.info.internalUrl}. Set GRIST_HOST=0.0.0.0 to listen on every interface, ` +
+      `or APP_DOC_INTERNAL_URL to name an address.`);
   }
 
   // Called when server is shutting down.  Save any state that needs saving, and
@@ -2620,19 +2659,7 @@ export class FlexServer implements GristServer {
     // Only used as {userRoot}/plugins as a place for plugins in addition to {appRoot}/plugins
     const userRoot = path.resolve(process.env.GRIST_USER_ROOT || getAppPathTo(this.appRoot, ".grist"));
     this.info.push(["userRoot", userRoot]);
-    // Some custom widgets may be included as an npm package called @gristlabs/grist-widget.
-    // The package doesn't actually  contain node code, but should be in the same vicinity
-    // as other packages that do, so we can use require.resolve on one of them to find it.
-    // This seems a little overcomplicated, but works well when grist-core is bundled within
-    // a larger project like grist-electron.
-    // TODO: maybe add a little node code to @gristlabs/grist-widget so it can be resolved
-    // directly?
-    const gristLabsModules = path.dirname(path.dirname(require.resolve("@gristlabs/express-session")));
-    const bundledRoot = isAffirmative(process.env.GRIST_SKIP_BUNDLED_WIDGETS) ? undefined : path.join(
-      gristLabsModules, "grist-widget", "dist",
-    );
-    this.info.push(["bundledRoot", bundledRoot]);
-    const pluginManager = new PluginManager(this.appRoot, userRoot, bundledRoot);
+    const pluginManager = new PluginManager(this.appRoot, userRoot);
     // `initialize()` is asynchronous and reads plugins manifests; if PluginManager is used before it
     // finishes, it will act as if there are no plugins.
     // ^ I think this comment was here to justify calling initialize without waiting for
@@ -3103,7 +3130,6 @@ type Part =
   "loginMiddleware" |
   "map" |
   "extraDoc" |
-  "extraDocForwarder" |
   "extraHome" |
   "middleware" |
   "notifier" |

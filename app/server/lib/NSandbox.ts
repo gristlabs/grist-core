@@ -5,7 +5,7 @@
 import { arrayToString } from "app/common/arrayToString";
 import * as marshal from "app/common/marshal";
 import { SandboxInfo } from "app/common/SandboxInfo";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { getSandboxFlavor } from "app/server/lib/gristSettings";
 import { ISandbox, ISandboxCreationOptions, ISandboxCreator } from "app/server/lib/ISandbox";
 import log from "app/server/lib/log";
@@ -19,6 +19,7 @@ import {
 } from "app/server/lib/SandboxControl";
 import { checkPyodideDeno, getPyodideSettings } from "app/server/lib/SandboxPyodide";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
+import { cleanEnv } from "app/server/lib/serverUtils";
 import * as shutdown from "app/server/lib/shutdown";
 
 import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from "child_process";
@@ -575,7 +576,7 @@ export class NSandboxCreator implements ISandboxCreator {
   }) {
     const flavor = options.defaultFlavor;
     if (!isFlavor(flavor)) {
-      const variants = create.getSandboxVariants?.();
+      const variants = getCreate().getSandboxVariants?.();
       if (!variants?.[flavor]) {
         throw new Error(`Unrecognized sandbox flavor: ${flavor}`);
       } else {
@@ -694,7 +695,7 @@ function _checkPyodideAvailable(): { available: boolean; reason?: string } {
  * Returns a SandboxInfo with full lifecycle details.
  *
  * @param flavor - The sandbox flavor to test (e.g. "gvisor", "pyodide", "unsandboxed").
- *   If not provided, uses `create.NSandbox()` which provides the deployment-specific
+ *   If not provided, uses `getCreate().NSandbox()` which provides the deployment-specific
  *   default (e.g. grist-desktop may default to pyodide, core defaults to unsandboxed).
  *   That path calls `createSandbox()` internally, which respects GRIST_SANDBOX_FLAVOR.
  */
@@ -710,7 +711,7 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
   let sandbox: ISandbox | undefined;
   try {
     // Step 1: Create a sandbox. If a flavor is given, create that exact flavor.
-    // If no flavor is given, use the deployment's default (through create.NSandbox).
+    // If no flavor is given, use the deployment's default (through getCreate().NSandbox).
     const options: ISandboxCreationOptions = {
       comment: "test",
       logCalls: false,
@@ -719,7 +720,7 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
     };
     sandbox = flavor ?
       createConcreteSandbox(flavor, options) :
-      create.NSandbox(options);
+      getCreate().NSandbox(options);
     // The actual flavor may differ from what we asked for, so update it.
     info.flavor = sandbox.getFlavor();
     info.configured = info.flavor !== "unsandboxed";
@@ -880,13 +881,13 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     child = spawn(
       command,
       args,
-      { cwd, ...spawnOptions },
+      { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
     );
   } else {
     log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
-      { cwd, ...spawnOptions },
+      { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
     );
   }
 
@@ -1052,7 +1053,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
     ...commandParts,
     ...pythonArgs,
     ...appendArgs,
-  ]);
+  ], { env: cleanEnv() });
   log.rawDebug("cannot do process control via docker yet", { ...options.logMeta });
   return { name: "docker", child, control: () => new NoProcessControl(child) };
 }
@@ -1152,7 +1153,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const profileString = profile.join("\n");
   const child = spawn("/usr/bin/sandbox-exec",
     [...options.testSandboxArgs, "-p", profileString, command, ...pythonArgs, ...appendArgs],
-    { cwd, env });
+    { cwd, env: cleanEnv(env) });
   return {
     name: "macSandboxExec",
     child,
@@ -1381,7 +1382,10 @@ function realpathSync(src: string) {
   }
 }
 
-function adjustedSpawn(cmd: string, args: string[], options?: SpawnOptionsWithoutStdio) {
+function adjustedSpawn(cmd: string, args: string[], options: SpawnOptionsWithoutStdio = {}) {
+  // Pass only own environment variables through to the subprocess (see cleanEnv).
+  // With no options.env, cleanEnv defaults to process.env, as spawn would.
+  options = { ...options, env: cleanEnv(options.env) };
   const oomScoreAdj = process.env.GRIST_SANDBOX_OOM_SCORE_ADJ;
   if (oomScoreAdj) {
     return spawn("choom", ["-n", oomScoreAdj, "--", cmd, ...args], options);

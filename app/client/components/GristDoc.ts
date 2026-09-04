@@ -45,6 +45,7 @@ import { getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen } from "app/client/mo
 import { UserPresenceModel, UserPresenceModelImpl } from "app/client/models/UserPresenceModel";
 import { App } from "app/client/ui/App";
 import { TriggersPage } from "app/client/ui/Automations/TriggersPage";
+import { buildCalendarSetupModal } from "app/client/ui/CalendarConfigModal";
 import { showCustomWidgetGallery } from "app/client/ui/CustomWidgetGallery";
 import { DocHistory } from "app/client/ui/DocHistory";
 import { startDocTour } from "app/client/ui/DocTour";
@@ -91,7 +92,7 @@ import { StringUnion } from "app/common/StringUnion";
 import { TableData } from "app/common/TableData";
 import { getGristConfig } from "app/common/urlUtils";
 import { AttachmentTransferStatus, DocAPI, ExtendedUser } from "app/common/UserAPI";
-import { AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType } from "app/common/widgetTypes";
+import { IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { CursorPos } from "app/plugin/GristAPI";
 
 import {
@@ -1146,22 +1147,22 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
   public getCsvLink() {
     const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadCsvUrl(params);
+    return this._downloadDocApi().getDownloadCsvUrl(params);
   }
 
   public getTsvLink() {
     const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadTsvUrl(params);
+    return this._downloadDocApi().getDownloadTsvUrl(params);
   }
 
   public getDsvLink() {
     const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadDsvUrl(params);
+    return this._downloadDocApi().getDownloadDsvUrl(params);
   }
 
   public getXlsxActiveViewLink() {
     const params = this._getDocApiDownloadParams();
-    return this.docPageModel.appModel.api.getDocAPI(this.docId()).getDownloadXlsxUrl(params);
+    return this._downloadDocApi().getDownloadXlsxUrl(params);
   }
 
   /**
@@ -1615,8 +1616,8 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
   private _showNewWidgetPopups(type: IWidgetType) {
     this._maybeShowEditCardLayoutTip(type).catch(reportError);
 
-    if (AttachedCustomWidgets.guard(type)) {
-      this._handleNewAttachedCustomWidget(type).catch(reportError);
+    if (type === WidgetType.Calendar) {
+      this._handleNewCalendarWidget();
     }
   }
 
@@ -1836,18 +1837,14 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     });
   }
 
-  private async _handleNewAttachedCustomWidget(widget: IAttachedCustomWidget) {
-    switch (widget) {
-      case "custom.calendar": {
-        if (this.behavioralPromptsManager.shouldShowPopup("calendarConfig")) {
-          // Open the right panel to the calendar subtab.
-          commands.allCommands.viewTabOpen.run();
-
-          // Wait for the right panel to finish animation if it was collapsed before.
-          await commands.allCommands.rightPanelOpen.run();
-        }
-        break;
-      }
+  private _handleNewCalendarWidget() {
+    // First add only: if the calendar has no start/title mapped yet, open the blocking setup
+    // modal so the user can pick (or create) those columns. Once mapped, this never reopens.
+    const section = this.viewModel.activeSection.peek();
+    if (section.isDisposed()) { return; }
+    const mapped = section.mappedColumns.peek();
+    if (!mapped?.startDate || !mapped?.title) {
+      buildCalendarSetupModal(section, this);
     }
   }
 
@@ -1938,6 +1935,11 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     }
   }
 
+  // A DocAPI for building download links, View-as-aware so exports respect ACLs.
+  private _downloadDocApi() {
+    return this.docPageModel.appModel.api.getDocAPI(this.docId(), { propagateViewAs: true });
+  }
+
   private _getDocApiDownloadParams() {
     const activeSection = this.viewModel.activeSection();
     const filters = activeSection.activeFilters.get().map(filterInfo => ({
@@ -1945,7 +1947,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       filter: filterInfo.filter(),
     }));
     const linkingFilter: FilterColValues = activeSection.linkingFilter();
-    const userOverride = this.docPageModel.userOverride.get();
 
     return {
       viewSection: this.viewModel.activeSectionId(),
@@ -1953,7 +1954,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       activeSortSpec: JSON.stringify(activeSection.activeSortSpec()),
       filters: JSON.stringify(filters),
       linkingFilter: JSON.stringify(linkingFilter),
-      ...(userOverride ? { aclAsUser_: userOverride.user?.email } : {}),
     };
   }
 

@@ -48,7 +48,7 @@ export type HomePageTab = typeof HomePageTab.type;
 export const WelcomePage = StringUnion("teams", "signup", "verify", "select-account");
 export type WelcomePage = typeof WelcomePage.type;
 
-export const AccountPage = StringUnion("account", "authorized-apps", "developer");
+export const AccountPage = StringUnion("account", "authorized-apps", "developer", "personal-site");
 export type AccountPage = typeof AccountPage.type;
 
 export const ActivationPage = StringUnion("activation");
@@ -92,6 +92,9 @@ export type CompareEmphasis = typeof CompareEmphasis.type;
 
 // Default subdomain for home api service if not otherwise specified.
 export const DEFAULT_HOME_SUBDOMAIN = "api";
+
+// Length of a generated docId (makeId pads to this); routing relies on it.
+export const DOC_ID_LENGTH = 22;
 
 // This is the minimum length a urlId may have if it is chosen
 // as a prefix of the docId.
@@ -147,6 +150,8 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-enable-the-full-edition-of-grist",
   helpEmailNotifications: "https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications",
+  activationKeyRequestForm: "https://www.getgrist.com/request-activation-key",
+  freeActivationKeyFaq: "https://www.getgrist.com/free-grist-activation-key-faq/",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown-lists",
@@ -161,12 +166,14 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpAirtableIntegration: "https://support.getgrist.com/install/integrations/airtable",
   helpCloudStorage: "https://support.getgrist.com/install/cloud-storage",
   integrators: "https://support.getgrist.com/integrators/",
+  editionComparison: "https://www.getgrist.com/grist-edition-comparison/",
   mcp: "https://support.getgrist.com/mcp/",
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
   onboardingTutorialVideoId: getOnboardingVideoId(),
   plans: "https://www.getgrist.com/pricing",
+  plansSelfManaged: "https://www.getgrist.com/pricing/#your-servers",
   contact: "https://www.getgrist.com/contact",
   templates: "https://www.getgrist.com/templates",
   webinars: getWebinarsUrl(),
@@ -188,6 +195,8 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   signInWithGristRegister: "https://login.getgrist.com/oauth/register",
   signInWithGristHelp: "https://support.getgrist.com/install/sign-in-with-grist",
   signInWithGristDocs: "https://support.getgrist.com/install/getgrist-com/",
+
+  helpUsImproveSurvey: getHelpUsImproveSurveyUrl(),
 });
 
 export const commonUrls = getCommonUrls();
@@ -810,29 +819,13 @@ export function parseSubdomain(host: string | undefined): { org?: string, base?:
 const localhostRegex = /^localhost(?::(\d+))?$/i;
 
 /**
- * Like parseSubdomain, but throws an error if neither of these cases apply:
- *   - host can be parsed into a valid subdomain and a valid base domain.
- *   - host is localhost:NNNN
- * An empty object is only returned when host is localhost:NNNN.
- */
-export function parseSubdomainStrictly(host: string | undefined): { org?: string, base?: string } {
-  if (!host) { throw new Error("host not known"); }
-  const result = parseSubdomain(host);
-  if (result.org) { return result; }
-  if (!host.match(localhostRegex)) {
-    throw new Error(`host not understood: ${host}`);
-  }
-  // Host is localhost[:NNNN], no org available.
-  return {};
-}
-
-/**
  * For a packaged version of Grist that requires activation, this
  * summarizes the current state. Not applicable to grist-core.
  * This is the thing that is send via sendAppPage (so this is embedded in HTML).
  */
 export interface ActivationState {
-  installationId: string;    // Unique identifier for this installation.
+  // Unique identifier for this installation. Absent on pages sent to non-admins.
+  installationId?: string;
   key?: {                    // Set when Grist is activated.
     expirationDate?: string; // ISO8601 date that Grist will need reactivation.
     daysLeft?: number;       // Number of days until Grist will need reactivation.
@@ -1022,8 +1015,9 @@ export interface GristLoadConfig {
   // The Grist deployment type (e.g. core, enterprise).
   deploymentType?: GristDeploymentType;
 
-  // Force enterprise deployment? For backwards compatibility with grist-ee Docker image
-  forceEnableEnterprise?: boolean;
+  // True if the edition is pinned by the environment (e.g. GRIST_SERVER_EDITION or
+  // GRIST_FORCE_ENABLE_ENTERPRISE) and can't be changed from the admin panel.
+  editionForced?: boolean;
 
   // Whether the server has OAuth apps enabled (GRIST_ENABLE_OIDC_SERVER). Always false in core,
   // which doesn't include the feature.
@@ -1061,6 +1055,9 @@ export interface GristLoadConfig {
   // Opaque payload for the OAuth flow, defined in ext/ in the full Grist build.
   // Core uses only its presence to dispatch client-side rendering.
   oauth?: unknown;
+
+  // URL the quick-setup "Help us improve" survey POSTs to. Absent/empty = survey hidden.
+  helpUsImproveSurveyUrl?: string;
 }
 
 /**
@@ -1072,6 +1069,9 @@ export interface AdminPageConfig extends GristLoadConfig {
 
   /** Whether AdminControls are available and should be enabled in UI. */
   adminControls?: boolean;
+
+  /** This installation's ID. Only sent to install admins, so absent for everyone else. */
+  installationId?: string;
 
   /**
    * Whether the installation is "in service". Set to false on fresh installs
@@ -1125,6 +1125,16 @@ export function isFullEditionDeployment(deploymentType?: GristDeploymentType): b
   return fullEditionDeploymentTypes.includes(deploymentType ?? "core");
 }
 
+export const GristEdition = StringUnion("community", "full");
+export type GristEdition = typeof GristEdition.type;
+
+export const FULL_EDITION = "full" as const satisfies GristEdition;
+export const COMMUNITY_EDITION = "community" as const satisfies GristEdition;
+
+export function editionFromDeploymentType(deploymentType: GristDeploymentType | undefined): GristEdition {
+  return isFullEditionDeployment(deploymentType) ? FULL_EDITION : COMMUNITY_EDITION;
+}
+
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of
 // non-zero length.
 const subdomainRegex = /^[-a-z0-9]+$/i;
@@ -1173,9 +1183,8 @@ export function getTermsOfServiceUrl(): string | undefined {
   return getCustomizableValue("termsOfServiceUrl", "GRIST_TERMS_OF_SERVICE_URL") || undefined;
 }
 
-export function getFreeCoachingCallUrl(): string {
-  const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
-  return getCustomizableValue("freeCoachingCallUrl", "FREE_COACHING_CALL_URL") || defaultUrl;
+export function getFreeCoachingCallUrl(): string | undefined {
+  return getCustomizableValue("freeCoachingCallUrl", "FREE_COACHING_CALL_URL") || undefined;
 }
 
 export function getContactSupportUrl(): string {
@@ -1186,6 +1195,17 @@ export function getContactSupportUrl(): string {
 export function getWebinarsUrl(): string {
   const defaultUrl = "https://www.getgrist.com/webinars/grist-101-new-users-guide";
   return getCustomizableValue("webinarsUrl", "GRIST_WEBINARS_URL") || defaultUrl;
+}
+
+export function getHelpUsImproveSurveyUrl(): string {
+  // Grist Labs' default ingest for the quick-setup "Help us improve" survey.
+  // Overridable via GRIST_HELP_US_IMPROVE_SURVEY_URL
+  const defaultUrl = "https://gristlabs.getgrist.com/api/help-us-improve";
+
+  const value = getCustomizableValue("helpUsImproveSurveyUrl", "GRIST_HELP_US_IMPROVE_SURVEY_URL");
+  // Explicit undefined check (not `||`) so an empty string is preserved as "disabled"
+  // rather than collapsing to the default URL.
+  return value === undefined ? defaultUrl : String(value);
 }
 
 export function getMaxUploadSizeAttachmentMB(): number {

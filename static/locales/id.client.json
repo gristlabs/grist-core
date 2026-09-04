@@ -151,7 +151,11 @@
     "ColorSelect": {
         "Apply": "Terapkan",
         "Cancel": "Batalkan",
-        "Default cell style": "Gaya sel default"
+        "Default cell style": "Gaya sel default",
+        "default": "bawaan",
+        "fill": "isi",
+        "none": "tidak ada",
+        "text": "teks"
     },
     "ColumnFilterMenu": {
         "All": "Semua",
@@ -565,7 +569,10 @@
         "Grid Options": "Opsi Grid",
         "Horizontal gridlines": "Garis kisi horisontal",
         "Vertical gridlines": "Garis kisi vertikal",
-        "Zebra stripes": "Garis-garis zebra"
+        "Zebra stripes": "Garis-garis zebra",
+        "Show": "Tampilkan",
+        "row IDs": "ID baris",
+        "row numbers": "nomor baris"
     },
     "GridViewMenus": {
         "Add column": "Tambah kolom",
@@ -636,7 +643,11 @@
         "Choice List": "Daftar Pilihan",
         "Reference": "Referensi",
         "Reference List": "Daftar Referensi",
-        "Attachment": "Lampiran"
+        "Attachment": "Lampiran",
+        "Row numbers": "Nomor baris",
+        "Numbers": "Nomor",
+        "Row IDs": "ID baris",
+        "Hidden": "Tersembunyi"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Menambahkan bagian tertaut baru untuk melihat {{viewName}}",
@@ -775,7 +786,9 @@
         "Renew": "Memperbarui",
         "Report a problem": "Laporkan masalah",
         "Upgrade Plan": "Rencana Upgrade",
-        "Manage billing": "Kelola penagihan"
+        "Manage billing": "Kelola penagihan",
+        "How you could gain access": "Cara mendapatkan akses",
+        "What's blocking you": "Hal yang menghalangi Anda"
     },
     "OnBoardingPopups": {
         "Finish": "Selesai",
@@ -882,7 +895,8 @@
         "Select a field in the form widget to configure.": "Pilih bidang di widget formulir untuk dikonfigurasi.",
         "Submit": "Kirim",
         "Thank you! Your response has been recorded.": "Terima kasih! Tanggapan Anda telah disimpan.",
-        "Chart options": "Opsi diagram"
+        "Chart options": "Opsi diagram",
+        "You may use {{placeholder}} placeholder for the ID of the added record.": "Anda dapat menggunakan placeholder {{placeholder}} untuk ID data yang ditambahkan."
     },
     "RowContextMenu": {
         "Copy anchor link": "Salin tautan jangkar",
@@ -1460,7 +1474,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Anda dapat menambahkan komentar ke sel, membalas rangkaian komentar, dan @-menyebut kolaborator.",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Jika dicentang, nilai default bidang ini dapat diisi sebelumnya dari URL menggunakan parameter kueri.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Dengan saran, pengguna membuat perubahan pada salinan pribadi tanpa memodifikasi dokumen asli, lalu mengirimkan saran ini untuk ditinjau oleh pemilik dokumen sebelum integrasi.",
-        "Unpin to hide the button while keeping the filter.": "Lepaskan pin untuk menyembunyikan tombol sambil tetap menampilkan filter."
+        "Unpin to hide the button while keeping the filter.": "Lepaskan pin untuk menyembunyikan tombol sambil tetap menampilkan filter.",
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "ID baris adalah pengidentifikasi numerik yang stabil dan unik, yang digunakan oleh kolom referensi untuk mengidentifikasi data."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "KETERANGAN",
@@ -1565,7 +1580,8 @@
     "GridView": {
         "Click to insert": "Klik untuk menyisipkan",
         "row {{rowNum}} {{colName}}": "baris {{rowNum}} {{colName}}",
-        "row {{rowNum}} {{colName}} (new row)": "baris {{rowNum}} {{colName}} (baris baru)"
+        "row {{rowNum}} {{colName}} (new row)": "baris {{rowNum}} {{colName}} (baris baru)",
+        "ID": "ID"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Selamat Datang kembali",
@@ -1937,7 +1953,13 @@
         "Dismiss pending changes?": "Batalkan perubahan yang tertunda?",
         "Dismissing...": "Membatalkan...",
         "How user actions can reach the outside world": "Cara tindakan pengguna dapat menjangkau dunia luar",
-        "Outgoing requests": "Permintaan keluar"
+        "Outgoing requests": "Permintaan keluar",
+        "full Edition": "edisi penuh",
+        "Apply changes": "Terapkan perubahan",
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist berjalan dalam lingkungan yang tidak mendukung mulai ulang dari panel admin. Perubahan Anda akan disimpan sekarang dan berlaku saat Anda memulai ulang Grist secara manual nanti.",
+        "Switch to Community edition?": "Beralih ke edisi Community?",
+        "Switch to full Grist?": "Beralih ke Grist penuh?",
+        "This will also apply your other pending changes:": "Tindakan ini juga akan menerapkan perubahan tertunda lainnya:"
     },
     "GridViewMenusDateHelpers": {
         "Day of week": "Hari dalam sepekan",
@@ -2181,7 +2203,8 @@
         "Submitting…": "Mengajukan…",
         "Clear selection for: {{-inputLabel}}": "Bersihkan pilihan untuk: {{-inputLabel}}",
         "Options for {{-inputLabel}}": "Opsi untuk {{-inputLabel}}",
-        "Search options for {{-inputLabel}}": "Cari opsi untuk {{-inputLabel}}"
+        "Search options for {{-inputLabel}}": "Cari opsi untuk {{-inputLabel}}",
+        "Are you sure you want to reset your form?": "Apakah Anda yakin ingin mengatur ulang formulir?"
     },
     "RenameDocModal": {
         "Reset icon": "Atur ulang ikon",
@@ -2313,7 +2336,12 @@
         "Enable Full Grist": "Aktifkan Full Grist",
         "To continue using Full Grist, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "Untuk terus menggunakan Full Grist, Anda perlu\n                  [menghubungi kami]({{signupLink}}) untuk mendapatkan kunci aktivasi Anda.",
         "You are currently trialing Full Grist.": "Anda saat ini sedang menggunakan masa uji coba Full Grist.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Masa uji coba Anda telah berakhir pada **{{expireAt}}**. Untuk terus menggunakan Full Grist, Anda perlu\n[mendaftar ke Full Grist]({{signupLink}}) dan menempelkan kunci aktivasi Anda di bawah ini."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Full Grist, you need to\n[sign up for Full Grist]({{signupLink}}) and paste your activation key below.": "Masa uji coba Anda telah berakhir pada **{{expireAt}}**. Untuk terus menggunakan Full Grist, Anda perlu\n[mendaftar ke Full Grist]({{signupLink}}) dan menempelkan kunci aktivasi Anda di bawah ini.",
+        "Copy": "Salin",
+        "Good news: it can stay free.": "Kabar baik: edisi ini dapat tetap gratis.",
+        "Installation ID": "ID Instalasi",
+        "Provide this when requesting an activation key. Keys are tied to your installation ID.": "Berikan ini saat meminta activation key. Key terkait dengan ID instalasi Anda.",
+        "[Free activation keys]({{learnMoreLink}}) are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see [pricing]({{pricingLink}}).": "[Free activation keys]({{learnMoreLink}}) tersedia bagi individu dan organisasi kecil dengan total pendanaan tahunan di bawah US$1 juta. Untuk organisasi yang lebih besar, lihat [pricing]({{pricingLink}})."
     },
     "ViewLayout": {
         "Delete": "Hapus",
@@ -2586,7 +2614,10 @@
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Koneksi Websocket memerlukan HTTP 1.1 dan kemampuan untuk mengirimkan beberapa header tambahan agar dapat berfungsi. Terkadang, proxy terbalik dapat mengganggu persyaratan ini.",
         "It is good practice not to run Grist as the root user.": "Merupakan praktik yang baik untuk tidak menjalankan Grist sebagai pengguna root.",
         "The main page of Grist should be available.": "Halaman utama Grist seharusnya tersedia.",
-        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL adalah URL dasar tempat pengguna dan integrasi mengakses server Grist ini. Callback autentikasi, tautan API, dan notifikasi email semuanya bergantung pada ketepatan nilai ini."
+        "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL adalah URL dasar tempat pengguna dan integrasi mengakses server Grist ini. Callback autentikasi, tautan API, dan notifikasi email semuanya bergantung pada ketepatan nilai ini.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Jika berjalan dalam container tanpa penyimpanan eksternal atau dengan database bawaan, /persist harus berupa mounted volume. Jika tidak, dokumen dan metadata Grist akan hilang saat container berhenti."
+        }
     },
     "FormulaTransform": {
         "Apply": "Terapkan",
@@ -2787,7 +2818,12 @@
         "The change will be saved when you apply pending changes, and will go into effect after you restart Grist.": "Perubahan akan disimpan saat Anda menerapkan perubahan yang tertunda, dan akan berlaku setelah Anda memulai ulang Grist.",
         "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "Perubahan akan disimpan saat Anda menerapkan perubahan yang tertunda, dan akan berlaku setelah Anda memulai ulang Grist.",
         "configuration updated": "konfigurasi diperbarui",
-        "disabled": "dinonaktifkan"
+        "disabled": "dinonaktifkan",
+        "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Siapa pun yang dapat mengakses server ini dapat mengakses semua data tanpa login. Anda dapat mengonfigurasi autentikasi nanti dari panel admin.",
+        "Choose how people sign in. You can change this anytime after setup.": "Pilih cara orang login. Anda dapat mengubahnya kapan saja setelah penyiapan.",
+        "Continue without authentication": "Lanjutkan tanpa autentikasi",
+        "Or connect your own identity provider": "Atau hubungkan identity provider Anda sendiri",
+        "Skip authentication setup?": "Lewati penyiapan autentikasi?"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Baris ini tidak tersedia atau tidak ada"
@@ -2807,7 +2843,11 @@
         "When signing in, users will be redirected to the getgrist.com login page to log in or register. After authenticating on getgrist.com, they'll be redirected back to your Grist server and signed in as the user they authenticated as.": "Saat masuk, pengguna akan dialihkan ke halaman login getgrist.com untuk masuk atau mendaftar. Setelah melakukan autentikasi di getgrist.com, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah mereka gunakan untuk autentikasi.",
         "Managed authentication by Grist Labs.": "Autentikasi terkelola oleh Grist Labs.",
         "Your server uses getgrist.com authentication. Users sign in with their getgrist.com account.": "Server Anda menggunakan autentikasi getgrist.com. Pengguna masuk dengan akun getgrist.com mereka.",
-        "Error configuring provider with the provided key: {{reason}}": "Kesalahan saat mengonfigurasi penyedia dengan kunci yang diberikan: {{reason}}"
+        "Error configuring provider with the provided key: {{reason}}": "Kesalahan saat mengonfigurasi penyedia dengan kunci yang diberikan: {{reason}}",
+        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Ideal untuk pengujian dan pembuatan prototipe. Login dengan akun getgrist.com tanpa perlu mengonfigurasi identity provider.",
+        "Recommended": "Direkomendasikan",
+        "Use getgrist.com sign-in": "Gunakan login getgrist.com",
+        "You can switch to OIDC, SAML, or another method at any time.": "Anda dapat beralih ke OIDC, SAML, atau metode lain kapan saja."
     },
     "AirtableImportUI": {
         "Back": "Kembali",
@@ -2940,7 +2980,8 @@
         "Quick setup": "Penyiapan cepat",
         "Sandboxing": "Sandboxing",
         "Server": "Server",
-        "Continue": "Lanjutkan"
+        "Continue": "Lanjutkan",
+        "Set up later": "Siapkan nanti"
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Masuk ke mode pemeliharaan",
@@ -2976,7 +3017,12 @@
         "Set these environment variables and restart Grist to enable S3 storage:": "Tetapkan variabel lingkungan ini dan mulai ulang Grist untuk mengaktifkan penyimpanan S3:",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Simpan cadangan dokumen pada layanan eksternal seperti S3 atau Azure. Ini melindungi dari kehilangan data jika disk server gagal.",
         "Local filesystem (test only)": "Sistem file lokal (khusus pengujian)",
-        "Stores document snapshots on the local filesystem. For tests only, not production.": "Menyimpan snapshot dokumen pada sistem file lokal. Hanya untuk pengujian, bukan produksi."
+        "Stores document snapshots on the local filesystem. For tests only, not production.": "Menyimpan snapshot dokumen pada sistem file lokal. Hanya untuk pengujian, bukan produksi.",
+        "Action needed": "Tindakan diperlukan",
+        "To preserve it, mount a volume at ": {
+            "persist.": "Untuk mempertahankannya, mount volume di /persist."
+        },
+        "Your data may not survive a container restart.": "Data Anda mungkin tidak bertahan setelah container dimulai ulang."
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Izinkan akses anonim",
@@ -3080,7 +3126,39 @@
         "full": "penuh",
         "pricing": "harga",
         "Community edition": "Edisi komunitas",
-        "I understand I am running Grist Community edition": "Saya memahami bahwa saya menjalankan Grist Edisi Komunitas"
+        "I understand I am running Grist Community edition": "Saya memahami bahwa saya menjalankan Grist Edisi Komunitas",
+        "Cancel": "Batal",
+        "Community": "Community",
+        "Downgrade": "Turunkan versi",
+        "Downgrade to Community Edition": "Turunkan versi ke Edisi Community",
+        "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Turunkan versi ke edisi Community? Fitur Grist penuh akan dinonaktifkan setelah dimulai ulang. Tindakan ini dapat dibatalkan.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Untuk otomatisasi, MCP server, AI assistant, dukungan OIDC/SAML, notifikasi email, kontrol admin, audit logging, dan lainnya, beralihlah ke edisi Grist penuh."
+        },
+        "Free activation keys": "Free activation keys",
+        "Restart Grist to apply this change.": "Mulai ulang Grist untuk menerapkan perubahan ini.",
+        "Switch to Full Grist": "Beralih ke Grist Penuh",
+        "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "Server ini menjalankan edisi penuh Grist, dengan keamanan tingkat lanjut, governance, MCP server, otomatisasi, notifikasi email, dan fitur kolaborasi.",
+        "You are running the Grist Community edition.": "Anda menjalankan edisi Grist Community.",
+        "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} tersedia bagi individu dan organisasi kecil dengan total pendanaan tahunan di bawah US$1 juta. Untuk organisasi yang lebih besar, lihat {{pricingLink}}.",
+        "Community Grist": "Grist Community",
+        "Continue with Community edition": "Lanjutkan dengan edisi Community",
+        "Continue with full edition": "Lanjutkan dengan edisi penuh",
+        "Downgrade to Community edition": "Turunkan versi ke edisi Community",
+        "Downgrading to the Community edition restarts the server, which may be briefly unavailable.": "Menurunkan versi ke edisi Community akan memulai ulang server, yang mungkin tidak tersedia untuk sementara.",
+        "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Untuk otomatisasi, MCP server, AI assistant, dukungan OIDC, notifikasi email, kontrol admin, audit logging, dan lainnya, beralihlah ke edisi Grist penuh.",
+        "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "Fitur Grist penuh seperti notifikasi email, otomatisasi, MCP server, serta dukungan OIDC dan SAML akan dinonaktifkan setelah dimulai ulang. Anda selalu dapat meningkatkan ke Grist penuh lagi.",
+        "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.": "Grist akan beralih ke edisi Community setelah dimulai ulang dan menonaktifkan fitur Grist penuh. Data Anda tidak akan hilang dan Anda tidak perlu menginstal ulang Grist.",
+        "Switch to Community edition": "Beralih ke edisi Community",
+        "Switch to full Grist": "Beralih ke Grist penuh",
+        "Switching Grist edition...": "Mengganti edisi Grist...",
+        "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.": "Beralih ke Grist penuh akan mengunduh extension yang diperlukan. Proses ini dapat memerlukan waktu beberapa menit, dan server tidak akan tersedia selama proses berlangsung.",
+        "Switching to full Grist restarts the server, which may be briefly unavailable.": "Beralih ke Grist penuh akan memulai ulang server, yang mungkin tidak tersedia untuk sementara.",
+        "Upgrade to full Grist": "Tingkatkan ke Grist penuh",
+        "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Anda dapat menurunkan versi ke edisi Community kapan saja. Data Anda tidak akan hilang dan Anda tidak perlu menginstal ulang Grist.",
+        "Your server will restart automatically once finished.": "Server Anda akan dimulai ulang secara otomatis setelah proses selesai.",
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} tersedia bagi individu dan organisasi dengan total pendanaan tahunan di bawah US$1 juta. Untuk organisasi yang lebih besar, lihat {{pricingLink}}. Mulai uji coba gratis 30 hari Anda hari ini.",
+        "The Community edition is set via environment variable.": "Edisi Community ditetapkan melalui environment variable."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Terapkan dan Lanjutkan",
@@ -3137,7 +3215,9 @@
         "Visitors who aren't signed in can create and edit documents in a temporary playground. Turn off to require sign-in before creating any documents.": "Pengunjung yang belum masuk dapat membuat dan mengedit dokumen dalam playground sementara. Nonaktifkan untuk mewajibkan masuk sebelum membuat dokumen apa pun.",
         "Visitors who aren't signed in can view publicly shared documents. This is needed for link sharing and published forms.": "Pengunjung yang belum masuk dapat melihat dokumen yang dibagikan secara publik. Ini diperlukan untuk berbagi tautan dan formulir yang dipublikasikan.",
         "off": "mati",
-        "on": "hidup"
+        "on": "hidup",
+        "Sends anonymous usage metrics to Grist Labs. No document contents are collected. Configurable anytime from the admin panel.": "Mengirim metrik penggunaan anonim ke Grist Labs. Tidak ada isi dokumen yang dikumpulkan. Dapat dikonfigurasi kapan saja dari panel admin.",
+        "Share product telemetry": "Bagikan telemetri produk"
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Notifikasi: {{notification}}"
@@ -3181,5 +3261,121 @@
         "not configured": "belum dikonfigurasi",
         "review": "periksa",
         "unfiltered": "tidak difilter"
+    },
+    "McpConnectBanner": {
+        "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Baru!** Hubungkan Grist ke Claude dan ChatGPT. [Coba sekarang]({{mcp}})"
+    },
+    "AdminSetupRequests": {
+        "1 request": "1 permintaan",
+        "Clear": "Hapus",
+        "For": "Untuk",
+        "Setup requests": "Permintaan penyiapan",
+        "Setup steps users have asked for": "Langkah penyiapan yang diminta pengguna",
+        "already done": "sudah selesai",
+        "{{count}} requests_one": "{{count}} permintaan",
+        "{{count}} requests_other": "{{count}} permintaan"
+    },
+    "NotificationsAndAutomationsNudge": {
+        "1 person has asked for this.": "1 orang telah meminta ini.",
+        "Add a note": "Tambahkan catatan",
+        "Ask questions and build formulas in plain language.": "Ajukan pertanyaan dan buat formula dalam bahasa biasa.",
+        "Ask the admin for this": "Minta kepada admin",
+        "Everything below is waiting on": "Semua hal di bawah ini menunggu",
+        "Get emailed when data changes, or when someone comments or mentions you.": "Dapatkan email saat data berubah atau saat seseorang mengomentari atau menyebut Anda.",
+        "Next step": "Langkah berikutnya",
+        "Next step for everything below": "Langkah berikutnya untuk semua hal di bawah ini",
+        "Note sent.": "Catatan terkirim.",
+        "Notifications and Automations": "Notifikasi dan Otomatisasi",
+        "React to changes in your data automatically with custom emails, webhook calls, and more.": "Tanggapi perubahan dalam data Anda secara otomatis dengan email kustom, panggilan webhook, dan lainnya.",
+        "Setting these up is done by whoever manages this Grist installation.": "Penyiapan ini dilakukan oleh pengelola instalasi Grist.",
+        "Some of these features are ready; others need more setup on this install.": "Sebagian fitur ini siap digunakan; fitur lainnya memerlukan penyiapan lebih lanjut pada instalasi ini.",
+        "These features need additional setup on this install.": "Fitur-fitur ini memerlukan penyiapan tambahan pada instalasi ini.",
+        "This document can run automations, send notifications, and use an AI assistant.": "Dokumen ini dapat menjalankan otomatisasi, mengirim notifikasi, dan menggunakan AI assistant.",
+        "Waiting on": "Menunggu",
+        "When you share a document, new members get an email invite.": "Saat Anda membagikan dokumen, anggota baru akan menerima undangan melalui email.",
+        "Why do you want this? Press Enter to send.": "Mengapa Anda menginginkan ini? Tekan Enter untuk mengirim.",
+        "You and 1 other have asked for this.": "Anda dan 1 orang lainnya telah meminta ini.",
+        "You and {{count}} others have asked for this._one": "Anda dan {{count}} orang lainnya telah meminta ini.",
+        "You and {{count}} others have asked for this._other": "Anda dan {{count}} orang lainnya telah meminta ini.",
+        "You've asked for this.": "Anda telah meminta ini.",
+        "{{count}} people have asked for this._one": "{{count}} orang telah meminta ini.",
+        "{{count}} people have asked for this._other": "{{count}} orang telah meminta ini.",
+        "{{done}} of {{total}} steps": "{{done}} dari {{total}} langkah"
+    },
+    "SetupSteps": {
+        "AI Assistant": "AI Assistant",
+        "Automations": "Otomatisasi",
+        "Change & comment notifications": "Notifikasi perubahan dan komentar",
+        "Choose full Grist edition": "Pilih edisi Grist penuh",
+        "Connect a task queue (Redis)": "Hubungkan task queue (Redis)",
+        "Connect an AI provider": "Hubungkan penyedia AI",
+        "Connect email delivery": "Hubungkan pengiriman email",
+        "Invite emails": "Email undangan",
+        "Use a plan with automations": "Gunakan paket dengan otomatisasi"
+    },
+    "VersionFooter": {
+        "Compare editions": "Bandingkan edisi",
+        "Grist Community edition": "Edisi Grist Community",
+        "No official support": "Tidak ada dukungan resmi",
+        "Not the full edition": "Bukan edisi penuh",
+        "Only community support": "Hanya dukungan komunitas",
+        "Release notes": "Catatan rilis",
+        "Version {{- version}}": "Versi {{- version}}"
+    },
+    "RowNumbersMenu": {
+        "Hidden": "Tersembunyi",
+        "Numbers": "Nomor",
+        "Row IDs": "ID baris",
+        "Row numbers": "Nomor baris"
+    },
+    "HelpUsImproveSection": {
+        "A business or organization": "Bisnis atau organisasi",
+        "A couple of quick questions — optional, and only our team sees this.": "Beberapa pertanyaan singkat—opsional dan hanya dapat dilihat oleh tim kami.",
+        "AI response": "Respons AI",
+        "Conference": {
+            "event": "Konferensi/acara"
+        },
+        "Developer": {
+            "IT": "Pengembang/IT"
+        },
+        "Education": {
+            "Research Institute": "Lembaga pendidikan/penelitian"
+        },
+        "Email is required when subscribing to updates.": "Email diperlukan saat berlangganan pembaruan.",
+        "Email:": "Email:",
+        "Friend": {
+            "colleague": "Teman/rekan kerja"
+        },
+        "GitHub": "GitHub",
+        "Help us improve Grist": "Bantu kami meningkatkan Grist",
+        "How did you hear about Grist?": "Bagaimana Anda mengetahui Grist?",
+        "Individual or hobbyist": "Individu atau penghobi",
+        "Nonprofit": "Organisasi nirlaba",
+        "Occasional email about new releases and important security notices.": "Email sesekali tentang rilis baru dan pemberitahuan keamanan penting.",
+        "Other": "Lainnya",
+        "Please enter a valid email address.": "Masukkan alamat email yang valid.",
+        "Reddit": {
+            "forum": "Reddit/forum"
+        },
+        "Search engine": "Mesin pencari",
+        "Select…": "Pilih…",
+        "Send me product and security updates": "Kirimkan pembaruan produk dan keamanan kepada saya",
+        "Social media": "Media sosial",
+        "What best describes you?": "Manakah yang paling menggambarkan Anda?"
+    },
+    "QuickSetupApplyStep": {
+        "Apply and go live!": "Terapkan dan mulai gunakan!",
+        "Applying settings and restarting…": "Menerapkan pengaturan dan memulai ulang…",
+        "Back to installation": "Kembali ke instalasi",
+        "Grist is live!": "Grist aktif!",
+        "Our servers may be experiencing issues. Please try again later.": "Server kami mungkin sedang mengalami masalah. Silakan coba lagi nanti.",
+        "Please try again.": "Silakan coba lagi.",
+        "Retry submission": "Coba kirim ulang",
+        "Setup completion": "Penyelesaian penyiapan",
+        "We couldn't save your details or subscribe you to updates.": "Kami tidak dapat menyimpan detail Anda atau mendaftarkan Anda untuk menerima pembaruan.",
+        "We couldn't submit your details or your request to be kept up to date. Please try again.": "Kami tidak dapat mengirimkan detail atau permintaan Anda untuk menerima informasi terbaru. Silakan coba lagi.",
+        "We saved your details, but couldn't subscribe you to updates.": "Detail Anda telah disimpan, tetapi kami tidak dapat mendaftarkan Anda untuk menerima pembaruan.",
+        "We subscribed you for product updates, but couldn't save your other details.": "Anda telah didaftarkan untuk menerima pembaruan produk, tetapi detail lainnya tidak dapat disimpan.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Perubahan konfigurasi Anda telah diterapkan dan server telah dimulai ulang. Grist kini aktif dan tersedia bagi pengguna."
     }
 }

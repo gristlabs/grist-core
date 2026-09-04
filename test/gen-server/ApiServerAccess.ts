@@ -6,7 +6,7 @@ import { Product } from "app/gen-server/entity/Product";
 import { User } from "app/gen-server/entity/User";
 import { Deps as HomeDBManagerDeps, HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManager";
 import { SendGridConfig, SendGridMailWithTemplateId } from "app/gen-server/lib/NotifierTypes";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser, waitForAllNotifications } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
@@ -71,7 +71,7 @@ describe("ApiServerAccess", function() {
       // If the notifier is explicitly set to 'test', there is no sendGrid extensions configured, and we
       // won't test notifications here.
       // TODO: all those ifs should be removed and stubbed with proper test doubles.
-      if (["saas", "enterprise"].includes(create.deploymentType())) {
+      if (["saas", "enterprise"].includes(getCreate().deploymentType())) {
         assert.exists(notificationsConfig);
       }
     }
@@ -2313,7 +2313,7 @@ describe("ApiServerAccess", function() {
         assert.deepEqual(resp.data.map((org: any) => org.name),
           ["Chimpyland", "EmptyOrg", "EmptyWsOrg", "Fish", "Flightless",
             "FreeTeam", "NASA", "Primately", "TestAuditLogs", "TestDailyApiLimit",
-            "TestMaxNewUserInvites"]);
+            "TestHighDailyApiLimit", "TestMaxNewUserInvites"]);
       });
     });
   });

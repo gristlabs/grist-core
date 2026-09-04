@@ -97,6 +97,23 @@ export class Client {
   private _authSession: AuthSession = AuthSession.unauthenticated();
   private _nextSeqId: number = 0;     // Next sequence-ID for messages sent to the client
 
+  // Start of the range of sequence-IDs _missedMessages can account for. Below it, we have nothing
+  // to say. From it on, anything we are not holding was sent. Only _dropMissedMessages() sets it.
+  private _missedMessagesWindowStart: number = 0;
+
+  // Set when we have handed a client messages and let go of them. If it comes back saying it
+  // received nothing, they are gone. Cleared once it comes back able to account for them.
+  private _handoverUnconfirmed: boolean = false;
+
+  // Set when we have told a client to reload, until one turns up that has. The demand goes out
+  // over a connection that has just proved unreliable, and by then we have moved past the
+  // messages we could not account for, so nothing else would be left to say it again.
+  private _reloadPending: boolean = false;
+
+  // Last request-ID read off the socket, or null if none. Requests arrive in order, so this says
+  // which of the client's outstanding requests reached us.
+  private _lastReceivedReqId: number | null = null;
+
   // Identifier for the current GristWSConnection object connected to this client.
   private _counter: string | null = null;
   private _i18Instance?: i18n;
@@ -332,24 +349,38 @@ export class Client {
       missedMessages = this.getMissedMessages(lastSeqId);
       if (missedMessages) {
         // We have all the needed messages (possibly an empty array); can do a seamless reconnect.
+        // No gap also means the client accounted for what we handed it before, so that is settled.
         seamlessReconnect = true;
+        this._handoverUnconfirmed = false;
       }
     }
 
-    // We collected any missed messages we need; clear the stored map of them.
-    this._missedMessages.clear();
-    this._missedMessagesTotalLength = 0;
+    // Everything below this is either in the missedMessages we just collected, or went to an
+    // earlier connection. Anything from here on is sent live.
+    const collectedThrough = this._nextSeqId;
 
-    let docsClosed: number | null = null;
-    if (!seamlessReconnect) {
-      // The browser client can't recover from missed messages and will need to reopen docs. Close
-      // all docs we kept open. If it's a new Client object, this is a no-op.
-      docsClosed = this.closeAllDocs();
+    if (newClient) {
+      // A reloaded tab keeps its clientId but numbers its requests afresh from zero, so what we
+      // remember from its previous life would be misleadingly high. Nothing we handed the page
+      // before is in doubt any more either, since this one never asked for it.
+      this._lastReceivedReqId = null;
+      this._handoverUnconfirmed = false;
     }
 
     // An existing browser client that can't recover, or that connected to a new Client object,
     // will need to reopen docs. Tell it to reload.
     const needReload = !newClient && !seamlessReconnect;
+
+    this._reloadPending = needReload;
+
+    let docsClosed: number | null = null;
+    if (!seamlessReconnect) {
+      // The browser client can't recover from missed messages and will need to reopen docs, so
+      // what we hold is of no use to it. Close all docs we kept open. If it's a new Client
+      // object, this is a no-op.
+      this._dropMissedMessages(collectedThrough);
+      docsClosed = this.closeAllDocs();
+    }
 
     this._log.debug({ newClient, needReload, docsClosed, missedMessages: missedMessages?.length },
       "sending clientConnect");
@@ -361,10 +392,20 @@ export class Client {
       clientId: this.clientId,
       missedMessages,
       needReload,
+      // Only meaningful when resuming the session; otherwise no earlier request survives.
+      lastReceivedReqId: seamlessReconnect ? (this._lastReceivedReqId ?? "none") : undefined,
     };
 
     try {
       await this._sendToWebsocket(JSON.stringify(clientConnectMsg));
+
+      // Only let go once the send has gone through. If it throws, the client learned nothing of
+      // what it missed, and can ask again when it next connects.
+      this._dropMissedMessages(collectedThrough);
+      if (missedMessages?.length) {
+        // A successful send is not proof of arrival, so we are owed an account of these.
+        this._handoverUnconfirmed = true;
+      }
 
       if (needReload) {
         // If the client should reload, close the socket without waiting. This connection should
@@ -388,15 +429,22 @@ export class Client {
     }
   }
 
-  // Get messages in order of their key in the _missedMessages map.
+  // Get messages in order of their key in the _missedMessages map. A null lastSeqId means the
+  // client received no numbered message at all on its last connection, so everything we hold
+  // is news to it.
+  //
+  // Returning undefined for a gap is load-bearing: it forces needReload, and only that stops a
+  // client waiting on requests it had in flight.
   public getMissedMessages(lastSeqId: number | null): string[] | undefined {
+    // Neither a client we are still waiting to see reload, nor one that cannot account for what
+    // we handed it, has anything to resume. Report a gap for both.
+    if (this._reloadPending || (lastSeqId === null && this._handoverUnconfirmed)) { return; }
+    const firstNeeded = lastSeqId === null ? this._missedMessagesWindowStart : lastSeqId + 1;
     const result: string[] = [];
-    if (lastSeqId !== null) {
-      for (let i = lastSeqId + 1; i < this._nextSeqId; i++) {
-        const m = this._missedMessages.get(i);
-        if (m === undefined) { return; }
-        result.push(m);
-      }
+    for (let i = firstNeeded; i < this._nextSeqId; i++) {
+      const m = this._missedMessages.get(i);
+      if (m === undefined) { return; }
+      result.push(m);
     }
     return result;
   }
@@ -412,8 +460,7 @@ export class Client {
       clearTimeout(this._destroyTimer);
       this._destroyTimer = null;
     }
-    this._missedMessages.clear();
-    this._missedMessagesTotalLength = 0;
+    this._dropMissedMessages(this._nextSeqId);
     this._comm.removeClient(this);
     this._destroyed = true;
   }
@@ -449,6 +496,9 @@ export class Client {
         docId: request.docId,  // caution: trusting client for docId for this purpose.
       });
       return;
+    }
+    if (typeof request.reqId === "number") {
+      this._lastReceivedReqId = request.reqId;
     }
     let response: CommResponse | CommResponseError;
     const method = this._methods.get(request.method);
@@ -509,6 +559,18 @@ export class Client {
     let fd = 0;
     while (this._docFDs[fd]) { fd++; }
     return fd;
+  }
+
+  // Let go of messages held for a disconnected client, up to but not including seqId. The window
+  // start moves with them, so getMissedMessages() can tell "never held that" from "held it once".
+  private _dropMissedMessages(seqId: number) {
+    for (const [key, message] of this._missedMessages) {
+      if (key < seqId) {
+        this._missedMessages.delete(key);
+        this._missedMessagesTotalLength -= message.length;
+      }
+    }
+    this._missedMessagesWindowStart = Math.max(this._missedMessagesWindowStart, seqId);
   }
 
   private _sendToWebsocket(message: string): Promise<void> {

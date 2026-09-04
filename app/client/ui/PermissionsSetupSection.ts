@@ -1,19 +1,15 @@
 import { makeT } from "app/client/lib/localization";
-import { getHomeUrl } from "app/client/models/homeUrl";
+import { reportError } from "app/client/models/errors";
 import { cssWell, cssWellContent } from "app/client/ui/AdminPanelCss";
 import {
   PermissionsToggleModel,
   PresetName,
 } from "app/client/ui/PermissionsToggleModel";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
-import { cssQuickSetupCard, cssShadowedPrimaryButton, cssValueLabel } from "app/client/ui/SettingsLayout";
-import { bigBasicButton } from "app/client/ui2018/buttons";
+import { cssQuickSetupCard, cssValueLabel } from "app/client/ui/SettingsLayout";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
-import { ConfigAPI } from "app/common/ConfigAPI";
-import { not } from "app/common/gutil";
-import { InstallAPIImpl } from "app/common/InstallAPI";
 import { tokens } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 
@@ -23,91 +19,23 @@ const t = makeT("PermissionsSetupSection");
 const testId = makeTestId("test-permissions-setup-");
 
 /**
- * Renders the "Apply & restart" step of the setup wizard.
+ * Pure renderer for the permissions card on the wizard's "Apply & restart" step.
  *
- * Shows default permission toggles with preset modes (Locked down / Recommended / Open),
- * a "Go Live" button that saves settings and restarts the server, and a success state
- * after restart completes.
+ * Owns wizard-specific model initialization (apply "recommended" preset by
+ * default; force personalSites on for GRIST_SINGLE_ORG=docs deployments
+ * that would otherwise be bricked). Exposes its `model` so the step's
+ * DraftChangesManager can register it; lifecycle (apply, restart, success
+ * page) lives in {@link QuickSetupApplyStep}.
  */
 export class PermissionsSetupSection extends Disposable {
-  private _model = PermissionsToggleModel.create(this);
-  private _configAPI = new ConfigAPI(getHomeUrl());
-  private _installAPI = new InstallAPIImpl(getHomeUrl());
-  private _error = Observable.create<string>(this, "");
-  private _saving = Observable.create<boolean>(this, false);
-  // Whether the server has been restarted after saving. Used to switch to the success page.
-  private _restarted = Observable.create<boolean>(this, false);
+  public readonly model = PermissionsToggleModel.create(this);
 
   constructor() {
     super();
-    void this._load();
+    this._load().catch(reportError);
   }
 
-  public buildDom(): DomContents {
-    return dom("div",
-      testId("section"),
-      dom.domComputed(this._restarted, (done) => {
-        if (done) { return this._buildSuccessPage(); }
-        return dom("div",
-          dom.maybe(this._error, err => cssError(err)),
-          this._buildContent(),
-        );
-      }),
-    );
-  }
-
-  private async _load() {
-    try {
-      await this._model.loaded;
-      if (this.isDisposed()) { return; }
-      // Recommended is the wizard default; applyPreset skips env-locked
-      // toggles, so their server values from load() are preserved.
-      this._model.applyPreset("recommended");
-      // GRIST_SINGLE_ORG=docs makes the personal org the only org —
-      // disabling personal sites would brick Grist.
-      if (getGristConfig().singleOrg === "docs") {
-        this._model.toggles.personalSites.set(true);
-      }
-    } catch (e) {
-      if (this.isDisposed()) { return; }
-      this._error.set(String(e));
-    }
-  }
-
-  private async _handleGoLive() {
-    if (this._saving.get()) { return; }
-    this._saving.set(true);
-    this._error.set("");
-    try {
-      await this._model.apply();
-      // The wizard's Go Live step is what clears the post-setup gate;
-      // service status is its own concern, so set it via a separate call
-      // rather than bundling it into the permissions write.
-      await this._installAPI.updateInstallPrefs({ envVars: { GRIST_IN_SERVICE: "true" } });
-      await this._configAPI.restartServer();
-      await this._waitForReady();
-      if (this.isDisposed()) { return; }
-      this._restarted.set(true);
-    } catch (e) {
-      if (this.isDisposed()) { return; }
-      this._error.set(String(e));
-    } finally {
-      if (!this.isDisposed()) { this._saving.set(false); }
-    }
-  }
-
-  private async _waitForReady() {
-    if (!await this._configAPI.waitUntilReady()) {
-      if (this.isDisposed()) { return; }
-      throw new Error(t("Server did not restart in time. Please refresh the page."));
-    }
-  }
-
-  private _goHome() {
-    window.location.href = getHomeUrl(); // avoid using urlState here, as it is meant for team navigation.
-  }
-
-  private _buildContent(): DomContents {
+  public buildDom(opts: { disabled?: Observable<boolean> } = {}): DomContents {
     return dom("div",
       quickSetupStepHeader({
         icon: "Settings",
@@ -115,36 +43,21 @@ export class PermissionsSetupSection extends Disposable {
         description: t("Review these defaults before going live. " +
           "You can change them later from the admin panel."),
       }),
-      buildPermissionsCard(this._model, { disabled: this._saving }),
-
-      dom.maybe(this._saving, () =>
-        cssRestartingRow(
-          loadingSpinner(),
-          t("Applying settings and restarting…"),
-        ),
-      ),
-      dom.maybe(not(this._saving), () =>
-        cssBottomRow(
-          cssGoLiveButton(t("Apply and go live!"),
-            dom.on("click", () => this._handleGoLive()),
-            testId("go-live"),
-          ),
-        ),
-      ),
+      buildPermissionsCard(this.model, opts),
     );
   }
 
-  private _buildSuccessPage(): DomContents {
-    return cssSuccessPage(
-      cssSparks(),
-      cssSuccessTitle(t("Grist is live!")),
-      cssSuccessSubtitle(t("Your configuration changes have been applied and the server has been restarted. \
-Grist is now in service and available to users.")),
-      bigBasicButton(t("Back to installation"),
-        dom.on("click", () => this._goHome()),
-        testId("back-to-install"),
-      ),
-    );
+  private async _load() {
+    await this.model.loaded;
+    if (this.isDisposed()) { return; }
+    // Recommended is the wizard default; applyPreset skips env-locked
+    // toggles, so their server values from load() are preserved.
+    this.model.applyPreset("recommended");
+    // GRIST_SINGLE_ORG=docs makes the personal org the only org —
+    // disabling personal sites would brick Grist.
+    if (getGristConfig().singleOrg === "docs") {
+      this.model.toggles.personalSites.set(true);
+    }
   }
 }
 
@@ -256,14 +169,6 @@ const cssLoading = styled("div", `
   color: ${theme.lightText};
 `);
 
-const cssError = styled("div", `
-  background: ${theme.toastErrorBg};
-  border-radius: 8px;
-  color: white;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-`);
-
 const cssPermissionsSection = styled(cssQuickSetupCard, `
   transition: opacity 0.2s;
 
@@ -364,62 +269,4 @@ const cssBadge = styled("span", `
 const cssPermissionDescription = styled("div", `
   font-size: 13px;
   line-height: 1.4;
-`);
-
-const cssBottomRow = styled("div", `
-  display: flex;
-  justify-content: stretch;
-  margin-top: 24px;
-  & > * {
-    flex: 1;
-  }
-`);
-
-const cssRestartingRow = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 14px 16px;
-  border: 1px solid ${theme.pagePanelsBorder};
-  border-radius: 8px;
-  font-size: 14px;
-`);
-
-const cssGoLiveButton = styled(cssShadowedPrimaryButton, `
-  background-color: ${theme.toastSuccessBg};
-  border-color: ${theme.toastSuccessBg};
-  &:hover {
-    background-color: ${theme.toastSuccessBg};
-    filter: brightness(0.95);
-  }
-`);
-
-const cssSuccessPage = styled("div", `
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 48px 32px;
-  gap: 12px;
-`);
-
-const cssSparks = styled("div", `
-  height: 48px;
-  width: 48px;
-  background-image: var(--icon-Sparks);
-  display: inline-block;
-  background-repeat: no-repeat;
-`);
-
-const cssSuccessTitle = styled("div", `
-  font-size: 18px;
-  font-weight: 600;
-  color: ${theme.text};
-`);
-
-const cssSuccessSubtitle = styled("div", `
-  font-size: 14px;
-  margin-bottom: 16px;
 `);

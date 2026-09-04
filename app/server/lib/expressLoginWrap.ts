@@ -8,8 +8,9 @@ import { RequestHandler } from "express";
  * - Disallow embedding in iframes.
  * - Isolate from cross-origin openers.
  *
- * This is currently only used in ext code, but included in core in case this handling may be
- * appropriate for more purposes in the future.
+ * This is currently only used in SaaS code, but included in core in case this logic may be
+ * appropriate for more purposes in the future. If you just need to disallow framing, use
+ * denyFraming from app/server/lib/middleware.ts.
  */
 export function expressLoginWrap(callback: AsyncRequestHandler): RequestHandler {
   return async (req, res, next) => {

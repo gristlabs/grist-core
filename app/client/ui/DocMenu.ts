@@ -348,7 +348,7 @@ export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, worksp
   function hardDeleteDoc() {
     confirmModal(t("Permanently Delete \"{{name}}\"?", { name: doc.name }), t("Delete Forever"),
       () => home.deleteDoc(doc.id, true).catch(reportError),
-      { explanation: t("Document will be permanently deleted.") },
+      { explanation: t("Document will be permanently deleted."), defaultCancel: true },
     );
   }
 

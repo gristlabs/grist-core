@@ -14,7 +14,7 @@ import {
   backupSqliteDatabase,
   retryOnClose,
 } from "app/server/lib/backupSqliteDatabase";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
 import { DocManager } from "app/server/lib/DocManager";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
@@ -393,6 +393,7 @@ describe("HostedStorageManager", function() {
   setTmpLogLevel("info");  // allow info messages for this test since failures are hard to replicate
   this.timeout(60000);     // s3 can be slow
 
+  const create = getCreate();
   const docSession = makeExceptionalDocSession("system");
 
   before(async function() {
@@ -1247,6 +1248,11 @@ describe("HostedStorageManager", function() {
       }
     });
 
+    // node-sqlite3's default busy_timeout. A step approaching this blocks a client waiting to write.
+    const BUSY_TIMEOUT_MS = 1000;
+    // Copy steps are bounded to PAGES_TO_BACKUP_PER_STEP pages, so they should land well inside it.
+    const QUICK_STEP_MS = 250;
+
     for (const mode of ["without-doc", "with-doc", "with-closing-doc"] as const) {
       it(`backups are robust to locking (${mode})`, async function() {
         // Takes some time to create large db and play with it.
@@ -1260,17 +1266,21 @@ describe("HostedStorageManager", function() {
         let eventAction: string = "";
         let eventCount: number = 0;
         let restartCount: number = 0;
-        let slowSteps: number = 0;
-        let slowStepsTotalTime: number = 0;
+        // Copy steps and the final step, kept apart: through the document's own connection the
+        // last step does more than copy pages and is reliably slower. backupSqliteDatabase
+        // separates them for the same reason.
+        let maxNonFinalStepMs: number = 0;
+        // A step is only known to be non-final once another starts.
+        let pendingStepMs: number | undefined;
         function progress(event: BackupEvent) {
           if (event.phase === "after") {
-            // Duration of backup action should never approach the default node-sqlite3 busy_timeout of 1s.
-            // If it does, then user actions could be blocked.
             assert.equal(event.action, eventAction);
             const dt = Date.now() - eventStart;
-            if (dt > 250) {
-              slowSteps++;
-              slowStepsTotalTime += dt;
+            if (event.action === "step") {
+              if (pendingStepMs !== undefined) {
+                maxNonFinalStepMs = Math.max(maxNonFinalStepMs, pendingStepMs);
+              }
+              pendingStepMs = dt;
             }
             eventCount++;
           } else if (event.phase === "before") {
@@ -1346,26 +1356,26 @@ describe("HostedStorageManager", function() {
         const db2 = await SQLiteDB.openDBRaw(dest);
         assert.lengthOf(await db2.all("select rowid from data"), 30000 + 100);
 
+        const finalStepMs = pendingStepMs ?? 0;
+
         if (mode === "without-doc") {
           // If simulating a backup not done via the connection to the source database
           // then disruption should cause backup restart.
           assert.isAbove(restartCount, 0);
-          // There should be no slow steps.
-          assert.equal(slowSteps, 0);
+          // Nothing goes through the document's connection, so every step is just copying pages.
+          assert.isBelow(maxNonFinalStepMs, QUICK_STEP_MS);
+          assert.isBelow(finalStepMs, QUICK_STEP_MS);
         } else {
           // If simulating a backup done via the connection to the source database
           // then disruption should not cause backup restart.
           assert.equal(restartCount, 0);
-          // There may be one slowish step at the end if a lot of edits
-          // happen during backup.
-          assert.isBelow(slowSteps, 2);
-          // For this test, slow step shouldn't be too long, though
-          // that's hardware dependent.
-          // Could exceed busy time, but that isn't a problem now we
-          // are using the same db object as the rest of Grist - any
-          // work waiting will be held just like any pair of editors
-          // competing.
-          assert.isBelow(slowStepsTotalTime, 5000);
+          // The property under test: no copy step may approach the busy timeout, or a client
+          // waiting to write blocks for that long. The insert loop above checks this directly.
+          assert.isBelow(maxNonFinalStepMs, BUSY_TIMEOUT_MS);
+          // The final step does extra work and may exceed the busy timeout. Harmless on a shared
+          // connection: waiting work is held like any pair of editors competing. Bound it loosely
+          // (hardware dependent) to catch a lock held unreasonably long.
+          assert.isBelow(finalStepMs, 5000);
         }
       });
     }

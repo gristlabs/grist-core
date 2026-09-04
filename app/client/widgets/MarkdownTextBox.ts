@@ -1,3 +1,4 @@
+import { watchForOverflow } from "app/client/lib/markdownOverflow";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { renderCellMarkdown } from "app/client/ui/MarkdownCellRenderer";
@@ -20,7 +21,9 @@ export class MarkdownTextBox extends NTextBox {
 
     return dom(
       "div.field_clip.markdown",
+      watchForOverflow,
       cssMarkdown(
+        watchForOverflow,
         cssMarkdown.cls("-text-wrap", this.wrapping),
         dom.style("text-align", this.alignment),
         dom.on("contextmenu", (ev) => {

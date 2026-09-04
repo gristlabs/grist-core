@@ -237,6 +237,23 @@ describe("gristUrls", function() {
       });
     });
 
+    describe("with FREE_COACHING_CALL_URL env var", function() {
+      it("should be undefined when the env var is unset", function() {
+        assert.isUndefined(getCommonUrls().freeCoachingCall);
+      });
+
+      it("should return the URL set by the env var", function() {
+        const customUrl = "https://example.com/book-a-call";
+        sandbox.define(process.env, "FREE_COACHING_CALL_URL", customUrl);
+        assert.equal(getCommonUrls().freeCoachingCall, customUrl);
+      });
+
+      it("should be undefined when the env var is empty", function() {
+        sandbox.define(process.env, "FREE_COACHING_CALL_URL", "");
+        assert.isUndefined(getCommonUrls().freeCoachingCall);
+      });
+    });
+
     describe("client-side when customized by the admin", function() {
       it("should read the admin-defined values gristConfig", function() {
         sandbox.define(globalThis, "window", {

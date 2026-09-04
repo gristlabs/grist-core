@@ -1,9 +1,9 @@
 import { makeT } from "app/client/lib/localization";
-import { localStorageBoolObs } from "app/client/lib/localStorageObs";
 import { cssMarkdownSpan } from "app/client/lib/markdown";
 import { redirectToLogin } from "app/client/lib/urlUtils";
 import { AdminChecks } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
+import { urlState } from "app/client/models/gristUrlState";
 import {
   cssIconWrapper,
   cssWell,
@@ -20,15 +20,27 @@ import {
   getGristComProviderMeta,
   peekSetupReturnFromGetGristCom,
 } from "app/client/ui/GetGristComProvider";
+import { buildInstallationIdBlock } from "app/client/ui/InstallationIdBlock";
 import { ApplyResult } from "app/client/ui/QuickSetupContinueButton";
-import { cssCardSurface } from "app/client/ui/SettingsLayout";
-import { cssHeroCard } from "app/client/ui/SetupCard";
+import {
+  buildBadge,
+  buildCardList,
+  buildItemCard,
+  buildItemContent,
+  buildItemRadio,
+  cssHeroActions,
+  cssHeroCard,
+  cssItemError,
+  cssItemInfo,
+} from "app/client/ui/SetupCard";
 import { basicButton, bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
+import { bigBasicButtonLink, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { confirmModal, cssModalWidth, modal, saveModal } from "app/client/ui2018/modals";
 import { AuthProvider, ConfigAPI } from "app/common/ConfigAPI";
+import { ADMIN_PANEL_EDITION_ANCHOR, commonUrls } from "app/common/gristUrls";
 import { PendingChanges } from "app/common/Install";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
 import {
@@ -42,25 +54,18 @@ import {
   OIDC_PROVIDER_KEY,
   SAML_PROVIDER_KEY,
 } from "app/common/loginProviders";
-import { getGristConfig } from "app/common/urlUtils";
+import { getAdminConfig, getGristConfig } from "app/common/urlUtils";
 
-import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("AuthenticationSection");
 
 const testId = makeTestId("test-admin-auth-");
 
-// Scope the acknowledgement to this installation, so the same browser used
-// to administer multiple Grist installations doesn't carry the dismissal across.
-const installationId = getGristConfig().activation?.installationId;
-const noAuthAcknowledged = localStorageBoolObs(
-  installationId ? `noAuthAcknowledged:${installationId}` : "noAuthAcknowledged",
-);
-
 /**
  * Prompt the admin to acknowledge that the server has no authentication
  * before continuing past the Quick Setup auth step without configuring a
- * provider.
+ * provider (i.e. choosing the last-resort 'no-auth' option).
  */
 export function confirmNoAuthAcknowledgement(onConfirm: () => void): void {
   saveModal((_ctl, owner) => {
@@ -81,20 +86,22 @@ You can configure authentication later from the admin panel."),
         ),
         cssNoAuthCheckbox(
           labeledSquareCheckbox(ack,
-            t("I understand this server has no authentication"),
+            t("I understand this server will run with no authentication"),
             testId("no-auth-acknowledge"),
           ),
         ),
       ),
       saveLabel: t("Continue without authentication"),
       saveDisabled,
-      saveFunc: async () => {
-        noAuthAcknowledged.set(true);
-        onConfirm();
-      },
-      width: "normal" as const,
+      saveFunc: async () => onConfirm(),
+      width: "fixed-wide" as const,   // wider, so that long buttons don't wrap.
     };
   });
+}
+
+/** True for a provider that requires an activation key on an install that has none. */
+function isMissingRequiredKey(p: AuthProvider): boolean {
+  return (p.key === OIDC_PROVIDER_KEY || p.key === SAML_PROVIDER_KEY) && !getGristConfig().activation?.key;
 }
 
 interface AuthenticationSectionOptions {
@@ -188,6 +195,13 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     },
   );
 
+  /** True when this visit holds unsaved state; shows Revert, which discards it all. */
+  private _hasUnsavedChanges = Computed.create<boolean>(this, use =>
+    use(this._draftConfigs).size > 0 || use(this._draftActiveProvider) !== null);
+
+  private _hasNoAuthChosen = Computed.create<boolean>(this, use =>
+    (use(this._draftActiveProvider) === FALLBACK_PROVIDER_KEY));
+
   private _hasActiveOnRestartProvider = Computed.create(this, this._displayProviders, (_use, providers) => {
     return providers.some(p => p.willBeActive);
   });
@@ -232,8 +246,8 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       return !!loginSystemId && isRealProvider(loginSystemId);
     });
 
-    this.canProceed = Computed.create(this, use =>
-      use(noAuthAcknowledged) || use(this.hasConfiguredAuth));
+    this.canProceed = Computed.create(this, this._hasNoAuthChosen, this.hasConfiguredAuth,
+      (use, hasNoAuthChosen, hasConfiguredAuth) => hasNoAuthChosen || hasConfiguredAuth);
 
     // Evaluate every branch: short-circuit returns drop subscriptions to
     // later deps, leaving `isDirty` stale once an early truthy branch flips.
@@ -341,6 +355,11 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
   public async afterApply(): Promise<ApplyResult> {
     if (this.isDisposed()) { return; }
     if (!this._willInvalidateSession) { return; }
+    // A boot-key session is kept across the restart, so the operator may well still be
+    // signed in and able to carry on. Ask the server rather than assume: the session is
+    // also kept when it no longer belongs to the admin (after an admin transfer), and
+    // then signing in again is the only way forward.
+    if (await this._isStillInstallAdmin()) { return; }
     redirectToLogin();
     return { redirected: true };
   }
@@ -377,7 +396,7 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
       dom.domComputed((use) => {
         const providers = use(this._displayProviders);
         const loginSystemId = use(this._loginSystemId);
-        return this._buildSection(providers, loginSystemId);
+        return this._buildSection(providers, use(this._hasNoAuthChosen), loginSystemId);
       }),
       this._inAdminPanel ?
         dom.maybe(this._hasPersistedRestartChange, () => this._buildAuthenticationChangeWarning()) : null,
@@ -395,6 +414,17 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     const checks = new AdminChecks(this, this._installAPI);
     checks.fetchAvailableChecks().catch(reportError);
     return checks.buildLoginProviderObs(this);
+  }
+
+  /** Whether the restarted server still accepts this session as the install admin. */
+  private async _isStillInstallAdmin(): Promise<boolean> {
+    try {
+      const { user } = await this._appModel.api.getSessionActive();
+      return Boolean(user.isInstallAdmin);
+    } catch (err) {
+      // An unreachable or rejected session is the case sign-in exists for.
+      return false;
+    }
   }
 
   private async _fetchProviders() {
@@ -415,29 +445,32 @@ export class AuthenticationSection extends Disposable implements ConfigSection {
     this._prefsPendingChanges.set({ onRestartSetAdminEmail, onRestartReplaceEmailWithAdmin });
   }
 
-  private _buildSection(providers: AuthProvider[], loginSystemId?: string): HTMLElement {
-    const getgrist = providers.find(p =>
+  private _buildSection(providers: AuthProvider[], noAuthChosen: boolean, loginSystemId?: string) {
+    const activeGetgrist = providers.find(p =>
       p.key === GETGRIST_COM_PROVIDER_KEY && (p.isActive || p.willBeActive),
     );
+    const getgrist = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
+
     return buildAuthSection(providers, {
-      heroCtx: {
-        adminEmail: this._currentUserEmail,
-        onChangeAdmin: () => this._showChangeAdminModal(),
-        onReconfigure: getgrist ? () => this._configureProvider(getgrist) : undefined,
-        onDeactivate: getgrist ? () => this._deactivateProvider(getgrist) : undefined,
-      },
-      listCtx: {
-        onSetActive: p => this._setActiveProvider(p),
-        onConfigure: p => this._configureProvider(p),
-      },
+      adminEmail: this._currentUserEmail,
+      onChangeAdmin: () => this._showChangeAdminModal(),
+      onReconfigure: activeGetgrist ? () => this._configureProvider(activeGetgrist) : undefined,
+      revertButton: () => maybeRevertButton(this._hasUnsavedChanges, () => this._revertChoice()),
+      onConfigureRecommended: getgrist ? () => this._configureProvider(getgrist) : undefined,
+      onActivateRecommended: getgrist ? () => this._setActiveProvider(getgrist) : undefined,
+      onSetActive: p => this._setActiveProvider(p),
+      onConfigure: p => this._configureProvider(p),
+      onChooseNoAuth: () => this._chooseNoAuth(),
       recentlyConfigured: this._recentlyConfigured,
       loginSystemId,
       inAdminPanel: this._inAdminPanel,
+      noAuthChosen,
     });
   }
 
   private _buildAuthenticationChangeWarning() {
     return cssWell(
+      dom.style("margin-top", "16px"),
       dom.style("margin-bottom", "24px"),
       cssWell.cls("-warning"),
       cssIconWrapper(icon("Warning")),
@@ -489,6 +522,27 @@ authentication system.",
     );
   }
 
+  /**
+   * Discard this visit's unsaved state -- selection, acknowledgement, configuration
+   * drafts -- exactly as reloading the page would. Never touches the server.
+   */
+  private _revertChoice() {
+    this._draftActiveProvider.set(null);
+    this._draftConfigs.set(new Map());
+    this._recentlyConfigured.clear();
+  }
+
+  /**
+   * Choosing the no-auth card: stage the fallback as this visit's selection, to be
+   * saved on apply like any other choice. The acknowledgement modal runs first, once
+   * per page load. A no-op when no-auth is already the staged choice.
+   */
+  private _chooseNoAuth() {
+    if (this._draftActiveProvider.get() !== FALLBACK_PROVIDER_KEY) {
+      confirmNoAuthAcknowledgement(() => { this._draftActiveProvider.set(FALLBACK_PROVIDER_KEY); });
+    }
+  }
+
   private _setActiveProvider(provider: AuthProvider) {
     confirmModal(
       t("Set as active method?"),
@@ -521,14 +575,10 @@ effect after you restart Grist."),
       onSubmit: (key: string) => {
         this._updateDraftConfigs(draft =>
           draft.set(GETGRIST_COM_PROVIDER_KEY, { GRIST_GETGRISTCOM_SECRET: key }));
-        // Mirror the server's "first configured provider wins" behavior:
-        // if nothing is currently active and the user has not chosen one
-        // yet in this session, treat the just-configured provider as the
-        // pending active. Saves the user an explicit "Set as active"
-        // click in the simple zero-config-to-getgrist.com path.
-        if (this._draftActiveProvider.get() === null && !this._providers.get().some(p => p.isActive)) {
-          this._draftActiveProvider.set(GETGRIST_COM_PROVIDER_KEY);
-        }
+        // Configuring means choosing: the staged configuration always travels with a
+        // staged selection, so applying can never save a configuration that boot would
+        // then pick up without an explicitly saved choice.
+        this._draftActiveProvider.set(GETGRIST_COM_PROVIDER_KEY);
         this._recentlyConfigured.add(GETGRIST_COM_PROVIDER_KEY);
         onUserClose();
       },
@@ -545,28 +595,6 @@ effect after you restart Grist."),
       m.show();
       this.onDispose(() => m.isDisposed() ? void 0 : m.dispose());
     }
-  }
-
-  private _deactivateProvider(provider: AuthProvider) {
-    confirmModal(
-      t("Deactivate authentication?"),
-      t("Deactivate"),
-      async () => { this._draftActiveProvider.set(FALLBACK_PROVIDER_KEY); },
-      {
-        explanation: dom("div",
-          cssMarkdownSpan(
-            t("Are you sure you want to deactivate **{{name}}**?", { name: provider.name }),
-          ),
-          dom("p",
-            t("Your configuration will be preserved. You can reactivate it later without reconfiguring."),
-          ),
-          dom("p",
-            t("The change will be saved when you apply pending changes, and will take \
-effect after you restart Grist."),
-          ),
-        ),
-      },
-    );
   }
 
   private _showChangeAdminModal() {
@@ -681,6 +709,8 @@ interface ProviderMeta {
   description: string;
   /** Longer description for the hero card when this provider is active. */
   heroDesc: string;
+  /** A security caveat worth flagging when this method is chosen (card + activate modal). */
+  caveat?: string;
   /** Link to setup documentation. */
   docsUrl: string;
   /** Paragraphs shown in the configuration modal. */
@@ -741,6 +771,8 @@ signed in as the user verified by the provider."),
       description: t("For reverse proxy setups (Traefik, Authelia, etc.)."),
       heroDesc: t("Your server trusts authentication from a reverse proxy. \
 Make sure only your proxy can reach the Grist backend."),
+      caveat: t("Only your reverse proxy should be able to reach the Grist backend directly, \
+or users could bypass sign-in."),
       docsUrl,
       modalDescription: [
         t("**Forwarded headers** allows your Grist server to trust authentication performed by an external \
@@ -835,36 +867,32 @@ class InformationModal extends Disposable {
 }
 
 // =========================================================================
-// Rendering functions for auth UI elements, shared by the live admin
-// panel (via AuthenticationSection) and Storybook (via buildAuthSectionPreview).
+// Rendering functions for auth UI elements: pure functions of the provider
+// list and an AuthSectionContext assembled by AuthenticationSection.
 // =========================================================================
 
-export interface HeroCardContext {
+export interface AuthSectionContext {
   adminEmail: string;
   onChangeAdmin?: () => void;
   onReconfigure?: () => void;
-  onDeactivate?: () => void;
-}
-
-export interface ProviderListContext {
+  revertButton: () => DomContents,
+  /** Configure the recommended method (getgrist.com), from the wizard's recommendation hero. */
+  onConfigureRecommended?: () => void;
+  /** Activate the recommended method once it's already configured. */
+  onActivateRecommended?: () => void;
   onSetActive?: (provider: AuthProvider) => void;
   onConfigure?: (provider: AuthProvider) => void;
-  collapsible?: boolean;
-  /** When true, collapse the list when the no-auth checkbox is acknowledged. */
-  collapseOnNoAuth?: boolean;
-  /** Defaults to "Available methods"/"Other authentication methods". */
-  title?: string;
-}
-
-export interface AuthSectionContext {
-  heroCtx: HeroCardContext;
-  listCtx: ProviderListContext;
+  /** Select the no-auth card: acknowledge, and stage deactivation if a method is pending. */
+  onChooseNoAuth?: () => void;
+  /** Providers configured this session; suppresses their likely-stale startup errors. */
   recentlyConfigured?: ReadonlySet<string>;
-  /** The login system ID from the boot probe (e.g. "minimal", "boot-key").
-   *  When set to a non-real provider key, shows the no-auth hero. */
-  loginSystemId?: string;
-  /** Defaults to true. */
+  /** True in the admin panel, false in the setup wizard — picks the nothing-configured hero
+   * and collapses "Other methods" once a valid method is active. */
   inAdminPanel?: boolean;
+  /** The admin explicitly acknowledged no-auth — show the no-auth hero as their choice. */
+  noAuthChosen?: boolean;
+  /** From the boot probe: the login system actually running (distinguishes boot-key no-auth). */
+  loginSystemId?: string;
 }
 
 /**
@@ -874,48 +902,36 @@ export interface AuthSectionContext {
 export function buildAuthSection(
   providers: AuthProvider[],
   ctx: AuthSectionContext,
-): HTMLElement {
-  const recentlyConfigured = ctx.recentlyConfigured ?? new Set();
+): DomContents {
+  const pending = providers.find(p => p.willBeActive && isRealProvider(p.key));
+  const switchingFrom = providers.find(p => p.willBeDisabled && isRealProvider(p.key));
+  const active = providers.find(p => p.isActive && isRealProvider(p.key) && !p.willBeDisabled);
+  let hero = pending || active;
 
-  const hero =
-    providers.find(p => p.isActive && isRealProvider(p.key)) ??
-    providers.find(p => p.willBeActive && isRealProvider(p.key)) ??
-    null;
+  // getgrist.com stops being "the recommendation" once a real method is active or pending
+  // in good standing (no error, not an activation-key-less SSO). A staged method is held to
+  // the same standard: an SSO that cannot sign anyone in must not hide the alternatives.
+  const inGoodStanding = (p: AuthProvider) =>
+    !getVisibleError(p, ctx.recentlyConfigured) && !isMissingRequiredKey(p);
+  const hasValidAuth = Boolean(
+    (pending && inGoodStanding(pending)) || (active && inGoodStanding(active)));
 
-  const getgrist = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
-  if (!ctx.inAdminPanel && !hero && getgrist) {
-    const heroEl = buildRecommendedCard(getgrist, ctx.heroCtx, ctx.listCtx);
-    const otherProviders = providers.filter(p => p.key !== GETGRIST_COM_PROVIDER_KEY);
-    const listEl = buildProviderList(otherProviders, recentlyConfigured, {
-      ...ctx.listCtx,
-      collapsible: true,
-      title: t("Or connect your own identity provider"),
-    });
-    return dom("div",
-      heroEl,
-      cssOtherMethods(listEl),
-    );
+  // In the wizard, if nothing else takes the hero spot, show our getgrist.com recommendation.
+  const showRec = !ctx.inAdminPanel && !hero && !switchingFrom && !ctx.noAuthChosen;
+  if (!hero && showRec) {
+    hero = providers.find(p => p.key === GETGRIST_COM_PROVIDER_KEY);
   }
 
-  // Show the no-auth hero when no real provider is active or pending. This covers:
-  // - Boot probe reports a non-real provider (minimal, boot-key)
-  // - A provider was just deactivated (willBeDisabled) with nothing replacing it
-  const noRealPending = providers.some(p => p.willBeDisabled) &&
-    !providers.some(p => p.willBeActive);
-  const bootProbeNoAuth = !!ctx.loginSystemId && !isRealProvider(ctx.loginSystemId);
-  const showNoAuth = !hero && (bootProbeNoAuth || noRealPending);
-  // When deactivating, the boot probe still reports the old provider. Use the
-  // fallback key so the hero shows the right language for what comes after restart.
-  const effectiveLoginSystem = noRealPending ? FALLBACK_PROVIDER_KEY : ctx.loginSystemId;
-  const heroEl = (hero || showNoAuth) ?
-    buildHeroCard(hero, recentlyConfigured, ctx.heroCtx, effectiveLoginSystem) :
-    dom("div");
-
-  const listEl = buildProviderList(
-    providers, recentlyConfigured, { ...ctx.listCtx, collapsible: !!hero, collapseOnNoAuth: showNoAuth },
+  const heroCard = () => {
+    if (!hero) { return buildNoAuthHero(ctx, switchingFrom); }
+    if (showRec) { return buildRecommendedCard(hero, ctx); }
+    return buildHeroCard(hero, ctx, switchingFrom);
+  };
+  const otherProviders = providers.filter(p => (p !== hero));
+  return dom("div",
+    heroCard(),
+    buildProviderList(otherProviders, ctx, { hasValidAuth, includeNoAuth: Boolean(hero) }),
   );
-
-  return dom("div", heroEl, listEl);
 }
 
 /**
@@ -924,30 +940,32 @@ export function buildAuthSection(
  */
 function getVisibleError(
   provider: AuthProvider,
-  recentlyConfigured: ReadonlySet<string>,
+  recentlyConfigured?: ReadonlySet<string>,
 ): string | undefined {
   if (provider.configError) { return provider.configError; }
   // Suppress activeError when it's likely stale.
   if (!provider.activeError) { return undefined; }
-  if (recentlyConfigured.has(provider.key)) { return undefined; }
+  if (recentlyConfigured?.has(provider.key)) { return undefined; }
   if (provider.willBeActive && !provider.isActive) { return undefined; }
   return provider.activeError;
 }
 
-type BadgeVariant = "-primary" | "-warning" | "-error";
-
-function badge(label: string, variant: BadgeVariant, extraTestId: string) {
-  return cssMethodBadge(label, cssMethodBadge.cls(variant), testId("badge"), testId(extraTestId));
+/** One description per method, shared by the card and the hero. */
+function descriptionOf(provider: AuthProvider): string {
+  return provider.key === GETGRIST_COM_PROVIDER_KEY ?
+    getGristComProviderMeta().recommendedHint : getProviderMeta(provider).description;
 }
 
-function buildHeroBadge(provider: AuthProvider, error: string | undefined) {
-  if (error) { return badge(t("Error"), "-error", "badge-error"); }
-  if (provider.isActive) { return badge(t("Active"), "-primary", "badge-active"); }
-  if (provider.willBeActive) { return badge(t("Active on restart"), "-warning", "badge-active-on-restart"); }
-  return null;
+/** The standard warning well inside the hero body: warning icon + a <p> of the given content. */
+function heroWarnWell(testIdName: string, ...content: DomElementArg[]): HTMLElement {
+  return cssHeroWell(cssWell.cls("-warning"),
+    cssIconWrapper(icon("Warning")),
+    cssWellContent(dom("p", ...content)),
+    testId(testIdName),
+  );
 }
 
-function buildHeroAdminRow(ctx: HeroCardContext) {
+function buildHeroAdminRow(ctx: AuthSectionContext) {
   return cssHeroAdminRow(
     dom("span",
       t("Installation admin: "),
@@ -961,238 +979,348 @@ function buildHeroAdminRow(ctx: HeroCardContext) {
   );
 }
 
+/** The wizard's recommendation hero: getgrist.com with a Configure (or Activate) call to action. */
 function buildRecommendedCard(
   provider: AuthProvider,
-  heroCtx: HeroCardContext,
-  listCtx: ProviderListContext,
+  ctx: AuthSectionContext,
 ): HTMLElement {
-  const meta = getGristComProviderMeta();
-  return cssRecommendedCard(
-    testId("hero-card"),
-    testId("hero-nudge"),
-    cssRecommendedHeader(
-      cssGMark("G"),
-      badge(meta.recommendedBadge, "-primary", "badge-recommended"),
-    ),
-    cssHeroProviderName(provider.name, dom.style("margin-bottom", "12px")),
-    cssHeroHighlight(
-      cssHeroHighlightCheck(icon("Tick")),
-      cssHeroHighlightBody(meta.recommendedHighlight),
-    ),
-    cssHeroDescription(meta.recommendedDesc),
-    cssHeroActions(
-      bigPrimaryButton(
-        meta.recommendedConfigure,
-        dom.on("click", () => listCtx.onConfigure?.(provider)),
-        testId("getgrist-cta"),
+  const cta = () => {
+    // Once the recommended method is configured, the call to action becomes Activate.
+    const ready = Boolean(provider.isConfigured && !provider.willBeActive);
+    if (ready && ctx.onActivateRecommended) {
+      return bigPrimaryButton(t("Activate"), dom.on("click", ctx.onActivateRecommended), testId("hero-activate"));
+    } else if (ctx.onConfigureRecommended) {
+      return bigPrimaryButton(t("Configure"), dom.on("click", ctx.onConfigureRecommended), testId("hero-configure"));
+    }
+  };
+
+  return buildHeroCardCommon({
+    ...ctx,
+    itemRadio: buildItemRadio({ checked: false }),
+    itemContent: buildItemContent({
+      header: provider.name,
+      badges: (provider.isConfigured ?
+        buildBadge(t("Configured"), "grey", testId("configured-tag")) :
+        buildBadge(getGristComProviderMeta().recommendedBadge, "accent", testId("badge-recommended"))
       ),
-    ),
-    buildHeroAdminRow(heroCtx),
-  );
+      text: descriptionOf(provider),
+      extra: cssHeroActions(cta()),
+    }),
+  });
 }
 
+function maybeRevertButton(showRevert: Observable<boolean>, onRevert: () => void) {
+  return dom.maybe(showRevert, () =>
+    basicButton(t("Revert"), dom.on("click", onRevert), testId("hero-revert")));
+}
+
+/**
+ * Hero for the active or becoming-active method: the same card layout as a method card
+ * (check glyph + name + chips + description) in an accent frame, plus any error or
+ * activation-key warning, an action button, and the admin row. A staged switch names the
+ * outgoing method (`switchingFrom`) in a "Was: …" lead-in.
+ */
 function buildHeroCard(
-  hero: AuthProvider | null,
-  recentlyConfigured: ReadonlySet<string>,
-  ctx: HeroCardContext,
-  loginSystemId?: string,
+  provider: AuthProvider, ctx: AuthSectionContext, switchingFrom?: AuthProvider,
 ): HTMLElement {
-  if (!hero) {
-    const isBootKey = loginSystemId === BOOT_KEY_PROVIDER_KEY;
-    return cssHeroCard(
-      cssHeroCard.cls("-error", use => !use(noAuthAcknowledged)),
-      cssHeroCard.cls("-warning", noAuthAcknowledged),
-      testId("hero-card"),
-      testId("hero-warning"),
-      cssHeroHeader(
-        cssHeroProviderName(isBootKey ?
-          t("No authentication: using boot key") :
-          t("No authentication"),
-        ),
-        badge(t("Not recommended"), "-warning", "badge-warning"),
-      ),
-      cssHeroDescription(
-        isBootKey ?
-          t("Your server is using a boot key as a fallback login method. \
-Configure one of the authentication methods below.") :
-          t("Anyone who can reach this server can access all data without signing in. \
-Configure one of the authentication methods below."),
-      ),
-      cssNoAuthCheckbox(
-        labeledSquareCheckbox(noAuthAcknowledged,
-          t("I understand this server has no authentication"),
-          testId("no-auth-acknowledge"),
-        ),
-      ),
-      buildHeroAdminRow(ctx),
-    );
-  }
+  const pending = Boolean(provider.willBeActive);
+  const error = getVisibleError(provider, ctx.recentlyConfigured);
 
-  const error = getVisibleError(hero, recentlyConfigured);
-  const meta = getProviderMeta(hero);
-  const variant = error ? "-error" : hero.isActive ? "-success" : "-pending";
+  const name = () => {
+    if (!pending) { return provider.name; }
+    if (switchingFrom) { return t("Switch to: {{name}}", { name: provider.name }); }
+    return t("Activate: {{name}}", { name: provider.name });
+  };
 
-  let descText: string | undefined;
-  if (error) {
-    descText = t("Authentication is misconfigured or unreachable. Users may not be able to sign in.");
-  } else if (hero.isActive) {
-    descText = meta.heroDesc;
-  } else if (hero.willBeActive) {
-    descText = t("Authentication has been configured and will become active when Grist is restarted.");
-  }
+  const statusBadge = () => {
+    if (error) { return buildBadge(t("Error"), "error", testId("badge-error")); }
+    if (pending) { return buildBadge(t("Active on restart"), "pending", testId("badge-active-on-restart")); }
+    return buildBadge(t("Active"), "primary", testId("badge-active"));
+  };
 
-  const hasActions = ctx.onReconfigure || ctx.onDeactivate;
+  const descText = () => {
+    if (error) { return t("Authentication is misconfigured or unreachable. Users may not be able to sign in."); }
+    if (pending) { return descriptionOf(provider); }
+    return getProviderMeta(provider).heroDesc || descriptionOf(provider);
+  };
 
-  return cssHeroCard(
-    cssHeroCard.cls(variant),
-    testId("hero-card"),
-    cssHeroHeader(
-      cssHeroProviderName(hero.name),
-      buildHeroBadge(hero, error),
-    ),
-    descText ? cssHeroDescription(descText) : null,
-    error ? cssHeroError(error, testId("hero-error")) : null,
-    hasActions ? cssHeroActions(
-      ctx.onReconfigure ? basicButton(
-        t("Reconfigure"),
-        dom.on("click", ctx.onReconfigure),
-        testId("hero-reconfigure"),
-      ) : null,
-      ctx.onDeactivate ? basicButton(
-        t("Deactivate"),
-        dom.on("click", ctx.onDeactivate),
-        testId("hero-deactivate"),
-      ) : null,
-    ) : null,
-    buildHeroAdminRow(ctx),
-    testId(`hero-${variant.slice(1)}`),
-  );
-}
+  // An active SSO method with no activation key is outside the supported set: flag it
+  // with a chip and a warning well linking to the key-request modal.
+  const missingKey = isMissingRequiredKey(provider);
 
-function buildProviderCard(
-  provider: AuthProvider,
-  recentlyConfigured: ReadonlySet<string>,
-  ctx: ProviderListContext = {},
-): HTMLElement {
-  const error = getVisibleError(provider, recentlyConfigured);
-  const meta = getProviderMeta(provider);
-  let borderVariant: string | null = null;
-  if (provider.isActive) {
-    borderVariant = "-border-active";
-  } else if (provider.isConfigured && !error) {
-    borderVariant = "-border-configured";
-  } else if (error) {
-    borderVariant = "-border-error";
-  }
+  // A method's security caveat is a setup-time reminder, shown while it is staged.
+  const caveat = pending ? getProviderMeta(provider).caveat : undefined;
 
-  return cssMethodRow(
-    borderVariant ? cssMethodRow.cls(borderVariant) : null,
-    testId(`provider-row-${provider.key.replace(".", "-")}`),
-    testId(`provider-row`),
-    cssMethodContent(
-      cssMethodLabel(provider.name),
-      provider.isActive ? badge(t("Active"), "-primary", "badge-active") : null,
-      provider.willBeActive ? badge(t("Active on restart"), "-warning", "badge-active-on-restart") : null,
-      provider.willBeDisabled ? badge(t("Disabled on restart"), "-warning", "badge-disabled-on-restart") : null,
-      error ? badge(t("Error"), "-error", "badge-error") : null,
-      cssFlex(),
-      provider.canBeActivated ?
-        basicButton(
-          t("Set as active method"),
-          testId(`set-active-button`),
-          ctx.onSetActive ? dom.on("click", () => ctx.onSetActive!(provider)) : null,
+  return buildHeroCardCommon({
+    ...ctx,
+    switchingFrom,
+    itemRadio: buildItemRadio({ checked: true, disabled: pending }),
+    itemContent: buildItemContent({
+      header: name(),
+      badges: statusBadge(),
+      rightBadges: missingKey ? buildBadge(t("Missing activation key"), "warning", testId("missing-key")) : null,
+      text: descText(),
+      extra: [
+        error ? cssItemError(error, testId("hero-error")) : null,
+        caveat ? heroWarnWell("caveat", caveat) : null,
+        missingKey ? heroWarnWell("hero-unsupported",
+          t(`{{name}} is active but is outside the supported set without a Full Grist activation key. `,
+            { name: provider.name }),
+          cssAddressLink(t("Address this."),
+            dom.on("click", () => showKeyRequestModal(provider, { email: ctx.adminEmail, omitMeanwhile: true })),
+            testId("hero-address-unsupported")),
         ) : null,
-      basicButton(
-        t("Configure"),
-        testId("configure-button"),
-        testId(`configure-${provider.name.toLowerCase().replace(/\s+/g, "-")}`),
-        dom.prop("disabled", Boolean(provider.isActive)),
-        !provider.isActive && ctx.onConfigure ? dom.on("click", () => ctx.onConfigure!(provider)) : null,
-      ),
-    ),
-    meta.description ? cssMethodHint(meta.description) : null,
-    error ?
-      dom("div",
-        cssErrorHeader(t("Error details"), testId("error-header")),
-        cssMethodError(error, testId("error-message")),
-      ) : null,
-    provider.isSelectedByEnv ?
-      dom("div",
-        t("Active method is controlled by an environment variable. Unset variable to change active method."),
-      ) : null,
+        cssHeroActions(pending ? ctx.revertButton() :
+          // For a steady state, allow "Reconfigure" button.
+          (ctx.onReconfigure ?
+            basicButton(t("Reconfigure"), dom.on("click", ctx.onReconfigure), testId("hero-reconfigure")) :
+            null
+          ),
+        ),
+      ],
+    }),
+  });
+}
+
+function buildHeroCardCommon(ctx: AuthSectionContext & {
+  switchingFrom?: AuthProvider,
+  itemRadio: DomContents,
+  itemContent: DomContents,
+}) {
+  return cssHero(
+    testId("hero-card"),
+    ctx.switchingFrom ? cssHeroWasLine(t("Was: {{name}}", { name: ctx.switchingFrom.name })) : null,
+    cssHeroTop(ctx.itemRadio, ctx.itemContent),
+    buildHeroAdminRow(ctx),
   );
 }
 
+/**
+ * Hero when no method is, or will be, active: the amber no-auth warning. Revert shows
+ * when this visit holds unsaved choices to discard (a staged deactivation also adds
+ * the "Was: …" lead-in).
+ */
+function buildNoAuthHero(ctx: AuthSectionContext, switchingFrom?: AuthProvider): HTMLElement {
+  const bootKey = !switchingFrom && ctx.loginSystemId === BOOT_KEY_PROVIDER_KEY;
+  const descText = bootKey ?
+    t(`Your server is using a boot key as a fallback login method. \
+Configure one of the authentication methods below.`) :
+    t(`Anyone who can reach this server can access all data without signing in. \
+Choose a sign-in method below.`);
+
+  return buildHeroCardCommon({
+    ...ctx,
+    switchingFrom,
+    itemRadio: buildItemRadio({ checked: true, disabled: true }),
+    itemContent: buildItemContent({
+      header: bootKey ? t("No authentication: using boot key") : t("No authentication"),
+      rightBadges: [
+        cssHeroWarnIcon(icon("Warning")),
+        buildBadge(t("Not recommended"), "warning", testId("badge-warning")),
+      ],
+      text: descText,
+      extra: cssHeroActions(ctx.revertButton()),
+    }),
+  });
+}
+
+/**
+ * A method as a full card in the expanded ("change") view: status circle, name + chips,
+ * description. The whole card is the click target, forking by state — configured → activate,
+ * SSO missing its key → the activation-key modal, unconfigured → configure. Hover highlights the border.
+ */
+function buildProviderCard(
+  provider: AuthProvider, ctx: AuthSectionContext, hasValidAuth: boolean,
+): HTMLElement {
+  const needsKey = isMissingRequiredKey(provider) &&
+    !(provider.isActive || provider.willBeActive || provider.isSelectedByEnv);
+  const isGetgrist = provider.key === GETGRIST_COM_PROVIDER_KEY;
+  const error = getVisibleError(provider, ctx.recentlyConfigured);
+  const pendingChange = provider.isActive || provider.willBeActive || provider.willBeDisabled;
+  const selectable = Boolean(provider.isConfigured && !needsKey && !pendingChange);
+  const onClick =
+    provider.isActive || provider.willBeActive ? undefined :
+      selectable ? () => ctx.onSetActive?.(provider) :
+        needsKey ? () => showKeyRequestModal(provider, { email: ctx.adminEmail }) :
+          () => ctx.onConfigure?.(provider);
+
+  const badges: DomContents = [
+    isGetgrist && !pendingChange && !hasValidAuth ?
+      buildBadge(getGristComProviderMeta().recommendedBadge, "accent", testId("badge-recommended")) : null,
+    provider.isActive ? buildBadge(t("Active"), "primary", testId("badge-active")) : null,
+    provider.willBeActive ?
+      buildBadge(t("Active on restart"), "pending", testId("badge-active-on-restart")) : null,
+    provider.willBeDisabled ?
+      buildBadge(t("Disabled on restart"), "pending", testId("badge-disabled-on-restart")) : null,
+  ];
+
+  const rightBadges: DomContents = [
+    selectable ? buildBadge(t("Configured"), "grey", testId("configured-tag")) : null,
+    needsKey ? buildBadge(t("Requires activation key"), "warning", testId("requires-key")) : null,
+  ];
+
+  return buildItemCard({
+    radio: {
+      checked: Boolean(provider.isActive || provider.willBeActive),
+      disabled: Boolean(provider.willBeActive || provider.willBeDisabled || needsKey),
+    },
+    onClick,
+    header: provider.name,
+    badges,
+    rightBadges,
+    text: descriptionOf(provider),
+    extra: [
+      error ? cssItemError(error, testId("error-message")) : null,
+      provider.isSelectedByEnv ? cssItemInfo(
+        t("Active method is controlled by an environment variable. Unset variable to change active method."),
+        testId("env-note")) : null,
+    ],
+    args: [testId(`provider-row-${provider.key.replace(".", "-")}`), testId("provider-row")],
+  });
+}
+
+/**
+ * No authentication as a card in the expanded view: an option, but muted — a plain
+ * background, no accent. It's an alternative to pick, not the current state (no-auth is the
+ * current state only as the hero), so its radio is always the empty "available" circle.
+ * Clicking runs the acknowledgement and stages deactivation of the active method.
+ */
+function buildNoAuthCard(ctx: AuthSectionContext): HTMLElement {
+  return buildItemCard({
+    muted: true,
+    onClick: () => ctx.onChooseNoAuth?.(),
+    radio: { checked: false },
+    header: t("No authentication"),
+    text: t("Anyone can access all data without signing in. Only suitable for \
+private networks and temporary setups."),
+    args: [testId("provider-row"), testId("provider-row-no-auth")],
+  });
+}
+
+/**
+ * The "Other methods" list: a full card per method, plus no-auth as a muted last resort
+ * when `includeNoAuth`. Deprecated providers are hidden unless configured or active. The
+ * wizard shows the list open; the admin panel collapses it once a valid method is active.
+ */
 function buildProviderList(
   providers: AuthProvider[],
-  recentlyConfigured: ReadonlySet<string>,
-  ctx: ProviderListContext = {},
-): HTMLElement {
+  ctx: AuthSectionContext,
+  opts: { hasValidAuth: boolean, includeNoAuth: boolean },
+): DomContents {
   const visible = providers.filter(p =>
     !DEPRECATED_PROVIDERS.includes(p.key) || p.isConfigured || p.isActive,
   );
-  if (visible.length === 0) { return dom("div"); }
-
-  const buildCards = () => cssMethodsContainer(
-    visible.map(p => buildProviderCard(p, recentlyConfigured, ctx)),
-  );
-
-  if (!ctx.collapsible && !ctx.collapseOnNoAuth) {
-    return dom("div",
-      cssProviderListHeader(ctx.title ?? t("Available methods"), testId("provider-list-header")),
-      buildCards(),
-    );
-  }
-
-  const collapsed = Observable.create(null, ctx.collapsible || (ctx.collapseOnNoAuth && noAuthAcknowledged.get()));
-  const noAuthListener = ctx.collapseOnNoAuth ?
-    noAuthAcknowledged.addListener(val => collapsed.set(val)) : null;
-  const toggle = () => collapsed.set(!collapsed.get());
-  return dom("div",
-    dom.autoDispose(collapsed),
-    noAuthListener ? dom.autoDispose(noAuthListener) : null,
-    cssProviderListHeaderClickable(
-      dom.domComputed(collapsed, c => cssCollapseIcon(c ? "Expand" : "Collapse")),
-      ctx.title ?? t("Other authentication methods"),
-      dom.on("click", toggle),
-      dom.on("keydown", (ev: KeyboardEvent) => {
-        if (ev.key === "Enter" || ev.key === " ") {
-          ev.preventDefault();
-          toggle();
-        }
-      }),
-      dom.attr("tabindex", "0"),
-      dom.attr("role", "button"),
-      dom.attr("aria-expanded", use => String(!use(collapsed))),
-      testId("provider-list-header"),
-    ),
-    dom.maybe(use => !use(collapsed), buildCards),
-  );
+  if (visible.length === 0 && !opts.includeNoAuth) { return null; }
+  return cssOthersGroup(buildCardList({
+    header: t("Other methods"),
+    collapsible: ctx.inAdminPanel,
+    initiallyCollapsed: opts.hasValidAuth,
+    items: [
+      ...visible.map(p => buildProviderCard(p, ctx, opts.hasValidAuth)),
+      ...(opts.includeNoAuth ? [buildNoAuthCard(ctx)] : []),
+    ],
+    args: [testId("provider-list-header")],
+  }));
 }
 
-const cssHeroHeader = styled("div", `
+/**
+ * The activation-key modal has two jobs, in any order: get the key request started (with the
+ * Installation ID the form requires), and reassure the user that finishing setup with an
+ * interim sign-in method is the right move while the key is in the mail.
+ */
+function showKeyRequestModal(
+  provider: AuthProvider,
+  opts: { email?: string, omitMeanwhile?: boolean } = {},
+) {
+  const installationId = getAdminConfig().installationId;
+  // The request-activation-key redirect passes these prefill params through to the form
+  // (FormRenderer reads `?<colId>=value`). With the ID prefilled, it can stay behind a
+  // reveal — it's only needed by someone who reaches the form another way (e.g. via the
+  // learn-more FAQ).
+  const params = new URLSearchParams({
+    ...(opts.email ? { Email: opts.email } : {}),
+    ...(installationId ? { Installation_ID: installationId } : {}),
+  });
+  const formUrl = commonUrls.activationKeyRequestForm + (String(params) ? `?${params}` : "");
+  return modal((ctl, owner) => {
+    const showId = Observable.create(owner, false);
+    return [
+      cssModalWidth("fixed-wide"),
+      cssModalHeader(
+        dom("span", t("{{name}} requires an activation key", { name: provider.name })),
+        testId("key-modal"),
+      ),
+      cssModalDescription(
+        dom("p", cssMarkdownSpan(
+          t("Single sign-on with **OIDC** or **SAML** is officially supported in the full \
+Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals \
+and small organizations may request a [free Grist activation key]({{faqLink}}).",
+          { pricingLink: commonUrls.plansSelfManaged, faqLink: commonUrls.freeActivationKeyFaq }))),
+        cssKeyModalBlock(
+          cssKeyModalBlockTitle(t("Start your key request")),
+          dom("p", t("You will receive an email response, typically within 5 business days. \
+Your key will be tied to this installation.")),
+          cssKeyModalCtaRow(
+            bigPrimaryButtonLink(
+              t("Request activation key"),
+              { href: formUrl, target: "_blank" },
+              testId("request-key"),
+            ),
+            textButton(
+              dom.text(use => use(showId) ? t("Hide installation ID") : t("Show installation ID")),
+              dom.on("click", () => showId.set(!showId.get())),
+              testId("toggle-installation-id"),
+            ),
+          ),
+          dom.maybe(showId, () => buildInstallationIdBlock()),
+        ),
+        opts.omitMeanwhile ? null : cssKeyModalBlock(
+          cssKeyModalBlockTitle(t("Meanwhile, finish setting up")),
+          dom("p", t("Pick a supported sign-in method that works today: Sign in with \
+getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or \
+continue without authentication for now.")),
+          dom("p", cssMarkdownSpan(
+            t("When your key arrives, enter it in the **Edition** section, then switch to \
+**{{name}}** here.", { name: provider.name }))),
+        ),
+      ),
+      cssModalButtons(
+        bigBasicButtonLink(
+          t("I have a key"),
+          { href: urlState().makeUrl({ adminPanel: "admin", hash: { anchor: ADMIN_PANEL_EDITION_ANCHOR } }) },
+          // From the admin panel this is same-page hash navigation, which doesn't
+          // reload the page, so the modal must close itself.
+          dom.on("click", () => ctl.close()),
+          testId("key-modal-go-edition"),
+        ),
+        bigBasicButton(
+          t("Close"),
+          dom.on("click", () => ctl.close()),
+          testId("key-modal-close"),
+        ),
+      ),
+    ];
+  });
+}
+
+const cssKeyModalBlock = styled("div", `
+  border: 1px solid ${theme.menuBorder};
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+`);
+
+const cssKeyModalCtaRow = styled("div", `
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 16px;
+  flex-wrap: wrap;
 `);
 
-const cssHeroProviderName = styled("div", `
-  font-size: ${vars.largeFontSize};
+const cssKeyModalBlockTitle = styled("div", `
   font-weight: 600;
   color: ${theme.text};
-`);
-
-const cssHeroDescription = styled("div", `
-  font-size: ${vars.mediumFontSize};
-  line-height: 1.4;
-  margin-bottom: 8px;
-`);
-
-const cssHeroError = styled("div", `
-  color: ${theme.errorText};
-  font-size: ${vars.mediumFontSize};
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 `);
 
 const cssHeroAdminRow = styled("div", `
@@ -1205,10 +1333,42 @@ const cssHeroAdminRow = styled("div", `
   font-size: ${vars.mediumFontSize};
 `);
 
-const cssHeroActions = styled("div", `
+// The caveat well inside the hero body — a top margin separates it from the description.
+const cssHeroWell = styled(cssWell, `
+  margin-top: 8px;
+`);
+
+const cssHeroWarnIcon = styled("div", `
+  flex: none;
+  --icon-color: #ffb535;
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  align-items: center;
+`);
+
+// The hero reuses the card's layout: a full 2px border (green — it frames the active
+// selection) and the same radio + body row as a method card, with actions/admin tacked on.
+const cssHero = styled(cssHeroCard, `
+  border: 2px solid ${theme.controlPrimaryBg};
+`);
+
+const cssHeroTop = styled("div", `
+  display: flex;
+  gap: 12px;
+`);
+
+// "Was: …" lead-in above the name; padded to line up with the name, distinguished by color.
+const cssHeroWasLine = styled("div", `
+  padding-left: 28px;
+  margin-bottom: 4px;
+  color: ${theme.lightText};
+  font-weight: 600;
+`);
+
+// An inline "Address this." link inside the unsupported-SSO well; opens the address-it modal.
+const cssAddressLink = styled("span", `
+  color: ${theme.controlFg};
+  cursor: pointer;
+  text-decoration: underline;
 `);
 
 const cssAuthIntro = styled("div", `
@@ -1217,190 +1377,12 @@ const cssAuthIntro = styled("div", `
   margin-bottom: 20px;
 `);
 
-const cssRecommendedCard = styled(cssHeroCard, `
-  border: 2px solid ${theme.controlPrimaryBg};
-  margin-bottom: 24px;
-`);
-
-const cssRecommendedHeader = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-`);
-
-const cssGMark = styled("div", `
-  width: 24px;
-  height: 24px;
-  flex: none;
-  border-radius: 6px;
-  background-color: ${theme.controlPrimaryBg};
-  color: ${theme.controlPrimaryFg};
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 15px;
-`);
-
-const cssHeroHighlight = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 0 0 12px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid ${theme.controlPrimaryBg};
-  background-color: ${theme.selectionOpaqueBg};
-`);
-
-const cssOtherMethods = styled("div", `
-  margin-top: 8px;
-`);
-
-const cssHeroHighlightCheck = styled("div", `
-  width: 28px;
-  height: 28px;
-  flex: none;
-  border-radius: 50%;
-  background-color: ${theme.controlPrimaryBg};
-  --icon-color: ${theme.controlPrimaryFg};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`);
-
-const cssHeroHighlightBody = styled("div", `
-  font-size: ${vars.mediumFontSize};
-  line-height: 1.5;
-  color: ${theme.text};
-`);
-
 const cssNoAuthCheckbox = styled("div", `
   margin-top: 12px;
 `);
 
-const cssProviderListHeader = styled("div", `
-  font-size: ${vars.mediumFontSize};
-  font-weight: 600;
-  color: ${theme.lightText};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-`);
-
-const cssProviderListHeaderClickable = styled(cssProviderListHeader, `
-  cursor: pointer;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  &:hover {
-    color: ${theme.text};
-  }
-  /* Inset the focus ring with box-shadow so it isn't clipped by ancestor
-     overflow boundaries (the section sits inside a card with overflow:hidden). */
-  &:focus-visible {
-    outline: none;
-    box-shadow: inset 0 0 0 2px ${theme.controlFg};
-    border-radius: 4px;
-    padding: 2px 4px;
-    margin: -2px -4px;
-  }
-`);
-
-const cssCollapseIcon = styled(icon, `
-  width: 16px;
-  height: 16px;
-  --icon-color: ${theme.lightText};
-`);
-
-const cssMethodsContainer = styled(cssCardSurface, `
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`);
-
-const cssMethodRow = styled("div", `
-  display: flex;
-  gap: 16px;
-  flex-direction: column;
-  padding: 16px;
-  background-color: ${theme.mainPanelBg};
-  border-bottom: 1px solid ${theme.menuBorder};
-  border-left: 3px solid transparent;
-  &:last-child {
-    border-bottom: none;
-  }
-  &-border-active {
-    border-left-color: ${theme.toastSuccessBg};
-  }
-  &-border-configured {
-    border-left-color: ${theme.controlPrimaryBg};
-  }
-  &-border-error {
-    border-left-color: ${theme.errorText};
-  }
-`);
-
-const cssMethodContent = styled("div", `
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex: 1;
-  gap: 12px;
-`);
-
-const cssMethodHint = styled("div", `
-  font-size: ${vars.smallFontSize};
-  & a {
-    color: ${theme.controlFg};
-  }
-`);
-
-const cssMethodError = styled("div", `
-  color: ${theme.errorText};
-  margin-top: 4px;
-`);
-
-const cssErrorHeader = styled("div", `
-  color: ${theme.errorText};
-  font-weight: 600;
-  font-size: ${vars.smallFontSize};
-  margin-top: 8px;
-  margin-bottom: 4px;
-`);
-
-const cssMethodLabel = styled("div", `
-  font-size: ${vars.mediumFontSize};
-  color: ${theme.text};
-`);
-
-const cssMethodBadge = styled("div", `
-  padding: 2px 8px;
-  color: ${theme.lightText};
-  border: 1px solid ${theme.lightText};
-  font-size: ${vars.xsmallFontSize};
-  font-weight: 600;
-  border-radius: 16px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  &-primary {
-    border-color: ${theme.controlPrimaryBg};
-    color: ${theme.controlPrimaryBg};
-  }
-  &-warning {
-    border-color: #ffb535;
-    color: ${theme.toastWarningBg}
-  }
-  &-error {
-    border-color: ${theme.errorText};
-    color: ${theme.errorText};
-  }
-`);
-
-const cssFlex = styled("div", `
-  flex: 1;
+const cssOthersGroup = styled("div", `
+  margin-top: 20px;
 `);
 
 const cssModalHeader = styled("div", `

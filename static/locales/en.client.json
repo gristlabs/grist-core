@@ -101,7 +101,14 @@
         "Enterprise": "Enterprise",
         "OAuth apps": "OAuth apps",
         "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).",
-        "Accessibility": "Accessibility"
+        "Accessibility": "Accessibility",
+        "No usage data to show.": "No usage data to show.",
+        "Personal site": "Personal site",
+        "Usage summary": "Usage summary",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "You have **{{left}} of {{limit}}** monthly **API** calls left",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left",
+        "You have **{{limit}}** monthly **API** calls": "You have **{{limit}}** monthly **API** calls",
+        "You have **{{limit}}** one time **AI Assistant** credits": "You have **{{limit}}** one time **AI Assistant** credits"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -172,6 +179,46 @@
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Add calendar",
+        "Create new column": "Create new column",
+        "Date + time": "Date + time",
+        "Date only": "Date only",
+        "Dates": "Dates",
+        "End": "End",
+        "End (optional)": "End (optional)",
+        "None": "None",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Pick the columns that hold your event dates and titles, or create new ones.",
+        "Select a column": "Select a column",
+        "Set up calendar": "Set up calendar",
+        "Start": "Start",
+        "Start and end must be the same date type.": "Start and end must be the same date type.",
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "This summary table has no date column. Add a formula column such as MIN($group.Date) first.",
+        "This summary table has no text column. Events will show without labels.": "This summary table has no text column. Events will show without labels.",
+        "Title": "Title",
+        "Title (optional)": "Title (optional)"
+    },
+    "CalendarView": {
+        "Day": "Day",
+        "Month": "Month",
+        "New Event": "New Event",
+        "Today": "Today",
+        "Week": "Week"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "+{{count}} more",
+        "+{{count}} more_other": "+{{count}} more",
+        "End Date": "End Date",
+        "Groups events by category. Each choice uses its own color and style.": "Groups events by category. Each choice uses its own color and style.",
+        "Is All Day": "Is All Day",
+        "Start Date": "Start Date",
+        "The label shown on the event.": "The label shown on the event.",
+        "Title": "Title",
+        "Type": "Type",
+        "When the event ends. If empty, the event lasts as long as its start.": "When the event ends. If empty, the event lasts as long as its start.",
+        "When the event starts.": "When the event starts.",
+        "Whether the event lasts all day.": "Whether the event lasts all day."
     },
     "CellContextMenu": {
         "Clear cell": "Clear cell",
@@ -787,7 +834,9 @@
         "Renew": "Renew",
         "Report a problem": "Report a problem",
         "Upgrade Plan": "Upgrade Plan",
-        "Manage billing": "Manage billing"
+        "Manage billing": "Manage billing",
+        "How you could gain access": "How you could gain access",
+        "What's blocking you": "What's blocking you"
     },
     "OnBoardingPopups": {
         "Finish": "Finish",
@@ -1570,7 +1619,13 @@
     "WelcomeSitePicker": {
         "Welcome back": "Welcome back",
         "You can always switch sites using the account menu.": "You can always switch sites using the account menu.",
-        "You have access to the following Grist sites.": "You have access to the following Grist sites."
+        "You have access to the following Grist sites.": "You have access to the following Grist sites.",
+        "No sites available": "No sites available",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "Personal sites are turned off on this installation, and you aren't a member of any team site yet.",
+        "Create a team site": "Create a team site",
+        "Ask an administrator to add you to a team site.": "Ask an administrator to add you to a team site.",
+        "Sign in to see your sites": "Sign in to see your sites",
+        "Sign in": "Sign in"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPTION"
@@ -2805,7 +2860,32 @@
         "Choose how people sign in. You can change this anytime after setup.": "Choose how people sign in. You can change this anytime after setup.",
         "Continue without authentication": "Continue without authentication",
         "Or connect your own identity provider": "Or connect your own identity provider",
-        "Skip authentication setup?": "Skip authentication setup?"
+        "Skip authentication setup?": "Skip authentication setup?",
+        "Activate": "Activate",
+        "Activate: {{name}}": "Activate: {{name}}",
+        "Address this.": "Address this.",
+        "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.",
+        "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.",
+        "Hide installation ID": "Hide installation ID",
+        "I have a key": "I have a key",
+        "I understand this server will run with no authentication": "I understand this server will run with no authentication",
+        "Meanwhile, finish setting up": "Meanwhile, finish setting up",
+        "Missing activation key": "Missing activation key",
+        "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.": "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.",
+        "Other methods": "Other methods",
+        "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.": "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.",
+        "Request activation key": "Request activation key",
+        "Requires activation key": "Requires activation key",
+        "Revert": "Revert",
+        "Show installation ID": "Show installation ID",
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).",
+        "Start your key request": "Start your key request",
+        "Switch to: {{name}}": "Switch to: {{name}}",
+        "Was: {{name}}": "Was: {{name}}",
+        "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.",
+        "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.",
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} is active but is outside the supported set without a Full Grist activation key. ",
+        "{{name}} requires an activation key": "{{name}} requires an activation key"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2829,7 +2909,8 @@
         "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.",
         "Recommended": "Recommended",
         "Use getgrist.com sign-in": "Use getgrist.com sign-in",
-        "You can switch to OIDC, SAML, or another method at any time.": "You can switch to OIDC, SAML, or another method at any time."
+        "You can switch to OIDC, SAML, or another method at any time.": "You can switch to OIDC, SAML, or another method at any time.",
+        "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping.": "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping."
     },
     "AirtableImportUI": {
         "Back": "Back",
@@ -3053,7 +3134,8 @@
         "Skip and Continue": "Skip and Continue",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
         "macOS sandbox": "macOS sandbox",
-        "Sandbox": "Sandbox"
+        "Sandbox": "Sandbox",
+        "Revert": "Revert"
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmed",
@@ -3133,7 +3215,8 @@
         "Upgrade to full Grist": "Upgrade to full Grist",
         "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.",
         "Your server will restart automatically once finished.": "Your server will restart automatically once finished.",
-        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today."
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.",
+        "The Community edition is set via environment variable.": "The Community edition is set via environment variable."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Apply and Continue",
@@ -3150,7 +3233,8 @@
         "Account settings": "Account settings",
         "Developer": "Developer",
         "Profile": "Profile",
-        "Authorized apps": "Authorized apps"
+        "Authorized apps": "Authorized apps",
+        "Personal site": "Personal site"
     },
     "SettingsLayout": {
         "Authentication": "Authentication",
@@ -3287,5 +3371,76 @@
         "Connect email delivery": "Connect email delivery",
         "Invite emails": "Invite emails",
         "Use a plan with automations": "Use a plan with automations"
+    },
+    "VersionFooter": {
+        "Compare editions": "Compare editions",
+        "Grist Community edition": "Grist Community edition",
+        "No official support": "No official support",
+        "Not the full edition": "Not the full edition",
+        "Only community support": "Only community support",
+        "Release notes": "Release notes",
+        "Version {{- version}}": "Version {{- version}}"
+    },
+    "RowNumbersMenu": {
+        "Hidden": "Hidden",
+        "Numbers": "Numbers",
+        "Row IDs": "Row IDs",
+        "Row numbers": "Row numbers"
+    },
+    "HelpUsImproveSection": {
+        "A business or organization": "A business or organization",
+        "A couple of quick questions — optional, and only our team sees this.": "A couple of quick questions — optional, and only our team sees this.",
+        "AI response": "AI response",
+        "Conference": {
+            "event": "Conference/event"
+        },
+        "Developer": {
+            "IT": "Developer/IT"
+        },
+        "Education": {
+            "Research Institute": "Education/Research Institute"
+        },
+        "Email is required when subscribing to updates.": "Email is required when subscribing to updates.",
+        "Email:": "Email:",
+        "Friend": {
+            "colleague": "Friend/colleague"
+        },
+        "GitHub": "GitHub",
+        "Help us improve Grist": "Help us improve Grist",
+        "How did you hear about Grist?": "How did you hear about Grist?",
+        "Individual or hobbyist": "Individual or hobbyist",
+        "Nonprofit": "Nonprofit",
+        "Occasional email about new releases and important security notices.": "Occasional email about new releases and important security notices.",
+        "Other": "Other",
+        "Please enter a valid email address.": "Please enter a valid email address.",
+        "Reddit": {
+            "forum": "Reddit/forum"
+        },
+        "Search engine": "Search engine",
+        "Select…": "Select…",
+        "Send me product and security updates": "Send me product and security updates",
+        "Social media": "Social media",
+        "What best describes you?": "What best describes you?"
+    },
+    "QuickSetupApplyStep": {
+        "Apply and go live!": "Apply and go live!",
+        "Applying settings and restarting…": "Applying settings and restarting…",
+        "Back to installation": "Back to installation",
+        "Grist is live!": "Grist is live!",
+        "Our servers may be experiencing issues. Please try again later.": "Our servers may be experiencing issues. Please try again later.",
+        "Please try again.": "Please try again.",
+        "Retry submission": "Retry submission",
+        "Setup completion": "Setup completion",
+        "We couldn't save your details or subscribe you to updates.": "We couldn't save your details or subscribe you to updates.",
+        "We couldn't submit your details or your request to be kept up to date. Please try again.": "We couldn't submit your details or your request to be kept up to date. Please try again.",
+        "We saved your details, but couldn't subscribe you to updates.": "We saved your details, but couldn't subscribe you to updates.",
+        "We subscribed you for product updates, but couldn't save your other details.": "We subscribed you for product updates, but couldn't save your other details.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+    },
+    "InstallationIdBlock": {
+        "Copy": "Copy",
+        "Copy to clipboard": "Copy to clipboard",
+        "Installation ID": "Installation ID",
+        "Installation ID copied to clipboard": "Installation ID copied to clipboard"
     }
 }

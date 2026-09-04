@@ -1,3 +1,5 @@
+import { Memo } from "app/common/ACLPermissions";
+
 /**
  * A tip for fixing an error.
  */
@@ -6,7 +8,7 @@ export interface ApiTip {
   message: string;
 }
 
-export type LimitType = "collaborators" | "docs" | "workspaces" | "assistant";
+export type LimitType = "collaborators" | "docs" | "workspaces" | "assistant" | "apiCallsPerMonth";
 
 /**
  * Documentation of a limit relevant to an API error.
@@ -33,14 +35,15 @@ export interface ApiErrorDetails {
   // If set, contains suggestions for fixing a problem.
   tips?: ApiTip[];
 
-  memos?: string[];
+  memos?: Memo[];
 }
 
 export type ApiErrorCode =
   | "UserNotConfirmed" |
   "FormNotFound" |
   "FormNotPublished" |
-  "ContextLimitExceeded";
+  "ContextLimitExceeded" |
+  "RestartUnavailable";
 
 /**
  * An error with an http status code.

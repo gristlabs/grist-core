@@ -86,6 +86,23 @@ export function makeJsonArray(dbType: DatabaseType, content: string): string {
 }
 
 /**
+ * Return SQL for testing whether a field of a json column is true, for use as a query
+ * condition.  The result is false rather than null when the column is null or the field is
+ * absent, so that it behaves sensibly under negation.
+ */
+export function jsonFieldIsTrue(dbType: DatabaseType, column: string, field: string): string {
+  switch (dbType) {
+    case "postgres":
+      return `coalesce((${column}->>'${field}') = 'true', false)`;
+    // Sqlite stores json as text, and json_extract reads a json true as 1.
+    case "sqlite":
+      return `coalesce(json_extract(${column}, '$.${field}') = 1, 0)`;
+    default:
+      throw new Error(`jsonFieldIsTrue not implemented for ${dbType}`);
+  }
+}
+
+/**
  * Convert a json value returned by the database into a javascript
  * object.  For postgres, the value is already unpacked, but for sqlite
  * it is a string.

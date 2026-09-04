@@ -1,3 +1,5 @@
+import { tryParseUrl } from "app/common/gutil";
+
 import DOMPurify from "dompurify";
 
 // Export dependencies for stubbing in tests.
@@ -14,16 +16,12 @@ export const Deps = { DOMPurify };
  * elements, see `sanitizeLinkUrl`.
  */
 export function sanitizeHttpUrl(url: string): string | null {
-  try {
-    const parsedUrl = new URL(url);
-    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-      return null;
-    }
-
-    return parsedUrl.href;
-  } catch (e) {
+  const parsedUrl = tryParseUrl(url);
+  if (!parsedUrl || !["http:", "https:"].includes(parsedUrl.protocol)) {
     return null;
   }
+
+  return parsedUrl.href;
 }
 
 /**

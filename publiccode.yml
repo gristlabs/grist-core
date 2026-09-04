@@ -99,7 +99,7 @@ description:
           - Configurable outgoing webhooks.
       - [Many templates](https://templates.getgrist.com/) to get you started, from investment research to organizing treasure hunts.
       - Access control options.
-          - (You'll need SSO logins set up to make use of these options; [`grist-omnibus`](https://github.com/gristlabs/grist-omnibus) has a prepackaged solution if configuring this feels daunting)
+          - (You'll need logins set up to make use of these options)
           - Share [individual documents](https://support.getgrist.com/sharing/), workspaces, or [team sites](https://support.getgrist.com/team-sharing/).
           - Control access to [individual rows, columns, and tables](https://support.getgrist.com/access-rules/).
           - Control access based on cell values and user attributes.

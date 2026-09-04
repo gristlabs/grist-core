@@ -1,5 +1,6 @@
 import { DocumentUsage } from "app/common/DocUsage";
 import { Role } from "app/common/roles";
+import { DocReadOnlyReason } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { AuthSession } from "app/server/lib/AuthSession";
@@ -87,6 +88,16 @@ export function getDocSessionAccess(docSession: OptDocSession): Role {
     return access;
   }
   throw new Error("getDocSessionAccess could not find access information in DocSession");
+}
+
+/**
+ * Why edits are refused, whatever the user's role. Null if they are allowed. Read from the
+ * same cached authentication as getDocSessionAccess. Sessions the server makes for its own
+ * work have no such authentication, so their edits are never refused.
+ */
+export function getDocSessionReadOnlyReason(docSession: OptDocSession): DocReadOnlyReason | null {
+  if (docSession.authorizer) { return docSession.authorizer.getCachedAuth().readOnlyReason; }
+  return docSession.req?.docAuth?.readOnlyReason ?? null;
 }
 
 export function getDocSessionShare(docSession: OptDocSession): string | null {

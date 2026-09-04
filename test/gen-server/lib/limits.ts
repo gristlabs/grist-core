@@ -490,6 +490,94 @@ describe("limits", function() {
     assert.sameMembers(err.details!.tips!.map(tip => tip.action), ["upgrade"]);
   });
 
+  it("can enforce limits on number of org members", async function() {
+    // Sam and chimpy are already members of this org.
+    await setFeatures({ maxUsersPerOrg: 4, workspaces: true });
+
+    await assert.isFulfilled(api.updateOrgPermissions("current", {
+      users: {
+        "user1@getgrist.com": "editors",
+        "user2@getgrist.com": "viewers",
+      },
+    }));
+    await assert.isRejected(api.updateOrgPermissions("current", {
+      users: { "user3@getgrist.com": "viewers" },
+    }), /No more team members permitted/);
+
+    // A site that is already over the limit can still change the roles of the members
+    // it has, and remove them.
+    await setFeatures({ maxUsersPerOrg: 2, workspaces: true });
+    await assert.isFulfilled(api.updateOrgPermissions("current", {
+      users: { "user2@getgrist.com": "editors" },
+    }));
+    await assert.isFulfilled(api.updateOrgPermissions("current", {
+      users: { "user2@getgrist.com": null },
+    }));
+    // It just cannot add anyone new.
+    await assert.isRejected(api.updateOrgPermissions("current", {
+      users: { "user2@getgrist.com": "viewers" },
+    }), /No more team members permitted/);
+
+    // Users given access to only a doc or workspace are org guests, not members, and
+    // are limited by the share limits instead. The site is at its limit here rather than
+    // over it, since an over-limit site is read-only and cannot create the doc.
+    await setFeatures({ maxUsersPerOrg: 3, maxSharesPerDoc: 5, workspaces: true });
+    const wsId = await api.newWorkspace({ name: "members" }, "docs");
+    const docId = await api.newDoc({ name: "doc" }, wsId);
+    await assert.isFulfilled(api.updateDocPermissions(docId, {
+      users: {
+        "user4@getgrist.com": "viewers",
+        "user5@getgrist.com": "viewers",
+      },
+    }));
+
+    // Consultants are not billable, and do not count against the limit.
+    await setFeatures({ maxUsersPerOrg: 4, workspaces: true });
+    await assert.isFulfilled(api.updateOrgPermissions("current", {
+      users: { "user6@getgrist.com": "viewers" },
+    }));
+    const consultant = await dbManager.getExistingUserByLogin("user6@getgrist.com");
+    await dbManager.updateUserOptions(consultant!.id, { isConsultant: true });
+    // Members are now sam, chimpy, user1 and user6, but only the first three are
+    // billable, so there is still room for a fourth under a limit of four.
+    await assert.isFulfilled(api.updateOrgPermissions("current", {
+      users: { "user7@getgrist.com": "viewers" },
+    }));
+    await assert.isRejected(api.updateOrgPermissions("current", {
+      users: { "user8@getgrist.com": "viewers" },
+    }), /No more team members permitted/);
+
+    // A consultant can still be added to a site that is already at its limit, since they
+    // are not billable. Members are sam, chimpy, user1 and the consultant user6; user7 was
+    // just added, so the site is at four billable members with a limit of four.
+    const anotherConsultant = await dbManager.getExistingUserByLogin("user7@getgrist.com");
+    await dbManager.updateUserOptions(anotherConsultant!.id, { isConsultant: true });
+    await assert.isFulfilled(api.updateOrgPermissions("current", {
+      users: { "user8@getgrist.com": "viewers" },
+    }));
+    await api.updateOrgPermissions("current", { users: { "user8@getgrist.com": null } });
+
+    // An unset limit means unlimited.
+    await setFeatures({ workspaces: true });
+    await assert.isFulfilled(api.updateOrgPermissions("current", {
+      users: { "user8@getgrist.com": "viewers" },
+    }));
+
+    // Leave the org and the users as later tests expect to find them. The consultant flag
+    // in particular outlives org membership, and would quietly make these two unbillable
+    // for anything added after this.
+    await api.updateOrgPermissions("current", {
+      users: {
+        "user1@getgrist.com": null,
+        "user6@getgrist.com": null,
+        "user7@getgrist.com": null,
+        "user8@getgrist.com": null,
+      },
+    });
+    await dbManager.updateUserOptions(consultant!.id, { isConsultant: false });
+    await dbManager.updateUserOptions(anotherConsultant!.id, { isConsultant: false });
+  });
+
   it("discounts deleted and soft-deleted documents from quota", async function() {
     this.timeout(3000);      // This can exceed the default of 2s on Jenkins
 

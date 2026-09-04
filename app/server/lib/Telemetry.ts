@@ -293,7 +293,7 @@ export class Telemetry implements ITelemetry {
       eventName: event,
       ...(eventCategory !== undefined ? { eventCategory } : undefined),
       eventSource: `grist-${this._deploymentType}`,
-      installationId: this._activation!.id,
+      installationId: this._gristServer.getInstallationId(),
       ...(isInternalUser !== undefined ? { isInternalUser } : undefined),
       ...(isTeamSite !== undefined ? { isTeamSite } : undefined),
       ...(visitorId ? { visitorId } : undefined),
@@ -346,7 +346,7 @@ export class Telemetry implements ITelemetry {
           eventName: event,
           ...(eventCategory !== undefined ? { eventCategory } : undefined),
           eventSource: `grist-${this._deploymentType}`,
-          installationId: this._activation!.id,
+          installationId: this._gristServer.getInstallationId(),
         },
       }));
     } catch (e) {

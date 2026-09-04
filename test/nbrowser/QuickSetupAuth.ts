@@ -1,5 +1,5 @@
 import { SETUP_RETURN_KEY } from "app/client/ui/GetGristComProvider";
-import { FORWARD_AUTH_PROVIDER_KEY } from "app/common/loginProviders";
+import { FALLBACK_PROVIDER_KEY, FORWARD_AUTH_PROVIDER_KEY } from "app/common/loginProviders";
 import { toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { startMockOIDCIssuer } from "test/nbrowser/oidcMockServer";
@@ -46,7 +46,8 @@ async function openConfigureModal(): Promise<void> {
   await gu.waitToPass(async () => {
     const row = await driver.findContent(".test-admin-auth-provider-row",
       /Sign in with getgrist/);
-    await row.find(".test-admin-auth-configure-button").click();
+    // Clicking an unconfigured provider's card opens its configure modal.
+    await row.click();
   }, 2000);
   await driver.findWait(".test-admin-auth-modal-header", 2000);
 }
@@ -59,7 +60,7 @@ async function openWizardGetGristModal(): Promise<void> {
   // to suite ordering. The section re-renders when async fetches land, so
   // retry the lookup and click together.
   await gu.waitToPass(async () => {
-    const ctas = await driver.findAll(".test-admin-auth-getgrist-cta");
+    const ctas = await driver.findAll(".test-admin-auth-hero-configure");
     if (ctas.length > 0) {
       await ctas[0].click();
       return;
@@ -69,7 +70,7 @@ async function openWizardGetGristModal(): Promise<void> {
       await header.click();
     }
     const row = await driver.findContent(".test-admin-auth-provider-row", /getgrist/i);
-    await row.find(".test-admin-auth-configure-button").click();
+    await row.click();
   }, 4000);
   await driver.findWait(".test-admin-auth-modal-header", 2000);
 }
@@ -101,41 +102,39 @@ describe("QuickSetupAuth", function() {
     await server.simulateLogin(user.name, user.email, "docs");
     await driver.get(`${server.getHost()}/admin/setup`);
     // Click the "Authentication" step label.
-    await driver.findContentWait("button", /Authentication/, 2000).click();
+    await driver.findContentWait("button", /Authentication/, 4000).click();
   }
 
   describe("default-email-set", function() {
     it("should show the getgrist.com recommended card on the Authentication step", async function() {
       await navigateToAuthStep();
 
-      // The wizard promotes getgrist.com as the recommended option when
+      // The wizard promotes getgrist.com as the recommended hero when
       // nothing real is configured (instead of the admin panel's no-auth
       // warning).
       await gu.waitToPass(async () => {
-        const nudge = await driver.findWait(".test-admin-auth-hero-nudge", 2000);
-        assert.match(await nudge.getText(), /Ideal for testing/);
+        const hero = await driver.findWait(".test-admin-auth-hero-card", 2000);
+        assert.match(await hero.getText(), /ideal for testing/i);
       }, 2000);
       assert.isTrue(await driver.find(".test-admin-auth-badge-recommended").isDisplayed());
-      assert.isTrue(await driver.find(".test-admin-auth-getgrist-cta").isDisplayed());
+      assert.isTrue(await driver.find(".test-admin-auth-hero-configure").isDisplayed());
 
       // The one-line intro replaces the old step header.
       assert.match(await driver.find("body").getText(), /Choose how people sign in/);
     });
 
-    it("should exclude getgrist.com from the 'connect your own' list", async function() {
+    it("should exclude getgrist.com from the 'Other methods' list", async function() {
       await navigateToAuthStep();
-      await driver.findWait(".test-admin-auth-hero-nudge", 2000);
+      await driver.findWait(".test-admin-auth-hero-card", 2000);
 
-      // Expand the collapsible "Or connect your own identity provider" list.
-      // Wrap the text read in waitToPass: the step content fades in (opacity
-      // animates from 0), and Selenium's getText returns "" until it settles.
-      const header = await driver.findWait(".test-admin-auth-provider-list-header", 2000);
+      // The "Other methods" list is always expanded in the wizard (static header).
+      // Retry the find and read together: the step content fades in (opacity
+      // animates from 0) and the section re-renders as async fetches land, so
+      // getText can return "" or hit a stale element until it settles.
       await gu.waitToPass(async () => {
-        assert.match(await header.getText(), /connect your own identity provider/i);
+        const header = await driver.findWait(".test-admin-auth-provider-list-header", 2000);
+        assert.match(await header.getText(), /other methods/i);
       }, 2000);
-      if (await header.getAttribute("aria-expanded") === "false") {
-        await header.click();
-      }
 
       await gu.waitToPass(async () => {
         const rowText = (await Promise.all(
@@ -148,17 +147,21 @@ describe("QuickSetupAuth", function() {
       }, 2000);
     });
 
-    it("should show 'Set up later' (not Continue) when no auth is configured", async function() {
+    it("should hide Continue when no auth is configured", async function() {
       await navigateToAuthStep();
-      await driver.findWait(".test-admin-auth-hero-nudge", 2000);
+      await driver.findWait(".test-admin-auth-hero-card", 2000);
 
-      await driver.findWait(".test-quick-setup-auth-skip", 2000);
+      // Continue only appears once a method is configured or no-auth acknowledged.
       assert.lengthOf(await driver.findAll(".test-quick-setup-auth-continue"), 0);
     });
 
-    it("should show a no auth confirmation modal when 'Set up later' is clicked", async function() {
+    it("should confirm the no-auth card click, then stage the choice for apply", async function() {
       await navigateToAuthStep();
-      await driver.findWait(".test-quick-setup-auth-skip", 2000).click();
+      // Retry the find+click together: the section re-renders as async fetches
+      // land, so the card can go stale between the find and the click.
+      await gu.waitToPass(async () => {
+        await driver.findWait(".test-admin-auth-provider-row-no-auth", 2000).click();
+      }, 4000);
 
       // Modal opens with Save disabled until the acknowledgement is ticked.
       const confirm = await driver.findWait(".test-modal-confirm", 2000);
@@ -167,12 +170,13 @@ describe("QuickSetupAuth", function() {
       await gu.waitToPass(async () => {
         assert.notEqual(await confirm.getAttribute("disabled"), "true");
       }, 2000);
-    });
 
-    it("should advance to the 'Backups' step when 'Continue' is clicked in the no auth modal", async function() {
-      const confirm = await driver.findWait(".test-modal-confirm", 2000);
       await confirm.click();
-      await driver.findWait(".test-quick-setup-backups-continue", 2000);
+
+      // A choice made in the UI always sticks: it is staged and saved on apply, so the
+      // button offers Apply rather than a plain Continue.
+      const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
+      assert.match(await continueBtn.getText(), /Apply and Continue/);
     });
 
     it("should open the getgrist.com configure modal from the CTA", async function() {
@@ -215,6 +219,154 @@ describe("QuickSetupAuth", function() {
       } finally {
         await server.removeLogin();
       }
+    });
+  });
+
+  // Revert discards this visit's unsaved state -- selection, acknowledgement, and
+  // configuration drafts together, like a page reload -- and never touches the server
+  // (it once deleted the saved no-auth pref, letting a configured-but-inactive provider
+  // get auto-picked at the next boot). A choice made in the UI is always saved on apply.
+  describe("no-auth choice durability", function() {
+    // A syntactically valid getgrist.com configuration key (never used to sign in).
+    const DUMMY_GETGRIST_KEY = Buffer.from(JSON.stringify({
+      oidcClientId: "test-client-id",
+      oidcClientSecret: "test-client-secret",
+      oidcIssuer: "https://getgrist-issuer.example.com",
+      owner: { name: "Chimpy", email: "chimpy@getgrist.com" },
+    })).toString("base64");
+
+    // Prefix API fetches with location.origin: the page's <base> points elsewhere,
+    // so a relative URL would leave the session's origin (and its cookies) behind.
+    async function patchPrefsEnvVars(envVars: Record<string, string | null>): Promise<void> {
+      const status = await driver.executeAsyncScript(async (vars: unknown, done: (v: number) => void) => {
+        const resp = await fetch(location.origin + "/api/install/prefs", {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ envVars: vars }),
+        });
+        done(resp.status);
+      }, envVars);
+      assert.equal(status, 200);
+    }
+
+    /** Reads the saved GRIST_LOGIN_SYSTEM_TYPE from install prefs, via the browser session. */
+    async function getSavedLoginType(): Promise<string | null> {
+      // Note: executeAsyncScript serializes undefined to null.
+      return driver.executeAsyncScript<string | null>(async (done: (v: string | null) => void) => {
+        const resp = await fetch(location.origin + "/api/install/prefs", { credentials: "include" });
+        done((await resp.json()).envVars?.GRIST_LOGIN_SYSTEM_TYPE ?? null);
+      });
+    }
+
+    /** Clicks the no-auth card (expanding the list if collapsed) and confirms the modal. */
+    async function chooseNoAuth(): Promise<void> {
+      await gu.waitToPass(async () => {
+        const header = await driver.findWait(".test-admin-auth-provider-list-header", 2000);
+        if (await header.getAttribute("aria-expanded") === "false") {
+          await header.click();
+        }
+        await driver.findWait(".test-admin-auth-provider-row-no-auth", 1000).click();
+      }, 4000);
+      const confirm = await driver.findWait(".test-modal-confirm", 2000);
+      await driver.find(".test-admin-auth-no-auth-acknowledge").click();
+      await gu.waitToPass(async () => {
+        assert.notEqual(await confirm.getAttribute("disabled"), "true");
+      }, 2000);
+      await confirm.click();
+    }
+
+    async function heroShowsPendingActivation(): Promise<boolean> {
+      const badges = await driver.findAll(
+        ".test-admin-auth-hero-card .test-admin-auth-badge-active-on-restart");
+      return badges.length === 1;
+    }
+
+    after(async function() {
+      // Clear everything these tests saved so later suites start clean.
+      await server.simulateLogin(user.name, user.email, "docs");
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+      await patchPrefsEnvVars({ GRIST_LOGIN_SYSTEM_TYPE: null, GRIST_GETGRISTCOM_SECRET: null });
+    });
+
+    it("keeps a saved no-auth choice through choose → revert cycles in the wizard", async function() {
+      // A saved no-auth choice alongside a configured provider: the provider is
+      // configured but not active, and only the saved choice keeps it that way.
+      await server.simulateLogin(user.name, user.email, "docs");
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+      await patchPrefsEnvVars({
+        GRIST_LOGIN_SYSTEM_TYPE: FALLBACK_PROVIDER_KEY,
+        GRIST_GETGRISTCOM_SECRET: DUMMY_GETGRIST_KEY,
+      });
+
+      await navigateToAuthStep();
+      await chooseNoAuth();
+      // A choice always sticks, so it is staged for apply -- even one matching the
+      // saved state.
+      const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
+      assert.match(await continueBtn.getText(), /Apply and Continue/);
+
+      // Revert discards this visit's unsaved choice, like a page reload. Continue
+      // hides, and the recommendation hero returns with the configured provider
+      // ready to activate.
+      await driver.findWait(".test-admin-auth-hero-revert", 2000).click();
+      await gu.waitToPass(async () => {
+        assert.lengthOf(await driver.findAll(".test-quick-setup-auth-continue"), 0);
+      }, 2000);
+      assert.isTrue(await driver.find(".test-admin-auth-hero-activate").isDisplayed());
+
+      // Choose and revert once more; nothing was ever written or deleted server-side.
+      await chooseNoAuth();
+      await driver.findWait(".test-admin-auth-hero-revert", 2000).click();
+      assert.equal(await getSavedLoginType(), FALLBACK_PROVIDER_KEY);
+    });
+
+    it("pins no-auth on apply; revert discards the choice and the config together", async function() {
+      await server.simulateLogin(user.name, user.email, "docs");
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+      await patchPrefsEnvVars({ GRIST_LOGIN_SYSTEM_TYPE: null, GRIST_GETGRISTCOM_SECRET: null });
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+      await toggleItem("authentication");
+
+      // Configuring getgrist.com stages it as the pending activation (configuring
+      // means choosing).
+      async function configureGetGrist() {
+        await openConfigureModal();
+        await driver.find(".test-admin-auth-config-key-textarea").sendKeys(DUMMY_GETGRIST_KEY);
+        await driver.find(".test-admin-auth-modal-configure").click();
+        await gu.waitToPass(async () => {
+          assert.isTrue(await heroShowsPendingActivation());
+        }, 4000);
+      }
+      await configureGetGrist();
+
+      // Choose no-auth, then revert: everything from this visit is discarded --
+      // the choice and the configuration draft -- as a page reload would.
+      await chooseNoAuth();
+      await driver.findWait(".test-admin-auth-hero-revert", 2000).click();
+      await gu.waitToPass(async () => {
+        assert.isFalse(await heroShowsPendingActivation());
+        assert.lengthOf(await driver.findAll(".test-admin-auth-hero-revert"), 0);
+      }, 2000);
+
+      // Redo the work and apply this time. The configuration and the no-auth choice
+      // are saved together, so the configured provider is not auto-picked at the
+      // next boot.
+      await configureGetGrist();
+      await chooseNoAuth();
+      // The apply banner animates open (grid-template-rows) and the just-confirmed
+      // acknowledgement modal fades out; retry the click until the button is actually
+      // interactable rather than mid-reveal or behind the closing overlay.
+      await gu.waitToPass(async () => {
+        await driver.findWait(".test-admin-panel-apply-no-restart", 2000).click();
+      }, 2000);
+      await gu.waitToPass(async () => {
+        assert.equal(await getSavedLoginType(), FALLBACK_PROVIDER_KEY);
+      }, 4000);
     });
   });
 
@@ -276,6 +428,19 @@ describe("QuickSetupAuth", function() {
   describe("session-clearing apply (RestartShell mode)", function() {
     let oidc: Awaited<ReturnType<typeof startMockOIDCIssuer>>;
 
+    // A valid base64 getgrist.com configuration key against the mock OIDC issuer.
+    // getgrist.com (unlike OIDC/SAML) does not require an activation key, so the
+    // wizard can stage it as the active method in a community install.
+    function buildGetGristKey() {
+      return Buffer.from(JSON.stringify({
+        oidcClientId: "test-client-id",
+        oidcClientSecret: "test-client-secret",
+        oidcIssuer: oidc.url + "?provider=getgrist.com",
+        oidcSkipEndSessionEndpoint: true,
+        owner: { name: "Chimpy", email: "chimpy@getgrist.com" },
+      })).toString("base64");
+    }
+
     before(async function() {
       oidc = await startMockOIDCIssuer({ authorize: true });
       // testServer.ts puts HOME_PORT in the child env only, so read the port off the server URL.
@@ -299,19 +464,19 @@ describe("QuickSetupAuth", function() {
         // (simulateLogin), whereas without it, core entrypoint sets something different.
         GRIST_SESSION_COOKIE: "grist_test_cookie",
 
-        GRIST_OIDC_IDP_ISSUER: oidc.url,
-        GRIST_OIDC_IDP_CLIENT_ID: "test-client-id",
-        GRIST_OIDC_IDP_CLIENT_SECRET: "test-client-secret",
-        GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: "true",
+        GRIST_GETGRISTCOM_SECRET: buildGetGristKey(),
+        GRIST_GETGRISTCOM_SP_HOST: `http://localhost:${homePort}`,
         GRIST_FORWARD_AUTH_HEADER: "x-forwarded-user",
         GRIST_FORWARD_AUTH_LOGOUT_PATH: "/logout",
-
-        // GRIST_OIDC_SP_HOST is a full URL used as a base for the callback URL.
-        GRIST_OIDC_SP_HOST: `http://localhost:${homePort}`,
       }, undefined, undefined, { useCoreCmd: true });
     });
 
     after(async function() {
+      // The redirect test applied active=getgrist.com to the server prefs;
+      // clear the database so later suites start from a clean no-auth state.
+      // Restart while the mock issuer is still up: the restarted server
+      // initializes the active getgrist.com OIDC client against it.
+      await server.restart(true, undefined, { useCoreCmd: true });
       await oidc?.shutdown();
     });
 
@@ -338,13 +503,12 @@ describe("QuickSetupAuth", function() {
     it("should redirect through sign-in after applying a session-clearing auth change",
       async function() {
         await navigateToAuthStep();
-        const header = await driver.findWait(".test-admin-auth-provider-list-header", 4000);
-        if (await header.getAttribute("aria-expanded") === "false") {
-          await header.click();
-        }
-        const oidcRow = await driver.findContentWait(
-          ".test-admin-auth-provider-row", /OIDC/, 4000);
-        await oidcRow.find(".test-admin-auth-set-active-button").click();
+        // getgrist.com is configured (via env) but not active; clicking its card
+        // stages it as the new active method.
+        const row = await driver.findContentWait(
+          ".test-admin-auth-provider-row", /getgrist/i, 4000);
+        await row.click();
+        // Confirm the "Set as active method?" modal to stage the change.
         await driver.findWait(".test-modal-confirm", 2000).click();
         await gu.waitForServer();
 
@@ -372,12 +536,14 @@ describe("QuickSetupAuth", function() {
       STATIC_PORT: undefined,
       DOC_PORT: undefined,
       PORT: undefined,
-      // Unset OIDC config.
+      // Unset OIDC and getgrist.com config.
       GRIST_OIDC_IDP_ISSUER: undefined,
       GRIST_OIDC_IDP_CLIENT_ID: undefined,
       GRIST_OIDC_IDP_CLIENT_SECRET: undefined,
       GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT: undefined,
       GRIST_OIDC_SP_HOST: undefined,
+      GRIST_GETGRISTCOM_SECRET: undefined,
+      GRIST_GETGRISTCOM_SP_HOST: undefined,
     }));
 
     it("arms when the wizard's configure modal opens, clears when it closes", async function() {

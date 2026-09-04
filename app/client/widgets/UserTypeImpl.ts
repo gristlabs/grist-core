@@ -24,8 +24,10 @@ import { ReferenceList } from "app/client/widgets/ReferenceList";
 import { ReferenceListEditor } from "app/client/widgets/ReferenceListEditor";
 import { Spinner } from "app/client/widgets/Spinner";
 import { ToggleCheckBox, ToggleSwitch } from "app/client/widgets/Toggle";
-import { getWidgetConfiguration } from "app/client/widgets/UserType";
+import { typeDefs } from "app/client/widgets/UserType";
 import { GristType } from "app/plugin/GristData";
+
+import _ from "underscore";
 
 /**
  * Convert the name of a widget to its implementation.
@@ -76,4 +78,35 @@ export function getFormWidgetConstructor(widget: string, type: string): WidgetCo
 export function getEditorConstructor(widget: string, type: string): IEditorConstructor {
   const { config } = getWidgetConfiguration(widget, type as GristType);
   return nameToWidget[config.editCons as keyof typeof nameToWidget] as any;
+}
+
+/**
+ * Given a widget name and a type, return the name of the widget that would
+ * actually be used for that type (hopefully the same, unless falling back
+ * on a default if widget name is unlisted), and all default configuration
+ * information for that widget/type combination.
+ * Returns something of form:
+ * {
+ *   name:"WidgetName",
+ *   config: {
+ *     cons: "NameOfWidgetClass",
+ *     editCons: "NameOfEditorClass",
+ *     options: { ... default options for widget ... }
+ *   }
+ * }
+ */
+export function getWidgetConfiguration(widgetName: string, type: string) {
+  const oneTypeDef = typeDefs[type] || typeDefs.Text;
+  if (!(widgetName in oneTypeDef.widgets)) {
+    widgetName = oneTypeDef.default;
+  }
+  return {
+    name: widgetName,
+    config: oneTypeDef.widgets[widgetName],
+  };
+}
+
+export function mergeOptions(options: any, type: string) {
+  const { name, config } = getWidgetConfiguration(options.widget, type);
+  return _.defaults({ widget: name }, options, config.options);
 }

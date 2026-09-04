@@ -25,7 +25,7 @@ import {
   getDocApiUsageKeysToIncr,
 } from "app/server/lib/DocApi";
 import { delayAbort } from "app/server/lib/serverUtils";
-import { testDailyApiLimitFeatures } from "test/gen-server/seed";
+import { testDailyApiLimitFeatures, testHighDailyApiLimitFeatures } from "test/gen-server/seed";
 import { configForUser } from "test/gen-server/testUtils";
 import { serveSomething, Serving } from "test/server/customUtil";
 import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
@@ -399,10 +399,10 @@ function addWebhooksTests(getCtx: () => TestContext) {
     it("limits daily API usage and sets the correct keys in redis", async function() {
       const { serverUrl, chimpy } = getCtx();
       this.retries(3);
-      const freeTeamApi = makeUserApi("freeteam", "chimpy") as UserAPIImpl;
-      const workspaceId = await getWorkspaceId(freeTeamApi, "FreeTeamWs");
-      const docId = await freeTeamApi.newDoc({ name: "TestDoc2" }, workspaceId);
-      const used = 999999;
+      const api = makeUserApi("testhighdailyapilimit", "chimpy") as UserAPIImpl;
+      const workspaceId = await getWorkspaceId(api, "TestHighDailyApiLimitWs");
+      const docId = await api.newDoc({ name: "TestDoc2" }, workspaceId);
+      const used = testHighDailyApiLimitFeatures.baseMaxApiUnitsPerDocumentPerDay - 1;
       let m = moment.utc();
       const currentDay = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[0], m);
       const currentHour = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[1], m);

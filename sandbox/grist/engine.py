@@ -3,6 +3,7 @@
 The data engine ties the code generated from the schema with the document data, and with
 dependency tracking.
 """
+import ast
 import itertools
 import logging
 import re
@@ -37,6 +38,7 @@ import table as table_module
 from timing import DummyTiming
 from user import User # pylint:disable=wrong-import-order
 import useractions
+import usertypes
 import column
 import urllib_patch  # noqa imported for side effect # pylint:disable=unused-import
 
@@ -339,6 +341,7 @@ class Engine(object):
 
     # Add the records.
     self.add_records(data.table_id, data.row_ids, columns)
+    table._hooks_after_load.run(data.row_ids)
 
   def load_done(self):
     """
@@ -654,6 +657,7 @@ class Engine(object):
       for lookup_map in self._unused_lookups:
         if self.dep_graph.remove_node_if_unused(lookup_map.node):
           self.delete_column(lookup_map)
+      self._destroy_gone_columns()
     finally:
       self._unused_lookups.clear()
       self._post_update()
@@ -818,6 +822,7 @@ class Engine(object):
     changes = None
     cleaned = []    # this lists row_ids that can be removed from dirty_rows once we are no
                     # longer iterating on it.
+    is_any_column = isinstance(col.type_obj, usertypes.Any)
     try:
       require_count = len(require_rows)
       for i, row_id in enumerate(itertools.chain(require_rows, dirty_rows)):
@@ -889,6 +894,14 @@ class Engine(object):
             if not changes:
               changes = self._changes_map.setdefault(node, [])
             changes.append((row_id, previous, value))
+            col.set(row_id, value)
+          elif is_any_column:
+            # The new value is equal to the old one, making set() look like a skippable no-op.
+            # But equal values can differ subtly; in particular, Records inside Any values carry
+            # Relation objects, which go stale when a table or column is renamed. So we prefer
+            # the fresh value (with no change to report) when set() is cheap, as it is for Any
+            # columns. Other columns hold only plain data, and their set() may be costly, so
+            # for them we skip it as usual.
             col.set(row_id, value)
 
         exclude.add(row_id)
@@ -1193,6 +1206,14 @@ class Engine(object):
     added_col_ids = new_columns.keys() - old_columns.keys()
     deleted_col_ids = old_columns.keys() - new_columns.keys()
 
+    # Special helper columns (lookup maps keyed by a column, sorted lookup maps sorting by one)
+    # hold state tied to the column objects they use. When such a column is deleted (including via
+    # ModifyColumn's delete + recreate) delete the helpers too; they'll get recreated on next use.
+    if deleted_col_ids:
+      for col_id, col_obj in list(table._special_cols.items()):
+        if not col_obj.used_col_ids().isdisjoint(deleted_col_ids):
+          deleted_col_ids.add(col_id)
+
     # Invalidate the columns that got added and anything that depends on them.
     if added_col_ids:
       self.invalidate_records(table.table_id, col_ids=added_col_ids)
@@ -1220,7 +1241,10 @@ class Engine(object):
         # We can skip metadata tables, there are no trigger-formulas there.
         continue
       for col_id, col_obj in table.all_columns.items():
-        if col_obj.is_formula() or not col_obj.has_formula():
+        # Note that #-prefixed columns are helpers for lookups and summary tables. They should be
+        # skipped here: "#" check skips them explicitly, although they are already correctly
+        # skipped due to is_formula() check.
+        if col_obj.is_formula() or not col_obj.has_formula() or col_id.startswith('#'):
           continue
         col_rec = self.docmodel.columns.lookupOne(tableId=table_id, colId=col_id)
 
@@ -1249,8 +1273,15 @@ class Engine(object):
     # Remove reference to the column from the dependency graph and the recompute_map.
     self.dep_graph.clear_dependencies(col_obj.node)
     self.recompute_map.pop(col_obj.node, None)
-    # Mark the column to be destroyed at the end of applying this docaction.
+    # Schedule the column to be destroyed at the next _destroy_gone_columns() call.
     self._gone_columns.append(col_obj)
+
+  def _destroy_gone_columns(self):
+    for col in self._gone_columns:
+      # Calc actions may already be generated if the column deletion was triggered by auto-removal.
+      actions.prune_actions(self.out_actions.calc, col.table_id, col.col_id)
+      col.destroy()
+    self._gone_columns = []
 
 
   def new_column_name(self, table):
@@ -1276,7 +1307,7 @@ class Engine(object):
     table = self.tables[table_id]
     self._use_node(self._current_time_node, table._identity_relation)
 
-  _current_time_node = ("#now", None)
+  _current_time_node = depend.Node("#now", None)
 
   def mark_lookupmap_for_cleanup(self, lookup_map_column):
     """
@@ -1381,8 +1412,6 @@ class Engine(object):
     Applies a doc action, which is a step of a user action. It is represented by an Action object
     as defined in actions.py.
     """
-    self._gone_columns = []
-
     action_name = doc_action.__class__.__name__
     saved_schema = None
     if action_name in actions.schema_actions:
@@ -1404,14 +1433,11 @@ class Engine(object):
           self.rebuild_usercode()
         except Exception:
           log.error("Error rebuilding usercode after restoring schema: %s", traceback.format_exc())
+      # The failed action's column deletions have been rolled back, so simply forget them.
+      self._gone_columns = []
       raise
 
-    # If any columns got deleted, destroy them to clear _back_references in other tables, and to
-    # force errors if anything still uses them. Also clear them from calc actions if needed.
-    for col in self._gone_columns:
-      # Calc actions may already be generated if the column deletion was triggered by auto-removal.
-      actions.prune_actions(self.out_actions.calc, col.table_id, col.col_id)
-      col.destroy()
+    self._destroy_gone_columns()
 
     # We normally recompute formulas before returning to the user; but some formulas are also used
     # internally in-between applying doc actions. We have this workaround to ensure that those are
@@ -1427,26 +1453,51 @@ class Engine(object):
     """
     table = self.tables[table_id]
 
-    # Table.lookup methods are special to suggest arguments after '('
-    match = re.match(r"(\w+)\.(lookupRecords|lookupOne)\($", txt)
+    # Table.lookup methods are special to suggest arguments after '(' or after a comma, once
+    # at least one argument is already there.
+    match = re.match(r"(\w+)\.(lookupRecords|lookupOne)\(", txt)
     if match:
-      # Get the 'Table1' in 'Table1.lookupRecords('
       lookup_table_id = match.group(1)
       if lookup_table_id in self.tables:
         lookup_table = self.tables[lookup_table_id]
-        # Add a keyword argument with no value for each column name in the lookup table.
+        used_kwargs = _get_used_lookup_kwargs(txt)
+        if used_kwargs is not None: # None means that the user is still typing
+          # Add a space after the comma, unless the user already typed one or there isn't one.
+          start = txt if txt.endswith(("(", " ")) else txt + " "
+          # order_by is a keyword argument like any column, not tied to a particular column.
+          arg_names = list(lookup_table.all_columns) + ['order_by']
+          result = [
+            (start + arg_name + "=", None)
+            for arg_name in arg_names
+            if (column.is_visible_column(arg_name) or arg_name in ('id', 'order_by'))
+            and arg_name not in used_kwargs
+          ]
+          # For the first argument, also add specific complete lookups involving reference
+          # columns, e.g. `address=$id)`.
+          if not used_kwargs:
+            result += [
+              (txt + option, None)
+              for option in lookup_autocomplete_options(lookup_table, table, reverse_only=False)
+            ]
+          return sorted(result)
+
+    # A completed `Table.lookupOne(...)` evaluates to a record, and `Table.lookupRecords(...)`
+    # to a RecordSet, whose fields give a list of values instead of a single one. Either way the
+    # field names are the columns of the looked up table, so suggest those after the dot.
+    # rlcompleter can't do this itself, as it never evaluates calls. One level of parens is
+    # allowed inside the arguments (e.g. a function call). Keep in sync with the similar regex
+    # in AceEditorCompletions.ts.
+    match = re.match(r"(\w+)\.(?:lookupOne|lookupRecords)\((?:[^()]|\([^()]*\))*\)\.(\w*)$", txt)
+    if match:
+      lookup_table_id, prefix = match.group(1), match.group(2)
+      if lookup_table_id in self.tables:
+        lookup_table = self.tables[lookup_table_id]
+        start = txt[:len(txt) - len(prefix)]
         result = [
-          txt + col_id + "="
+          (start + col_id, None)
           for col_id in lookup_table.all_columns
-          if column.is_visible_column(col_id) or col_id == 'id'
+          if (column.is_visible_column(col_id) or col_id == 'id') and col_id.startswith(prefix)
         ]
-        # Add specific complete lookups involving reference columns.
-        result += [
-          txt + option
-          for option in lookup_autocomplete_options(lookup_table, table, reverse_only=False)
-        ]
-        # Add a dummy empty example value for each result to produce the correct shape.
-        result = [(r, None) for r in result]
         return sorted(result)
 
     # replace $ with rec. and add a dummy rec object
@@ -1508,8 +1559,12 @@ class Engine(object):
     ]
 
     # If we changed the prefix (expanding the $ symbol) we now need to change it back.
+    # Function matches are tuples, whose names never contain the prefix.
     if tweaked_txt != txt:
-      results = [(txt + result[len(tweaked_txt):], value) for result, value in results]
+      results = [
+        (result if isinstance(result, tuple) else txt + result[len(tweaked_txt):], value)
+        for result, value in results
+      ]
     # pylint:disable=unidiomatic-typecheck
     results.sort(key=lambda r: r[0][0] if type(r[0]) == tuple else r[0])
     return results
@@ -1541,6 +1596,26 @@ class Engine(object):
       del self.out_actions.direct[len_stored:]
       del self.out_actions.undo[len_undo:]
       del self.out_actions.retValues[len_ret:]
+
+
+def _get_used_lookup_kwargs(txt):
+  """
+  `txt` is a `Table.lookupOne(...)` or `Table.lookupRecords(...)` call, still open, e.g.
+  `Table.lookupOne(` or `Table.lookupOne(A=1, `. Returns the list of keyword argument names
+  already used (empty if none yet), or None if `txt` isn't parseable as such a call, or if the
+  last argument is an unfinished name rather than a complete `key=value` pair.
+  """
+  tweaked = DOLLAR_REGEX.sub('rec.', txt).rstrip()
+  if tweaked.endswith(','):
+    tweaked = tweaked[:-1]
+  try:
+    tree = ast.parse(tweaked + ')', mode='eval')
+  except SyntaxError:
+    return None
+  call = tree.body
+  if not isinstance(call, ast.Call) or call.args:
+    return None
+  return [kw.arg for kw in call.keywords if kw.arg]
 
 
 # end

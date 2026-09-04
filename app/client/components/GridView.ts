@@ -40,12 +40,12 @@ import {
   calcFieldsCondition,
   freezeAction,
   IMultiColumnContextMenu,
-  rowNumbersMenu,
 } from "app/client/ui/GridViewMenus";
 import { menuToggle } from "app/client/ui/MenuToggle";
 import { mouseDragMatchElem } from "app/client/ui/mouseDrag";
 import { IRowContextMenu, RowContextMenu } from "app/client/ui/RowContextMenu";
 import { applyRowHeightLimit } from "app/client/ui/RowHeightConfig";
+import { rowNumbersMenu } from "app/client/ui/RowNumbersMenu";
 import { formatForScreenReader } from "app/client/ui/ScreenReaderFormatters";
 import { ITooltipControl, showTooltip } from "app/client/ui/tooltips";
 import { isNarrowScreen, testId } from "app/client/ui2018/cssVars";

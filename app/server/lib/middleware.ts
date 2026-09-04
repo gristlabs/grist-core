@@ -15,3 +15,11 @@ export function disableCache(_req: Request, res: Response, next: NextFunction) {
 export function noop(_req: Request, _res: Response, next: NextFunction) {
   next();
 }
+
+/**
+ * Denies X-Frame-Options to disallow embedding pages in iframes.
+ */
+export function denyFraming(_req: Request, res: Response, next: NextFunction) {
+  res.header("X-Frame-Options", "DENY");
+  next();
+}

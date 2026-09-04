@@ -45,7 +45,7 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 const INTERNAL_FIELDS = new Set([
   "apiKey", "billingAccountId", "firstLoginAt", "lastConnectionAt", "filteredOut", "ownerId", "gracePeriodStart",
   "stripeCustomerId", "stripeSubscriptionId", "stripeProductId", "userId", "isFirstTimeUser", "allowGoogleLogin",
-  "authSubject", "usage", "createdBy", "unsubscribeKey",
+  "authSubject", "usage", "createdBy", "unsubscribeKey", "disabledReason",
 ]);
 
 /**
@@ -303,8 +303,9 @@ export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T | und
       // Do not include removedAt field if it is not set.  It is not relevant to regular
       // situations where the user is working with non-deleted resources.
       if (key === "removedAt" && value === null) { return undefined; }
-      // Same for disabledAt
+      // Same for disabledAt and disabledReason
       if (key === "disabledAt" && value === null) { return undefined; }
+      if (key === "disabledReason" && value === null) { return undefined; }
       // Don't bother sending option fields if there are no options set.
       if (key === "options" && value === null) { return undefined; }
       // Don't prune anything that is explicitly allowed.
@@ -621,6 +622,10 @@ export interface RequestProxyHeaderOptions {
   forbidHeaders?: Lowercase<string>[];
   proxyExtraHeaders?: Lowercase<string>[];
   defaultHeaders?: Record<Lowercase<string>, string>;
+  // Whether to drop the client's Origin header. Doc-to-doc calls set this: forwarding
+  // the outside Origin to an internal call trips the target's cross-origin credential
+  // check.
+  omitOrigin?: boolean;
 }
 
 /**
@@ -673,9 +678,12 @@ export function terminateSocketWithHttpResponse(
  */
 export function getProxyHeaders(
   req: IncomingMessage,
-  { forbidHeaders = [], proxyExtraHeaders = [], defaultHeaders = {} }: RequestProxyHeaderOptions = {},
+  {
+    forbidHeaders = [], proxyExtraHeaders = [], defaultHeaders = {}, omitOrigin = false,
+  }: RequestProxyHeaderOptions = {},
 ): http.OutgoingHttpHeaders {
-  const headers = mapKeys(getTransitiveHeaders(req, { includeOrigin: true }), (value, key) => key.toLowerCase());
+  const headers = mapKeys(
+    getTransitiveHeaders(req, { includeOrigin: !omitOrigin }), (value, key) => key.toLowerCase());
 
   // Set in an internal header so we know this request has already been proxied at least once.
   headers[GRIST_PROXIED_HEADER] = "true";
@@ -765,6 +773,93 @@ const _httpProxyLog = new LogMethods<ProxyHttpLogInfo>("HTTP proxy ", info => ({
 }));
 
 /**
+ * Opens the upstream http/https request shared by the streaming and buffered proxy
+ * paths; the caller wires up body and response. `req` supplies only the proxied headers
+ * (auth, cookie, org) -- the body may differ. `targetUrl` must not be user-influenced
+ * (credential theft). Throws on an unsupported protocol.
+ */
+function openUpstream(
+  req: IncomingMessage, method: string | undefined, targetUrl: string | URL, options?: ProxyHttpRequestOptions,
+): { upstream: http.ClientRequest; target: URL; logInfo: ProxyHttpLogInfo; startTime: number } {
+  const target = new URL(targetUrl);
+  const targetHttpOptions = urlToHttpOptions(target);
+  const protocol = targetHttpOptions.protocol;
+  if (!isValidHttpProxyProtocol(protocol)) {
+    throw new Error(`Unsupported proxy protocol in proxyHttpRequest: ${protocol}`);
+  }
+  const headers = getProxyHeaders(req, options);
+  const startTime = Date.now();
+  const logInfo: ProxyHttpLogInfo = { method, targetUrl: target, meta: options?.logMeta };
+  _httpProxyLog.debug(logInfo, "starting");
+  const doRequest = protocol === "http:" ? http.request : https.request;
+  const upstream = doRequest({
+    hostname: targetHttpOptions.hostname,
+    port: targetHttpOptions.port,
+    path: targetHttpOptions.path,
+    method,
+    headers,
+    // Relies on the clientside or serverside connection closing to abort the proxy.
+    timeout: 0,
+  });
+  return { upstream, target, logInfo, startTime };
+}
+
+export interface BufferedResponse {
+  status: number;
+  headers: http.IncomingHttpHeaders;
+  text: string;
+}
+
+// Node lowercases parsed header names; Lowercase<> makes a mistyped literal a type error.
+const CONTENT_LENGTH: Lowercase<string> = "content-length";
+
+/**
+ * Sends a buffered reply, typically from forwardHttpRequest, on to our own client.
+ *
+ * Which headers may travel is decided here rather than by whoever produced the reply:
+ * hop-by-hop headers describe the connection we made, not this one, and a content-length
+ * describes their copy of a body we re-encode. forwardHttpRequest strips the former too,
+ * so this repeats work on that path -- worth it to keep a relay safe on its own terms.
+ */
+export function relayBufferedResponse(res: Response, response: BufferedResponse): void {
+  const headers = stripHopByHopHeaders(response.headers);
+  delete headers[CONTENT_LENGTH];
+  res.status(response.status).set(headers as Record<string, string | string[]>).send(response.text);
+}
+
+/**
+ * Like proxyHttpRequest, but sends a caller-supplied `body` and buffers the reply so
+ * this server can consume or relay it rather than pipe it to a client: doc-to-doc calls
+ * such as /compare and MCP forwarding. Small JSON only, not large downloads. Uses
+ * http.request directly, so it does not follow redirects (forwarded credentials stay on
+ * the intended host).
+ *
+ * The reply is decoded as utf8 text, so callers must not proxy accept-encoding to it: a
+ * compressed reply would be garbled. Pass the reply to relayBufferedResponse to send it
+ * on to our own client.
+ */
+export function forwardHttpRequest(
+  req: IncomingMessage, method: string, targetUrl: string | URL,
+  body: string | undefined, options?: ProxyHttpRequestOptions,
+): Promise<BufferedResponse> {
+  return new Promise((resolve, reject) => {
+    const { upstream } = openUpstream(req, method, targetUrl, options);
+    upstream.on("response", (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (chunk: Buffer) => chunks.push(chunk));
+      res.on("end", () => resolve({
+        status: res.statusCode ?? 500,
+        headers: stripHopByHopHeaders(res.headers),
+        text: Buffer.concat(chunks).toString("utf8"),
+      }));
+      res.on("error", reject);
+    });
+    upstream.on("error", reject);
+    upstream.end(body);
+  });
+}
+
+/**
  * Proxies a HTTP request from this server to another Grist server (intended to be a DocWorker)
  * The target URL must not be user influenced, to prevent credentials / authorization tokens being stolen.
  * Doesn't handle: 103 responses, URLs with basic auth (username:password@domain)
@@ -778,35 +873,8 @@ export function proxyHttpRequest(
   clientReq: IncomingMessage, clientRes: ServerResponse, targetUrl: string | URL, options?: ProxyHttpRequestOptions,
 ) {
   return new Promise<void>((resolve, reject) => {
-    const target = new URL(targetUrl);
-    const headers = getProxyHeaders(clientReq, options);
-    const targetHttpOptions = urlToHttpOptions(target);
-
-    const protocol = targetHttpOptions.protocol;
-    if (!isValidHttpProxyProtocol(protocol)) {
-      reject(new Error(`Unsupported proxy protocol in proxyHttpRequest: ${targetHttpOptions.protocol}`));
-      return;
-    }
-
-    const startTime = Date.now();
-    const logInfo: ProxyHttpLogInfo = {
-      method: clientReq.method,
-      targetUrl: target,
-      meta: options?.logMeta,
-    };
-    _httpProxyLog.debug(logInfo, "starting");
-
-    const doRequest = protocol === "http:" ? http.request : https.request;
-
-    const backendReq = doRequest({
-      hostname: targetHttpOptions.hostname,
-      port: targetHttpOptions.port,
-      path: targetHttpOptions.path,
-      method: clientReq.method,
-      headers,
-      // Relies on the clientside or serverside connection closing to abort the proxy.
-      timeout: 0,
-    });
+    const { upstream: backendReq, target, logInfo, startTime } =
+      openUpstream(clientReq, clientReq.method, targetUrl, options);
 
     // Centralize cleanup to avoid race conditions or non-idempotent operation orders.
     let isSettled = false;

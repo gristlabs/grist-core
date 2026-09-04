@@ -1,10 +1,11 @@
 import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
+import { enableTabTrap, lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
 import { cssInput } from "app/client/ui/cssInput";
 import { prepareForTransition, TransitionWatcher } from "app/client/ui/transitions";
-import { bigBasicButton, bigPrimaryButton, cssButton } from "app/client/ui2018/buttons";
+import { bigBasicButton, bigDangerButton, bigPrimaryButton, cssButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { loadingSpinner } from "app/client/ui2018/loaders";
@@ -12,9 +13,10 @@ import { cssMenuElem } from "app/client/ui2018/menus";
 import { waitGrainObs } from "app/common/gutil";
 import { MaybePromise } from "app/plugin/gutil";
 
-import { Computed, Disposable, dom, DomContents, DomElementArg, input, keyframes,
+import { Computed, Disposable, dom, DomContents, DomElementArg, IDomArgs, input, keyframes,
   MultiHolder, Observable, styled } from "grainjs";
 import { IOpenController, IPopupOptions, PopupControl, popupOpen } from "popweasel";
+import { uniqueId } from "underscore";
 
 const t = makeT("modals");
 
@@ -238,6 +240,7 @@ export function modal(
 
   let close = doClose;
   let dialogDom: HTMLElement;
+  let focusLayer!: FocusLayer;
 
   const modalDom = cssModalBacker(
     dom.create((owner) => {
@@ -255,8 +258,9 @@ export function modal(
         dom.on("click", ev => ev.stopPropagation()),
         noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
         testId("modal-dialog"),
+        { "role": "dialog", "aria-modal": "true" },
       );
-      FocusLayer.create(owner, {
+      focusLayer = FocusLayer.create(owner, {
         defaultFocusElem: dialogDom,
         allowFocus: elem => (elem !== document.body),
         // Pause mousetrap keyboard shortcuts while the modal is shown. Without this, arrow keys
@@ -270,7 +274,12 @@ export function modal(
   );
 
   document.body.appendChild(modalDom);
+  enableTabTrap(modalDom);
   if (variant === "collapsing") { expandModal(); }
+
+  // Focus now that the dialog is attached, so that it never appears without the focus. The
+  // FocusLayer on its own would only get to it after the current task.
+  focusLayer.focusDefaultElem();
 }
 
 export interface ISaveModalOptions {
@@ -283,6 +292,21 @@ export interface ISaveModalOptions {
   width?: ModalWidth;             // Set a width style for the dialog.
   modalArgs?: DomElementArg;      // Extra args to apply to the outer cssModalDialog element.
   extraButtons?: DomContents;     // More buttons!
+  /**
+   * Swaps which button is the default: Cancel takes the Enter key and the primary styling, and the
+   * save button turns red. For an action that cannot be undone, so a stray Enter does nothing.
+   */
+  defaultCancel?: boolean;
+}
+
+/**
+ * The button styles for a confirmation, given whether Cancel is the default. Exported so that
+ * dialogs built on modal() directly can match the ones saveModal builds.
+ */
+export function confirmButtonStyles(defaultCancel?: boolean) {
+  return defaultCancel ?
+    { action: bigDangerButton, cancel: bigPrimaryButton } :
+    { action: bigPrimaryButton, cancel: bigBasicButton };
 }
 
 /**
@@ -305,7 +329,8 @@ export interface ISaveModalOptions {
  * is resolved. It then closes on success, or reports the error and stays open on rejection. To
  * stay open without reporting an error (if one is already reported), throw StayOpen exception.
  *
- * The dialog interprets Enter/Escape keys as if the Save/Cancel buttons were clicked.
+ * The dialog interprets Enter/Escape keys as if the Save/Cancel buttons were clicked. With
+ * defaultCancel, Enter cancels.
  *
  * Note that it's possible to close the dialog via Cancel while saveFunc() is pending. That's
  * probably desirable, but keep in mind that the dialog may be disposed before saveFunc() returns.
@@ -329,26 +354,29 @@ export function saveModal(
       use(ctl.workInProgress) || (options.saveDisabled ? use(options.saveDisabled) : false));
 
     const save = ctl.doWork(options.saveFunc, { close: true, catchErrors: true });
+    const cancel = () => {
+      ctl.close();
+      modalOptions?.onCancel?.();
+    };
+
+    const buttonStyles = confirmButtonStyles(options.defaultCancel);
 
     return [
       cssModalTitle(options.title, testId("modal-title")),
       cssModalBody(options.body),
       cssModalButtons(
-        bigPrimaryButton(options.saveLabel || t("Save"),
+        buttonStyles.action(options.saveLabel || t("Save"),
           dom.boolAttr("disabled", isSaveDisabled),
           dom.on("click", save),
           testId("modal-confirm"),
         ),
         options.extraButtons,
-        options.hideCancel ? null : bigBasicButton(t("Cancel"),
-          dom.on("click", () => {
-            ctl.close();
-            modalOptions?.onCancel?.();
-          }),
+        options.hideCancel ? null : buttonStyles.cancel(t("Cancel"),
+          dom.on("click", cancel),
           testId("modal-cancel"),
         ),
       ),
-      dom.onKeyDown({ Enter: () => isSaveDisabled.get() || save() }),
+      dom.onKeyDown({ Enter: () => options.defaultCancel ? cancel() : (isSaveDisabled.get() || save()) }),
       options.width && cssModalWidth(options.width),
       options.modalArgs,
     ];
@@ -364,10 +392,13 @@ export interface ConfirmModalOptions {
   modalOptions?: IModalOptions;
   saveDisabled?: Observable<boolean>;
   width?: ModalWidth;
+  /** See {@link ISaveModalOptions.defaultCancel}. */
+  defaultCancel?: boolean;
 }
 
 /**
- * Builds a simple confirm modal with 'Enter' bound to the confirm action.
+ * Builds a simple confirm modal with 'Enter' bound to the confirm action, or to Cancel when
+ * defaultCancel is set.
  *
  * See saveModal() for error handling notes that here apply to the onConfirm callback.
  */
@@ -385,6 +416,7 @@ export function confirmModal(
     modalOptions,
     saveDisabled,
     width,
+    defaultCancel,
   } = options;
   return saveModal((_ctl, owner): ISaveModalOptions => {
     const dontShowAgain = Observable.create(owner, false);
@@ -406,6 +438,7 @@ export function confirmModal(
       width: width ?? "normal",
       extraButtons,
       saveDisabled,
+      defaultCancel,
     };
   }, modalOptions);
 }
@@ -557,7 +590,9 @@ export function modalTooltip(
 ): PopupControl {
   return popupOpen(reference, (ctl: IOpenController) => {
     const element = cssModalTooltip(
+      lockFocusUntilRemoved(ctl),
       domCreator(ctl),
+      { "role": "dialog", "aria-modal": "true" },
     );
     return element;
   }, options);
@@ -630,7 +665,20 @@ export const cssModalDialog = styled("div", `
   }
 `);
 
-export const cssModalTitle = styled("div", `
+const autoLabelledModalTitle = (...args: IDomArgs<HTMLDivElement>) => dom(
+  "div",
+  { id: uniqueId("modal-title-") },
+  (el) => {
+    // Elements are build bottom-up, so our ancestors (incl. the role=dialog container) aren't attached yet at
+    // construction time. Wait for the next tick when the parent should exist.
+    setTimeout(() => {
+      el.closest('[role="dialog"]')?.setAttribute("aria-labelledby", el.id);
+    }, 0);
+  },
+  ...args,
+);
+
+export const cssModalTitle = styled(autoLabelledModalTitle, `
   font-size: ${vars.xxxlargeFontSize};
   font-weight: ${vars.headerControlTextWeight};
   color: ${theme.text};

@@ -26,15 +26,28 @@ export class TestServer {
     suitename: string,
     customEnv?: NodeJS.ProcessEnv,
     _homeUrl?: string | "auto",   // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
-    options: { output?: Writable } = {},      // Pipe server output to the given stream
+    options: {
+      output?: Writable,   // Pipe server output to the given stream.
+      port?: number,       // Pin the port, for tests needing a server to come back where it was.
+    } = {},
   ): Promise<TestServer> {
-    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || "8080", 10));
+    const port = options.port ??
+      await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || "8080", 10));
     const server = new this(serverTypes, port, tempDirectory, suitename);
     if (_homeUrl === "auto") {
       _homeUrl = `http://localhost:${port}`;
     }
     await server.start(_homeUrl, customEnv, options);
     return server;
+  }
+
+  /** Stop servers that may not have started, in the order given, without masking a test failure. */
+  public static async stopAll(servers: (TestServer | undefined)[]): Promise<void> {
+    for (const server of servers) {
+      if (server && !server.stopped) {
+        try { await server.stop(); } catch { /* best-effort */ }
+      }
+    }
   }
 
   public testingSocket: string;
@@ -278,4 +291,19 @@ export class TestServerReverseProxy {
       this._proxy.web(oreq, ores, { target: serverUrl });
     };
   }
+}
+
+/**
+ * Pick several ports up front, for a suite that must know a server's address before starting it.
+ * Chained, since nothing is bound yet to rule a port out.
+ */
+export async function pickPorts(count: number): Promise<number[]> {
+  const ports: number[] = [];
+  let from = parseInt(process.env.GET_AVAILABLE_PORT_START || "8080", 10);
+  for (let i = 0; i < count; i++) {
+    const port = await getAvailablePort(from);
+    ports.push(port);
+    from = port + 1;
+  }
+  return ports;
 }

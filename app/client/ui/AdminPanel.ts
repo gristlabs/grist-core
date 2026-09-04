@@ -2,7 +2,7 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails } from "app/client/models/AdminChecks";
+import { AdminCheckRequest, AdminChecks, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -33,7 +33,7 @@ import { BaseUrlSection } from "app/client/ui/BaseUrlSection";
 import { BootKeyStatus } from "app/client/ui/BootKeyStatus";
 import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
-import { Edition, EditionSection, editionSwitchModal, editionSwitchWarning } from "app/client/ui/EditionSection";
+import { EditionSection, editionSwitchModal, editionSwitchWarning } from "app/client/ui/EditionSection";
 import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
 import { buildOutgoingRequestsPanel, buildOutgoingRequestsSummary } from "app/client/ui/OutgoingRequestsStatus";
 import { pagePanels } from "app/client/ui/PagePanels";
@@ -43,6 +43,7 @@ import {
 } from "app/client/ui/PermissionsSetupSection";
 import { PermissionsToggleModel } from "app/client/ui/PermissionsToggleModel";
 import { QuickSetup } from "app/client/ui/QuickSetup";
+import { SandboxSetupSection } from "app/client/ui/SandboxSection";
 import { ServiceStatus } from "app/client/ui/ServiceStatus";
 import {
   cssPageTitle,
@@ -67,8 +68,15 @@ import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails } from "app/common/BootProbe";
 import { ConfigAPI } from "app/common/ConfigAPI";
 import { delay } from "app/common/delay";
-import { ADMIN_PANEL_EDITION_ANCHOR, AdminPanelPage, commonUrls, getPageTitleSuffix,
-  LatestVersionAvailable } from "app/common/gristUrls";
+import {
+  ADMIN_PANEL_EDITION_ANCHOR,
+  AdminPanelPage,
+  commonUrls,
+  FULL_EDITION,
+  getPageTitleSuffix,
+  GristEdition,
+  LatestVersionAvailable,
+} from "app/common/gristUrls";
 import { useBindable } from "app/common/gutil";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
 import { BOOT_KEY_PROVIDER_KEY, MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
@@ -235,6 +243,7 @@ class AdminInstallationPanel extends Disposable {
   // construction time and the "no valid user" admin path renders
   // alternative content that doesn't need the section anyway.
   private _authSection: AuthenticationSection | undefined;
+  private _sandboxSection: SandboxSetupSection;
 
   // Banner visibility: shown when a tracked section has restart-required
   // pending changes, or the user has applied changes without a restart and
@@ -262,9 +271,12 @@ class AdminInstallationPanel extends Disposable {
       });
     }
 
+    this._sandboxSection = SandboxSetupSection.create(this, this._checks, { inAdminPanel: true });
+
     this._drafts.addSection(this._baseUrlSection);
     this._drafts.addSection(this._editionSection);
     this._drafts.addSection(this._permissionsModel);
+    this._drafts.addSection(this._sandboxSection.draftSection);
     if (this._authSection) {
       this._drafts.addSection(this._authSection);
     }
@@ -320,12 +332,12 @@ class AdminInstallationPanel extends Disposable {
     );
   }
 
-  private _confirmEditionSwitch(edition: Edition) {
+  private _confirmEditionSwitch(edition: GristEdition) {
     const otherChanges = this._drafts.changes.get();
     const canRestart = this._supportsRestart;
 
     confirmModal(
-      edition === "enterprise" ? t("Switch to full Grist?") : t("Switch to Community edition?"),
+      edition === FULL_EDITION ? t("Switch to full Grist?") : t("Switch to Community edition?"),
       canRestart ? t("Restart") : t("Apply changes"),
       () => {
         this._editionSection.selectEdition(edition);
@@ -573,7 +585,7 @@ now, and takes effect the next time you restart Grist manually.")),
           name: t("Sandboxing"),
           description: t("Sandbox settings for data engine"),
           value: this._buildSandboxingDisplay(),
-          expandedContent: this._buildSandboxingNotice(),
+          expandedContent: this._sandboxSection.buildDom(),
         }),
         SectionItem({
           id: "authentication",
@@ -662,19 +674,6 @@ now, and takes effect the next time you restart Grist manually.")),
             cssErrorText(t("unconfigured")));
       },
     );
-  }
-
-  private _buildSandboxingNotice() {
-    return [
-      // Use AdminChecks text for sandboxing, in order not to
-      // duplicate.
-      probeDetails.sandboxing.info,
-      dom(
-        "div",
-        { style: "margin-top: 8px" },
-        cssLink({ href: commonUrls.helpSandboxing, target: "_blank" }, t("Learn more.")),
-      ),
-    ];
   }
 
   private _buildAdminUsersComputed(

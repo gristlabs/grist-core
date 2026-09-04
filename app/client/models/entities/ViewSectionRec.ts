@@ -3,7 +3,6 @@ import { SequenceNEVER, SequenceNum } from "app/client/components/Cursor";
 import { EmptyFilterColValues, LinkingState } from "app/client/components/LinkingState";
 import { KoArray } from "app/client/lib/koArray";
 import { fieldInsertPositions } from "app/client/lib/tableUtil";
-import { ColumnToMapImpl } from "app/client/models/ColumnToMap";
 import {
   ColumnRec,
   DocModel,
@@ -22,12 +21,13 @@ import { removeRule, RuleOwner } from "app/client/models/RuleOwner";
 import { LinkConfig } from "app/client/ui/LinkConfig";
 import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
 import { FilterColValues } from "app/common/ActiveDocAPI";
+import { ColumnToMapImpl } from "app/common/ColumnToMap";
 import { AccessLevel, ICustomWidget } from "app/common/CustomWidget";
 import { UserAction } from "app/common/DocActions";
 import { RecalcWhen } from "app/common/gristTypes";
 import { arrayRepeat, safeJsonParse } from "app/common/gutil";
 import { Sort } from "app/common/SortSpec";
-import { WidgetType } from "app/common/widgetTypes";
+import { isLegacyCalendarCustomDef, IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
@@ -96,6 +96,9 @@ export interface ViewSectionOptions extends ChartOptions {
   rowHeight?: number;           // Optional limit on height of rows, in lines.
   rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
 
+  // Options for the native CalendarView.
+  calendarViewPerspective?: "day" | "week" | "month";   // Last-used calendar view.
+
   // Other options.
   customView?: string;    // Configuration for custom widgets in JSON format.
   disabled?: boolean;     // Applies to the "default record card".
@@ -108,7 +111,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // The underlying RowModel provides a KoSaveableObservable for each field in app/common/schema.ts.
   //   tableRef: number;
   //   parentId: number;
-  //   parentKey: string;
+  //   parentKey: string;   // storage value; prefer effectiveWidgetType for anything user-facing.
   //   title: string;
   //   description: string;
   //   defaultWidth: number;
@@ -297,10 +300,20 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 
   // Temporary fields used to communicate with the Custom Widget. There are set through the Widget API.
 
-  // Temporary variable holding columns mapping requested by the widget (set by API).
-  columnsToMap: ko.Observable<ColumnsToMap | null>;
+  // Column mappings. Read from widget manifest (if widget was installed from
+  // the gallery), or from the grist.ready call. Runtime values wins over manifest values.
+  columnsToMap: ko.Computed<ColumnsToMap | null>;
   // Map from widget columns to colIds in document.
   mappedColumns: ko.Computed<WidgetColumnMap | null>;
+
+  // True for both legacy shapes of the retired calendar custom widget: the old attached widget
+  // ("custom.calendar") and a plain "custom" section pointing at it. Both are rendered with the
+  // native calendar (see ViewLayout).
+  isLegacyCustomCalendarWidget: ko.Computed<boolean>;
+  // The widget type to treat this section as - allows newer widgets to replace legacy ones
+  // but keep the same parentKey on disk (e.g. custom.calendar).
+  // Use this rather than parentKey for anything user-facing.
+  effectiveWidgetType: ko.Computed<IWidgetType>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;
   // Temporary variable holding widget desired access (changed either from manifest or via API).
@@ -510,6 +523,19 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     renderAfterReady: customDefObj.prop("renderAfterReady"),
   };
 
+  this.isLegacyCustomCalendarWidget = ko.pureComputed(() => {
+    const key = this.parentKey();
+    return key === "custom.calendar" || (key === "custom" && isLegacyCalendarCustomDef({
+      widgetId: this.customDef.widgetId(),
+      url: this.customDef.url(),
+    }));
+  });
+
+  this.effectiveWidgetType = ko.pureComputed<IWidgetType>(() => {
+    if (this.isLegacyCustomCalendarWidget()) { return WidgetType.Calendar; }
+    return this.parentKey() as IWidgetType;
+  });
+
   this.selectedFields = ko.observable<any>([]);
 
   // During schema change, some columns/fields might be disposed beyond our control.
@@ -550,8 +576,10 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // - Widget type description (if not grid)
   // All concatenated separated by space.
   this.defaultWidgetTitle = this.autoDispose(ko.pureComputed(() => {
-    const widgetTypeDesc = this.parentKey() !== "record" ?
-      `${getWidgetTypes(this.parentKey.peek() as any).getLabel()}` :
+    // Legacy calendar sections get the Calendar label, not their stored parentKey's.
+    const widgetType = this.effectiveWidgetType();
+    const widgetTypeDesc = widgetType !== "record" ?
+      `${getWidgetTypes(widgetType).getLabel()}` :
       "";
     const table = this.table();
     return [
@@ -892,7 +920,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.hasCustomOptions = ko.observable(false);
   this.desiredAccessLevel = ko.observable<AccessLevel | null>(null);
-  this.columnsToMap = ko.observable<ColumnsToMap | null>(null);
+  const runtimeColumnMapping = ko.observable<ColumnsToMap | null>(null);
+  this.columnsToMap = ko.pureComputed({
+    read: () => runtimeColumnMapping() ?? this.customDef.widgetDef()?.columns ?? null,
+    write: value => runtimeColumnMapping(value),
+  });
   // Calculate mapped columns for Custom Widget.
   this.mappedColumns = ko.pureComputed(() => {
     // First check if widget has requested a custom column mapping and

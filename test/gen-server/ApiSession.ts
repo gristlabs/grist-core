@@ -1,5 +1,6 @@
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { AccessOptionWithRole } from "app/gen-server/entity/Organization";
+import { Product } from "app/gen-server/entity/Product";
 import { getCanAnyoneCreateOrgs, getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
@@ -95,6 +96,112 @@ describe("ApiSession", function() {
       ["id", "individual", "inGoodStanding", "status", "stripeCustomerId",
         "stripeSubscriptionId", "stripePlanId", "product", "paid", "isManager",
         "externalId", "externalOptions", "features", "paymentLink"]);
+  });
+
+  // Cap the number of members on the product all seeded orgs use by default.
+  async function setUserLimit(maxUsersPerOrg: number) {
+    await server.dbManager.connection.createQueryBuilder()
+      .update(Product)
+      .set({ features: { workspaces: true, vanityDomain: true, maxUsersPerOrg } })
+      .where("name = :name", { name: "Free" })
+      .execute();
+  }
+
+  it("GET /api/session/access/active reports member count when the plan caps it", async function() {
+    const cookie = await server.getCookieLogin("nasa", { email: regular, name: "Chimpy" });
+
+    // Nothing to report while the plan has no member limit.
+    let resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, cookie);
+    assert.equal(resp.status, 200);
+    assert.isUndefined(resp.data.org.billableMemberCount);
+
+    await setUserLimit(10);
+
+    // Chimpy is the only member of NASA; Charon has access to a doc there, and so is a
+    // guest rather than a member, and is not counted.
+    resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, cookie);
+    assert.equal(resp.status, 200);
+    assert.equal(resp.data.org.billableMemberCount, 1);
+
+    // The count follows membership.
+    const chimpyId = await server.dbManager.testGetId("Chimpy") as number;
+    const nasaId = await server.dbManager.testGetId("NASA") as number;
+    await server.dbManager.updateOrgPermissions({ userId: chimpyId }, nasaId,
+      { users: { "kiwi@getgrist.com": "editors" } });
+    resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, cookie);
+    assert.equal(resp.data.org.billableMemberCount, 2);
+  });
+
+  it("GET /api/session/access/active reports member count only to those who can act on it",
+    async function() {
+      await setUserLimit(10);
+
+      // Kiwi is an editor of Flightless, not an owner or a billing manager.
+      const kiwiCookie = await server.getCookieLogin("fly", { email: "kiwi@getgrist.com", name: "Kiwi" });
+      let resp = await axios.get(`${serverUrl}/o/fly/api/session/access/active`, kiwiCookie);
+      assert.equal(resp.status, 200);
+      assert.equal(resp.data.org.access, "editors");
+      assert.isUndefined(resp.data.org.billableMemberCount);
+
+      // Making Kiwi a billing manager is enough, without changing their access to the site.
+      await server.addBillingManager("Kiwi", "fly");
+      resp = await axios.get(`${serverUrl}/o/fly/api/session/access/active`, kiwiCookie);
+      assert.equal(resp.data.org.access, "editors");
+      assert.isNumber(resp.data.org.billableMemberCount);
+    });
+
+  it("GET /api/session/access/active says why an over-limit site is read-only",
+    async function() {
+      const chimpyId = await server.dbManager.testGetId("Chimpy") as number;
+      const nasaId = await server.dbManager.testGetId("NASA") as number;
+      await server.dbManager.updateOrgPermissions({ userId: chimpyId }, nasaId,
+        { users: { "kiwi@getgrist.com": "editors" } });
+      await setUserLimit(1);
+
+      // Kiwi is an editor, so is not told the count, but is told why the site is read-only,
+      // since their write access goes with it.
+      const kiwiCookie = await server.getCookieLogin("nasa", { email: "kiwi@getgrist.com", name: "Kiwi" });
+      let resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, kiwiCookie);
+      assert.equal(resp.status, 200);
+      assert.isUndefined(resp.data.org.billableMemberCount);
+      assert.equal(resp.data.org.readOnlyReason, "users");
+
+      // A site within its limit is not held read-only.
+      await setUserLimit(10);
+      resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, kiwiCookie);
+      assert.isUndefined(resp.data.org.readOnlyReason);
+    });
+
+  it("GET /api/session/access/active tells a guest why the site is read-only", async function() {
+    // Charon is not a member of NASA, only a collaborator on a document there. Their write
+    // access to that document goes when the site is held read-only, so they are told why,
+    // even though the count that explains it is not theirs to see.
+    const chimpyId = await server.dbManager.testGetId("Chimpy") as number;
+    const nasaId = await server.dbManager.testGetId("NASA") as number;
+    await server.dbManager.updateOrgPermissions({ userId: chimpyId }, nasaId,
+      { users: { "kiwi@getgrist.com": "editors" } });
+    await setUserLimit(1);
+
+    const cookie = await server.getCookieLogin("nasa", { email: "charon@getgrist.com", name: "Charon" });
+    const resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, cookie);
+    assert.equal(resp.status, 200);
+    // Guests are reported as viewers of the site, and are not counted as members of it.
+    assert.equal(resp.data.org.access, "viewers");
+    assert.isUndefined(resp.data.org.billableMemberCount);
+    assert.equal(resp.data.org.readOnlyReason, "users");
+  });
+
+  it("GET /api/session/access/active survives a member cap on the merged org's plan", async function() {
+    // The merged org is reported with id 0, which must not be fed to the member count (there
+    // is no site to count). A cap can reach a personal org's plan via a features override.
+    await setUserLimit(10);
+
+    const cookie = await server.getCookieLogin("docs", { email: regular, name: "Chimpy" });
+    const resp = await axios.get(`${serverUrl}/o/docs/api/session/access/active`, cookie);
+    assert.equal(resp.status, 200);
+    assert.equal(resp.data.org.id, 0);
+    assert.isUndefined(resp.data.org.billableMemberCount);
+    assert.isUndefined(resp.data.org.readOnlyReason);
   });
 
   it("GET /api/session/access/active returns orgErr when org is forbidden", async function() {

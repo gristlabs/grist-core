@@ -1,6 +1,7 @@
 import { ApiError } from "app/common/ApiError";
-import { parseSubdomainStrictly } from "app/common/gristUrls";
+import { parseSubdomain } from "app/common/gristUrls";
 import { removeTrailingSlash } from "app/common/gutil";
+import { isSingleUserMode } from "app/server/lib/Authorizer";
 import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { getAssignmentId } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
@@ -39,7 +40,7 @@ import fetch, { RequestInit, Response as FetchResponse } from "node-fetch";
  */
 export function customizeDocWorkerUrl(docWorkerUrlSeed: string, req: express.Request): string {
   const docWorkerUrl = new URL(docWorkerUrlSeed);
-  const workerSubdomain = parseSubdomainStrictly(docWorkerUrl.hostname).org;
+  const workerSubdomain = parseSubdomain(docWorkerUrl.hostname).org;
   adaptServerUrl(docWorkerUrl, req);
 
   // We wish to migrate to routing doc workers by path, so insert a doc worker identifier
@@ -56,7 +57,8 @@ export function customizeDocWorkerUrl(docWorkerUrlSeed: string, req: express.Req
 /**
  *
  * Gets the worker responsible for a given assignment, and fetches a url
- * from the worker.
+ * from the worker. Where the worker turns out to be this server, named by
+ * options.selfWorkerId, there is no fetch and no response to read.
  *
  * If the fetch fails, we throw an exception, unless we see enough evidence
  * to unassign the worker and try again.
@@ -84,19 +86,27 @@ export async function getWorker(
   assignmentId: string,
   urlPath: string,
   config: RequestInit = {},
+  options: {
+    // This server's own id, when it has one. A document that turns out to be on this server is
+    // answered without any request going out.
+    selfWorkerId?: string | null,
+  } = {},
 ) {
-  if (!useWorkerPool()) {
-    // This should never happen. We are careful to not use getWorker
-    // when everything is on a single server, since it is burdensome
-    // for self-hosted users to figure out the correct settings for
-    // the server to be able to contact itself, and there are cases
-    // of the defaults not working.
+  // Single user mode runs no doc worker, so no other server can have the document.
+  if (isSingleUserMode()) {
+    // Nothing to look up, single user mode registering no doc worker. A caller reaching
+    // here has skipped a check of its own.
     throw new Error("AppEndpoint.getWorker was called unnecessarily");
   }
   let docStatus: DocStatus | undefined;
   const workersAreManaged = Boolean(process.env.GRIST_MANAGED_WORKERS);
   for (;;) {
     docStatus = await docWorkerMap.assignDocWorker(assignmentId);
+    // Nothing to ask when the document is here, and worse than wasteful: a request that
+    // failed would strike this server off the list of servers, where it may be the only entry.
+    if (options.selfWorkerId && docStatus.docWorker.id === options.selfWorkerId) {
+      return { resp: undefined, docStatus };
+    }
     const configWithTimeout = { timeout: 10000, ...config };
     const fullUrl = removeTrailingSlash(docStatus.docWorker.internalUrl) + urlPath;
     try {
@@ -161,9 +171,9 @@ export async function getDocWorkerInfoOrSelfPrefix(
   docId: string,
   docWorkerMap?: IDocWorkerMap | null,
   tag?: string,
-  options?: { useSelfPrefix?: boolean },
+  options?: { useSelfPrefix?: boolean, selfWorkerId?: string | null },
 ): Promise<DocWorkerInfoOrSelfPrefix> {
-  if (!useWorkerPool() || options?.useSelfPrefix) {
+  if (isSingleUserMode() || options?.useSelfPrefix) {
     // Let the client know there is not a separate pool of workers,
     // so they should continue to use the same base URL for accessing
     // documents. For consistency, return a prefix to add into that
@@ -179,14 +189,10 @@ export async function getDocWorkerInfoOrSelfPrefix(
     throw new Error("no worker map");
   }
   const assignmentId = getAssignmentId(docWorkerMap, docId);
-  const { docStatus } = await getWorker(docWorkerMap, assignmentId, "/status");
+  const { docStatus } = await getWorker(docWorkerMap, assignmentId, "/status", {},
+    { selfWorkerId: options?.selfWorkerId });
   if (!docStatus) {
     throw new Error("no worker");
   }
   return { docWorker: docStatus.docWorker };
-}
-
-// Return true if document related endpoints are served by separate workers.
-export function useWorkerPool() {
-  return process.env.GRIST_SINGLE_PORT !== "true";
 }

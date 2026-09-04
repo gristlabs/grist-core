@@ -18,6 +18,8 @@ const READ_WIDGET = "Read";
 const FULL_WIDGET = "Full";
 const COLUMN_WIDGET = "COLUMN_WIDGET";
 const REQUIRED_WIDGET = "REQUIRED_WIDGET";
+const MANIFEST_COLUMNS_WIDGET = "MANIFEST_COLUMNS_WIDGET";
+const BOTH_COLUMNS_WIDGET = "BOTH_COLUMNS_WIDGET";
 const INVALID_URL_WIDGET = "INVALID_URL_WIDGET";
 // Custom URL label.
 const CUSTOM_URL = "Custom URL";
@@ -186,6 +188,24 @@ describe("CustomWidgetsConfig", function() {
               requiredAccess: AccessLevel.read_table, columns: [{ name: "Column", optional: false }],
             }),
             widgetId: "tester6",
+          },
+          {
+            // Declares its columns in the manifest, and its url passes no ready
+            // arguments, so anything shown comes from the manifest alone.
+            name: MANIFEST_COLUMNS_WIDGET,
+            url: createConfigUrl(),
+            widgetId: "tester8",
+            columns: [{ name: "FromManifest" }],
+          },
+          {
+            // Declares columns in both places, with different names, so the test
+            // can tell which source won.
+            name: BOTH_COLUMNS_WIDGET,
+            url: createConfigUrl({
+              requiredAccess: AccessLevel.read_table, columns: [{ name: "FromRuntime" }],
+            }),
+            widgetId: "tester9",
+            columns: [{ name: "FromManifest" }],
           },
           {
             name: INVALID_URL_WIDGET,
@@ -1147,6 +1167,36 @@ describe("CustomWidgetsConfig", function() {
     await gu.setCustomWidget(INVALID_URL_WIDGET);
     await widget.waitForFrame();
     assert.match(await widget.url(), /custom-widget\.html$/);
+  });
+
+  it("should offer mappings declared in the manifest", async () => {
+    await widget.resetWidget();
+    await gu.setCustomWidget(MANIFEST_COLUMNS_WIDGET);
+    await gu.waitForServer();
+
+    // This widget sends no columns from grist.ready(), so the picker can only
+    // come from the manifest.
+    assert.isTrue(await driver.findWait(pickerLabel("FromManifest"), 2000).isDisplayed());
+
+    await toggleDrop(pickerDrop("FromManifest"));
+    await clickOption("A");
+    assert.equal(await driver.find(pickerDrop("FromManifest")).getText(), "A");
+
+    assert.deepEqual(await widget.mappings(), { FromManifest: "A" });
+  });
+
+  it("lets grist.ready override what the manifest declared", async () => {
+    await widget.resetWidget();
+    await gu.setCustomWidget(BOTH_COLUMNS_WIDGET);
+    await gu.acceptAccessRequest();
+    await gu.waitForServer();
+
+    // This widget names FromManifest in its manifest and FromRuntime in
+    // grist.ready(), so only the runtime one may survive.
+    await gu.waitToPass(async () => {
+      assert.isTrue(await driver.find(pickerLabel("FromRuntime")).isDisplayed());
+      assert.isFalse(await driver.find(pickerLabel("FromManifest")).isPresent());
+    }, 2000);
   });
 });
 

@@ -12,13 +12,10 @@ import { dom, styled } from "grainjs";
 function buildAuthSectionPreview(providers: AuthProvider[]): HTMLElement {
   return cssPreviewContainer(
     buildAuthSection(providers, {
-      heroCtx: {
-        adminEmail: "admin@example.com",
-        onReconfigure: () => {},
-        onDeactivate: () => {},
-      },
-      listCtx: {},
+      adminEmail: "admin@example.com",
+      onReconfigure: () => {},
       loginSystemId: MINIMAL_PROVIDER_KEY,
+      revertButton: () => null,
     }),
   );
 }
@@ -42,9 +39,9 @@ const getgrist = (o: Partial<AuthProvider> = {}) =>
   provider({ name: "Sign in with getgrist.com", key: "getgrist.com", ...o });
 
 /**
- * All hero card states: no auth (amber, with acknowledge checkbox),
- * active (green, with collapsed provider list), pending restart (blue),
- * active with error (red), and getgrist.com with action buttons.
+ * All hero card states: no auth (amber), active (green), pending
+ * restart (blue), active with error (red), and getgrist.com with its
+ * Reconfigure action.
  */
 export const HeroCardStates = () => cssGrid(
   cssColumn(
@@ -56,7 +53,7 @@ export const HeroCardStates = () => cssGrid(
     ]),
   ),
   cssColumn(
-    cssLabel("Active — OIDC (green, list collapsed)"),
+    cssLabel("Active — OIDC (green, missing activation key)"),
     buildAuthSectionPreview([
       oidc({ isConfigured: true, isActive: true }),
       saml(),
@@ -80,7 +77,7 @@ export const HeroCardStates = () => cssGrid(
     ]),
   ),
   cssColumn(
-    cssLabel("Active — getgrist.com (with Reconfigure/Deactivate)"),
+    cssLabel("Active — getgrist.com (with Reconfigure)"),
     buildAuthSectionPreview([
       getgrist({ isConfigured: true, isActive: true }),
       oidc(),
@@ -96,13 +93,13 @@ export const HeroCardStates = () => cssGrid(
  */
 export const ProviderCardStates = () => cssGrid(
   cssColumn(
-    cssLabel("Unconfigured (with docs hint)"),
+    cssLabel("Unconfigured (requires activation key)"),
     buildAuthSectionPreview([
       oidc(),
     ]),
   ),
   cssColumn(
-    cssLabel("Configured (blue border, Set as active button)"),
+    cssLabel("Configured (selectable card)"),
     buildAuthSectionPreview([
       oidc({ isConfigured: true, canBeActivated: true }),
     ]),

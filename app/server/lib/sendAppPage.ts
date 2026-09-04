@@ -1,11 +1,13 @@
 import { AssistantConfig } from "app/common/Assistant";
 import {
+  ActivationState,
   commonUrls,
   Features,
   FormFraming,
   getContactSupportUrl,
   getFreeCoachingCallUrl,
   getHelpCenterUrl,
+  getHelpUsImproveSurveyUrl,
   getOnboardingVideoId,
   getPageTitleSuffix,
   getTermsOfServiceUrl,
@@ -18,12 +20,14 @@ import { getTagManagerSnippet } from "app/common/tagManager";
 import { Document } from "app/common/UserAPI";
 import { AttachedCustomWidgets, IAttachedCustomWidget } from "app/common/widgetTypes";
 import { SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
+import { isInstallAdminReq } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
 import { isAnonymousUser, isSingleUserMode, RequestWithLogin } from "app/server/lib/Authorizer";
 import { RequestWithOrg } from "app/server/lib/extractOrg";
 import { GristServer } from "app/server/lib/GristServer";
 import {
   getAnonPlaygroundEnabled, getCanAnyoneCreateOrgs,
+  getEditionSource,
   getOnboardingTutorialDocId, getPersonalOrgsEnabled,
   getTemplateOrg,
   getUserPresenceMaxUsers,
@@ -77,6 +81,24 @@ export interface MakeGristConfigOptions {
   baseDomain?: string;
   req?: express.Request;
   server?: GristServer | null;
+  /** Activation state to embed, already redacted for the recipient (see redactActivation). */
+  activation?: ActivationState;
+}
+
+/**
+ * The activation state as it may be sent to the browser. The installation ID identifies this
+ * install to Grist Labs, so it is dropped for anyone who is not an install admin; the rest
+ * (trial, key expiry, limits) drives banners that every user is meant to see.
+ */
+export async function redactActivation(
+  req?: express.Request, server?: GristServer | null,
+): Promise<ActivationState | undefined> {
+  const activation = (req as RequestWithLogin | undefined)?.activation;
+  if (!activation?.installationId) { return activation; }
+  if (req && server && await isInstallAdminReq(req, server)) { return activation; }
+  const copy = { ...activation };
+  delete copy.installationId;
+  return copy;
 }
 
 export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfig {
@@ -122,7 +144,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
       ((server?.getBundledWidgets().length || 0) > 0),
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
-    activation: (req as RequestWithLogin | undefined)?.activation,
+    activation: options.activation,
     latestVersionAvailable: server?.getLatestVersionAvailable(),
     automaticVersionCheckingAllowed: isAffirmative(process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING),
     enableCustomCss: isAffirmative(process.env.APP_STATIC_INCLUDE_CUSTOM_CSS),
@@ -134,7 +156,8 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
     deploymentType: server?.getDeploymentType(),
-    forceEnableEnterprise: isAffirmative(process.env.GRIST_FORCE_ENABLE_ENTERPRISE),
+    // Previously forceEnableEnterprise. Now reports when any edition is forced via env variable.
+    editionForced: getEditionSource() === "env",
     oauthAppsEnabled: server?.create.areOAuthAppsEnabled(),
     templateOrg: getTemplateOrg(),
     onboardingTutorialDocId: getOnboardingTutorialDocId(),
@@ -147,6 +170,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     userPresenceMaxUsers: getUserPresenceMaxUsers(),
     warnBeforeSharingPublicly: isAffirmative(process.env.GRIST_WARN_BEFORE_SHARING_PUBLICLY),
+    helpUsImproveSurveyUrl: getHelpUsImproveSurveyUrl(),
   };
   return {
     ...config,
@@ -192,6 +216,7 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
       baseDomain,
       req,
       server,
+      activation: await redactActivation(req, server),
     });
 
     // We could cache file contents in memory, but the filesystem does caching too, and compared

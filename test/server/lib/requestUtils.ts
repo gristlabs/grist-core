@@ -1,7 +1,11 @@
+import { expressWrap } from "app/server/lib/expressWrap";
 import {
+  BufferedResponse,
   buildProxyRequestUrl,
+  forwardHttpRequest,
   proxyHttpRequest,
   ProxyHttpRequestOptions,
+  relayBufferedResponse,
   trustOrigin,
 } from "app/server/lib/requestUtils";
 import { serveSomething, Serving } from "test/server/customUtil";
@@ -294,6 +298,84 @@ describe("requestUtils", function() {
       } finally {
         await backend.shutdown();
       }
+    });
+  });
+
+  // Tested as a pair: the relay assumes the forward already dropped the headers that must
+  // not travel further.
+  describe("forwardHttpRequest and relayBufferedResponse", function() {
+    let backendRequest: any = null;
+    let backend: Serving;
+
+    before(async function() {
+      backend = await serveSomething((app) => {
+        app.use(express.json());
+        app.all("*", (req, res) => {
+          backendRequest = { method: req.method, url: req.url, body: req.body };
+          // Connection names x-bad as hop-by-hop, so neither may reach our own client.
+          res.status(201)
+            .set({ "X-Custom": "value", "X-Bad": "stripped", "Connection": "x-bad" })
+            .json({ ok: true });
+        });
+      });
+    });
+
+    after(async function() {
+      await backend.shutdown();
+    });
+
+    // Serve `handler` as a front server, and return what our own client sees.
+    async function callFront(handler: express.RequestHandler) {
+      const front = await serveSomething((app) => { app.use(handler); });
+      try {
+        return await axios.get(front.url, { validateStatus: () => true });
+      } finally {
+        await front.shutdown();
+      }
+    }
+
+    it("sends the caller's body and buffers the reply", async function() {
+      let reply: BufferedResponse | undefined;
+      await callFront(expressWrap(async (req, res) => {
+        reply = await forwardHttpRequest(req, "POST", `${backend.url}/path?q=1`,
+          JSON.stringify({ hello: "world" }), { defaultHeaders: { "content-type": "application/json" } });
+        res.end();
+      }));
+      assert.deepEqual(backendRequest, { method: "POST", url: "/path?q=1", body: { hello: "world" } });
+      assert.equal(reply!.status, 201);
+      assert.equal(reply!.text, JSON.stringify({ ok: true }));
+      assert.equal(reply!.headers["x-custom"], "value");
+      assert.isUndefined(reply!.headers["x-bad"]);
+      assert.isUndefined(reply!.headers.connection);
+    });
+
+    it("relays a buffered reply verbatim to our own client", async function() {
+      const r = await callFront(expressWrap(async (req, res) => {
+        relayBufferedResponse(res, await forwardHttpRequest(req, "POST", backend.url, "{}"));
+      }));
+      assert.equal(r.status, 201);
+      assert.deepEqual(r.data, { ok: true });
+      assert.equal(r.headers["x-custom"], "value");
+      assert.isUndefined(r.headers["x-bad"]);
+    });
+
+    it("cleans up a reply from any source, not just the forward", async function() {
+      // Multi-byte text keeps byte and character counts distinct, so a stale length cannot
+      // coincidentally match.
+      const text = JSON.stringify({ hello: "wörld" });
+      const r = await callFront((_req, res) => relayBufferedResponse(res, {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "content-length": "3",
+          "x-bad": "stripped",
+          "connection": "x-bad",
+        },
+        text,
+      }));
+      assert.deepEqual(r.data, { hello: "wörld" });
+      assert.equal(r.headers["content-length"], String(Buffer.byteLength(text)));
+      assert.isUndefined(r.headers["x-bad"]);
     });
   });
 });

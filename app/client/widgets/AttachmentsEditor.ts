@@ -79,8 +79,11 @@ export class AttachmentsEditor extends NewBaseEditor {
     const initRowIndex: number | undefined = (options.editValue && parseInt(options.editValue, 0) - 1) || 0;
 
     this._attachmentsTable = docData.getMetaTable("_grist_Attachments");
-    this._docApi = options.gristDoc.docApi;
     this._docComm = docData.docComm;
+    // View-as-aware so preview/download URLs respect ACLs. Harmless on the upload path: /uploads
+    // is access-agnostic, and the real gating is on the WebSocket calls that follow.
+    this._docApi = options.gristDoc.appModel.api.getDocAPI(options.gristDoc.docId(),
+      { propagateViewAs: true });
 
     this._rowIds = obsArray(Array.isArray(cellValue) ? cellValue.slice(1) as number[] : []);
     this._attachments = computedArray(this._rowIds, (val: number): Attachment => {
@@ -252,9 +255,11 @@ export class AttachmentsEditor extends NewBaseEditor {
           }
         },
       });
+      if (this.isDisposed()) { return; }
       this._isUploading.set(false);
       return this._add(uploadResult);
     } catch (error) {
+      if (this.isDisposed()) { return; }
       this._isUploading.set(false);
       throw error;
     }
@@ -271,9 +276,11 @@ export class AttachmentsEditor extends NewBaseEditor {
           }
         },
       });
+      if (this.isDisposed()) { return; }
       this._isUploading.set(false);
       return this._add(uploadResult);
     } catch (error) {
+      if (this.isDisposed()) { return; }
       this._isUploading.set(false);
       throw error;
     }
@@ -282,6 +289,7 @@ export class AttachmentsEditor extends NewBaseEditor {
   private async _add(uploadResult: UploadResult | null): Promise<void> {
     if (!uploadResult) { return; }
     const rowIds = await this._docComm.addAttachments(uploadResult.uploadId);
+    if (this.isDisposed()) { return; }
     const len = this._rowIds.get().length;
     if (rowIds.length > 0) {
       this._rowIds.push(...rowIds);

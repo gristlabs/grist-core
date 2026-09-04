@@ -129,6 +129,7 @@ export interface IBillingSubscription {
   lastChargeError?: string;    // The last charge error, if any, to show in case of a bad status.
   lastChargeTime?: number;     // The time of the last charge attempt.
   limit?: ILimit | null;
+  apiLimit?: ILimit | null;    // How many api calls the plan allows per month, if it sets a limit.
   balance?: number;            // The balance of the account.
 
   // Current product name. Even if not paid or not in good standing.
@@ -142,7 +143,7 @@ export interface IBillingSubscription {
 export interface ILimit {
   limitValue: number;
   currentUsage: number;
-  type: string; // Limit type, for now only assistant is supported.
+  type: string; // Limit type, either assistant or apiCallsPerMonth.
   price: number; // If this is 0, it means it is a free plan.
 }
 

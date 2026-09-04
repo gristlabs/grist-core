@@ -14,7 +14,8 @@ export interface DocAuthorizer {
   getAuthKey(): DocAuthKey;
 
   // Check access, throw error if the requested level of access isn't available.
-  assertAccess(role: "viewers" | "editors" | "owners"): Promise<void>;
+  // Pass writes when the role does not say whether the call changes the document.
+  assertAccess(role: "viewers" | "editors" | "owners", options?: { writes?: boolean }): Promise<void>;
 
   // Get the lasted access information calculated for the doc.  This is useful
   // for logging - but access control itself should use assertAccess() to
@@ -51,10 +52,11 @@ export class DocAuthorizerImpl implements DocAuthorizer {
     return this._key;
   }
 
-  public async assertAccess(role: "viewers" | "editors" | "owners"): Promise<void> {
+  public async assertAccess(role: "viewers" | "editors" | "owners",
+    options: { writes?: boolean } = {}): Promise<void> {
     const docAuth = await this._options.dbManager.getDocAuthCached(this._key);
     this._docAuth = docAuth;
-    assertAccess(role, docAuth, { openMode: this.openMode });
+    assertAccess(role, docAuth, { openMode: this.openMode, writes: options.writes });
   }
 
   public getCachedAuth(): DocAuthResult {
@@ -73,6 +75,7 @@ export class DummyAuthorizer implements DocAuthorizer {
       docId: this.docId,
       removed: false,
       disabled: false,
+      readOnlyReason: null,
     };
   }
 }

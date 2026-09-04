@@ -27,6 +27,8 @@ export const ICommonUrls = t.iface([], {
   "helpTelemetryLimited": "string",
   "helpEnterpriseOptIn": "string",
   "helpEmailNotifications": "string",
+  "activationKeyRequestForm": "string",
+  "freeActivationKeyFaq": "string",
   "helpCalendarWidget": "string",
   "helpLinkKeys": "string",
   "helpFilteringReferenceChoices": "string",
@@ -41,12 +43,14 @@ export const ICommonUrls = t.iface([], {
   "helpAirtableIntegration": "string",
   "helpCloudStorage": "string",
   "integrators": "string",
+  "editionComparison": "string",
   "mcp": "string",
-  "freeCoachingCall": "string",
+  "freeCoachingCall": t.union("string", "undefined"),
   "contactSupport": "string",
   "termsOfService": t.union("string", "undefined"),
   "onboardingTutorialVideoId": "string",
   "plans": "string",
+  "plansSelfManaged": "string",
   "contact": "string",
   "templates": "string",
   "webinars": "string",
@@ -65,6 +69,7 @@ export const ICommonUrls = t.iface([], {
   "signInWithGristRegister": "string",
   "signInWithGristHelp": "string",
   "signInWithGristDocs": "string",
+  "helpUsImproveSurvey": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

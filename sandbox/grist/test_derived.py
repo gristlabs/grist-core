@@ -90,8 +90,7 @@ class TestDerived(test_engine.EngineTestCase):
         actions.BulkUpdateRecord("Orders_summary_year", [1,4], {"group": [[1,10], [7,8,9]]}),
       ],
       "calls": {"Orders_summary_year": {"group": 2, "amount": 2, "count": 2},
-                "Orders": {"#lookup##summary#Orders_summary_year": 1,
-                           "#summary#Orders_summary_year": 1}}
+                "Orders": {"#summary#Orders_summary_year": 1}}
     })
 
     self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
@@ -113,10 +112,10 @@ class TestDerived(test_engine.EngineTestCase):
       ],
       "calls": {
         "Orders_summary_year": {
-          '#lookup#year': 1, "group": 2, "amount": 2, "count": 2, "#lookup#": 1
+          "group": 2, "amount": 2, "count": 2, "#lookup#": 1
         },
-        "Orders": {"#lookup##summary#Orders_summary_year": 1,
-                   "#summary#Orders_summary_year": 1}}
+        # The helper re-evaluates once more when it creates the brand-new summary group.
+        "Orders": {"#summary#Orders_summary_year": 2}}
     })
 
     self.assertPartialData("Orders_summary_year", ["id", "year", "count", "amount", "group" ], [
@@ -295,7 +294,7 @@ class TestDerived(test_engine.EngineTestCase):
         ['UpdateRecord', 'Orders_summary_year', 1, {'amount': 15.0}],
         ['UpdateRecord', 'Orders', 1, {'year': 2012}],
         ['RemoveRecord', 'Orders_summary_year', 5],
-        ['AddRecord', 'Orders_summary_year', 1, {'group': ['L'], 'year': 2012}],
+        ['AddRecord', 'Orders_summary_year', 1, {'year': 2012}],
       ]})
 
     # Undo and ensure that the new line is gone from the summary table.
@@ -310,10 +309,11 @@ class TestDerived(test_engine.EngineTestCase):
       "stored": out_actions_update.undo[::-1],
       "calls": {
         "Orders_summary_year": {
-          "#lookup#": 1, "#lookup#year": 1, "group": 1, "amount": 1, "count": 1
+          "#lookup#": 1, "group": 1, "amount": 1, "count": 1
         },
         "Orders": {
-          "#lookup##summary#Orders_summary_year": 1, "#summary#Orders_summary_year": 1,
+          # The helper re-evaluates once more when it re-creates the summary group on undo.
+          "#summary#Orders_summary_year": 2,
         },
       },
     })

@@ -324,9 +324,9 @@ describe("AttachmentsWidget", function() {
       await gu.getCell({ col: 0, rowNum: 6 }).click();
       await gu.waitAppFocus();
       await driver.sendKeys(Key.ENTER);
-      await driver.sleep(500);
-      await driver.find(".test-pw-add").click();
+      await driver.findWait(".test-pw-add", 2000).click();
     });
+    await driver.findContentWait(".test-pw-counter", /1 of 1/, 3000);
     await gu.waitToPass(async () =>
       assert.isTrue(
         await driver.find(".test-pw-attachment-content").isDisplayed(),

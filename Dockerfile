@@ -179,7 +179,6 @@ WORKDIR /grist
 ENV \
   GRIST_ORG_IN_PATH=true \
   GRIST_HOST=0.0.0.0 \
-  GRIST_SINGLE_PORT=true \
   GRIST_SERVE_SAME_ORIGIN=true \
   GRIST_DATA_DIR=/persist/docs \
   GRIST_INST_DIR=/persist \

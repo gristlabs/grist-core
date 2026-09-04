@@ -1,10 +1,11 @@
-import { ApiError } from "app/common/ApiError";
+import { ApiError, ApiErrorDetails } from "app/common/ApiError";
 import {
   ConfigKey,
   ConfigKeyChecker,
   ConfigValue,
   ConfigValueCheckers,
 } from "app/common/Config";
+import { GristEdition } from "app/common/gristUrls";
 import { InstallPrefs } from "app/common/Install";
 import { PermissionsStatus, PrefSource } from "app/common/InstallAPI";
 import { getOrgKey } from "app/gen-server/ApiServer";
@@ -16,6 +17,7 @@ import {
 import { canRestart, makeAdminPageConfig } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { getBootKeySessionId } from "app/server/lib/Boot";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
@@ -81,7 +83,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: makeAdminPageConfig(gristServer),
+        config: await makeAdminPageConfig(req, gristServer),
       });
     }),
   );
@@ -126,6 +128,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         return res.status(409).send({
           error:
             "Cannot automatically restart the Grist server to enact changes. Please restart server manually.",
+          details: { code: "RestartUnavailable" } satisfies ApiErrorDetails,
         });
       }
       // We're going down, so we're no longer ready to serve requests.
@@ -181,10 +184,29 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/prefs",
     json({ limit: "1mb" }),
     expressWrap(async (req, res) => {
-      const prefs = req.body;
-      await gristServer.getActivations().updatePrefs(prefs);
+      const prefs = req.body as InstallPrefs;
+      const { telemetry, envVars } = prefs;
 
-      const { telemetry, envVars } = prefs as InstallPrefs;
+      // Which session survives a session clear is the server's decision alone, so drop any
+      // value the client sent and derive it here.
+      delete prefs.onRestartKeepSessionId;
+      if (prefs.onRestartClearSessions) {
+        // Keeping the boot-key session protects the operator mid-setup. Going live ends
+        // the setup, so nothing is kept from that point on.
+        const goingLive = envVars?.GRIST_IN_SERVICE === "true";
+        prefs.onRestartKeepSessionId = goingLive ?
+          null :
+          (await getBootKeySessionId(req, gristServer)) ?? null;
+      }
+
+      if (envVars && typeof envVars === "object" && "GRIST_SERVER_EDITION" in envVars) {
+        const edition = envVars.GRIST_SERVER_EDITION;
+        if (!GristEdition.guard(edition)) {
+          throw new ApiError(`Invalid GRIST_SERVER_EDITION value: ${edition}`, 400);
+        }
+      }
+
+      await gristServer.getActivations().updatePrefs(prefs);
 
       if (telemetry) {
         // Make sure the Telemetry singleton picks up the changes to telemetry preferences.

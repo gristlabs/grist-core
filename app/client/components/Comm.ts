@@ -26,7 +26,9 @@ import { GristWSConnection } from "app/client/components/GristWSConnection";
 import * as dispose from "app/client/lib/dispose";
 import * as log from "app/client/lib/log";
 import { ApiError } from "app/common/ApiError";
-import { CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent } from "app/common/CommTypes";
+import {
+  CommClientConnect, CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent,
+} from "app/common/CommTypes";
 import { UserAction } from "app/common/DocActions";
 import { DocListAPI, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
 import { GristServerAPI } from "app/common/GristServerAPI";
@@ -47,6 +49,8 @@ export interface CommRequestInFlight {
   methodName: string;
   requestMsg: string;
   sent: boolean;
+  // Which connection it went out on; only that one can say what became of it.
+  sentOn: GristWSConnection | null;
 }
 
 function isCommResponseError(msg: CommResponse | CommResponseError): msg is CommResponseError {
@@ -261,6 +265,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
         methodName,
         requestMsg,
         sent,
+        sentOn: sent ? connection : null,
       });
     });
   }
@@ -358,11 +363,12 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
       }
     } else {
       if (message.type === "clientConnect") {
-        // Reject or re-send any pending requests as appropriate in the order in which they were
-        // added to the pendingRequests map.
+        // Wait for, re-send, or reject any pending requests as appropriate, in the order in which
+        // they were added to the pendingRequests map.
+        const reconnected = this._connections.get(docId) ?? null;
         for (const [id, req] of this.pendingRequests) {
           if (reqMatchesConnection(req.docId, docId)) {
-            this._resendPendingRequest(id, req);
+            this._resendPendingRequest(id, req, message, reconnected);
           }
         }
       }
@@ -377,19 +383,39 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
     }
   }
 
-  private _resendPendingRequest(reqId: number, r: CommRequestInFlight) {
+  private _resendPendingRequest(reqId: number, r: CommRequestInFlight, connectMsg: CommClientConnect,
+    reconnected: GristWSConnection | null) {
     let error = null;
     const connection = this._connection(r.docId);
-    if (r.sent) {
-      // If we sent a request, and reconnected before getting a response, we don't know what
-      // happened. The safer choice is to reject the request.
-      error = "interrupted by reconnect";
-    } else if (r.clientId !== null && r.clientId !== connection.clientId) {
+
+    // lastReceivedReqId speaks only for requests that went out on the connection being resumed.
+    // Ids come from one counter shared by every connection on the page, and are handed out when a
+    // request is made rather than when it is sent, so one we sent elsewhere, or have not sent at
+    // all, can be numbered below it too.
+    const { lastReceivedReqId } = connectMsg;
+    const serverSpeaksForThis = r.sent && r.sentOn === reconnected && !connectMsg.needReload &&
+      lastReceivedReqId !== undefined;
+
+    if (serverSpeaksForThis && typeof lastReceivedReqId === "number" && reqId <= lastReceivedReqId) {
+      // The server has it, so wait rather than ask again. Safe because a response prepared while
+      // the socket was down is replayed as a missed message, and if any were lost the server sets
+      // needReload, ruled out above.
+      log.debug("Comm: req #" + reqId + " " + r.methodName + " survived the reconnect");
+      return;
+    }
+
+    if (r.clientId !== null && r.clientId !== connection.clientId) {
       // If we are waiting to send this request for a particular clientId, but clientId changed.
       error = "pending with outdated clientId";
+    } else if (r.sent && !serverSpeaksForThis) {
+      // We sent it, and reconnected without learning whether it arrived. The safer choice is to
+      // reject it.
+      error = "interrupted by reconnect";
     } else {
-      // Waiting to send the request, and clientId is fine: go ahead and send it.
+      // Never sent, or the server read past it without seeing it: either way it has had no
+      // effect yet.
       r.sent = connection.send(r.requestMsg);
+      r.sentOn = r.sent ? connection : null;
     }
     if (error) {
       log.warn("Comm: Rejecting req #" + reqId + " " + r.methodName + ": " + error);

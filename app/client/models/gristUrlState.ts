@@ -26,6 +26,7 @@ import { unsavedChanges } from "app/client/components/UnsavedChanges";
 import { hooks } from "app/client/Hooks";
 import { UrlState } from "app/client/lib/UrlState";
 import { decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState } from "app/common/gristUrls";
+import { tryParseUrl } from "app/common/gutil";
 import { Document } from "app/common/UserAPI";
 import { CellValue } from "app/plugin/GristData";
 
@@ -208,13 +209,8 @@ export function constructUrl(value: CellValue): string {
  * Otherwise, returns null.
  */
 export function sameDocumentUrlState(urlValue: CellValue): IGristUrlState | null {
-  const urlString = constructUrl(urlValue);
-  let url: URL;
-  try {
-    url = new URL(urlString);
-  } catch {
-    return null;
-  }
+  const url = tryParseUrl(constructUrl(urlValue));
+  if (!url) { return null; }
   const oldOrigin = window.location.origin;
   const newOrigin = url.origin;
   if (oldOrigin !== newOrigin) {

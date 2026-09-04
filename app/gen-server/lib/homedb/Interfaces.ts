@@ -1,7 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import * as roles from "app/common/roles";
-import { UserOptions } from "app/common/UserAPI";
+import { DocReadOnlyReason, UserOptions } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
 import { Group } from "app/gen-server/entity/Group";
 import { AccessOptionWithRole, Organization } from "app/gen-server/entity/Organization";
@@ -33,6 +33,7 @@ export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
   disabledAt?: Date | null;
+  disabledReason?: string | null;
   options?: Partial<UserOptions>;
 }
 
@@ -109,6 +110,8 @@ export interface DocAuthResult {
   // to removed documents for some purposes. Null on error.
   disabled: boolean | null;     // Removes most user read access and all
   // write access. Null on error.
+  readOnlyReason: DocReadOnlyReason | null;  // Why edits are refused, whatever the access
+  // above allows. Null if nothing refuses them.
   error?: ApiError;
   cachedDoc?: Document;       // For cases where stale info is ok.
 }

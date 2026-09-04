@@ -15,6 +15,8 @@ import { dom, styled } from "grainjs";
 const t = makeT("WelcomeCoachingCall");
 
 export function shouldShowWelcomeCoachingCall(appModel: AppModel) {
+  if (!commonUrls.freeCoachingCall) { return false; }
+
   const { deploymentType } = getGristConfig();
   if (deploymentType !== "saas") { return false; }
 

@@ -29,6 +29,9 @@ declare module "redis" {
 
   class RedisClient {
     public readonly connected: boolean;
+    // The underlying socket, for the address we reach Redis from. Optional because the code that
+    // reads it treats it as such: it is an internal, and nothing promises it is there.
+    public readonly stream?: { localAddress?: string };
     public eval(args: any[], callback?: (err: Error | null, res: any) => void): any;
     public evalAsync(...args: any[]): Promise<any>;
 

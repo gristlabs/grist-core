@@ -78,8 +78,8 @@ describe("AuthProviderGetGrist", function() {
     });
 
     it("should validate the key and stage the configuration as a draft", async function() {
-      const configureButton = await providerRow().find(".test-admin-auth-configure-button");
-      await configureButton.click();
+      // Clicking an unconfigured provider's card opens its configure modal.
+      await providerRow().click();
 
       const textarea = await driver.findWait(".test-admin-auth-config-key-textarea", 2000);
       const configureModalButton = await driver.find(".test-admin-auth-modal-configure");
@@ -108,15 +108,15 @@ describe("AuthProviderGetGrist", function() {
       await configureModalButton.click();
       await waitForModalToClose();
 
-      // The badge reflects the draft: getgrist.com will be active on apply
-      // (because nothing else was active and it's the first configured).
-      assert.includeMembers(await badges(), ["ACTIVE ON RESTART"]);
+      // The hero reflects the draft: configuring stages getgrist.com as the
+      // choice, to be saved on apply. A staged provider is the hero, not a list row.
+      assert.includeMembers(await heroBadges(), ["Active on restart"]);
     });
 
     it("clears the staged draft when Dismiss changes is confirmed", async function() {
       // Continues from the previous test, which staged a getgrist.com draft.
-      // Sanity-check it's still there.
-      assert.includeMembers(await badges(), ["ACTIVE ON RESTART"]);
+      // Sanity-check it's still there (on the hero).
+      assert.includeMembers(await heroBadges(), ["Active on restart"]);
 
       const dismissButton = await driver.findWait(".test-admin-panel-dismiss-button", 2000);
       // Banner uses a grid-template-rows animation; retry until the button
@@ -131,7 +131,7 @@ describe("AuthProviderGetGrist", function() {
       await gu.waitToPass(async () => {
         assert.isFalse(await driver.find(".test-admin-panel-dismiss-button").isPresent());
       }, 2000);
-      assert.notInclude(await badges(), "ACTIVE ON RESTART");
+      assert.notInclude(await badges(), "Active on restart");
     });
   });
 
@@ -161,28 +161,34 @@ describe("AuthProviderGetGrist", function() {
       await toggleItem("authentication");
       assert.equal(await itemValue("authentication"), "getgrist.com");
 
-      // Provider list collapses when a real provider is active; expand to inspect.
+      // The active provider is the hero card, with its Active chip.
+      const hero = await driver.findWait(".test-admin-auth-hero-card", 2000);
+      assert.match(await hero.getText(), /Sign in with getgrist/);
+      assert.lengthOf(await hero.findAll(".test-admin-auth-badge-active"), 1);
+
+      // The list holds the remaining providers; expand to inspect.
       await expandProviderList();
       const providerItems = await driver.findAll(".test-admin-auth-provider-row");
       assert.isAtLeast(providerItems.length, 2);
-      assert.match(await providerItems[0].getText(), /Sign in with getgrist/);
-      assert.match(await providerItems[1].getText(), /OIDC/);
-
-      const activeBadges = await providerItems[0].findAll(".test-admin-auth-badge-active");
-      assert.lengthOf(activeBadges, 1);
-      assert.lengthOf(await providerItems[1].findAll(".test-admin-auth-badge"), 0);
+      assert.match(await providerItems[0].getText(), /OIDC/);
     });
 
-    it("shows DISABLED ON RESTART when the user clicks Deactivate", async function() {
+    it("shows Disabled on restart when the user chooses No authentication", async function() {
       // The previous test left us on the admin panel with getgrist.com active.
-      const deactivateButton = await driver.findWait(".test-admin-auth-hero-deactivate", 2000);
-      await deactivateButton.click();
+      // Deactivation is done by choosing the "No authentication" card from the
+      // list, which asks for an acknowledgement before staging the change.
+      await expandProviderList();
+      await driver.findWait(".test-admin-auth-provider-row-no-auth", 2000).click();
       const confirmButton = await driver.findWait(".test-modal-confirm", 2000);
+      await driver.find(".test-admin-auth-no-auth-acknowledge").click();
+      await gu.waitToPass(async () => {
+        assert.notEqual(await confirmButton.getAttribute("disabled"), "true");
+      }, 2000);
       await confirmButton.click();
 
       await expandProviderList();
       const getGristBadges = await badges();
-      assert.includeMembers(getGristBadges, ["DISABLED ON RESTART"]);
+      assert.includeMembers(getGristBadges, ["Disabled on restart"]);
     });
 
     it("respects GRIST_GETGRISTCOM_SP_HOST when constructing the OAuth redirect", async function() {
@@ -222,4 +228,7 @@ const providerRow = (n = 0) => new WebElementPromise(driver,
     driver.findAll(".test-admin-auth-provider-row").then(rows => rows[n]),
   ));
 
-const badges = (n = 0) => providerRow(n).findAll(".test-admin-auth-badge", e => e.getText());
+const badges = (n = 0) => providerRow(n).findAll(".test-setup-card-badge", e => e.getText());
+
+const heroBadges = () =>
+  driver.findAll(".test-admin-auth-hero-card .test-setup-card-badge", e => e.getText());

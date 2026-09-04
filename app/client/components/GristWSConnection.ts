@@ -262,10 +262,16 @@ export class GristWSConnection extends Disposable {
     let needReload = false;
     if ("type" in message && message.type === "clientConnect" && processClientConnect) {
       if (this._established) {
+        // Comm relies on this: a second pass would re-judge requests against a stale
+        // lastReceivedReqId and reject ones it had just re-sent.
         this._log("GristWSConnection skipping duplicate 'clientConnect' message");
         return;
       }
       this._established = true;
+
+      // Reset backoff once established, not merely opened. A server that accepts a socket and
+      // drops it without sending clientConnect would otherwise never see us back off.
+      this._reconnectAttempts = 0;
 
       // Update flag to indicate if the active session changed, and warrants a reload. (The server
       // should be setting needReload too, so this shouldn't be strictly needed.)
@@ -361,7 +367,6 @@ export class GristWSConnection extends Disposable {
       this._log("GristWSConnection: onopen: " + connectMessage);
 
       this.trigger("connectionStatus", connectMessage, "OK");
-      this._reconnectAttempts = 0; // reset reconnection information
       this._scheduleHeartbeat();
     };
 

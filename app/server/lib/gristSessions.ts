@@ -71,7 +71,14 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
         },
       );
       const store = new RedisStore({ client });
+      const clearAsync = store.clearAsync.bind(store);
       return assignIn(store, {
+        async clearAsync() {
+          // connect-redis sends DEL with no keys when the store is empty, which redis rejects.
+          // Both calls scan all keys, so this stays O(N) like the original clearAsync(). That is
+          // fine, since clearing the store is a very rare operation.
+          if (await store.lengthAsync() > 0) { await clearAsync(); }
+        },
         async close() {
           // Quit the client, so that it doesn't attempt to reconnect (which matters for some
           // tests), and so that node becomes close-able.

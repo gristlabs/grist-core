@@ -188,7 +188,8 @@ export class ActionSummarizer {
 
   /** helper function to access summary changes for a specific cell by rowId and colId */
   private _forCell(td: TableDelta, rowId: number, colId: string): CellDelta {
-    const cd = td.columnDeltas[colId] || (td.columnDeltas[colId] = {});
+    // null-prototype map so an arbitrary row id can't clash with an inherited name.
+    const cd = td.columnDeltas[colId] || (td.columnDeltas[colId] = Object.create(null));
     return cd[rowId] || (cd[rowId] = [null, null]);
   }
 

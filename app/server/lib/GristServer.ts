@@ -13,8 +13,8 @@ import { HomeDBManager, UserChange } from "app/gen-server/lib/homedb/HomeDBManag
 import { IAccessTokens } from "app/server/lib/AccessTokens";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { Comm } from "app/server/lib/Comm";
-import { IGristCoreConfig, loadGristCoreConfig } from "app/server/lib/configCore";
-import { create } from "app/server/lib/create";
+import { getCreate } from "app/server/lib/create";
+import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocManager } from "app/server/lib/DocManager";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { Hosts } from "app/server/lib/extractOrg";
@@ -65,7 +65,6 @@ export interface ResourceUrlOptions {
  */
 export interface GristServer extends StorageCoordinator {
   readonly create: ICreate;
-  settings?: IGristCoreConfig;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
   getHomeInternalUrl(relPath?: string): string;
@@ -84,6 +83,7 @@ export interface GristServer extends StorageCoordinator {
   getDeploymentType(): GristDeploymentType;
   getHosts(): Hosts;
   getActivations(): ActivationsManager;
+  getInstallationId(): string;
   getInstallAdmin(): InstallAdmin;
   getHomeDBManager(): HomeDBManager;
   getStorageManager(): IDocStorageManager;
@@ -118,6 +118,15 @@ export interface GristServer extends StorageCoordinator {
   getDocManager(): DocManager;
   hasDocManager(): boolean;
   getDocWorkerMap(): IDocWorkerMap | null;
+  // This server's doc-worker id, or null if it isn't a doc worker. Lets callers
+  // tell whether a given doc is hosted here (vs. needing to be forwarded).
+  getWorkerId(): string | null;
+  // Whether the url this server publishes for documents is only its own guess at one.
+  // See DocWorkerIdentity.
+  publicUrlIsGuessed(): boolean;
+  // Shared per-doc API usage tracker, present on servers that host docs. Used to
+  // charge in-process doc work (e.g. a local MCP tool call) against API limits.
+  getDocApiUsageTracker?(): DocApiUsageTracker | undefined;
   isRestrictedMode(): boolean;
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
@@ -185,8 +194,7 @@ export interface DocTemplate {
  */
 export function createDummyGristServer(): GristServer {
   return {
-    create,
-    settings: loadGristCoreConfig(),
+    create: getCreate(),
     getHost() { return "localhost:4242"; },
     getHomeUrl() { return "http://localhost:4242"; },
     getHomeInternalUrl() { return "http://localhost:4242"; },
@@ -204,6 +212,7 @@ export function createDummyGristServer(): GristServer {
     getDeploymentType() { return "core"; },
     getHosts() { throw new Error("no hosts"); },
     getActivations() { throw new Error("no activations"); },
+    getInstallationId() { throw new Error("no installation id"); },
     getInstallAdmin() { throw new Error("no install admin"); },
     getHomeDBManager() { throw new Error("no db"); },
     getStorageManager() { throw new Error("no storage manager"); },
@@ -238,6 +247,8 @@ export function createDummyGristServer(): GristServer {
     getDocManager() { throw new Error("no DocManager"); },
     hasDocManager() { return false; },
     getDocWorkerMap() { return null; },
+    getWorkerId() { return null; },
+    publicUrlIsGuessed() { return true; },
     isRestrictedMode() { return false; },
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },

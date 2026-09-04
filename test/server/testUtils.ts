@@ -363,6 +363,16 @@ export class EnvironmentSnapshot {
   }
 }
 
+/**
+ * Scale a timeout for suites dominated by sandbox startup. Pyodide takes far
+ * longer to start than the other flavors, enough that a limit tight enough to
+ * notice an operation getting unexpectedly slow is not achievable under it.
+ * Other flavors keep the limit as given, which is where that signal is useful.
+ */
+export function sandboxTimeout(ms: number): number {
+  return getSandboxFlavor() === "pyodide" ? ms * 3 : ms;
+}
+
 const createdInThisRun = new Set<string>();
 
 export async function createTestDir(suiteName: string): Promise<string> {

@@ -129,6 +129,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
 you will not be able to get it back without assistance \
 from someone else with sufficient access to the {{resourceType}}.", { resourceType })
           ),
+          defaultCancel: true,
         },
       );
       return;

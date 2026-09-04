@@ -5,7 +5,6 @@ import { FocusLayer } from "app/client/lib/FocusLayer";
 import * as kf from "app/client/lib/koForm";
 import { makeT } from "app/client/lib/localization";
 import { localStorageBoolObs } from "app/client/lib/localStorageObs";
-import { ColumnToMapImpl } from "app/client/models/ColumnToMap";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import {
   cssDeveloperLink,
@@ -29,6 +28,8 @@ import { icon } from "app/client/ui2018/icons";
 import { cssOptionLabel, IOption, IOptionFull, menu, menuItem, menuText, select } from "app/client/ui2018/menus";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
+import { typeDefs } from "app/client/widgets/UserType";
+import { ColumnToMapImpl } from "app/common/ColumnToMap";
 import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from "app/common/CustomWidget";
 import { not, unwrap } from "app/common/gutil";
 
@@ -103,8 +104,9 @@ class ColumnPicker extends Disposable {
       return use(canBeMapped).length === 0;
     });
 
-    const defaultLabel = this._column.typeDesc != "any" ?
-      t("Pick a {{columnType}} column", { columnType: this._column.typeDesc }) :
+    const columnType = typeDesc(this._column);
+    const defaultLabel = columnType != "any" ?
+      t("Pick a {{columnType}} column", { columnType }) :
       t("Pick a column");
 
     return [
@@ -152,10 +154,10 @@ class ColumnPicker extends Disposable {
             Observable.create(this, null),
             [], {
               disabled: true,
-              defaultLabel: t("No {{columnType}} columns in table.", { columnType: this._column.typeDesc }),
+              defaultLabel: t("No {{columnType}} columns in table.", { columnType }),
             },
           ),
-          hoverTooltip(t("No {{columnType}} columns in table.", { columnType: this._column.typeDesc })),
+          hoverTooltip(t("No {{columnType}} columns in table.", { columnType })),
           testId("mapping-for-" + this._column.name),
           testId("disabled"),
         ),
@@ -699,6 +701,13 @@ function getAccessLevels(): IOptionFull<string>[] {
     { label: t("Read selected table"), value: AccessLevel.read_table },
     { label: t("Full document access"), value: AccessLevel.full },
   ];
+}
+
+// The types a widget asks for, as words for a placeholder: "Text,Int" reads
+// "text, integer". Unknown types fall back to "any".
+function typeDesc(column: ColumnToMapImpl): string {
+  return column.type.split(",")
+    .map(t => String(typeDefs[t]?.label ?? "any").toLowerCase()).join(", ");
 }
 
 const cssWarningWrapper = styled("div", `

@@ -24,6 +24,8 @@ export interface ICommonUrls {
   helpTelemetryLimited: string;
   helpEnterpriseOptIn: string;
   helpEmailNotifications: string;
+  activationKeyRequestForm: string;
+  freeActivationKeyFaq: string;
   helpCalendarWidget: string;
   helpLinkKeys: string;
   helpFilteringReferenceChoices: string;
@@ -38,12 +40,18 @@ export interface ICommonUrls {
   helpAirtableIntegration: string;
   helpCloudStorage: string;
   integrators: string;
+  editionComparison: string;
   mcp: string; // Support doc for connecting an AI assistant via the MCP server.
-  freeCoachingCall: string; // Link to the human help (example: email adress or meeting scheduling tool)
-  contactSupport: string; // Link to contact support on error pages (example: email adress or online form).
+
+  // If set, show a popup during onboarding to schedule a free 1-on-1 coaching call
+  // with this URL (e.g. email address, meeting scheduling tool). Only works on getgrist.com.
+  freeCoachingCall: string | undefined;
+
+  contactSupport: string; // Link to contact support on error pages (example: email address or online form).
   termsOfService: string | undefined; // Link to the terms of service (if set, adds a button to the bottom-left corner).
   onboardingTutorialVideoId: string; // URL to the Youtube video to onboard users.
   plans: string; // Link to the plans.
+  plansSelfManaged: string; // Link to the plans for self-managed installs.
   contact: string; // Link to the contact page.
   templates: string; // Link to the templates store.
   webinars: string; // Link to the webinars
@@ -67,4 +75,7 @@ export interface ICommonUrls {
   signInWithGristRegister: string; // Registration for Sign in with getgrist.com.
   signInWithGristHelp: string; // Help for Sign in with getgrist.com.
   signInWithGristDocs: string; // Setup docs for Sign in with getgrist.com.
+
+  // Endpoint the quick-setup "Help us improve" survey POSTs to. Empty string hides the survey.
+  helpUsImproveSurvey: string;
 }

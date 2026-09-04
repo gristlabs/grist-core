@@ -14,6 +14,8 @@ value previously set, since the "right" dataset is "single" values), m.lookup_le
 that value, and m.lookup_right(value) returns a `set` of keys that map to the value.
 """
 
+from lookupset import LookupSet
+
 # Special sentinel value which can never be legitimately stored in TwoWayMap, to easily tell the
 # difference between a present and absent value.
 _NIL = object()
@@ -236,27 +238,10 @@ def _set_remove(container, value):
 
 register_container(set, _set_make, _set_add, _set_remove)
 
-# A version of `set` that maintains also sorted versions of the set. Used in lookups, to cache the
-# sorted lookup results.
-class LookupSet(set):
-  def __init__(self, iterable=[]):
-    super(LookupSet, self).__init__(list(iterable))
-    self.sorted_versions = {}
-
 def _LookupSet_make(value):
   return LookupSet([value])
-def _LookupSet_add(container, value):
-  if value not in container:
-    container.add(value)
-    container.sorted_versions.clear()
-    return True
-  return False
-def _LookupSet_remove(container, value):
-  if value in container:
-    container.discard(value)
-    container.sorted_versions.clear()
 
-register_container(LookupSet, _LookupSet_make, _LookupSet_add, _LookupSet_remove)
+register_container(LookupSet, _LookupSet_make, _set_add, _set_remove)
 
 
 # Allow `list` to be used as a bin type.
