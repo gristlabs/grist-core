@@ -23,6 +23,7 @@ export interface ICommonUrls {
   helpTeamAuditLogs: string;
   helpTelemetryLimited: string;
   helpEnterpriseOptIn: string;
+  helpEmailNotifications: string;
   activationKeyRequestForm: string;
   freeActivationKeyFaq: string;
   helpCalendarWidget: string;

@@ -1677,7 +1677,10 @@
         "Access overview": "Access overview",
         "Share it publicly": "Share it publicly",
         "Verify your sensitive data before sharing publicly": "Verify your sensitive data before sharing publicly",
-        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing."
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.",
+        "Configure notifications": "Configure notifications",
+        "Invitation emails are not enabled on this installation.": "Invitation emails are not enabled on this installation.",
+        "Invitation emails are not sent on Grist Community edition.": "Invitation emails are not sent on Grist Community edition."
     },
     "SearchModel": {
         "Search all pages": "Search all pages",
@@ -3442,5 +3445,18 @@
         "Copy to clipboard": "Copy to clipboard",
         "Installation ID": "Installation ID",
         "Installation ID copied to clipboard": "Installation ID copied to clipboard"
+    },
+    "AskTheAdmin": {
+        "1 person has asked for this.": "1 person has asked for this.",
+        "Add a note": "Add a note",
+        "Ask the admin for this": "Ask the admin for this",
+        "Note sent.": "Note sent.",
+        "Why do you want this? Press Enter to send.": "Why do you want this? Press Enter to send.",
+        "You and 1 other have asked for this.": "You and 1 other have asked for this.",
+        "You and {{count}} others have asked for this._one": "You and {{count}} others have asked for this.",
+        "You and {{count}} others have asked for this._other": "You and {{count}} others have asked for this.",
+        "You've asked for this.": "You've asked for this.",
+        "{{count}} people have asked for this._one": "{{count}} people have asked for this.",
+        "{{count}} people have asked for this._other": "{{count}} people have asked for this."
     }
 }
