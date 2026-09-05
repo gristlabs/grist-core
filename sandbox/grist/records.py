@@ -114,6 +114,14 @@ class Record(object):
     # non-zero rowId which has just been deleted.
     return self._row_id in self._table.row_ids
 
+  def _asdict(self, dates_as_iso=False, expand_refs=0):
+    # Keep behavior aligned with RECORD(rec, ...), including dependency tracking and cycle guards.
+    from functions.info import RECORD
+    return RECORD(self, dates_as_iso=dates_as_iso, expand_refs=expand_refs)
+
+  def to_dict(self, dates_as_iso=False, expand_refs=0):
+    return self._asdict(dates_as_iso=dates_as_iso, expand_refs=expand_refs)
+
   def _clone_with_relation(self, src_relation):
     return self._table.Record(self._row_id,
                               relation=src_relation.compose(self._source_relation))
