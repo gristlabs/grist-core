@@ -180,20 +180,35 @@ export default class GridView extends BaseView {
     this._inline = gridOptions?.inline ?? false;
     this._autoWidthHolder = this.autoDispose(new Holder());
 
-    const sectionOptions = viewSectionModel.optionsObj;
+const sectionOptions = viewSectionModel.optionsObj;
     this._rowIndexRenderer = gridOptions?.rowIndexRenderer ??
       (row => dom.domComputed((use) => {
-        if (use(sectionOptions).rowNumbers === "rowId") {
+        const isAddRow = Boolean(use(row._isAddRow) || (use(row.id) as unknown) === "new");
+        if (isAddRow) {
+          return "+";
+        }
+
+        const opts = use(sectionOptions) as any;
+        if (opts.rowNumbers === "rowId") {
           const rowId = use(row.id);
-          // The add-row's id observable is left blank (it has no rowId yet); show nothing for it.
           if (typeof rowId !== "number") { return null; }
           return dom("span.gridview_row_id", String(rowId));
         }
-        return String(use(row._index)! + 1);
+
+        const currentIdx = use(row._index)!;
+        const isReverse = Boolean(opts?.reverseRowOrder);
+
+        if (isReverse) {
+          // When reverse is ON, add-row is at index 0.
+          // Data rows start at index 1 and count down.
+          const totalRows = this.sortedRows.getKoArray().peekLength;
+          return String(totalRows - currentIdx);
+        } else {
+          // Standard Grist: data rows start at index 0 and count up (1, 2, 3...)
+          return String(currentIdx + 1);
+        }
       }));
-    this._cornerRenderer = gridOptions?.cornerRenderer ??
-      (() => dom.on("click", () => this.selectAll()));
-    this.viewSection = viewSectionModel;
+
     this.isReadonly = this.gristDoc.isReadonly.get() ||
       this.viewSection.isVirtual() ||
       this.isPreview;
