@@ -36,7 +36,7 @@ import { BulkColValues, CellValue, DocAction, UserAction } from "app/common/DocA
 import { DocStateComparison } from "app/common/DocState";
 import * as gristTypes from "app/common/gristTypes";
 import { IGristUrlState } from "app/common/gristUrls";
-import { arrayRepeat, nativeCompare, roundDownToMultiple, waitObs } from "app/common/gutil";
+import { arrayRepeat, roundDownToMultiple, waitObs } from "app/common/gutil";
 import { DismissedPopup } from "app/common/Prefs";
 import { SortFunc } from "app/common/SortFunc";
 import { Sort } from "app/common/SortSpec";
@@ -178,15 +178,51 @@ export default class BaseView extends DisposableWithEvents {
     this.sortedRows = rowset.SortedRowSet.create(this, null as any, this.tableModel.tableData);
 
     // Create the sortFunc, and re-sort when sortSpec changes.
+// Create the sortFunc, and re-sort when sortSpec changes.
     const sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel, { unversioned: true }));
     const updateSort = (spec: Sort.SortSpec) => {
       sortFunc.updateSpec(spec);
+      const rawOptions = ko.unwrap(this.viewSection.optionsObj);
+      const isReverse = Boolean(rawOptions && typeof rawOptions === "object" ? (rawOptions as any).reverseRowOrder : false);
+
       this.sortedRows.updateSort((rowId1, rowId2) => {
-        const value = nativeCompare(rowId1 === "new", rowId2 === "new");
-        return value || sortFunc.compare(rowId1 as number, rowId2 as number);
+        const isNew1 = rowId1 === "new";
+        const isNew2 = rowId2 === "new";
+
+        if (isReverse) {
+          // 1. PIN THE "+" ADD-ROW AT THE TOP:
+          // If rowId1 is "new", it comes first (-1). If rowId2 is "new", rowId1 comes after (1).
+          if (isNew1) { return -1; }
+          if (isNew2) { return 1; }
+
+          // 2. User-applied column sort
+          if (spec && spec.length > 0) {
+            return sortFunc.compare(rowId1 as number, rowId2 as number);
+          }
+
+          // 3. Reverse chronological: higher row IDs (newest) first
+          return (rowId2 as number) - (rowId1 as number);
+        } else {
+          // 1. PIN THE "+" ADD-ROW AT THE BOTTOM:
+          // If rowId1 is "new", it comes last (1). If rowId2 is "new", rowId1 comes before (-1).
+          if (isNew1) { return 1; }
+          if (isNew2) { return -1; }
+
+          // 2. User-applied column sort
+          if (spec && spec.length > 0) {
+            return sortFunc.compare(rowId1 as number, rowId2 as number);
+          }
+
+          // 3. Normal chronological: lower row IDs (oldest) first
+          return (rowId1 as number) - (rowId2 as number);
+        }
       });
     };
+
     this.autoDispose(this.viewSection.activeDisplaySortSpec.subscribe(updateSort));
+    this.autoDispose(this.viewSection.optionsObj.subscribe(() => {
+      updateSort(this.viewSection.activeDisplaySortSpec.peek());
+    }));
     updateSort(this.viewSection.activeDisplaySortSpec.peek());
 
     // Here we are subscribed to the bulk of the data (main table, possibly filtered).
@@ -510,7 +546,7 @@ export default class BaseView extends DisposableWithEvents {
     }
     const rowId = this.viewData.getRowId(this.cursor.rowIndex()!);
     // LazyArrayModel row model which is also used to build the cell dom. Needed since
-    // it may be used as a key to retrieve the cell dom, which is useful for editor placement.
+    // it may be used as a key to retrieve the cell dom, technical editor placement.
     const lazyRow = this.getRenderedRowModel(rowId);
     if (!lazyRow) {
       // TODO scroll into view. For now, just don't start discussion.
@@ -900,8 +936,7 @@ export default class BaseView extends DisposableWithEvents {
    * Returns the index of the last non-AddNew row in the grid.
    */
   protected getLastDataRowIndex() {
-    const last = this.viewData.peekLength - 1;
-    return (last >= 0 && this.viewData.getRowId(last) === "new") ? last - 1 : last;
+    return Math.max(0, this.viewData.peekLength - 1);
   }
 
   /**

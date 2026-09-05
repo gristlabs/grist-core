@@ -65,6 +65,14 @@ export class GridOptions extends Disposable {
         ),
 
         cssRow(
+          labeledSquareCheckbox(
+            obsPropWithSaveOnWrite(this, options, "reverseRowOrder" as any, false) as Observable<boolean>,
+            t("Reverse row order"),
+          ),
+          testId("reverse-row-order-button"),
+        ),
+        
+        cssRow(
           labeledSquareCheckbox(showRowNumbers, t("Show"), testId("row-numbers-show")),
           cssModeLink(
             dom.text(use => use(shownMode) === "rowId" ? t("row IDs") : t("row numbers")),
