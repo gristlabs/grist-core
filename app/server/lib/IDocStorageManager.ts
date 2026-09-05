@@ -23,7 +23,7 @@ export interface IDocStorageManager {
   makeBackup(docName: string, backupTag: string): Promise<string>;
   showItemInFolder(docName: string): Promise<void>;
   closeStorage(): Promise<void>;
-  closeDocument(docName: string): Promise<void>;
+  closeDocument(docName: string, options?: { keepLocalCache?: boolean }): Promise<void>;
   // Mark document as needing a backup (due to edits, migrations, etc).
   // If reason is set to 'edit' the user-facing timestamp on the document should be updated.
   markAsChanged(docName: string, reason?: "edit"): void;
