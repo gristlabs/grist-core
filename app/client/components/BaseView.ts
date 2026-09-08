@@ -762,7 +762,16 @@ export default class BaseView extends DisposableWithEvents {
         .then((rowId) => {
           if (!this.isDisposed()) {
             this._exemptFromFilterRows.addExemptRow(rowId);
-            this.setCursorPos({ rowId });
+            const opts = this.viewSection.optionsObj() as any;
+            const isReverse = Boolean(opts?.reverseRowOrder);
+            if (isReverse) {
+              // In reverse row order, the add-row stays pinned at the top after a new
+              // record is created. Keep the cursor there instead of jumping down onto
+              // the row that was just added.
+              this.setCursorPos({ rowId: "new" });
+            } else {
+              this.setCursorPos({ rowId });
+            }
           }
           return rowId;
         })

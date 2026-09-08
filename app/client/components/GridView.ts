@@ -537,7 +537,19 @@ const sectionOptions = viewSectionModel.optionsObj;
     ctrlShiftUp: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "up" }); },
     ctrlShiftRight: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "right" }); },
     ctrlShiftLeft: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "left" }); },
-    fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex()! + 1); },
+    fieldEditSave: function() {
+  const opts = this.viewSection.optionsObj() as any;
+  const isReverse = Boolean(opts?.reverseRowOrder);
+  const wasAddRow = this.viewData.getRowId(this.cursor.rowIndex()!) === "new";
+
+  if (isReverse && wasAddRow) {
+    // In reverse row order, the add-row stays pinned at index 0 after a new
+    // record is entered — stay put instead of stepping onto the row just created.
+    return;
+  }
+
+  this.cursor.rowIndex(this.cursor.rowIndex()! + 1);
+},
     // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
     editField: function(event?: KeyboardEvent) {
       closeRegisteredMenu();
