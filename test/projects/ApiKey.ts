@@ -41,6 +41,28 @@ describe("ApiKeyWidget", function() {
     ]);
   });
 
+  it("should show a curl command with the api endpoint when toggled", async function() {
+    // Curl command should be hidden by default.
+    assert.deepEqual(await driver.findAll(".test-apikey-curl-command"), []);
+    assert.equal(await driver.find(".test-apikey-curl-toggle").getText(), "Show Curl command");
+
+    // Toggling should reveal the curl command, with the key masked since the key itself
+    // is still hidden.
+    await driver.find(".test-apikey-curl-toggle").click();
+    assert.equal(await driver.find(".test-apikey-curl-toggle").getText(), "Hide Curl command");
+    assert.match(await driver.find(".test-apikey-curl-command").getText(),
+      /^curl -H "Authorization: Bearer …" https:\/\/example\.com\/api\/orgs$/);
+
+    // Revealing the key should also reveal it within the curl command.
+    await driver.find(".test-apikey-key").click();
+    assert.equal(await driver.find(".test-apikey-curl-command").getText(),
+      'curl -H "Authorization: Bearer e03ab513535137a7ec60978b40c9a896db6d8706" https://example.com/api/orgs');
+
+    // Toggling again should hide the curl command.
+    await driver.find(".test-apikey-curl-toggle").click();
+    assert.deepEqual(await driver.findAll(".test-apikey-curl-command"), []);
+  });
+
   it("should show key when selected and hide when unselected", async function() {
     // Click the key, and check that the type is now 'text', causing it to be shown.
     const apiKey = await driver.find(".test-apikey-key");
