@@ -371,9 +371,13 @@ describe("AdminPanel", function() {
     await gu.waitForAdminPanel();
     await waitForStatus(/Newer version available/);
     fakeServer.resume();
-    // Expand and see if the toggle is off.
+    // Expand and see if the toggle is off. The auto-check setting loads from local storage
+    // asynchronously and can briefly render its "enabled by default" initial state before the
+    // persisted value lands, so poll rather than asserting once.
     await toggleItem("updates");
-    assert.isFalse(await isEnabled(autoCheckToggle()));
+    await gu.waitToPass(async () => {
+      assert.isFalse(await isEnabled(autoCheckToggle()));
+    }, 2000);
   });
 
   it("shows up-to-date message", async function() {
