@@ -2,6 +2,7 @@
 
 import { assert, driver } from "mocha-webdriver";
 import { $, gu, test } from "test/nbrowser/gristUtil-nbrowser";
+import { waitForDocToLoad } from "./gristUtils";
 
 describe("NewDocument.ntest", function() {
   test.setupTestSuite(this);
@@ -19,10 +20,13 @@ describe("NewDocument.ntest", function() {
     await gu.actions.createNewDoc("Untitled");
     assert.equal(await gu.actions.getDocTitle(), "Untitled");
 
-    const expectedTitle = "Untitled - Grist";
+    await waitForDocToLoad();
+
+    const expectedTitle = "Table1 - Untitled - Grist";
+    const expectedMetaTitle = "Untitled - Grist";
     assert.equal(await driver.getTitle(), expectedTitle);
-    assert.equal(await driver.find('meta[name="twitter:title"]').getAttribute("content"), expectedTitle);
-    assert.equal(await driver.find('meta[property="og:title"]').getAttribute("content"), expectedTitle);
+    assert.equal(await driver.find('meta[name="twitter:title"]').getAttribute("content"), expectedMetaTitle);
+    assert.equal(await driver.find('meta[property="og:title"]').getAttribute("content"), expectedMetaTitle);
 
     const expectedDescription = "A modern, open source spreadsheet that goes beyond the grid";
     assert.equal(await driver.find('meta[name="description"]').getAttribute("content"), expectedDescription);
