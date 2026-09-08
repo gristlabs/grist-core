@@ -506,6 +506,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_USER_ROOT | an extra path to look for plugins in - Grist will scan for plugins in `$GRIST_USER_ROOT/plugins`. |
 | GRIST_UI_FEATURES | comma-separated list of UI features to enable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `importFromAirtable`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`, `automations`. If a part also exists in GRIST_HIDE_UI_ELEMENTS, it won't be enabled. Note: `importFromAirtable` and `automations` are enabled by default even without being listed here; use GRIST_HIDE_UI_ELEMENTS to disable them. |
 | GRIST_UNTRUSTED_PORT | if set, plugins will be served from the given port. This is an alternative to setting APP_UNTRUSTED_URL. |
+| GRIST_VACUUM_ON_CLOSE | When set to `false`, do not compact documents when they are closed for inactivity. Documents are only compacted when there is enough space to reclaim to be worth the cost of storing the result. Defaults to `true`. |
 | GRIST_WIDGET_LIST_URL | a url pointing to a widget manifest, by default https://github.com/gristlabs/grist-widget/releases/download/latest/manifest.json is used |
 | GRIST_LOG_HTTP | When set to `true`, log HTTP requests and responses information. Defaults to `false`. |
 | GRIST_LOG_HTTP_BODY | When this variable and `GRIST_LOG_HTTP` are set to `true` , log the body along with the HTTP requests. :warning: Be aware it may leak confidential information in the logs.:warning: Defaults to `false`. |

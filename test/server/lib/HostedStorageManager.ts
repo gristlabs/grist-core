@@ -17,6 +17,7 @@ import {
 import { getCreate } from "app/server/lib/create";
 import { DocManager } from "app/server/lib/DocManager";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { Deps as DocStorageDeps } from "app/server/lib/DocStorage";
 import { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import {
   DELETED_TOKEN,
@@ -34,7 +35,7 @@ import log from "app/server/lib/log";
 import { SQLiteDB } from "app/server/lib/SQLiteDB";
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { createTmpDir, getGlobalPluginManager } from "test/server/docTools";
-import { EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc } from "test/server/testUtils";
+import { captureLog, EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc } from "test/server/testUtils";
 import { waitForIt } from "test/server/wait";
 
 import * as path from "node:path";
@@ -771,6 +772,44 @@ describe("HostedStorageManager", function() {
           await store.closeDoc(doc);
           const changesAfterViewing = markAsChanged.callCount;
           assert.equal(changesAfterViewing, changesAfterCreation);
+        });
+      });
+
+      it("compacting a document on close does not invalidate the local copy", async function() {
+        // We VACUUM a document when it is closed for inactivity. A VACUUM rewrites the
+        // whole file, so if the result is not pushed, the local copy no longer matches
+        // the checksum recorded for external storage, and the next open discards it and
+        // downloads the document again, losing the compaction too. See #1624.
+        //
+        // Force the VACUUM to happen, however little this small, fresh document has to
+        // reclaim, so that we test the push rather than the decision.
+        sandbox.stub(DocStorageDeps, "MIN_SIZE_FOR_VACUUM").value(0);
+        sandbox.stub(DocStorageDeps, "MIN_FREE_RATIO_FOR_VACUUM").value(0);
+
+        const docId = `vacuum-${uuidv4()}`;
+        await workers.assignDocWorker(docId);
+
+        await store.run(async () => {
+          // Create the document and get it fully pushed, so that nothing else is pending
+          // by the time we close it for inactivity.
+          let doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.waitForInitialization();
+          await store.closeDoc(doc);
+          assert(await store.waitForUpdates());
+
+          doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.waitForInitialization();
+          // Close the document the way the inactivity timer would.
+          await (doc as any)._onInactive();
+          assert(await store.waitForUpdates());
+
+          const messages = await captureLog("info", async () => {
+            doc = await store.docManager.fetchDoc(docSession, docId);
+            await doc.waitForInitialization();
+            await store.closeDoc(doc);
+          });
+          assert.deepEqual(messages.filter(m => m.includes("Local hash does not match redis")), [],
+            "the document should not have been re-downloaded");
         });
       });
 
