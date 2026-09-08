@@ -495,7 +495,7 @@ describe("BootPage", function() {
       await driver.get(`${server.getHost()}/admin?boot-key=abc123`);
       await gu.waitForAdminPanel();
       assert.equal(
-        await driver.find(".test-admin-panel-item-value-service-status").getText(),
+        await driver.findWait(".test-admin-panel-item-value-service-status", 2000).getText(),
         "out of service",
       );
       await toggleItem("service-status");
