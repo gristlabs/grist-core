@@ -14,7 +14,16 @@ export interface PageRec extends IRowModel<"_grist_Pages"> {
   share: ko.Computed<ShareRec>;
   isCollapsedByDefault: Computed<boolean>;
   isCollapsed: Observable<boolean>;
+  // True for a lightweight group header: a page with no table/section of its
+  // own, used purely to organize other pages under it in the tree.
+  isGroup: Computed<boolean>;
+  // Mirrors the isCollapsed/isCollapsedByDefault split above: `color` is a
+  // local, freely-mutable Observable (the color picker mutates it directly
+  // for live preview while open, same as it does for cell/header colors
+  // elsewhere), while `setAndSaveColor` persists it.
+  color: Observable<string | undefined>;
   setAndSaveCollapsed(value: boolean): Promise<void>;
+  setAndSaveColor(value: string | undefined): Promise<void>;
 }
 
 export function createPageRec(this: PageRec, docModel: DocModel): void {
@@ -56,5 +65,12 @@ export function createPageRec(this: PageRec, docModel: DocModel): void {
   this.setAndSaveCollapsed = async (value: boolean) => {
     this.isCollapsed.set(value);
     await options.setAndSave({ ...options.peek(), collapsed: value });
+  };
+  this.isGroup = Computed.create(this, use => Boolean(use(options).isGroup));
+  const colorDefault = Computed.create(this, use => use(options).color as string | undefined);
+  this.color = Observable.create(this, colorDefault.get());
+  this.setAndSaveColor = async (value: string | undefined) => {
+    this.color.set(value);
+    await options.setAndSave({ ...options.peek(), color: value });
   };
 }

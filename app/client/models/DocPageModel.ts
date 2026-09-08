@@ -590,6 +590,10 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       menuIcon("Page"), t("Add page"), testId("dp-add-new-page"),
       dom.cls("disabled", isReadonly),
     ),
+    menuItem(() => gristDoc.addNewPageGroup().catch(reportError),
+      menuIcon("Folder"), t("Add group"), testId("dp-add-new-group"),
+      dom.cls("disabled", isReadonly),
+    ),
     menuItem(
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addWidgetToPage(val).catch(reportError),
         { isNewPage: false, selectBy }),

@@ -670,6 +670,58 @@ describe("Pages", function() {
     assert.deepEqual(await gu.getSectionTitles(), ["TABLE C", "TABLE D", "TABLE1"]);
   });
 
+  it("should support adding a group and nesting pages into it", async () => {
+    // Create and open new document
+    const docId = await session.tempNewDoc(cleanup, "page-groups");
+    await driver.get(`${server.getHost()}/o/test-grist/doc/${docId}`);
+    await gu.waitForDocToLoad();
+
+    // Add a group via the "Add New" menu.
+    await driver.findWait(".test-dp-add-new", 2000).doClick();
+    await driver.findWait(".test-dp-add-new-group", 2000).doClick();
+    await gu.waitForServer();
+    assert.deepEqual(await gu.getPageNames(), ["Table1", "New Group"]);
+
+    // A group has no data of its own: clicking it toggles collapse instead
+    // of navigating away from the currently open page.
+    await gu.getPageItem("Table1").click();
+    await gu.waitForUrl(/\/p\/1\b/);
+    await gu.getPageItem("New Group").click();
+    await gu.waitForUrl(/\/p\/1\b/);
+
+    // Rename it, same rename flow as any other page.
+    await gu.openPageMenu("New Group");
+    await driver.findWait(".test-docpage-rename", 1000).doClick();
+    await driver.find(".test-docpage-editor").sendKeys("Trip Photos", Key.ENTER);
+    await gu.waitForServer();
+    assert.deepEqual(await gu.getPageNames(), ["Table1", "Trip Photos"]);
+
+    // Duplicate isn't offered for a group (there's no table to duplicate).
+    await gu.openPageMenu("Trip Photos");
+    assert.isFalse(await driver.find(".test-docpage-duplicate").isPresent());
+    await driver.sendKeys(Key.ESCAPE);
+
+    // A color-swatch trigger is available on the group's row.
+    assert.isTrue(
+      await gu.getPageItem("Trip Photos").find(".test-page-color-button").isPresent());
+
+    // Nest an existing page into the group by dragging it in.
+    await insertPage(/Table1/, /Trip Photos/);
+    assert.deepEqual(await gu.getPageTree(), [
+      { label: "Trip Photos", children: [{ label: "Table1" }] },
+    ]);
+
+    // A second, still-empty group can be removed without a data-loss
+    // prompt (it has no sections/tables of its own).
+    await driver.findWait(".test-dp-add-new", 2000).doClick();
+    await driver.findWait(".test-dp-add-new-group", 2000).doClick();
+    await gu.waitForServer();
+    await gu.removePage("New Group", { expectPrompt: false });
+    assert.deepEqual(await gu.getPageTree(), [
+      { label: "Trip Photos", children: [{ label: "Table1" }] },
+    ]);
+  });
+
   async function hideTable(tableId: string) {
     await api.applyUserActions(doc.id, [
       ["AddRecord", "_grist_ACLResources", -1, { tableId, colIds: "*" }],
