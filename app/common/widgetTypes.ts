@@ -1,15 +1,10 @@
 /**
  * Exposes utilities for getting the types information associated to each of the widget types.
  */
-import { StringUnion } from "app/common/StringUnion";
 
-// Custom widgets that are attached to "Add New" menu.
-export const AttachedCustomWidgets = StringUnion("custom.calendar");
-export type IAttachedCustomWidget = typeof AttachedCustomWidgets.type;
-
-// all widget types
+// all widget types; "custom.calendar" exists only for old documents, new code never sets it.
 export type IWidgetType =
-  "record" | "detail" | "single" | "chart" | "calendar" | "custom" | "form" | IAttachedCustomWidget;
+  "record" | "detail" | "single" | "chart" | "calendar" | "custom" | "form" | "custom.calendar";
 
 export enum WidgetType {
   Table = "record",

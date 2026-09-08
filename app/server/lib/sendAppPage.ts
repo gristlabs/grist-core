@@ -18,7 +18,6 @@ import {
 import { isAffirmative, replaceLiteral, replaceLiterals } from "app/common/gutil";
 import { getTagManagerSnippet } from "app/common/tagManager";
 import { Document } from "app/common/UserAPI";
-import { AttachedCustomWidgets, IAttachedCustomWidget } from "app/common/widgetTypes";
 import { SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBManager";
 import { isInstallAdminReq } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
@@ -151,7 +150,6 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
     assistant: getAssistantConfig(server),
-    permittedCustomWidgets: getPermittedCustomWidgets(server),
     supportEmail: SUPPORT_EMAIL,
     userLocale: (req as RequestWithLogin | undefined)?.user?.options?.locale,
     telemetry: server?.getTelemetry().getTelemetryConfig(req as RequestWithLogin | undefined),
@@ -314,28 +312,6 @@ function getAssistantConfig(gristServer?: GristServer | null): AssistantConfig |
 
   const { provider, version } = assistant;
   return { provider, version };
-}
-
-function getPermittedCustomWidgets(gristServer?: GristServer | null): IAttachedCustomWidget[] {
-  if (!process.env.PERMITTED_CUSTOM_WIDGETS && gristServer) {
-    // The PERMITTED_CUSTOM_WIDGETS environment variable is a bit of
-    // a drag. If there are bundled widgets that overlap with widgets
-    // described in the codebase, let's just assume they are permitted.
-    const widgets = gristServer.getBundledWidgets();
-    const names = new Set(AttachedCustomWidgets.values as string[]);
-    const namesFound: IAttachedCustomWidget[] = [];
-    for (const widget of widgets) {
-      // Permitted custom widgets are identified so many ways across the
-      // code! Why? TODO: cut down on identifiers.
-      const name = widget.widgetId.replace("@gristlabs/widget-", "custom.");
-      if (names.has(name)) {
-        namesFound.push(name as IAttachedCustomWidget);
-      }
-    }
-    return AttachedCustomWidgets.checkAll(namesFound);
-  }
-  const widgetsList = process.env.PERMITTED_CUSTOM_WIDGETS?.split(",").map(widgetName => `custom.${widgetName}`) ?? [];
-  return AttachedCustomWidgets.checkAll(widgetsList);
 }
 
 function configuredPageTitleSuffix() {
