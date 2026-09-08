@@ -13,13 +13,14 @@ import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssDragger } from "app/client/ui2018/draggableList";
 import { icon } from "app/client/ui2018/icons";
 import { setupEditorCleanup } from "app/client/widgets/FieldEditor";
+import { FloatingEditor } from "app/client/widgets/FloatingEditor";
 import { cssError, openFormulaEditor } from "app/client/widgets/FormulaEditor";
 import { isRaisedException, isValidRuleValue } from "app/common/gristTypes";
 import { Style } from "app/common/Styles";
 import { GristObjCode, RowRecord } from "app/plugin/GristData";
 import { decodeObject } from "app/plugin/objtypes";
 
-import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, DomContents, domDispose, makeTestId, Observable, styled } from "grainjs";
 import debounce from "lodash/debounce";
 
 const testId = makeTestId("test-widget-style-");
@@ -244,22 +245,61 @@ export class ConditionalStyle extends Disposable {
       dom.cls(cssFieldFormula.className),
       dom.cls(cssErrorBorder.className, hasError),
       { tabIndex: "-1" },
-      dom.on("focus", (_, refElem) => {
-        const section = this._gristDoc.viewModel.activeSection();
-        const vsi = section.viewInstance();
-        const editorHolder = openFormulaEditor({
-          gristDoc: this._gristDoc,
-          editingFormula: section.editingFormula,
-          column,
-          editRow: vsi?.moveEditRowToCursor(),
-          refElem,
-          setupCleanup: setupEditorCleanup,
-          canDetach: false,
-        });
-        // Add editor to document holder - this will prevent multiple formula editor instances.
-        this._gristDoc.fieldEditorHolder.autoDispose(editorHolder);
-      }),
+      dom.on("focus", (_, refElem) => this._openRuleFormulaEditor(column, refElem)),
     );
+  }
+
+  private _openRuleFormulaEditor(column: ColumnRec, refElem: Element) {
+    const section = this._gristDoc.viewModel.activeSection();
+    const vsi = section.viewInstance();
+    const editRow = vsi?.moveEditRowToCursor();
+    const position = this._gristDoc.cursorPosition.get();
+    const tableId = column.table.peek().tableId.peek();
+
+    // Controller that moves the editor DOM between the inline placement and the floating popup.
+    const floatController = {
+      attach: async (content: HTMLElement) => {
+        if (refElem.isConnected) {
+          formulaEditor.attach(refElem);
+        } else {
+          formulaEditor.dispose();
+          domDispose(content);
+          if (position) {
+            await this._gristDoc.recursiveMoveToCursorPos(position, true);
+          }
+        }
+      },
+      detach() {
+        return formulaEditor.detach();
+      },
+      autoDispose(el: Disposable) {
+        return formulaEditor.autoDispose(el);
+      },
+      dispose() {
+        formulaEditor.dispose();
+      },
+    };
+
+    // Don't save on focus loss while the floating editor is open (focus moves during detach).
+    const formulaEditor = openFormulaEditor({
+      gristDoc: this._gristDoc,
+      editingFormula: section.editingFormula,
+      column,
+      editRow,
+      refElem,
+      setupCleanup: (...args) => setupEditorCleanup(...args, () => floatingExtension.active.get()),
+      canDetach: true,
+    });
+
+    const floatingExtension = FloatingEditor.create(formulaEditor, floatController, {
+      gristDoc: this._gristDoc,
+      refElem,
+      placement: "overlapping",
+      title: `${tableId} · ${t("Conditional Style")}`,
+    });
+
+    // Add editor to document holder - this will prevent multiple formula editor instances.
+    this._gristDoc.fieldEditorHolder.autoDispose(formulaEditor);
   }
 }
 
