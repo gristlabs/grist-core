@@ -42,6 +42,10 @@ export interface FloatingEditorOptions {
    * Defaults to "fixed".
    */
   placement?: "overlapping" | "adjacent" | "fixed";
+  /**
+   * Optional popup title. When omitted, uses the cursor field as `table.fieldLabel`.
+   */
+  title?: string | (() => string);
 }
 
 export class FloatingEditor extends Disposable {
@@ -72,12 +76,7 @@ export class FloatingEditor extends Disposable {
       // we are kind of simulating always focused editor (even if it is not in the dom for a brief moment).
       FocusLayer.create(tempOwner, { defaultFocusElem: document.activeElement as any });
 
-      // Take some data from gristDoc to create a title.
-      const cursor = this._gristDoc.cursorPosition.get()!;
-      const vs = this._gristDoc.docModel.viewSections.getRowModel(cursor.sectionId!);
-      const table = vs.tableId.peek();
-      const field = vs.viewFields.peek().at(cursor.fieldIndex!)!;
-      const title = `${table}.${field.label.peek()}`;
+      const title = this._resolveTitle();
 
       let content: HTMLElement;
       // Now create the popup. It will be owned by the editor itself.
@@ -118,6 +117,19 @@ export class FloatingEditor extends Disposable {
       // Dispose the focus layer, we only needed it for the time when the dom was moved between parents.
       tempOwner.dispose();
     }
+  }
+
+  private _resolveTitle() {
+    if (typeof this._options.title === "function") {
+      return this._options.title();
+    }
+    if (this._options.title !== undefined) {
+      return this._options.title;
+    }
+    const cursor = this._gristDoc.cursorPosition.get()!;
+    const vs = this._gristDoc.docModel.viewSections.getRowModel(cursor.sectionId!);
+    const field = vs.viewFields.peek().at(cursor.fieldIndex!)!;
+    return `${vs.tableId.peek()}.${field.label.peek()}`;
   }
 
   private _getPopupPosition(): PopupPosition | undefined {
