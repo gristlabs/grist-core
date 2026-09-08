@@ -77,7 +77,7 @@ const AUTH_SUBDOMAIN = process.env.GRIST_ID_PREFIX ? `docs-${process.env.GRIST_I
 function getFullAuthEndpointUrl(): string {
   const homeUrl = getHomeUrl();
   // if homeUrl is localhost - (in dev environment) - use the development url
-  if (homeUrl && new URL(homeUrl).hostname === "localhost") {
+  if (homeUrl) {
     return `${homeUrl}${authHandlerPath}`;
   }
   const homeBaseDomain = homeUrl && parseSubdomain(new URL(homeUrl).host).base;
