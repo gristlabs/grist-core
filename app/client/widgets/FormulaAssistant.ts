@@ -6,6 +6,7 @@ import { movable } from "app/client/lib/popupUtils";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { ChatHistory } from "app/client/models/ChatHistory";
 import { ColumnRec, ViewFieldRec } from "app/client/models/DocModel";
+import { reportError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
@@ -90,13 +91,6 @@ export class FormulaAssistant extends Disposable {
   }) {
     super();
 
-    if (!this._options.field) {
-      // TODO: field is not passed only for rules (as there is no preview there available to the user yet)
-      // this should be implemented but it requires creating a helper column to helper column and we don't
-      // have infrastructure for that yet.
-      throw new Error("Formula assistant requires a field to be passed.");
-    }
-
     this._history = this._options.column.chatHistory.peek();
 
     this._chat = Assistant.create(this, {
@@ -122,30 +116,35 @@ export class FormulaAssistant extends Disposable {
     observer.observe(this._options.editor.getDom());
     this.onDispose(() => observer.disconnect());
 
-    // Start bundling all actions from this moment on and close the editor as soon,
-    // as user tries to do something different.
-    const bundleInfo = this._options.gristDoc.docData.startBundlingActions({
-      description: "Formula Editor",
-      prepare: () => this._preparePreview(),
-      finalize: () => this._cleanupPreview(),
-      shouldIncludeInBundle: (actions) => {
-        if (actions.length !== 1) { return false; }
+    if (this._options.field) {
+      // Start bundling all actions from this moment on and close the editor as soon,
+      // as user tries to do something different.
+      const bundleInfo = this._options.gristDoc.docData.startBundlingActions({
+        description: "Formula Editor",
+        prepare: () => this._preparePreview(),
+        finalize: () => this._cleanupPreview(),
+        shouldIncludeInBundle: (actions) => {
+          if (actions.length !== 1) { return false; }
 
-        const actionName = actions[0][0];
-        if (actionName === "ModifyColumn") {
-          const tableId = this._options.column.table.peek().tableId.peek();
-          return actions[0][1] === tableId &&
-            typeof actions[0][2] === "string" &&
-            [this._transformColId, this._options.column.id.peek()].includes(actions[0][2]);
-        } else if (actionName === "UpdateRecord") {
-          return actions[0][1] === "_grist_Tables_column" && actions[0][2] === this._transformColRef;
-        } else {
-          return false;
-        }
-      },
-    });
+          const actionName = actions[0][0];
+          if (actionName === "ModifyColumn") {
+            const tableId = this._options.column.table.peek().tableId.peek();
+            return actions[0][1] === tableId &&
+              typeof actions[0][2] === "string" &&
+              [this._transformColId, this._options.column.id.peek()].includes(actions[0][2]);
+          } else if (actionName === "UpdateRecord") {
+            return actions[0][1] === "_grist_Tables_column" && actions[0][2] === this._transformColRef;
+          } else {
+            return false;
+          }
+        },
+      });
 
-    this._triggerFinalize = bundleInfo.triggerFinalize;
+      this._triggerFinalize = bundleInfo.triggerFinalize;
+    } else {
+      this._triggerFinalize = () => { void this._finalizeWithoutPreview(); };
+    }
+
     this.onDispose(() => {
       if (this._hasExpandedOnce) {
         const suggestionApplied = this._chat.conversationSuggestedFormulas
@@ -179,9 +178,11 @@ export class FormulaAssistant extends Disposable {
         basicButton(t("Cancel"), dom.on("click", () => {
           this._cancel();
         }), testId("cancel-button")),
-        basicButton(t("Preview"), dom.on("click", async () => {
-          await this._preview();
-        }), testId("preview-button")),
+        this._options.field ? basicButton(
+          t("Preview"),
+          dom.on("click", async () => { await this._preview(); }),
+          testId("preview-button"),
+        ) : null,
         primaryButton(t("Save"), dom.on("click", () => {
           this._saveOrClose();
         }), testId("save-button")),
@@ -342,6 +343,11 @@ export class FormulaAssistant extends Disposable {
   }
 
   private async _preparePreview() {
+    const field = this._options.field;
+    if (!field) {
+      return;
+    }
+
     const docData = this._options.gristDoc.docData;
     const tableId = this._options.column.table.peek().tableId.peek();
 
@@ -351,23 +357,23 @@ export class FormulaAssistant extends Disposable {
       label: this._options.column.colId.peek(),
       isFormula: true,
       formula: this._options.column.formula.peek(),
-      widgetOptions: JSON.stringify(this._options.field?.widgetOptionsJson()),
+      widgetOptions: JSON.stringify(field.widgetOptionsJson()),
     }]);
 
     this._transformColRef = colRef;
     this._transformColId = colId;
 
-    const rules = this._options.field?.rulesList();
+    const rules = field.rulesList();
     if (rules) {
       await docData.sendAction(["UpdateRecord", "_grist_Tables_column", colRef, {
-        rules: this._options.field?.rulesList(),
+        rules: field.rulesList(),
       }]);
     }
 
-    this._options.field?.colRef(colRef); // Don't save, it is only in browser.
+    field.colRef(colRef); // Don't save, it is only in browser.
 
     // Update the transform column so that it points to the original column.
-    const transformColumn = this._options.field?.column.peek();
+    const transformColumn = field.column.peek();
     if (transformColumn) {
       transformColumn.isTransforming(true);
       this._options.column.isTransforming(true);
@@ -381,6 +387,7 @@ export class FormulaAssistant extends Disposable {
     const docData = this._options.gristDoc.docData;
     const tableId = this._options.column.table.peek().tableId.peek();
     const column = this._options.column;
+    const field = this._options.field;
     try {
       if (this._action === "save") {
         const formula = this._options.editor.getCellValue();
@@ -392,7 +399,7 @@ export class FormulaAssistant extends Disposable {
       }
       // Switch the column for the field, this isn't sending any actions, we are just restoring it to what it is
       // in database. But now the column has already correct data as it was already calculated.
-      this._options.field?.colRef(column.getRowId());
+      field?.colRef(column.getRowId());
 
       // Now trigger the action in our owner that should dispose us. The save
       // method will be no op if we saved anything.
@@ -413,8 +420,35 @@ export class FormulaAssistant extends Disposable {
       ]);
     } finally {
       // Repeat the change, in case of an error.
-      this._options.field?.colRef(column.getRowId());
+      field?.colRef(column.getRowId());
       column.isTransforming(false);
+    }
+  }
+
+  /**
+   * Save/cancel path used when there is no view field (e.g. conditional style rules).
+   * Skips the temporary transform column used for Preview.
+   */
+  private async _finalizeWithoutPreview() {
+    this._triggerFinalize = noop;
+    const docData = this._options.gristDoc.docData;
+    const tableId = this._options.column.table.peek().tableId.peek();
+    const column = this._options.column;
+    try {
+      if (this._action === "save") {
+        const formula = this._options.editor.getCellValue();
+        await docData.sendActions([
+          ["ModifyColumn", tableId, column.colId.peek(), { formula, isFormula: true }],
+        ]);
+        commands.allCommands.fieldEditSaveHere.run();
+      } else if (this._action === "cancel") {
+        commands.allCommands.fieldEditCancel.run();
+      } else if (this._action !== "close") {
+        throw new Error("Unexpected value for _action");
+      }
+      // "close" (e.g. collapsing the floating editor) leaves the draft editor open.
+    } catch (err) {
+      reportError(err);
     }
   }
 
@@ -520,7 +554,9 @@ export class FormulaAssistant extends Disposable {
   private async _applyFormula(formula: string) {
     this._options.editor.setFormula(formula);
     this._resizeEditor();
-    await this._preview();
+    if (this._options.field) {
+      await this._preview();
+    }
   }
 }
 
