@@ -514,8 +514,6 @@ export function openFormulaEditor(options: {
 
   if (options.field) {
     options.column = options.field.origCol();
-  } else if (options.canDetach) {
-    throw new Error("Field is required for detached editor");
   }
 
   // We can't rely on the field passed in, we need to create our own.

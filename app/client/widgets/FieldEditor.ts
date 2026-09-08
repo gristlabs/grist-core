@@ -483,9 +483,16 @@ function setupReadonlyEditorCleanup(
  * - Arrange for UnsavedChange protection against leaving the page with unsaved changes.
  */
 export function setupEditorCleanup(
-  owner: MultiHolder, gristDoc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
+  owner: MultiHolder,
+  gristDoc: GristDoc,
+  editingFormula: ko.Computed<boolean>,
+  _saveEdit: () => Promise<unknown>,
+  shouldSkipSaveOnFocus?: () => boolean,
 ) {
-  const saveEdit = () => _saveEdit().catch(reportError);
+  const saveEdit = () => {
+    if (shouldSkipSaveOnFocus?.()) { return; }
+    return _saveEdit().catch(reportError);
+  };
 
   // Whenever focus returns to the Clipboard component, close the editor by saving the value.
   gristDoc.app.on("clipboard_focus", saveEdit);

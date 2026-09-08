@@ -5,7 +5,6 @@ import { FormulaTransform } from "app/client/components/FormulaTransform";
 import { GristDoc } from "app/client/components/GristDoc";
 import { addColTypeSuffix, guessWidgetOptionsSync, inferColTypeSuffix } from "app/client/components/TypeConversion";
 import { TypeTransform } from "app/client/components/TypeTransform";
-import { UnsavedChange } from "app/client/components/UnsavedChanges";
 import dom from "app/client/lib/dom";
 import { KoArray } from "app/client/lib/koArray";
 import * as kd from "app/client/lib/koDom";
@@ -25,7 +24,7 @@ import { IOptionFull, menu, select } from "app/client/ui2018/menus";
 import { DiffBox } from "app/client/widgets/DiffBox";
 import { CommentPopup, DiscussionModelImpl } from "app/client/widgets/DiscussionEditor";
 import { buildErrorDom } from "app/client/widgets/ErrorDom";
-import { FieldEditor, saveWithoutEditor } from "app/client/widgets/FieldEditor";
+import { FieldEditor, saveWithoutEditor, setupEditorCleanup } from "app/client/widgets/FieldEditor";
 import { FloatingEditor } from "app/client/widgets/FloatingEditor";
 import { openFormulaEditor } from "app/client/widgets/FormulaEditor";
 import { CommentWithMentions } from "app/client/widgets/MentionTextBox";
@@ -923,21 +922,6 @@ export class FieldBuilder extends Disposable {
       },
     };
 
-    // Create a custom cleanup method, that won't destroy us when we loose focus while being detached.
-    function setupEditorCleanup(
-      owner: MultiHolder, gristDoc: GristDoc,
-      editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
-    ) {
-      // Just override the behavior on focus lost.
-      const saveOnFocus = () => floatingExtension.active.get() ? void 0 : _saveEdit().catch(reportError);
-      UnsavedChange.create(owner, async () => { await saveOnFocus(); });
-      gristDoc.app.on("clipboard_focus", saveOnFocus);
-      owner.onDispose(() => {
-        gristDoc.app.off("clipboard_focus", saveOnFocus);
-        editingFormula(false);
-      });
-    }
-
     // Get the field model from metatables, as the one provided by the caller might be some floating one, that
     // will change when user navigates around.
     const field = this.gristDoc.docModel.viewFields.getRowModel(this.field.getRowId());
@@ -947,7 +931,7 @@ export class FieldBuilder extends Disposable {
       gristDoc: this.gristDoc,
       field,
       editingFormula: this.field.editingFormula,
-      setupCleanup: setupEditorCleanup,
+      setupCleanup: (...args) => setupEditorCleanup(...args, () => floatingExtension.active.get()),
       editRow,
       refElem,
       editValue,
