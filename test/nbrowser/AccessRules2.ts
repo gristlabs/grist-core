@@ -4,7 +4,7 @@
 import {
   enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait,
   findRuleSet, findRuleSetColumnWait, findRuleSetWait, findTable,
-  findTableWait, getRuleText, startEditingAccessRules,
+  findTableWait, getRuleText, revertAccessRulesIfChanged, startEditingAccessRules,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -49,7 +49,10 @@ describe("AccessRules2", function() {
     return docId;
   });
 
-  afterEach(() => gu.checkForErrors());
+  afterEach(async () => {
+    await revertAccessRulesIfChanged();
+    await gu.checkForErrors();
+  });
 
   let viewAsUrl: string;
 
