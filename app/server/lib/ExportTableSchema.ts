@@ -62,7 +62,9 @@ export async function collectTableSchemaInFrictionlessFormat(
     title: tableName,
     schema: {
       fields: columns.map(col => ({
-        name: col[header || "label"],
+        // "colId" here refers to the visible field's own colId (rawColId), not `col.colId`,
+        // which may point at an internal helper display column (e.g. for Reference columns).
+        name: col[header === "colId" ? "rawColId" : "label"],
         ...(col.description ? { description: col.description } : {}),
         ...buildTypeField(col, settings.locale),
       })),
