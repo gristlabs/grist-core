@@ -87,7 +87,8 @@ export class FormulaAssistant extends Disposable {
     column: ColumnRec,
     field?: ViewFieldRec,
     gristDoc: GristDoc,
-    editor: FormulaEditor
+    editor: FormulaEditor,
+    specificInstructions?: string,
   }) {
     super();
 
@@ -548,6 +549,7 @@ export class FormulaAssistant extends Disposable {
       description: message,
       conversationId: this._chat.conversationId,
       state: this._history.get().state,
+      specificInstructions: this._options.specificInstructions,
     });
   }
 
@@ -567,14 +569,15 @@ async function askAI(grist: GristDoc, options: {
   column: ColumnRec,
   description: string,
   conversationId: string,
-  state?: AssistanceState
+  state?: AssistanceState,
+  specificInstructions?: string,
 }) {
-  const { column, description, conversationId, state } = options;
+  const { column, description, conversationId, state, specificInstructions } = options;
   const tableId = column.table.peek().tableId.peek();
   const colId = column.colId.peek();
   return await grist.docComm.getAssistance({
     conversationId,
-    context: { tableId, colId },
+    context: { tableId, colId, specificInstructions },
     text: description,
     state,
   });
