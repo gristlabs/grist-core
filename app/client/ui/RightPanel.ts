@@ -553,7 +553,7 @@ export class RightPanel extends Disposable {
           cssGroupLabel(t("Row style"), { id: "row-style-label" }),
           dom.create(rowHeightConfigTable, activeSection.optionsObj),
           domAsync(imports.loadViewPane().then(ViewPane =>
-            dom.create(ViewPane.ConditionalStyle, t("Row style"), activeSection, this._gristDoc),
+            dom.create(ViewPane.ConditionalStyle, t("Row style"), activeSection, this._gristDoc, "row"),
           )),
         );
       }),
