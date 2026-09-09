@@ -1,7 +1,7 @@
 import { GristDoc } from "app/client/components/GristDoc";
 import * as kf from "app/client/lib/koForm";
 import { makeT } from "app/client/lib/localization";
-import { ColumnRec } from "app/client/models/DocModel";
+import { ColumnRec, ViewFieldRec } from "app/client/models/DocModel";
 import { KoSaveableObservable } from "app/client/models/modelUtil";
 import { RuleOwner } from "app/client/models/RuleOwner";
 import { buildHighlightedCode } from "app/client/ui/CodeHighlight";
@@ -43,6 +43,7 @@ export class ConditionalStyle extends Disposable {
     private _label: string,
     private _ruleOwner: RuleOwner,
     private _gristDoc: GristDoc,
+    private _scope: "row" | "column",
     private _disabled?: Observable<boolean>,
   ) {
     super();
@@ -90,7 +91,7 @@ export class ConditionalStyle extends Disposable {
             dom.on("click", () => this._ruleOwner.addEmptyRule()),
             dom.prop("disabled", this._disabled),
           ),
-          this._label === t("Row Style") ? "addRowConditionalStyle" : "addColumnConditionalStyle",
+          this._scope === "row" ? "addRowConditionalStyle" : "addColumnConditionalStyle",
         ),
         dom.hide(use => use(this._ruleOwner.hasRules)),
       ),
@@ -280,6 +281,8 @@ export class ConditionalStyle extends Disposable {
       },
     };
 
+    const actualColId = this._scope === "column" ? (this._ruleOwner as ViewFieldRec).colId.peek() : undefined;
+
     // Don't save on focus loss while the floating editor is open (focus moves during detach).
     const formulaEditor = openFormulaEditor({
       gristDoc: this._gristDoc,
@@ -289,13 +292,20 @@ export class ConditionalStyle extends Disposable {
       refElem,
       setupCleanup: (...args) => setupEditorCleanup(...args, () => floatingExtension.active.get()),
       canDetach: true,
+      assistantInstructions: this._scope === "column" ?
+        "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
+        `whether to apply later user-specified formatting style on cells inside the column with ID "${actualColId}". ` :
+        "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
+        "whether to apply later user-specified formatting style on entire rows. ",
     });
 
     const floatingExtension = FloatingEditor.create(formulaEditor, floatController, {
       gristDoc: this._gristDoc,
       refElem,
       placement: "overlapping",
-      title: `${tableId} · ${t("Conditional Style")}`,
+      title: this._scope === "column" ?
+        `${tableId}.${actualColId} - ${t("Conditional Style")}` :
+        `${tableId} - ${t("Conditional Style")}`,
     });
 
     // Add editor to document holder - this will prevent multiple formula editor instances.
