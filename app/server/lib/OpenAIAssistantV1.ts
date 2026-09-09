@@ -328,6 +328,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         "You are a helpful assistant for a user of software called Grist. " +
         "Below are one or more fake Python classes representing the structure of the user's data. " +
         "The function at the end needs completing. " +
+        (request.context.specificInstructions ?? "") +
         "The user will probably give a description of what they want the function (a 'formula') to return. " +
         "If so, your response should include the function BODY as Python code in a markdown block. " +
         "Your response will be automatically concatenated to the code below, so you mustn't repeat any of it. " +
