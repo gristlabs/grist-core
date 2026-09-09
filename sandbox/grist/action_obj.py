@@ -62,6 +62,9 @@ class ActionGroup(object):
   def check_sanity(self):
     if len(self.stored) != len(self.direct):
       raise AssertionError("failed to track origin of actions")
+    for owner in self.undo_owner.values():
+      if owner is not None and not 0 <= owner < len(self.stored):
+        raise AssertionError("undo_owner refers to a missing stored action")
 
   def get_repr(self):
     return {

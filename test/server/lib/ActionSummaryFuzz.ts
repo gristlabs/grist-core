@@ -19,6 +19,7 @@
  */
 
 import { getEnvContent } from "app/common/ActionBundle";
+import { chunkByLattice, LatticeStats } from "app/common/ActionLayout";
 import { ActionSummaryOptions, canonicalizeSummary, concatenateSummaries, concatenateSummaryPair,
   summarizeStoredAndUndo } from "app/common/ActionSummarizer";
 import { ActionSummary, TableDelta } from "app/common/ActionSummary";
@@ -494,21 +495,102 @@ const SUMMARY_OPTS = { maximumInlineRows: null };
 
 // Summarize a raw bundle the way production does -- using the engine's per-undo
 // ownership when present (the chunkByOwners path). When ownership is present,
-// also summarize via the lattice (ignoreUndoGrouping) and assert the two paths
+// also summarize via the lattice (testIgnoreUndoGrouping) and assert the two paths
 // agree, so every scenario the oracle checks doubles as a check that the engine's
 // recorded grouping matches the one the lattice infers. Returns the owner-path
 // summary, which the oracle then compares against the per-action reference.
+// The lattice search settles about one grid point per action when the inverse
+// catalogue recognizes every undo shape, and only an unrecognized shape can make
+// it wander. Every bundle the oracle sees is held to this bound.
+const LATTICE_SETTLED_FACTOR = 4;
+let worstSettledRatio = 0;
+function checkLatticeStats(b: RawBundle) {
+  const stats: LatticeStats = { settled: 0 };
+  chunkByLattice(b.stored, b.undo, stats);
+  const ratio = stats.settled / (b.stored.length + b.undo.length + 1);
+  worstSettledRatio = Math.max(worstSettledRatio, ratio);
+  assert.isAtMost(ratio, LATTICE_SETTLED_FACTOR,
+    `lattice settled ${stats.settled} points for ${b.stored.length} stored + ${b.undo.length} undo\n` +
+    `stored=${JSON.stringify(b.stored)}\nundo=${JSON.stringify(b.undo)}`);
+}
+
 function summarizeBundle(b: RawBundle, opts: ActionSummaryOptions = SUMMARY_OPTS): ActionSummary {
+  checkLatticeStats(b);
   const byOwners = summarizeStoredAndUndo(b.stored, b.undo, opts, b.undoOwner);
   if (b.undoOwner !== undefined) {
-    const byLattice = summarizeStoredAndUndo(b.stored, b.undo, { ...opts, ignoreUndoGrouping: true });
+    const byLattice = summarizeStoredAndUndo(b.stored, b.undo, { ...opts, testIgnoreUndoGrouping: true });
     assert.isTrue(eqSoft(byOwners, byLattice),
       `owner-driven and lattice chunking disagree on the same bundle\n` +
       `stored=${JSON.stringify(b.stored)}\nundo=${JSON.stringify(b.undo)}\n` +
       `undoOwner=${JSON.stringify(b.undoOwner)}\n` +
       `byOwners=${JSON.stringify(byOwners)}\nbyLattice=${JSON.stringify(byLattice)}`);
+    // Merging adjacent record-only chunks must change nothing, on either path.
+    // Only checked without truncation: which cells a truncated summary samples
+    // depends on the grouping, so under truncation two groupings are both valid
+    // (the oracle check above) without being identical.
+    if (opts.maximumInlineRows !== null) { return byOwners; }
+    const fineOwners = summarizeStoredAndUndo(b.stored, b.undo,
+      { ...opts, testDisableChunkCoalescing: true }, b.undoOwner);
+    assert.isTrue(eqSoft(byOwners, fineOwners),
+      `coalescing record chunks changed the owner-path summary\n` +
+      `stored=${JSON.stringify(b.stored)}\nundo=${JSON.stringify(b.undo)}\n` +
+      `undoOwner=${JSON.stringify(b.undoOwner)}\n` +
+      `coalesced=${JSON.stringify(byOwners)}\nfine=${JSON.stringify(fineOwners)}`);
+    const fineLattice = summarizeStoredAndUndo(b.stored, b.undo,
+      { ...opts, testIgnoreUndoGrouping: true, testDisableChunkCoalescing: true });
+    assert.isTrue(eqSoft(byLattice, fineLattice),
+      `coalescing record chunks changed the lattice-path summary\n` +
+      `stored=${JSON.stringify(b.stored)}\nundo=${JSON.stringify(b.undo)}\n` +
+      `coalesced=${JSON.stringify(byLattice)}\nfine=${JSON.stringify(fineLattice)}`);
   }
   return byOwners;
+}
+
+// Like eqSoft, but a cell side recorded as "?" (unknown, which only truncation
+// produces) matches anything, and rows either side keeps as recycled, the
+// row-level form of unknown, are left out. Under truncation, one fold order may
+// pin down a value another has to leave unknown, so they agree only up to
+// unknowns; they must never disagree on a value both know.
+function eqUpToUnknown(a: ActionSummary, b: ActionSummary): boolean {
+  const sa = softenSummary(a, b), sb = softenSummary(b, a);
+  const same = (x: any, y: any) => JSON.stringify(canon(x)) === JSON.stringify(canon(y));
+  const sameCell = (x: CellDelta | undefined, y: CellDelta | undefined): boolean => {
+    if (!x || !y) { return !x && !y; }
+    return [0, 1].every(i => x[i] === "?" || y[i] === "?" || same(x[i], y[i]));
+  };
+  if (!same(sa.tableRenames, sb.tableRenames)) { return false; }
+  const tables = new Set([...Object.keys(sa.tableDeltas), ...Object.keys(sb.tableDeltas)]);
+  for (const t of tables) {
+    const ta = sa.tableDeltas[t], tb = sb.tableDeltas[t];
+    if (!ta || !tb) { return false; }
+    const recycled = new Set([ta, tb].flatMap(td => td.addRows.filter(r => td.removeRows.includes(r))));
+    const known = (rows: number[]) => rows.filter(r => !recycled.has(r));
+    if (!same([known(ta.addRows), known(ta.removeRows), known(ta.updateRows), ta.columnRenames],
+      [known(tb.addRows), known(tb.removeRows), known(tb.updateRows), tb.columnRenames])) {
+      return false;
+    }
+    const cols = new Set([...Object.keys(ta.columnDeltas), ...Object.keys(tb.columnDeltas)]);
+    for (const c of cols) {
+      const ca = ta.columnDeltas[c] ?? {}, cb = tb.columnDeltas[c] ?? {};
+      const rows = new Set([...Object.keys(ca), ...Object.keys(cb)].map(Number));
+      for (const r of rows) {
+        if (recycled.has(r)) { continue; }
+        if (!sameCell(ca[r], cb[r])) { return false; }
+      }
+    }
+  }
+  return true;
+}
+
+// A strict left-to-right fold, then clean up.
+function foldLeft(sums: ActionSummary[]): ActionSummary {
+  return canonicalizeSummary(sums.slice(1).reduce((acc, s) => concatenateSummaryPair(acc, s), sums[0]));
+}
+// The same, right to left.
+function foldRight(sums: ActionSummary[]): ActionSummary {
+  let acc = sums[sums.length - 1];
+  for (let i = sums.length - 2; i >= 0; i--) { acc = concatenateSummaryPair(sums[i], acc); }
+  return canonicalizeSummary(acc);
 }
 
 // Drive the engine through one scenario and return the raw (stored, undo)
@@ -644,23 +726,34 @@ describe("ActionSummary fuzz: chunk + concat consistency", function() {
             `per-action reference.\nactions=${JSON.stringify(actions)}\n` +
             `combined=${JSON.stringify(combined)}\nreference=${JSON.stringify(reference)}`);
 
-          // Associativity: a left-fold and a right-fold of the per-action
-          // summaries must agree (grouping must not matter).
+          // Associativity: the tree fold of concatenateSummaries, a left fold and
+          // a right fold must all agree (grouping must not matter).
           if (perAction.length >= 2) {
-            let rightFold = perAction[perAction.length - 1];
-            for (let i = perAction.length - 2; i >= 0; i--) {
-              rightFold = concatenateSummaryPair(perAction[i], rightFold);
-            }
-            assert.isTrue(eqSoft(reference, canonicalizeSummary(rightFold)),
+            const leftFold = foldLeft(perAction);
+            const rightFold = foldRight(perAction);
+            assert.isTrue(eqSoft(reference, leftFold) && eqSoft(reference, rightFold),
               `seed ${seed} run ${run}: concat not associative.\n` +
               `actions=${JSON.stringify(actions)}\n` +
-              `leftFold=${JSON.stringify(reference)}\nrightFold=${JSON.stringify(rightFold)}`);
+              `treeFold=${JSON.stringify(reference)}\nleftFold=${JSON.stringify(leftFold)}\n` +
+              `rightFold=${JSON.stringify(rightFold)}`);
+            // Under truncation the folds agree only up to unknowns.
+            const truncated = sc.perAction.map(
+              b => summarizeStoredAndUndo(b.stored, b.undo, { maximumInlineRows: 2 }, b.undoOwner));
+            const treeT = concatenateSummaries(truncated);
+            const leftT = foldLeft(truncated);
+            const rightT = foldRight(truncated);
+            assert.isTrue(eqUpToUnknown(treeT, leftT) && eqUpToUnknown(treeT, rightT),
+              `seed ${seed} run ${run}: concat not associative under truncation.\n` +
+              `actions=${JSON.stringify(actions)}\n` +
+              `treeFold=${JSON.stringify(treeT)}\nleftFold=${JSON.stringify(leftT)}\n` +
+              `rightFold=${JSON.stringify(rightT)}`);
           }
           checked++;
         }
       }
       console.log(`fuzz: ${checked} scenarios checked, ${skipped} skipped ` +
-        `(${N_RUNS} runs x seeds ${SEEDS.join(",")})`);
+        `(${N_RUNS} runs x seeds ${SEEDS.join(",")}); ` +
+        `worst lattice settled/(N+M+1) ratio ${worstSettledRatio.toFixed(2)}`);
       assert.isAbove(checked, 0, "no scenarios were checked");
     });
 });
@@ -904,6 +997,25 @@ describe("ActionSummary: feature scenarios", function() {
       return doc;
     };
 
+    it("a truncated cascade of bulk updates over the same rows", async function() {
+      // A formula cascade. Pins that coalesceRecordChunks must not merge truncated
+      // updates into one walk: the merged walk composes differently.
+      const doc = await makeBulkDoc("trunc0.grist");
+      await assertConsistent(doc, session, [
+        ["BulkUpdateRecord", "T", ids, { A: ids.map(i => `w${i}`) }],
+        ["BulkUpdateRecord", "T", ids, { A: ids.map(i => `x${i}`) }],
+        ["BulkUpdateRecord", "T", ids.slice(3), { A: ids.slice(3).map(i => `y${i}`) }],
+      ], LIMIT);
+    });
+
+    it("a truncated bulk update then a small update of a non-sampled row", async function() {
+      const doc = await makeBulkDoc("trunc0b.grist");
+      await assertConsistent(doc, session, [
+        ["BulkUpdateRecord", "T", ids, { A: ids.map(i => `w${i}`) }],
+        ["UpdateRecord", "T", 11, { A: "z11" }],
+      ], LIMIT);
+    });
+
     it("a truncated bulk update then a bulk remove of sampled rows", async function() {
       const doc = await makeBulkDoc("trunc1.grist");
       await assertConsistent(doc, session, [
@@ -1008,7 +1120,7 @@ describe("ActionSummary: feature scenarios", function() {
       const stored = getEnvContent(cb.stored);
       const byOwners = summarizeStoredAndUndo(stored, cb.undo, SUMMARY_OPTS, owners);
       const byLattice = summarizeStoredAndUndo(stored, cb.undo,
-        { ...SUMMARY_OPTS, ignoreUndoGrouping: true });
+        { ...SUMMARY_OPTS, testIgnoreUndoGrouping: true });
       assert.isTrue(eqSoft(byOwners, byLattice),
         "owner-driven and lattice summaries must agree");
     });

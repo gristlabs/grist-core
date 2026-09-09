@@ -14,6 +14,10 @@
  * `analyzeStored`, so a front calc-flush restore is attributed to its removal the
  * same way regardless of path.
  *
+ * Either way, `coalesceRecordChunks` then merges adjacent chunks made only of
+ * record actions: splitting exists to separate schema changes, and a run of
+ * plain adds, removes and updates is what a single walk always handled.
+ *
  * One rule both chunkers follow: placement decides how a name is read. Later
  * chunks' renames rekey earlier chunks during composition, so an undo entry's
  * names mean whatever they meant at its chunk's position. A front calc-flush
@@ -49,58 +53,88 @@
  * conversion is the only reordering the engine ever forces, so it is the only
  * wide shape. A fuzz sweep selects exactly these shapes and never a wider one.
  *
- * Cost: with N stored actions and M undo actions (M = O(N), a bounded set of
- * inverses per action), the search fills an (N+1) by (M+1) grid at five shapes
- * per cell -- O(N*M) time and space, quadratic in the action count. Edge pricing
- * compares row lists only after a kind/table match, so the largest action's row
- * count R multiplies in only when many bulk actions share a table (worst case
- * O(N*M*R)); otherwise the row work stays linear in the rows touched. N is small
- * in practice, and the chunker runs once per bundle.
+ * Cost: the least-cost path is found by best-first search (Dijkstra) over the
+ * grid. Edge costs are non-negative, so the search settles points in score order
+ * and stops at the far corner having visited only points scoring no worse than
+ * the answer. A well-formed bundle pairs up at zero cost along a thin band, so
+ * the work is close to linear in the action count; a bundle needing penalties
+ * explores only as far as its penalties reach. Edge pricing tests kind, table and
+ * columns before rows, on sets computed once per action.
  */
 
 import { DocAction, getColIdsFromDocAction, getRowIdsFromDocAction, isDataAction } from "app/common/DocActions";
-import { getSetMapValue, isSubset } from "app/common/gutil";
+import { getSetMapValue } from "app/common/gutil";
 
 export interface LayoutChunk {
   stored: DocAction[];
   undo: DocAction[];
 }
 
+/**
+ * What chunkByLattice reports about its search, for tests. Only an undo shape
+ * the inverse catalogue does not recognize can make the search wander, so the
+ * tests hold `settled` to a small multiple of N + M as a check that the
+ * catalogue matches what the engine emits.
+ */
+export interface LatticeStats {
+  settled: number;   // grid points settled; about N + M for a well-formed bundle
+}
+
 function actKey(t: string, c: string): string { return `${t}/${c}`; }
 
-// Rows / columns a data action touches, as lists; anything else (a schema
-// action) touches neither. The `isDataAction` guard is essential: without it
-// a schema action's payload (a colInfo object, or a name string) would be
-// misread as columns, and its non-row positions as rows.
-function rowsOf(a: DocAction): number[] {
-  return isDataAction(a) ? getRowIdsFromDocAction(a) : [];
+/** Per-action facts the chunkers need, computed once so pricing an edge never rebuilds a set. */
+interface ActionInfo {
+  kind: string;
+  table: string;
+  rows: number[];        // rows a record action touches; empty for a schema action
+  rowSet: Set<number>;
+  cols: string[];        // columns a record action carries values for; empty otherwise
+  colSet: Set<string>;
+  name?: string;         // a schema action's target: the column id, or RenameTable's new name
+  name2?: string;        // RenameColumn's new column id
 }
-function colsOf(a: DocAction): string[] {
-  return isDataAction(a) ? (getColIdsFromDocAction(a) ?? []) : [];
+
+function infoOf(a: DocAction): ActionInfo {
+  // The `isDataAction` guard is essential: without it a schema action's payload
+  // (a colInfo object, or a name string) would be misread as columns, and its
+  // non-row positions as rows.
+  const data = isDataAction(a);
+  const rows = data ? getRowIdsFromDocAction(a) : [];
+  const cols = data ? (getColIdsFromDocAction(a) ?? []) : [];
+  const name = !data && typeof a[2] === "string" ? a[2] : undefined;
+  const name2 = !data && typeof a[3] === "string" ? a[3] : undefined;
+  return { kind: a[0], table: a[1], rows, rowSet: new Set(rows), cols, colSet: new Set(cols), name, name2 };
 }
-// Is every element of `sub` present in `sup`? An update's undo restores a subset
-// of the rows the forward touched -- exactly the rows that had a prior value. So
-// a recompute over all rows pairs with a restore over only the pre-existing rows,
-// and a partial no-op bulk pairs with a restore over only the rows that actually
-// changed. Equality is the common special case.
-function subset<T>(sub: T[], sup: T[]): boolean {
-  return isSubset(new Set(sub), new Set(sup));
+
+// Is every row of `sub` among the rows of `sup`? An update's undo restores a
+// subset of the rows the forward touched -- exactly the rows that had a prior
+// value. So a recompute over all rows pairs with a restore over only the
+// pre-existing rows, and a partial no-op bulk pairs with a restore over only the
+// rows that actually changed. Equality is the common special case.
+function rowsSubset(sub: ActionInfo, sup: ActionInfo): boolean {
+  if (sub.rowSet.size > sup.rowSet.size) { return false; }
+  for (const r of sub.rows) { if (!sup.rowSet.has(r)) { return false; } }
+  return true;
 }
-// Order-blind set equality: equal length plus one-way containment (for matching
-// an inverse's rows or columns against the forward action's).
-function sameSet<T>(a: T[], b: T[]): boolean {
-  return a.length === b.length && subset(a, b);
+// Order-blind set equality of rows (for matching an inverse against its forward).
+function rowsSame(a: ActionInfo, b: ActionInfo): boolean {
+  return a.rowSet.size === b.rowSet.size && rowsSubset(a, b);
+}
+// Order-blind set equality of columns.
+function colsSame(a: ActionInfo, b: ActionInfo): boolean {
+  if (a.colSet.size !== b.colSet.size) { return false; }
+  for (const c of a.cols) { if (!b.colSet.has(c)) { return false; } }
+  return true;
 }
 // True if `a` is a record action with the given verb, single or bulk
 // (`recordKind(a, "Remove")` matches RemoveRecord and BulkRemoveRecord).
-function recordKind(a: DocAction, verb: "Add" | "Remove" | "Update"): boolean {
-  return a[0] === `${verb}Record` || a[0] === `Bulk${verb}Record`;
+function recordKind(a: ActionInfo, verb: "Add" | "Remove" | "Update"): boolean {
+  return a.kind === `${verb}Record` || a.kind === `Bulk${verb}Record`;
 }
 
 // Lattice chunker (the model is in the file header above). The objective is a
-// lexicographic score (see `betterScore` below). Every edge cost is local: it
-// reads only its own two slices plus a precomputed defunct index, so this stays
-// a plain Viterbi-shaped DP.
+// lexicographic score (see `compareScore` below). Every edge cost is local: it
+// reads only its own two slices plus a precomputed defunct index.
 
 /**
  * A path's score, smallest wins, compared as a lexicographic tuple. Tiers, most
@@ -113,18 +147,19 @@ function recordKind(a: DocAction, verb: "Add" | "Remove" | "Update"): boolean {
  *               otherwise-stranded undo across a crossing reduces this, while a
  *               genuine no-op step cannot be paired, so minimizing it below the
  *               validity tiers coarsens exactly the crossings.
- *   5. chunks:  stored-owning chunks, where more is better (finest valid split).
+ *   5. merged:  stored actions merged into a wider chunk (one per action beyond
+ *               the first in each chunk), where fewer is better: the finest
+ *               valid split. Every path covers the same N stored actions, so
+ *               minimizing this is the same as maximizing the chunk count.
  * Explicit tiers, not weighted sums, so no number of lower-tier penalties can
- * ever outweigh one penalty of a more significant tier.
+ * ever outweigh one penalty of a more significant tier. Every tier is a
+ * non-negative sum over edges, which is what lets the search be best-first.
  */
-interface Score { shape: number; missing: number; orphan: number; zeros: number; chunks: number; }
-interface Node { score: Score; fromI: number; fromJ: number; }
-function betterScore(a: Score, b: Score): boolean {
-  if (a.shape !== b.shape) { return a.shape < b.shape; }
-  if (a.missing !== b.missing) { return a.missing < b.missing; }
-  if (a.orphan !== b.orphan) { return a.orphan < b.orphan; }
-  if (a.zeros !== b.zeros) { return a.zeros < b.zeros; }
-  return a.chunks > b.chunks;
+interface Score { shape: number; missing: number; orphan: number; zeros: number; merged: number; }
+const ZERO_SCORE: Score = { shape: 0, missing: 0, orphan: 0, zeros: 0, merged: 0 };
+function compareScore(a: Score, b: Score): number {
+  return (a.shape - b.shape) || (a.missing - b.missing) || (a.orphan - b.orphan) ||
+    (a.zeros - b.zeros) || (a.merged - b.merged);
 }
 
 /**
@@ -137,7 +172,7 @@ function betterScore(a: Score, b: Score): boolean {
  * than this chunk (a formula column's data restore).
  */
 type SlotTier = "required" | "zero" | "routed";
-interface Slot { tier: SlotTier; test: (g: DocAction) => boolean; }
+interface Slot { tier: SlotTier; test: (g: ActionInfo) => boolean; }
 const req = (test: Slot["test"]): Slot => ({ tier: "required", test });
 const zero = (test: Slot["test"]): Slot => ({ tier: "zero", test });
 const routed = (test: Slot["test"]): Slot => ({ tier: "routed", test });
@@ -145,44 +180,46 @@ const routed = (test: Slot["test"]): Slot => ({ tier: "routed", test });
 /**
  * The inverse(s) we expect from a single forward action (the catalogue read
  * from the engine, per the file header). Predicates ignore cell values, so they
- * are local. ModifyColumn deliberately tests only kind+table+col (not which
- * property changed): the conversion's two ModifyColumns on one column are
- * interchangeable for closure, which is exactly why their reversed undo
- * costs nothing inside one chunk.
+ * are local, and test the cheap parts (kind, table, columns) before rows.
+ * ModifyColumn deliberately tests only kind+table+col (not which property
+ * changed): the conversion's two ModifyColumns on one column are interchangeable
+ * for closure, which is exactly why their reversed undo costs nothing inside one
+ * chunk.
  */
-function expectedInverses(s: DocAction): Slot[] {
+function expectedInverses(s: DocAction, si: ActionInfo): Slot[] {
   const k = s[0];
   const t = s[1];
   switch (k) {
     case "AddRecord": case "BulkAddRecord":
-      return [req(g => recordKind(g, "Remove") && g[1] === t && sameSet(rowsOf(g), rowsOf(s)))];
+      return [req(g => recordKind(g, "Remove") && g.table === t && rowsSame(g, si))];
     case "RemoveRecord": case "BulkRemoveRecord":
-      return [zero(g => recordKind(g, "Add") && g[1] === t && subset(rowsOf(g), rowsOf(s)))];
+      return [zero(g => recordKind(g, "Add") && g.table === t && rowsSubset(g, si))];
     case "UpdateRecord": case "BulkUpdateRecord":
-      return [zero(g => recordKind(g, "Update") && g[1] === t &&
-        subset(rowsOf(g), rowsOf(s)) && sameSet(colsOf(g), colsOf(s)))];
+      return [zero(g => recordKind(g, "Update") && g.table === t && colsSame(g, si) && rowsSubset(g, si))];
     case "AddColumn":
-      return [req(g => g[0] === "RemoveColumn" && g[1] === t && g[2] === s[2])];
+      return [req(g => g.kind === "RemoveColumn" && g.table === t && g.name === s[2])];
     case "RemoveColumn":
       return [
-        req(g => g[0] === "AddColumn" && g[1] === t && g[2] === s[2]),
-        routed(g => recordKind(g, "Update") && g[1] === t && colsOf(g).includes(s[2])),
+        req(g => g.kind === "AddColumn" && g.table === t && g.name === s[2]),
+        routed(g => recordKind(g, "Update") && g.table === t && g.colSet.has(s[2])),
       ];
     case "RenameColumn":
-      return [req(g => g[0] === "RenameColumn" && g[1] === t && g[2] === s[3] && g[3] === s[2])];
+      return [req(g => g.kind === "RenameColumn" && g.table === t && g.name === s[3] && g.name2 === s[2])];
     case "ModifyColumn":
-      return [zero(g => g[0] === "ModifyColumn" && g[1] === t && g[2] === s[2])];
+      return [zero(g => g.kind === "ModifyColumn" && g.table === t && g.name === s[2])];
     case "AddTable":
-      return [req(g => g[0] === "RemoveTable" && g[1] === t)];
+      return [req(g => g.kind === "RemoveTable" && g.table === t)];
     case "RemoveTable":
       return [
-        req(g => g[0] === "AddTable" && g[1] === t),
-        routed(g => recordKind(g, "Add") && g[1] === t),
+        req(g => g.kind === "AddTable" && g.table === t),
+        routed(g => recordKind(g, "Add") && g.table === t),
       ];
     case "RenameTable":
-      return [req(g => g[0] === "RenameTable" && g[1] === s[2] && g[2] === s[1])];
+      return [req(g => g.kind === "RenameTable" && g.table === s[2] && g.name === s[1])];
     case "ReplaceTableData":
-      return [zero(g => g[0] === "ReplaceTableData" && g[1] === t)];
+      // Always emitted, even when the table was empty (docactions.ReplaceTableData
+      // appends the old data unconditionally).
+      return [req(g => g.kind === "ReplaceTableData" && g.table === t)];
   }
   // Any other kind (including action kinds outside the DocAction union, such as
   // the engine's internal calc/empty actions, which do flow through here at
@@ -199,12 +236,12 @@ function expectedInverses(s: DocAction): Slot[] {
  */
 interface StoredAnalysis {
   // The defunct-remove stored that owns a front restore entry, or undefined.
-  restoreOwner: (g: DocAction) => number | undefined;
+  restoreOwner: (g: ActionInfo) => number | undefined;
   // A genuine earlier-bundle orphan: a restore whose slot no forward here touches.
-  isGhost: (g: DocAction) => boolean;
+  isGhost: (g: ActionInfo) => boolean;
 }
 
-function analyzeStored(stored: DocAction[]): StoredAnalysis {
+function analyzeStored(stored: DocAction[], infos: ActionInfo[]): StoredAnalysis {
   const N = stored.length;
   // Defunct-slot index plus the set of slots any forward action touches.
   const removeColIdx = new Map<string, number>();
@@ -248,11 +285,11 @@ function analyzeStored(stored: DocAction[]): StoredAnalysis {
       case "AddTable": addTblIdx.set(t, i); break;
       case "RenameTable": renamedTables.add(t); renamedTables.add(s[2]); break;
       case "RemoveRecord": case "BulkRemoveRecord":
-        for (const r of rowsOf(s)) { getSetMapValue(removeRowIdx, t, () => new Map()).set(r, i); } break;
+        for (const r of infos[i].rows) { getSetMapValue(removeRowIdx, t, () => new Map()).set(r, i); } break;
       case "AddRecord": case "BulkAddRecord":
-        for (const r of rowsOf(s)) { getSetMapValue(addRowIdx, t, () => new Map()).set(r, i); } break;
+        for (const r of infos[i].rows) { getSetMapValue(addRowIdx, t, () => new Map()).set(r, i); } break;
     }
-    for (const c of colsOf(s)) { liveCols.add(actKey(t, c)); }
+    for (const c of infos[i].cols) { liveCols.add(actKey(t, c)); }
   }
   // Defunct = removed in this bundle, with any add coming before the removal
   // (a name re-added after it belongs to a new entity). One rule, three lookups.
@@ -273,14 +310,13 @@ function analyzeStored(stored: DocAction[]): StoredAnalysis {
   // removed row whose formula columns were flushed (the row case keeps a
   // removed summary row's aggregates from being stranded after its removal in a
   // later chunk, where composition could no longer fold them in).
-  const restoreOwner = (g: DocAction): number | undefined => {
-    if (renamedTables.has(g[1]) || colsOf(g).some(c => renamedCols.has(c))) { return undefined; }
+  const restoreOwner = (g: ActionInfo): number | undefined => {
+    if (renamedTables.has(g.table) || g.cols.some(c => renamedCols.has(c))) { return undefined; }
     if (recordKind(g, "Update")) {
-      for (const c of colsOf(g)) {
-        if (isColDefunct(g[1], c)) { return removeColIdx.get(actKey(g[1], c)); }
+      for (const c of g.cols) {
+        if (isColDefunct(g.table, c)) { return removeColIdx.get(actKey(g.table, c)); }
       }
-      const rows = rowsOf(g);
-      if (rows.length > 0 && rows.every(r => isRowDefunct(g[1], r))) {
+      if (g.rows.length > 0 && g.rows.every(r => isRowDefunct(g.table, r))) {
         // The engine folds the whole bundle's calc-flush into one restore, so
         // this entry's rows can belong to several distinct removals (two separate
         // RemoveRecords on one table merge here). We return the first row's owner.
@@ -290,21 +326,20 @@ function analyzeStored(stored: DocAction[]): StoredAnalysis {
         // retained [v, v] cell, and that removal composes it into the correct
         // [v, null]. See the "two separate removes share one merged front restore"
         // fuzz scenario.
-        return removeRowIdx.get(g[1])!.get(rows[0]);
+        return removeRowIdx.get(g.table)!.get(g.rows[0]);
       }
     }
-    if (isTblDefunct(g[1])) { return removeTblIdx.get(g[1]); }
+    if (isTblDefunct(g.table)) { return removeTblIdx.get(g.table); }
     return undefined;
   };
 
   // A genuine earlier-bundle orphan: a restore whose slot no forward in
   // this bundle touches.
-  const isGhost = (g: DocAction): boolean => {
+  const isGhost = (g: ActionInfo): boolean => {
     if (recordKind(g, "Update")) {
-      const cols = colsOf(g);
-      if (cols.length > 0 && cols.every(c => !liveCols.has(actKey(g[1], c)))) { return true; }
+      if (g.cols.length > 0 && g.cols.every(c => !liveCols.has(actKey(g.table, c)))) { return true; }
     }
-    return !touchedTables.has(g[1]);
+    return !touchedTables.has(g.table);
   };
 
   return { restoreOwner, isGhost };
@@ -328,7 +363,7 @@ function analyzeStored(stored: DocAction[]): StoredAnalysis {
  */
 export function chunkByOwners(stored: DocAction[], undo: DocAction[],
   owners: readonly (number | null)[]): LayoutChunk[] {
-  const { restoreOwner } = analyzeStored(stored);
+  const { restoreOwner } = analyzeStored(stored, stored.map(infoOf));
   const ownedUndo: number[][] = stored.map(() => []);
   const orphans: number[] = [];
   for (let k = 0; k < undo.length; k++) {
@@ -337,7 +372,7 @@ export function chunkByOwners(stored: DocAction[], undo: DocAction[],
     // restore, or a defensively-ignored out-of-range owner) attribute it the way the lattice does.
     const owner = (typeof declared === "number" && declared >= 0 && declared < stored.length) ?
       declared :
-      restoreOwner(undo[k]) ?? null;
+      restoreOwner(infoOf(undo[k])) ?? null;
     (owner === null ? orphans : ownedUndo[owner]).push(k);
   }
   const chunks: LayoutChunk[] = stored.map((s, i) => ({ stored: [s], undo: ownedUndo[i].map(k => undo[k]) }));
@@ -346,16 +381,68 @@ export function chunkByOwners(stored: DocAction[], undo: DocAction[],
   return chunks;
 }
 
-export function chunkByLattice(stored: DocAction[], undo: DocAction[]): LayoutChunk[] {
+// A grid point reached by the search: best score so far, the edge that reached
+// it, and whether it has been popped with its final score.
+interface Node { score: Score; fromI: number; fromJ: number; settled: boolean; }
+
+// A grid point at the score it was pushed with; stale by pop time if the point
+// was improved since, and then skipped.
+interface HeapEntry { key: number; i: number; j: number; score: Score; }
+
+// Best score first, then lowest (i, j), so the search is deterministic.
+function compareEntries(a: HeapEntry, b: HeapEntry): number {
+  return compareScore(a.score, b.score) || (a.i - b.i) || (a.j - b.j);
+}
+
+class MinHeap {
+  private _items: HeapEntry[] = [];
+  public get size() { return this._items.length; }
+  public push(e: HeapEntry) {
+    const items = this._items;
+    items.push(e);
+    let k = items.length - 1;
+    while (k > 0) {
+      const parent = (k - 1) >> 1;
+      if (compareEntries(items[k], items[parent]) >= 0) { break; }
+      [items[k], items[parent]] = [items[parent], items[k]];
+      k = parent;
+    }
+  }
+
+  public pop(): HeapEntry {
+    const items = this._items;
+    const top = items[0];
+    const last = items.pop()!;
+    if (items.length > 0) {
+      items[0] = last;
+      let k = 0;
+      for (;;) {
+        const l = 2 * k + 1, r = l + 1;
+        let m = k;
+        if (l < items.length && compareEntries(items[l], items[m]) < 0) { m = l; }
+        if (r < items.length && compareEntries(items[r], items[m]) < 0) { m = r; }
+        if (m === k) { break; }
+        [items[k], items[m]] = [items[m], items[k]];
+        k = m;
+      }
+    }
+    return top;
+  }
+}
+
+export function chunkByLattice(stored: DocAction[], undo: DocAction[], testStats?: LatticeStats): LayoutChunk[] {
   const N = stored.length;
   const M = undo.length;
+  if (testStats) { testStats.settled = 0; }
   if (M === 0) { return stored.map(s => ({ stored: [s], undo: [] })); }
 
-  // The expected inverses of each stored action, computed once: the DP asks for
-  // them on every edge, but they depend only on the action.
-  const slotsByStored = stored.map(expectedInverses);
+  const storedInfos = stored.map(infoOf);
+  const undoInfos = undo.map(infoOf);
 
-  const { restoreOwner, isGhost } = analyzeStored(stored);
+  // The expected inverses of each stored action, computed once.
+  const slotsByStored = stored.map((s, i) => expectedInverses(s, storedInfos[i]));
+
+  const { restoreOwner, isGhost } = analyzeStored(stored, storedInfos);
 
   // Category of an undo entry that matched no expected slot in its chunk. A
   // defunct-slot restore is free ("none") only in the leading front segment,
@@ -363,37 +450,38 @@ export function chunkByLattice(stored: DocAction[], undo: DocAction[]): LayoutCh
   // main chunk is a misplaced real inverse ("shape"), which forces the chunk to
   // widen. A ghost is an earlier-bundle orphan; anything else relates to a live
   // slot and must be placed, so discarding it ("shape") is the worst case.
-  const penalize = (g: DocAction, leading: boolean): "none" | "orphan" | "shape" => {
+  const penalize = (g: ActionInfo, leading: boolean): "none" | "orphan" | "shape" => {
     if (leading && restoreOwner(g) !== undefined) { return "none"; }
     return isGhost(g) ? "orphan" : "shape";
   };
 
   // Closure of the chunk stored[i..i+a) x undo[j..j+b): a minimum-penalty bag
   // alignment between the chunk's undo entries and its expected inverses,
-  // returned as the per-edge tiers (shape, missing, orphan, zeros) the DP sums.
-  // `zeros` counts unmatched optional (may-emit-no-undo) slots: a coarsening
-  // that pairs an otherwise-stranded undo across a crossing reduces it, while a
-  // genuine no-op step cannot be paired, so minimizing `zeros` coarsens exactly
-  // the crossings.
+  // returned as the per-edge tiers (shape, missing, orphan, zeros) the search
+  // sums. `zeros` counts unmatched optional (may-emit-no-undo) slots: a
+  // coarsening that pairs an otherwise-stranded undo across a crossing reduces
+  // it, while a genuine no-op step cannot be paired, so minimizing `zeros`
+  // coarsens exactly the crossings.
   const closureCost = (i: number, a: number, j: number, b: number):
   { shape: number; missing: number; orphan: number; zeros: number } => {
-    const slots = slotsByStored.slice(i, i + a).flat();
     const used = new Array<boolean>(b).fill(false);
     // Claim the first unused undo entry this slot matches, if any.
     const take = (test: Slot["test"]): boolean => {
       for (let q = 0; q < b; q++) {
-        if (!used[q] && test(undo[j + q])) { used[q] = true; return true; }
+        if (!used[q] && test(undoInfos[j + q])) { used[q] = true; return true; }
       }
       return false;
     };
     let shape = 0, missing = 0, orphan = 0, zeros = 0;
-    for (const slot of slots) {
-      if (take(slot.test)) { continue; }
-      // Unmatched: required -> missing; zero -> empty optional step; routed -> free.
-      if (slot.tier === "required") {
-        missing += 1;
-      } else if (slot.tier === "zero") {
-        zeros += 1;
+    for (let s = i; s < i + a; s++) {
+      for (const slot of slotsByStored[s]) {
+        if (take(slot.test)) { continue; }
+        // Unmatched: required -> missing; zero -> empty optional step; routed -> free.
+        if (slot.tier === "required") {
+          missing += 1;
+        } else if (slot.tier === "zero") {
+          zeros += 1;
+        }
       }
     }
     // The leading front segment (no stored opened yet) is where insert(0)
@@ -401,13 +489,13 @@ export function chunkByLattice(stored: DocAction[], undo: DocAction[]): LayoutCh
     const leading = a === 0 && i === 0;
     for (let q = 0; q < b; q++) {
       if (used[q]) { continue; }
-      const p = penalize(undo[j + q], leading);
+      const p = penalize(undoInfos[j + q], leading);
       if (p === "shape") { shape += 1; } else if (p === "orphan") { orphan += 1; }
     }
     return { shape, missing, orphan, zeros };
   };
 
-  // Lexicographic DP over the grid: (cost, zeros, -chunks). Each step is one
+  // Best-first search over the grid (see the file header). Each step is one
   // chunk, an edge spanning `a` stored by `b` undo. The edge shapes are exactly
   // the ones the engine emits, listed below rather than swept from a 2 x 2 box:
   //   [1, 1]  one action and its inverse (the common case).
@@ -428,39 +516,48 @@ export function chunkByLattice(stored: DocAction[], undo: DocAction[]): LayoutCh
   // an unexpected shape stays unplaced (a `shape` penalty) instead of being
   // quietly absorbed by an over-wide edge.
   const EDGE_SHAPES: readonly [number, number][] = [[1, 1], [1, 2], [1, 0], [0, 1], [2, 2]];
-  // best[i][j] is the optimal path reaching grid point (i, j), or null if
-  // unreached. Each step the DP takes covers one chunk (an edge of the grid).
-  const best: (Node | null)[][] =
-    Array.from({ length: N + 1 }, () => new Array<Node | null>(M + 1).fill(null));
-  best[0][0] = { score: { shape: 0, missing: 0, orphan: 0, zeros: 0, chunks: 0 }, fromI: -1, fromJ: -1 };
-  for (let i = 0; i <= N; i++) {
-    for (let j = 0; j <= M; j++) {
-      const cur = best[i][j];
-      if (cur === null) { continue; }
-      for (const [a, b] of EDGE_SHAPES) {
-        if (a > N - i || b > M - j) { continue; }
-        const ec = closureCost(i, a, j, b);
-        const score: Score = {
-          shape: cur.score.shape + ec.shape,
-          missing: cur.score.missing + ec.missing,
-          orphan: cur.score.orphan + ec.orphan,
-          zeros: cur.score.zeros + ec.zeros,
-          chunks: cur.score.chunks + (a >= 1 ? 1 : 0),
-        };
-        const ti = i + a, tj = j + b;
-        const existing = best[ti][tj];
-        if (existing === null || betterScore(score, existing.score)) {
-          best[ti][tj] = { score, fromI: i, fromJ: j };
-        }
+  const W = M + 1;
+  const keyOf = (i: number, j: number) => i * W + j;
+  const best = new Map<number, Node>();
+  const heap = new MinHeap();
+  best.set(keyOf(0, 0), { score: ZERO_SCORE, fromI: -1, fromJ: -1, settled: false });
+  heap.push({ key: keyOf(0, 0), i: 0, j: 0, score: ZERO_SCORE });
+  let settledCount = 0;
+  while (heap.size > 0) {
+    const { key, i, j, score } = heap.pop();
+    const node = best.get(key)!;
+    // A stale entry: this point was reached again with a better score since.
+    if (node.settled || compareScore(score, node.score) !== 0) { continue; }
+    node.settled = true;
+    settledCount++;
+    if (i === N && j === M) { break; }
+    for (const [a, b] of EDGE_SHAPES) {
+      if (a > N - i || b > M - j) { continue; }
+      const ec = closureCost(i, a, j, b);
+      const next: Score = {
+        shape: score.shape + ec.shape,
+        missing: score.missing + ec.missing,
+        orphan: score.orphan + ec.orphan,
+        zeros: score.zeros + ec.zeros,
+        merged: score.merged + Math.max(0, a - 1),
+      };
+      const nextKey = keyOf(i + a, j + b);
+      const existing = best.get(nextKey);
+      if (existing === undefined || compareScore(next, existing.score) < 0) {
+        best.set(nextKey, { score: next, fromI: i, fromJ: j, settled: false });
+        heap.push({ key: nextKey, i: i + a, j: j + b, score: next });
       }
     }
   }
+  // The [1, 0] and [0, 1] shapes make the far corner reachable from anywhere, so
+  // the search always settles it before the heap empties.
+  if (testStats) { testStats.settled = settledCount; }
 
   // Backtrack the chosen edges (each is one chunk).
   const edges: { i: number; a: number; j: number; b: number }[] = [];
   let ci = N, cj = M;
   while (ci !== 0 || cj !== 0) {
-    const node = best[ci][cj]!;
+    const node = best.get(keyOf(ci, cj))!;
     edges.push({ i: node.fromI, a: ci - node.fromI, j: node.fromJ, b: cj - node.fromJ });
     ci = node.fromI; cj = node.fromJ;
   }
@@ -490,7 +587,7 @@ export function chunkByLattice(stored: DocAction[], undo: DocAction[]): LayoutCh
   for (const e of edges) {
     if (e.a !== 0) { continue; }
     for (let q = e.j; q < e.j + e.b; q++) {
-      const owner = restoreOwner(undo[q]);
+      const owner = restoreOwner(undoInfos[q]);
       if (owner !== undefined) {
         getSetMapValue(ownedFront, owner, () => []).push(q);
       } else if (e.i === 0) {
@@ -519,4 +616,83 @@ export function chunkByLattice(stored: DocAction[], undo: DocAction[]): LayoutCh
     chunks.push({ stored: [], undo: orphans.map(idx => undo[idx]) });
   }
   return chunks;
+}
+
+const RECORD_KINDS = new Set([
+  "AddRecord", "BulkAddRecord", "RemoveRecord", "BulkRemoveRecord", "UpdateRecord", "BulkUpdateRecord",
+]);
+
+/**
+ * Merge adjacent chunks whose stored actions are all record actions (row adds,
+ * removes and updates). Splitting exists to separate schema changes; a run of
+ * record actions between them is what a single walk always handled, so keeping
+ * it split only multiplies the composition work. A chunk with no stored action
+ * is never merged: its position is what makes its names readable. A merged
+ * chunk's undo keeps bundle order, taken from `undo`, the bundle's full list.
+ *
+ * Two limits keep a merged walk equal to the composition of its parts:
+ *  - Rows. A row added and then removed within one walk reads as recycled, not
+ *    transient, and an add or remove of a row the walk already recorded mixes
+ *    two entities' cells. So a run never adds or removes a row it has already
+ *    touched, nor touches a row it has already added or removed. Updates of the
+ *    same rows, a formula cascade, merge freely.
+ *  - Size. An action over `maxInlineRows` (the summarizer's truncation limit,
+ *    Infinity for none) is left in its own chunk: the walk samples such an
+ *    action, and what the sample covers depends on what shares the walk, so
+ *    merging would change the summary, not only how it is computed. That holds
+ *    for updates too, as the fuzz truncation scenarios check.
+ */
+export function coalesceRecordChunks(chunks: LayoutChunk[], undo: DocAction[],
+  maxInlineRows: number = Infinity): LayoutChunk[] {
+  const position = new Map<DocAction, number>();
+  undo.forEach((u, k) => position.set(u, k));
+  const isUpdate = (a: DocAction) => a[0] === "UpdateRecord" || a[0] === "BulkUpdateRecord";
+  const small = (a: DocAction) => !isDataAction(a) || getRowIdsFromDocAction(a).length <= maxInlineRows;
+  // Per table, rows the current run has touched, and rows it has added or removed.
+  let touched = new Map<string, Set<number>>();
+  let churned = new Map<string, Set<number>>();
+  const conflicts = (chunk: LayoutChunk): boolean => {
+    for (const a of chunk.stored) {
+      if (!isDataAction(a)) { continue; }
+      const churn = !isUpdate(a);
+      for (const r of getRowIdsFromDocAction(a)) {
+        if (churned.get(a[1])?.has(r) || (churn && touched.get(a[1])?.has(r))) { return true; }
+      }
+    }
+    return false;
+  };
+  const note = (chunk: LayoutChunk) => {
+    for (const a of chunk.stored) {
+      if (!isDataAction(a)) { continue; }
+      const rows = getRowIdsFromDocAction(a);
+      const t = getSetMapValue(touched, a[1], () => new Set<number>());
+      for (const r of rows) { t.add(r); }
+      if (!isUpdate(a)) {
+        const c = getSetMapValue(churned, a[1], () => new Set<number>());
+        for (const r of rows) { c.add(r); }
+      }
+    }
+  };
+  const out: LayoutChunk[] = [];
+  const merged = new Set<LayoutChunk>();
+  let run: LayoutChunk | null = null;
+  for (const chunk of chunks) {
+    const mergeable = chunk.stored.length > 0 && chunk.stored.every(s => RECORD_KINDS.has(s[0])) &&
+      chunk.stored.every(small) && chunk.undo.every(small);
+    if (mergeable && run && !conflicts(chunk)) {
+      run.stored.push(...chunk.stored);
+      run.undo.push(...chunk.undo);
+      merged.add(run);
+      note(chunk);
+      continue;
+    }
+    touched = new Map(); churned = new Map();
+    run = mergeable ? { stored: [...chunk.stored], undo: [...chunk.undo] } : null;
+    if (run) { note(chunk); }
+    out.push(run ?? chunk);
+  }
+  for (const chunk of merged) {
+    chunk.undo.sort((x, y) => (position.get(x) ?? 0) - (position.get(y) ?? 0));
+  }
+  return out;
 }

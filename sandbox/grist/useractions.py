@@ -262,9 +262,11 @@ class UserActions(object):
       # Every undo action appended while applying this stored action is its inverse. Record the
       # correspondence so the server need not re-infer it (see ActionGroup.undo_owner). Applying
       # one doc action only ever appends to the undo list (the reorderings happen later, during
-      # calc flush), so the new tail is exactly this action's undos.
+      # calc flush), so the new tail is exactly this action's undos. setdefault, not assignment: if
+      # applying a doc action ever re-enters here (it does not today, checked by instrumenting the
+      # test suite), the inner call's tag is the more specific one and must win.
       for undo_action in out.undo[undo_start:]:
-        out.undo_owner[id(undo_action)] = stored_index
+        out.undo_owner.setdefault(id(undo_action), stored_index)
 
   def _do_extra_doc_action(self, action):
     # It this is Update, Add (or Bulks), run thouse actions through ensure_column_accepts_data

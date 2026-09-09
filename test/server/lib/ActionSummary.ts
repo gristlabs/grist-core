@@ -1,10 +1,11 @@
-import { chunkByLattice, chunkByOwners } from "app/common/ActionLayout";
+import { chunkByLattice, chunkByOwners, coalesceRecordChunks, LatticeStats } from "app/common/ActionLayout";
 import {
   ActionSummaryOptions, canonicalizeSummary, concatenateSummaries, concatenateSummaryPair,
   rebaseSummary, summarizeAction, summarizeStoredAndUndo,
 } from "app/common/ActionSummarizer";
 import { ActionSummary, asTabularDiffs, createEmptyTableDelta, LabelDelta, TableDelta } from "app/common/ActionSummary";
 import { DocAction } from "app/common/DocActions";
+import { CellDelta } from "app/common/TabularDiff";
 import { TimeCursor } from "app/common/TimeQuery";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { createDocTools } from "test/server/docTools";
@@ -1985,5 +1986,167 @@ describe("ActionSummary incremental folds: canonicalize once, not per step", fun
     tc.append(last);
     assert.deepEqual(canonicalizeSummary(tc.summary).tableDeltas.T.columnDeltas.A,
       { 5: [["v"], null] });
+  });
+});
+
+describe("ActionSummary: names that collide with Object.prototype", function() {
+  // Table and column ids are user-chosen, so the name-keyed dictionaries in a
+  // summary must not answer lookups from Object.prototype ("toString",
+  // "constructor", "hasOwnProperty", ...). The cell helper is needed because a
+  // literal with such a key also defeats TypeScript's contextual typing.
+  const cell = (pre: [any] | null, post: [any] | null): CellDelta => [pre, post];
+
+  it("renames a column named toString without conjuring a delta", function() {
+    const sum1 = S([], { T: td({ updateRows: [1], columnDeltas: { A: { 1: cell([1], [2]) } } }) });
+    const sum2 = S([], { T: td({ columnRenames: [["toString", "X"]] }) });
+    const out = concatenateSummaries([sum1, sum2]);
+    assert.deepEqual(out.tableDeltas.T.columnDeltas, { A: { 1: cell([1], [2]) } });
+    assert.deepEqual(out.tableDeltas.T.columnRenames, [["toString", "X"]]);
+  });
+
+  it("keeps a column named constructor when another column is removed", function() {
+    const sum = S([], { T: td({ updateRows: [1], columnRenames: [["B", null]],
+      columnDeltas: { constructor: { 1: cell([1], [2]) }, B: { 1: cell([3], null) } } }) });
+    const out = canonicalizeSummary(sum);
+    assert.deepEqual(out.tableDeltas.T.columnDeltas,
+      { "constructor": { 1: cell([1], [2]) }, "-B": { 1: cell([3], null) } });
+  });
+
+  it("keeps a column named hasOwnProperty added in the first part", function() {
+    const sum1 = S([], { T: td({ addRows: [1], columnRenames: [[null, "hasOwnProperty"]],
+      columnDeltas: { hasOwnProperty: { 1: cell(null, [5]) } } }) });
+    const sum2 = S([], { T: td({ updateRows: [2], columnDeltas: { A: { 2: cell([1], [2]) } } }) });
+    const out = concatenateSummaries([sum1, sum2]);
+    assert.deepEqual(out.tableDeltas.T.columnRenames, [[null, "hasOwnProperty"]]);
+    assert.deepEqual(out.tableDeltas.T.columnDeltas,
+      { hasOwnProperty: { 1: cell(null, [5]) }, A: { 2: cell([1], [2]) } });
+  });
+
+  it("walks a table named constructor", function() {
+    const stored: DocAction[] = [
+      ["AddTable", "constructor", []],
+      ["AddColumn", "constructor", "valueOf", { type: "Int", isFormula: false, formula: "" }],
+      ["AddRecord", "constructor", 1, { valueOf: 7 }],
+    ];
+    const undo: DocAction[] = [
+      ["RemoveRecord", "constructor", 1],
+      ["RemoveColumn", "constructor", "valueOf"],
+      ["RemoveTable", "constructor"],
+    ];
+    const out = summarizeStoredAndUndo(stored, undo, undefined, [2, 1, 0]);
+    assert.deepEqual(out.tableRenames, [[null, "constructor"]]);
+    // Index with a widened key: TypeScript would otherwise resolve `.constructor`
+    // to Object.prototype's, just as the summarizer must not.
+    const delta = out.tableDeltas["constructor" as string];
+    assert.deepEqual(delta.addRows, [1]);
+    assert.deepEqual(delta.columnDeltas, { valueOf: { 1: cell(null, [7]) } });
+  });
+});
+
+describe("ActionSummary concat: a leading restore's old value survives any grouping", function() {
+  // A front calc-flush restore in a leading chunk records an old value with no
+  // forward action to give it a new one: [old, null] on a row the chunk does not
+  // remove. Whether the next summary carries that column at all depends on the
+  // grouping, and the old value must survive either way. Here the column is
+  // removed at the end, so it must show up as removed data.
+  const cell = (pre: [any] | null, post: [any] | null): CellDelta => [pre, post];
+  const restore = S([], { T2: td({ updateRows: [3], columnDeltas: { c5: { 3: cell(["v3"], null) } } }) });
+  const rename = S([["T2", "T1"]]);
+  const removals = S([], { T1: td({ updateRows: [3], removeRows: [1],
+    columnDeltas: { c4: { 3: cell(["a"], ["b"]) }, c5: { 1: cell(["x"], null) } } }) });
+  const dropColumn = S([], { T1: td({ columnRenames: [["c5", null]] }) });
+  const sums = [restore, rename, removals, dropColumn];
+
+  it("agrees between the balanced tree, a left fold and a right fold", function() {
+    const tree = concatenateSummaries(sums);
+    const left = canonicalizeSummary(sums.slice(1).reduce((acc, s) => concatenateSummaryPair(acc, s), sums[0]));
+    let right = sums[sums.length - 1];
+    for (let i = sums.length - 2; i >= 0; i--) { right = concatenateSummaryPair(sums[i], right); }
+    assert.deepEqual(tree.tableDeltas.T1.columnDeltas["-c5"], { 1: cell(["x"], null), 3: cell(["v3"], null) });
+    assert.deepEqual(left, tree);
+    assert.deepEqual(canonicalizeSummary(right), tree);
+  });
+
+  it("keeps the value when the later summary carries the column but not the cell", function() {
+    // The grouping that used to lose the cell: the restore composed with a
+    // summary that already has a `c5` column (from other rows).
+    const pair = concatenateSummaryPair(restore, concatenateSummaryPair(rename, removals));
+    assert.deepEqual(pair.tableDeltas.T1.columnDeltas.c5[3], cell(["v3"], null));
+  });
+});
+
+describe("coalesceRecordChunks", function() {
+  const upd = (t: string, r: number, v: string): DocAction => ["UpdateRecord", t, r, { A: v }];
+  const chunkOf = (stored: DocAction[], undo: DocAction[]) => ({ stored, undo });
+
+  it("merges a run of record chunks and keeps undo in bundle order", function() {
+    const stored = [upd("T", 1, "a"), upd("T", 2, "b"), upd("T", 1, "c")];
+    const undo = [upd("T", 1, "0"), upd("T", 2, "0"), upd("T", 1, "a")];
+    const chunks = stored.map((s, i) => chunkOf([s], [undo[i]]));
+    // Present the undo entries out of order within the chunks, as a chunker
+    // attributing front restores might.
+    const merged = coalesceRecordChunks([chunks[2], chunks[0], chunks[1]], undo);
+    assert.lengthOf(merged, 1);
+    assert.deepEqual(merged[0].stored, [stored[2], stored[0], stored[1]]);
+    assert.deepEqual(merged[0].undo, undo);
+  });
+
+  it("cuts at a schema action and never merges a stored-empty chunk", function() {
+    const front = chunkOf([], [upd("T", 9, "old")]);
+    const a = chunkOf([upd("T", 1, "a")], [upd("T", 1, "0")]);
+    const schema = chunkOf([["AddColumn", "T", "B", { type: "Text", isFormula: false, formula: "" }]],
+      [["RemoveColumn", "T", "B"]]);
+    const b = chunkOf([upd("T", 2, "b")], [upd("T", 2, "0")]);
+    const c = chunkOf([upd("T", 3, "c")], [upd("T", 3, "0")]);
+    const undo = [front.undo[0], a.undo[0], schema.undo[0], b.undo[0], c.undo[0]];
+    const merged = coalesceRecordChunks([front, a, schema, b, c], undo);
+    assert.deepEqual(merged.map(m => m.stored.length), [0, 1, 1, 2]);
+    assert.deepEqual(merged[3].stored, [b.stored[0], c.stored[0]]);
+  });
+
+  it("cuts where a run would churn a row it touched, or touch a row it churned", function() {
+    const add: DocAction = ["AddRecord", "T", 5, { A: "new" }];
+    const remove: DocAction = ["RemoveRecord", "T", 5];
+    const chunks = [
+      chunkOf([add], [["RemoveRecord", "T", 5]]),
+      chunkOf([upd("T", 5, "x")], [upd("T", 5, "new")]),       // touches a row the run added: cut
+      chunkOf([remove], [["AddRecord", "T", 5, { A: "x" }]]),   // removes a row the run touched: cut
+      chunkOf([upd("T", 6, "y")], [upd("T", 6, "0")]),           // an unrelated row: merges
+    ];
+    const undo = chunks.map(c => c.undo[0]);
+    const merged = coalesceRecordChunks(chunks, undo);
+    assert.deepEqual(merged.map(m => m.stored.length), [1, 1, 2]);
+    // Updates of the same rows, a formula cascade, merge freely.
+    const cascade = [1, 2, 3].map(i => chunkOf([upd("T", 5, `v${i}`)], [upd("T", 5, `v${i - 1}`)]));
+    assert.deepEqual(coalesceRecordChunks(cascade, cascade.map(c => c.undo[0])).map(m => m.stored.length), [3]);
+  });
+
+  it("leaves a chunk with an action over the inline limit alone", function() {
+    const big: DocAction = ["BulkUpdateRecord", "T", [1, 2, 3], { A: ["a", "b", "c"] }];
+    const chunks = [
+      chunkOf([upd("T", 1, "a")], [upd("T", 1, "0")]),
+      chunkOf([big], [["BulkUpdateRecord", "T", [1, 2, 3], { A: ["0", "0", "0"] }]]),
+      chunkOf([upd("T", 2, "b")], [upd("T", 2, "0")]),
+    ];
+    const undo = chunks.map(c => c.undo[0]);
+    assert.deepEqual(coalesceRecordChunks(chunks, undo, 2).map(m => m.stored.length), [1, 1, 1]);
+    assert.deepEqual(coalesceRecordChunks(chunks, undo, 3).map(m => m.stored.length), [3]);
+  });
+});
+
+describe("chunkByLattice stats", function() {
+  it("settles about one grid point per action on a well-formed bundle", function() {
+    const stored: DocAction[] = [];
+    const undo: DocAction[] = [];
+    for (let i = 1; i <= 50; i++) {
+      stored.push(["UpdateRecord", "T", i, { A: "a" }]);
+      undo.push(["UpdateRecord", "T", i, { A: "0" }]);
+    }
+    const stats: LatticeStats = { settled: 0 };
+    assert.lengthOf(chunkByLattice(stored, undo, stats), 50);
+    // The pairing is a straight diagonal: the start, one point per action, and
+    // the far corner, plus a few neighbors reached at equal score.
+    assert.isAtLeast(stats.settled, 51);
+    assert.isBelow(stats.settled, 2 * (stored.length + undo.length));
   });
 });

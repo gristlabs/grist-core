@@ -1,5 +1,5 @@
 import { getEnvContent, LocalActionBundle } from "app/common/ActionBundle";
-import { chunkByLattice, chunkByOwners } from "app/common/ActionLayout";
+import { chunkByLattice, chunkByOwners, coalesceRecordChunks } from "app/common/ActionLayout";
 import { ActionSummary, ColumnDelta, createEmptyActionSummary,
   createEmptyTableDelta, defunctTableName, LabelDelta, TableDelta } from "app/common/ActionSummary";
 import { DocAction } from "app/common/DocActions";
@@ -11,7 +11,6 @@ import { CellDelta } from "app/common/TabularDiff";
 import clone from "lodash/clone";
 import fromPairs from "lodash/fromPairs";
 import isEqual from "lodash/isEqual";
-import keyBy from "lodash/keyBy";
 import toPairs from "lodash/toPairs";
 import values from "lodash/values";
 
@@ -59,6 +58,18 @@ import values from "lodash/values";
  */
 const MAXIMUM_INLINE_ROWS = 10;
 
+/** The bulk-change size past which a summary keeps only a sample (Infinity for no limit). */
+function maxInlineRowsOf(options?: ActionSummaryOptions): number {
+  const maxRows = options?.maximumInlineRows;
+  if (maxRows === undefined) {
+    return MAXIMUM_INLINE_ROWS;
+  } else if (maxRows === null) {
+    return Infinity;
+  } else {
+    return maxRows;
+  }
+}
+
 /**
  * Options when producing an action summary.
  */
@@ -78,7 +89,12 @@ export interface ActionSummaryOptions {
    * the chunk boundaries instead (the `chunkByLattice` path). Off by default, so
    * when ownership is present it is used. Mainly for testing both paths agree.
    */
-  ignoreUndoGrouping?: boolean;
+  testIgnoreUndoGrouping?: boolean;
+  /**
+   * Keep every chunk as the chunker produced it (no coalesceRecordChunks). For
+   * testing that the merge changes nothing.
+   */
+  testDisableChunkCoalescing?: boolean;
 }
 
 export class ActionSummarizer {
@@ -184,7 +200,7 @@ export class ActionSummarizer {
   public addAction(summary: ActionSummary, act: DocAction,
     tableData: TableData) {
     const tableId = act[1];
-    if (!summary.tableDeltas[tableId]) {
+    if (!hasOwn(summary.tableDeltas, tableId)) {
       summary.tableDeltas[tableId] = createEmptyTableDelta();
     }
     this.addForwardAction(summary, act);
@@ -227,13 +243,15 @@ export class ActionSummarizer {
 
   /** helper function to access summary changes for a specific table by name */
   private _forTable(summary: ActionSummary, tableId: string): TableDelta {
-    return summary.tableDeltas[tableId] || (summary.tableDeltas[tableId] = createEmptyTableDelta());
+    if (!hasOwn(summary.tableDeltas, tableId)) { summary.tableDeltas[tableId] = createEmptyTableDelta(); }
+    return summary.tableDeltas[tableId];
   }
 
   /** helper function to access summary changes for a specific cell by rowId and colId */
   private _forCell(td: TableDelta, rowId: number, colId: string): CellDelta {
     // null-prototype map so an arbitrary row id can't clash with an inherited name.
-    const cd = td.columnDeltas[colId] || (td.columnDeltas[colId] = Object.create(null));
+    if (!hasOwn(td.columnDeltas, colId)) { td.columnDeltas[colId] = Object.create(null); }
+    const cd = td.columnDeltas[colId];
     return cd[rowId] || (cd[rowId] = [null, null]);
   }
 
@@ -282,14 +300,7 @@ export class ActionSummarizer {
   }
 
   private _getMaxRows() {
-    const maxRows = this._options?.maximumInlineRows;
-    if (maxRows === undefined) {
-      return MAXIMUM_INLINE_ROWS;
-    } else if (maxRows === null) {
-      return Infinity;
-    } else {
-      return maxRows;
-    }
+    return maxInlineRowsOf(this._options);
   }
 }
 
@@ -317,8 +328,11 @@ export function summarizeAction(body: LocalActionBundle, options?: ActionSummary
  * `undo`), we chunk by it (`chunkByOwners`); otherwise by `chunkByLattice`. The
  * lattice is the common case, not a relic: it covers all history from before
  * ownership was added (immutable, recomputed lazily on read), plus engine-less
- * bundles. `ignoreUndoGrouping` forces it for testing. Both feed the same walk
- * and composition, so they agree (checked over the fuzz corpus).
+ * bundles. `testIgnoreUndoGrouping` forces it for testing. Either way, adjacent
+ * record-only chunks are then merged back into one (coalesceRecordChunks),
+ * since a run of row changes has no name that could appear and vanish. Both
+ * paths feed the same walk and composition, so they agree (checked over the
+ * fuzz corpus, with and without the merge).
  *
  * Aside: very old bundles (pre-~2017) recorded `stored` as only the user-facing
  * action, with `undo` carrying the metadata-side inverses too. Neither chunker
@@ -333,8 +347,11 @@ export function summarizeStoredAndUndo(stored: DocAction[], undo: DocAction[],
   // `Array.isArray`, not just a presence check: a bundle round-tripped through the action history
   // marshaller turns an absent owner list into null, and an older bundle omits it entirely.
   const useOwners = Array.isArray(undoOwner) && undoOwner.length === undo.length &&
-    !options?.ignoreUndoGrouping;
-  const chunks = useOwners ? chunkByOwners(stored, undo, undoOwner) : chunkByLattice(stored, undo);
+    !options?.testIgnoreUndoGrouping;
+  let chunks = useOwners ? chunkByOwners(stored, undo, undoOwner) : chunkByLattice(stored, undo);
+  if (!options?.testDisableChunkCoalescing) {
+    chunks = coalesceRecordChunks(chunks, undo, maxInlineRowsOf(options));
+  }
   const summaries = chunks.map(c => summarizeChunkWalked(c.stored, c.undo, options));
   return concatenateSummaries(summaries);
 }
@@ -356,7 +373,7 @@ function summarizeChunkWalked(stored: DocAction[], undo: DocAction[],
     let post = renames[1];
     if (pre === null) { continue; }
     if (post === null) { post = defunctTableName(pre); }
-    if (summary.tableDeltas[pre]) {
+    if (hasOwn(summary.tableDeltas, pre)) {
       summary.tableDeltas[post] = summary.tableDeltas[pre];
       delete summary.tableDeltas[pre];
     }
@@ -368,7 +385,7 @@ function summarizeChunkWalked(stored: DocAction[], undo: DocAction[],
       let post = renames[1];
       if (pre === null) { continue; }
       if (post === null) { post = defunctTableName(pre); }
-      if (td.columnDeltas[pre]) {
+      if (hasOwn(td.columnDeltas, pre)) {
         td.columnDeltas[post] = td.columnDeltas[pre];
         delete td.columnDeltas[pre];
       }
@@ -426,6 +443,28 @@ function canonicalizeRenames(renames: LabelDelta[]): LabelDelta[] {
 }
 
 /**
+ * Own-property test for a summary's name-keyed dictionaries. Their keys are
+ * user-chosen table and column ids, so a plain `obj[key]` test would find
+ * Object.prototype members for names like "constructor" or "toString".
+ */
+function hasOwn(obj: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+/**
+ * Index label deltas by one side (0 = pre-name, 1 = post-name), skipping null
+ * names. A Map, for the reason given at hasOwn.
+ */
+function indexBySide(names: LabelDelta[], side: 0 | 1): Map<string, LabelDelta> {
+  const index = new Map<string, LabelDelta>();
+  for (const pair of names) {
+    const key = pair[side];
+    if (key !== null) { index.set(key, pair); }
+  }
+  return index;
+}
+
+/**
  * Looks at a pair of name change lists (could be tables or columns) and figures out what
  * changes would need to be made to a data structure keyed on those names in order to key
  * it consistently on final names.
@@ -438,9 +477,9 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
     rename2: new Map<string, string>(),
     merge: new Array<LabelDelta>(),
   };
-  const names1ByFinalName: { [name: string]: LabelDelta } = keyBy(names1, p => p[1]!);
-  const names2ByInitialName: { [name: string]: LabelDelta } = keyBy(names2, p => p[0]!);
-  const names2ByFinalName: { [name: string]: LabelDelta } = keyBy(names2, p => p[1]!);
+  const names1ByFinalName = indexBySide(names1, 1);
+  const names2ByInitialName = indexBySide(names2, 0);
+  const names2ByFinalName = indexBySide(names2, 1);
   for (const [before1, after1] of names1) {
     if (!after1) {
       if (!before1) { throw new Error("invalid name change found"); }
@@ -449,12 +488,12 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
       // under the live name -- unless `before1` was also re-added in part 1
       // (a recycle), in which case the live `before1` key holds a distinct
       // new entity that must be preserved.
-      if (!names1ByFinalName[before1]) { result.dead1.add(before1); }
+      if (!names1ByFinalName.has(before1)) { result.dead1.add(before1); }
       result.merge.push([before1, null]);
       continue;
     }
     // At this point, we know the table/column existed at end of part 1.
-    const pair2 = names2ByInitialName[after1];
+    const pair2 = names2ByInitialName.get(after1);
     if (!pair2) {
       // Table/column's name was stable in part 2, so only change was in part 1.
       result.merge.push([before1, after1]);
@@ -466,7 +505,7 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
       // defunct name there, so only mark the live name dead unless `after1`
       // was also re-added in part 2 (a recycle), where the live `after1` key
       // holds a distinct new entity that must be preserved.
-      if (!names2ByFinalName[after1]) { result.dead2.add(after1); }
+      if (!names2ByFinalName.has(after1)) { result.dead2.add(after1); }
       if (before1) {
         // Table/column existed prior to part 1 (as `before1`), was renamed to
         // `after1` during part 1, and removed during part 2. In the combined
@@ -493,7 +532,7 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
   // Look through part 2 for any changes not already covered.
   for (const [before2, after2] of names2) {
     if (!before2 && !after2) { throw new Error("invalid name change found"); }
-    if (before2 && names1ByFinalName[before2]) { continue; }  // Already handled
+    if (before2 && names1ByFinalName.has(before2)) { continue; }  // Already handled
     result.merge.push([before2, after2]);
     // If table/column is renamed in part 2, and name was stable in part 1,
     // rekey any information about it in part 1.
@@ -540,10 +579,10 @@ function renameAndDelete<T>(entries: CopyOnWrite<{ [name: string]: T }>, dead: S
   // Remove all entries marked as dead.
   for (const key of dead) { delete entriesCopy[key]; }
   // Move all entries that are going to be renamed out to a cache temporarily.
-  const cache: { [name: string]: any } = {};
+  const cache = new Map<string, T>();
   for (const key of rename.keys()) {
-    if (entriesCopy[key]) {
-      cache[key] = entriesCopy[key];
+    if (hasOwn(entriesCopy, key)) {
+      cache.set(key, entriesCopy[key]);
       delete entriesCopy[key];
     }
   }
@@ -556,12 +595,13 @@ function renameAndDelete<T>(entries: CopyOnWrite<{ [name: string]: T }>, dead: S
   // associativity). The renamed entry carried the old name, so it is the
   // earlier facet (e1); the occupant carried the new name (e2).
   for (const [key, val] of rename.entries()) {
-    if (!cache[key]) { continue; }
-    if (entriesCopy[val] !== undefined && mergeOnCollision) {
+    const moved = cache.get(key);
+    if (moved === undefined) { continue; }
+    if (hasOwn(entriesCopy, val) && mergeOnCollision) {
       const existing = copyOnWrite(entriesCopy[val]);
-      entriesCopy[val] = mergeOnCollision(cache[key], existing);
+      entriesCopy[val] = mergeOnCollision(moved, existing);
     } else {
-      entriesCopy[val] = cache[key];
+      entriesCopy[val] = moved;
     }
   }
 }
@@ -593,7 +633,7 @@ function mergeNames<T>(names: NameMerge,
   const entries = entries2;                // Start with the second dictionary.
   for (const key of Object.keys(entries1Wrapper.read())) {  // Add material from the first.
     const e1 = entries1Wrapper.read()[key];
-    if (!entries.read()[key]) {
+    if (!hasOwn(entries.read(), key)) {
       // entries1 has this key, entries2 does not. entries2's part-2 may
       // still carry row-level changes (notably row removals) that must
       // apply -- a removed row has no cells afterward. Those
@@ -678,13 +718,16 @@ function mergeColumn(present1: RowChanges, present2: RowChanges,
     v2 = v2 || bulkCellFor(t2);
     if (!v2)    { e2.write()[key] = e1[key]; continue; }
     if (!v1[1]) {
-      // e1 deleted the row and kept its old value in v1[0]. That is the value at
-      // the start of the whole span, so keep it as the "before", whatever e2 does
-      // next: if e2 re-adds the row we get [old, new]; if e2 also removes it (or
-      // leaves it gone) we get [old, null], the original value, still removed. We
-      // only do this when e1 genuinely removed the row (a row merely added in e1
-      // with no value here has nothing to carry).
-      if (t1.removed) {
+      // e1's "after" side is absent: either e1 removed the row, or it recorded an
+      // old value with no forward action to give it a new one (a front calc-flush
+      // restore in a leading chunk), which really means "after unknown". Either
+      // way v1[0] is the value at the start of the whole span, so keep it as the
+      // "before" and take the "after" from e2. Keeping it is what makes the
+      // result independent of how the summaries were grouped: whether e2 carries
+      // this column at all varies with the grouping (the orphan path in
+      // mergeNames copies a whole column through). A cell with no old value has
+      // nothing to carry.
+      if (t1.removed || v1[0] !== null) {
         e2.write()[key] = [v1[0], v2[1]];
       }
       continue;
@@ -902,7 +945,8 @@ function settleTableDelta(td: TableDelta): TableDelta {
       .sort((a, b) => (removedCols.has(a[0]) ? 1 : 0) - (removedCols.has(b[0]) ? 1 : 0));
     for (const [colId, cd] of entries) {
       const target = removedCols.get(colId) ?? colId;
-      const dest = sourceDeltas[target] ?? (sourceDeltas[target] = {});
+      if (!hasOwn(sourceDeltas, target)) { sourceDeltas[target] = {}; }
+      const dest = sourceDeltas[target];
       for (const [rowId, cell] of Object.entries(cd)) {
         const r = Number(rowId);
         if (!(r in dest)) { dest[r] = cell; }
@@ -1052,14 +1096,26 @@ export function canonicalizeSummary(sum: ActionSummary): ActionSummary {
   return mapTableDeltas(settleSummary(sum), canonicalizeTableDelta);
 }
 
-/** Merge a whole list of summaries, in order, then clean up the result. */
+/**
+ * Merge a whole list of summaries, in order, then clean up the result.
+ *
+ * The merging is a balanced tree (neighbors first, then their results) rather
+ * than left to right: composition is associative (the fuzz harness checks it),
+ * so the grouping is free to choose, and the tree keeps each level's work
+ * proportional to the total size of the summaries.
+ */
 export function concatenateSummaries(sums: ActionSummary[]): ActionSummary {
   if (sums.length === 0) { return createEmptyActionSummary(); }
-  let result = sums[0];
-  for (let i = 1; i < sums.length; i++) {
-    result = concatenateSummaryPair(result, sums[i]);
+  let level = sums;
+  while (level.length > 1) {
+    const next: ActionSummary[] = [];
+    for (let i = 0; i + 1 < level.length; i += 2) {
+      next.push(concatenateSummaryPair(level[i], level[i + 1]));
+    }
+    if (level.length % 2 === 1) { next.push(level[level.length - 1]); }
+    level = next;
   }
-  return canonicalizeSummary(result);
+  return canonicalizeSummary(level[0]);
 }
 
 export function getRenames(ref: ActionSummary | TableDelta) {
@@ -1162,8 +1218,8 @@ export function rebaseSummary(ref: ActionSummary, target: ActionSummary) {
     const ancestorName = plan.targetBack.get(key) || key;
     const afterTargetName = plan.targetForward.get(ancestorName) || ancestorName;
     const afterRefName = plan.refForward.get(ancestorName) || ancestorName;
-    const afterTarget = target.tableDeltas[afterTargetName] ?? empty;
-    const afterRef = ref.tableDeltas[afterRefName] ?? empty;
+    const afterTarget = hasOwn(target.tableDeltas, afterTargetName) ? target.tableDeltas[afterTargetName] : empty;
+    const afterRef = hasOwn(ref.tableDeltas, afterRefName) ? ref.tableDeltas[afterRefName] : empty;
     rebaseTable(afterRef, afterTarget);
   }
   const deltas = copyOnWrite(target.tableDeltas);
