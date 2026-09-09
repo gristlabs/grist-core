@@ -1485,6 +1485,10 @@ export class FlexServer implements GristServer {
       },
     );
 
+    if (!this._socketProxy && isAffirmative(process.env.GRIST_FLEET)) {
+      throw new Error("GRIST_FLEET is set, but this build of Grist has no proxy to honor it.");
+    }
+
     const hasHomeApi = () => this.deps.has("api");
     const hasDocApi = () => this.deps.has("docs");
 

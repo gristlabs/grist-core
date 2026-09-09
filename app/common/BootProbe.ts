@@ -84,6 +84,35 @@ export interface OutgoingRequestsFeatureCheck {
   wildcardAllowed?: boolean;
 }
 
+export type MultiServerKind =
+  // One server does everything; no pool to coordinate.
+  "single-server" |
+  // Documents are assigned to a pool of doc workers, reached by their own urls.
+  "worker-pool" |
+  // Any server answers for any document, proxying to the one holding it.
+  "fleet";
+
+export interface MultiServerEntry {
+  id: string;
+  internalUrl: string;
+  group?: string;
+  // Whether the worker is taking new documents, as last recorded. Whether it is still around to
+  // take them is `alive`.
+  available: boolean;
+  documentCount: number;
+  // How loaded the worker is, from 0 to 1. Absent for a worker that is not taking documents.
+  load?: number;
+  // Whether this is the server answering the request.
+  self: boolean;
+  // Whether the server has said it is still running, within the time it said it would.
+  alive: boolean;
+}
+
+export interface MultiServerDescription {
+  kind: MultiServerKind;
+  servers: MultiServerEntry[];
+}
+
 /**
  * Authoritative roll-up of the outgoing-request posture. The client maps
  * this to banner and summary-pill presentation verbatim; it never recomputes

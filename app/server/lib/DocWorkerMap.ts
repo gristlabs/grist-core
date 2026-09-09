@@ -23,6 +23,17 @@ export interface DocWorkerInfo {
   group?: string;
 }
 
+/** One doc worker, as the worker map has it. */
+export interface DocWorkerRegistration {
+  info: DocWorkerInfo;
+  available: boolean;
+  assignmentCount: number;
+  // The ratio the assignment algorithm weighs this worker by. Absent when it is not available.
+  load?: number;
+  // Whether the worker has said it is still running, within the time it said it would.
+  alive: boolean;
+}
+
 export interface DocStatus {
   // MD5 hash of the SQLite file for this document as stored on S3. We use MD5 because it is
   // automatically computed by S3 (except for multipart uploads). Null indicates a new file.
@@ -53,6 +64,8 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
   addWorker(info: DocWorkerInfo): Promise<void>;
 
   removeWorker(workerId: string): Promise<void>;
+
+  getRegisteredWorkers(): Promise<DocWorkerRegistration[]>;
 
   // Set whether worker is accepting new assignments.  This does not automatically
   // release existing assignments.

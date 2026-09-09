@@ -774,4 +774,81 @@ describe("DocWorkerMap", function() {
         Number(await cli.zscoreAsync("workers-available-by-load-default", workerA.id)), 0.25);
     });
   });
+
+  describe("worker registrations", function() {
+    let workers: DocWorkerMap;
+
+    const workerA: DocWorkerInfo = {
+      id: "registeredWorkerA",
+      publicUrl: "http://a.example.com",
+      internalUrl: "http://10.0.0.1:8484",
+    };
+
+    before(function() {
+      workers = new DocWorkerMap([cli]);
+    });
+
+    afterEach(async function() {
+      await cli.flushdbAsync();
+    });
+
+    it("reports nothing when no worker is registered", async function() {
+      assert.deepEqual(await workers.getRegisteredWorkers(), []);
+    });
+
+    it("describes every registered worker", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+      await workers.assignDocWorker("registrationTestDoc");
+
+      const registered = await workers.getRegisteredWorkers();
+      assert.lengthOf(registered, 1);
+      assert.equal(registered[0].info.id, workerA.id);
+      assert.equal(registered[0].info.internalUrl, workerA.internalUrl);
+      assert.isTrue(registered[0].available);
+      assert.equal(registered[0].assignmentCount, 1);
+    });
+
+    it("reports a worker that is registered but not taking documents", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, false);
+
+      const registered = await workers.getRegisteredWorkers();
+      assert.lengthOf(registered, 1);
+      assert.isFalse(registered[0].available);
+      assert.equal(registered[0].assignmentCount, 0);
+      // No place in the by-load set means no load to report, as against a load of zero.
+      assert.isUndefined(registered[0].load);
+    });
+
+    it("reports the load the assignment algorithm weighs a worker by", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+      assert.equal((await workers.getRegisteredWorkers())[0].load, 0);
+
+      await workers.setWorkerLoad(workerA, 0.25);
+      // Redis hands scores back as strings, so this catches the parse as much as the plumbing.
+      assert.strictEqual((await workers.getRegisteredWorkers())[0].load, 0.25);
+    });
+
+    it("says whether each worker is still saying it is running", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+      await workers.recordWorkerAlive(workerA.id);
+      assert.isTrue((await workers.getRegisteredWorkers())[0].alive);
+
+      await cli.delAsync(`worker-${workerA.id}-alive`);
+      assert.isFalse((await workers.getRegisteredWorkers())[0].alive);
+    });
+
+    it("reports a worker in the group its availability sits in", async function() {
+      await workers.addWorker({ ...workerA, group: "chosen" });
+      await workers.setWorkerAvailability(workerA.id, true);
+      await workers.setWorkerLoad({ ...workerA, group: "chosen" }, 0.5);
+
+      const registered = await workers.getRegisteredWorkers();
+      assert.equal(registered[0].info.group, "chosen");
+      assert.equal(registered[0].load, 0.5);
+    });
+  });
 });

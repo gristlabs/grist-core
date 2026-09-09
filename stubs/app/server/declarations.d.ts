@@ -79,6 +79,8 @@ declare module "redis" {
     public hmset(key: string, val: { [field: string]: any }): Multi;
     public hset(key: string, field: string, val: string): Multi;
     public sadd(key: string, val: string): Multi;
+    public exists(key: string): Multi;
+    public scard(key: string): Multi;
     public set(key: string, val: string): Multi;
     public setex(key: string, ttl: number, val: string): Multi;
     public ttl(key: string): Multi;
@@ -86,6 +88,8 @@ declare module "redis" {
     public smembers(key: string): Multi;
     public srandmember(key: string): Multi;
     public srem(key: string, val: string): Multi;
+    // Resolves to the score as a string, or null if the member is absent.
+    public zscore(key: string, val: string): Multi;
     public rpush(key: string, ...vals: string[]): Multi;
     public ltrim(key: string, start: number, end: number): Multi;
     public incr(key: string): Multi;

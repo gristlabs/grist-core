@@ -1,11 +1,14 @@
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { isAffirmative } from "app/common/gutil";
-import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import {
+  DocStatus, DocWorkerInfo, DocWorkerRegistration, IDocWorkerMap,
+} from "app/server/lib/DocWorkerMap";
 import { readLoadIntervalMs } from "app/server/lib/docWorkerSettings";
 import log from "app/server/lib/log";
 import { checkPermitKey, formatPermitKey, IPermitStore, Permit } from "app/server/lib/Permit";
 
 import { promisifyAll } from "bluebird";
+import chunk from "lodash/chunk";
 import mapValues from "lodash/mapValues";
 import { createClient, Multi, RedisClient } from "redis";
 import Redlock from "redlock";
@@ -35,6 +38,14 @@ const DEFAULT_GROUP = "default";
 // settings are not in place until a server starts.
 function _aliveTtlSeconds(): number {
   return Math.ceil(readLoadIntervalMs() * 5 / 1000);
+}
+
+/**
+ * Read one reply out of a pipeline's results. A failed command leaves an Error in the array where
+ * its reply would have been, which a positional read would otherwise take for a value.
+ */
+function reply(value: unknown): unknown {
+  return value instanceof Error ? null : value;
 }
 
 class DummyDocWorkerMap implements IDocWorkerMap {
@@ -69,6 +80,11 @@ class DummyDocWorkerMap implements IDocWorkerMap {
 
   public async removeWorker(workerId: string): Promise<void> {
     this._worker = undefined;
+  }
+
+  public async getRegisteredWorkers(): Promise<DocWorkerRegistration[]> {
+    // Nothing registers anywhere without Redis, and callers check for it before asking.
+    throw new Error("getRegisteredWorkers is not answerable without redis");
   }
 
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
@@ -271,6 +287,54 @@ export class DocWorkerMap implements IDocWorkerMap {
     } finally {
       await lock.unlock();
     }
+  }
+
+  public async getRegisteredWorkers(): Promise<DocWorkerRegistration[]> {
+    // A stable order from one call to the next, with worker-2 ahead of worker-10.
+    const byWorkerId = new Intl.Collator(undefined, { numeric: true });
+    const workerIds = (await this._client.smembersAsync("workers")).sort(byWorkerId.compare);
+
+    // Two passes, each one round trip, rather than a few round trips per worker. Availability
+    // needs the group, which only the first pass knows, so it cannot be folded into one.
+    const details = this._client.multi();
+    for (const workerId of workerIds) {
+      details.hgetall(`worker-${workerId}`);
+      // Read rather than taken from the registration, this key being what availability is
+      // keyed by below.
+      details.get(`worker-${workerId}-group`);
+      details.scard(`worker-${workerId}-docs`);
+      details.exists(`worker-${workerId}-alive`);
+    }
+    // Replies come back flat, in the order queued, so they regroup into the four per worker.
+    const results = await details.execAsync() ?? [];
+    const perWorker = chunk(results.map(reply), 4) as
+      [DocWorkerInfo | null, string | null, number | null, number | null][];
+
+    const found = workerIds.flatMap((workerId, i) => {
+      const [info, group, docCount, alive] = perWorker[i] ?? [];
+      // A worker can deregister between the two reads, leaving an id with nothing behind it.
+      return info ? [{ workerId, info, group, docCount, alive }] : [];
+    });
+
+    // The by-load set rather than `workers-available-${group}`. Membership means the same in both,
+    // and this one carries the load as well, so availability and load come of a single read.
+    const availability = this._client.multi();
+    for (const w of found) {
+      availability.zscore(`workers-available-by-load-${w.group || DEFAULT_GROUP}`, w.workerId);
+    }
+    const scores = (await availability.execAsync() ?? []).map(reply) as (string | null)[];
+
+    return found.map((w, i) => {
+      const score = scores[i];
+      return {
+        info: w.group ? { ...w.info, group: w.group } : w.info,
+        // Absent from the set means unavailable, so there is no load to report either.
+        available: score != null,
+        load: score == null ? undefined : parseFloat(score),
+        assignmentCount: w.docCount ?? 0,
+        alive: Boolean(w.alive),
+      };
+    });
   }
 
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
