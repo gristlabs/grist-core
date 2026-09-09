@@ -6,6 +6,7 @@
  * Escape, it calls close(), which should destroy the <input>.
  */
 
+import { onceAttached } from "app/client/lib/domUtils";
 import { reportError } from "app/client/models/AppModel";
 import { theme } from "app/client/ui2018/cssVars";
 
@@ -30,12 +31,12 @@ export function transientInput({ initialValue, save, close }: ITransientInputOpt
       close();
     } catch (err) {
       reportError(err);
-      delayedFocus();
+      focusWhenAttached();
     }
   }
 
-  function delayedFocus() {
-    setTimeout(() => { input.focus(); input.select(); }, 10);
+  function focusWhenAttached() {
+    onceAttached(input, () => { input.focus(); input.select(); });
   }
 
   const input = cssInput({ type: "text", placeholder: "Enter name" },
@@ -47,7 +48,7 @@ export function transientInput({ initialValue, save, close }: ITransientInputOpt
     }),
     ...args,
   );
-  delayedFocus();
+  focusWhenAttached();
   return input;
 }
 

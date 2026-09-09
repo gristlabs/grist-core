@@ -16,12 +16,34 @@ export function makeTestId(prefix: string) {
   };
 }
 
+/**
+ * Calls the callback once elem is in the document, or straight away if it already is.
+ *
+ * An element is built before its caller inserts it, and focus() does nothing to a detached one,
+ * so taking the focus has to wait. A timer is the wrong thing to wait on: its callback runs only
+ * between tasks, so a busy main thread holds it off however short the delay. This runs on the
+ * insertion itself, at the end of the task that does it, which nothing can push back.
+ */
+export function onceAttached(elem: Element, callback: () => void): void {
+  if (elem.isConnected) {
+    callback();
+    return;
+  }
+  const observer = new MutationObserver(() => {
+    if (!elem.isConnected) { return; }
+    observer.disconnect();
+    callback();
+  });
+  observer.observe(document, { childList: true, subtree: true });
+  dom.onDisposeElem(elem, () => observer.disconnect());
+}
+
 export function autoFocus() {
-  return (el: HTMLElement) => void setTimeout(() => el.focus(), 10);
+  return (el: HTMLElement) => onceAttached(el, () => el.focus());
 }
 
 export function autoSelect() {
-  return (el: HTMLElement) => void setTimeout(() => (el as any).select?.(), 10);
+  return (el: HTMLElement) => onceAttached(el, () => (el as any).select?.());
 }
 
 /**
@@ -155,4 +177,18 @@ export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: 
   }
   reset();
   return { reset };
+}
+
+/**
+ * Whether a mouse event landed on a link.
+ *
+ * The event's own target is not enough for a double click. A double click made of two clicks on
+ * different elements is dispatched on the closest ancestor the two share, so selecting a cell and
+ * then clicking the link icon inside it reports the cell, not the link. What is under the pointer
+ * is the second click's element either way.
+ */
+export function isEventOnLink(event: Event): boolean {
+  if ((event.target as HTMLElement | null)?.closest("a")) { return true; }
+  const { clientX, clientY } = event as MouseEvent;
+  return Boolean(document.elementFromPoint(clientX, clientY)?.closest("a"));
 }

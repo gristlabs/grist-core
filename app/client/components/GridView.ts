@@ -13,6 +13,7 @@ import { SelectionSummary } from "app/client/components/SelectionSummary";
 import viewCommon from "app/client/components/viewCommon";
 import { onDblClickMatchElem } from "app/client/lib/dblclick";
 import { testId as oldTestId } from "app/client/lib/dom";
+import { isEventOnLink } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { KoArray } from "app/client/lib/koArray";
 import * as kd from "app/client/lib/koDom";
@@ -380,6 +381,9 @@ export default class GridView extends BaseView {
     // --------------------------------------------------
     // Set up DOM event handling.
     onDblClickMatchElem(this.scrollPane, ".field:not(.column_name)", (event) => {
+      // A cell click followed by a click on its link icon can arrive here as a double click.
+      if (isEventOnLink(event)) { return; }
+
       if (this.gridOptions?.onCellDblClick) {
         this.gridOptions.onCellDblClick(this.cursor.getCursorPos());
       } else {
