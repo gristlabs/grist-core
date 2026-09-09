@@ -287,6 +287,39 @@ isn't covered, please add a probe in
 [BootProbes](https://github.com/gristlabs/grist-core/blob/main/app/server/lib/BootProbes.ts),
 or file an issue so someone else can.
 
+## Health checks
+
+Grist serves an unauthenticated health-check endpoint at `/status`, suitable
+for use as a container or load-balancer liveness/readiness probe:
+
+```
+curl http://localhost:8484/status
+=> Grist server(home,docs) is alive.
+```
+
+It responds with HTTP `200` and a short `... is alive` message when the server
+is healthy, or HTTP `500` and `... is unhealthy` otherwise.
+
+By default it only reports whether the server process itself is healthy. The
+following query parameters add extra checks; when any requested check fails the
+whole response becomes `500`, and each check's result is appended to the body
+(e.g. `Grist server(home,docs) is alive (db ok, redis ok).`, or
+`... is unhealthy (db not ok, redis ok).`):
+
+| Parameter | Extra check |
+| --- | --- |
+| `db=1` | The home database connection is usable (runs `SELECT 1`). |
+| `redis=1` | The Redis connection responds to `PING` (only meaningful when `REDIS_URL` is set). |
+| `docWorkerRegistered=1` | This doc worker is registered in Redis (only checked on a server that has a doc worker and a connected Redis client). |
+| `ready=1` | The server has finished starting up. |
+| `timeout=<ms>` | Per-check timeout in milliseconds (default `10000`). |
+
+For example, to check that Grist is up **and** can reach its database:
+
+```
+curl -f 'http://localhost:8484/status?db=1'
+```
+
 ## Building from source
 
 To build Grist from source, follow these steps:
