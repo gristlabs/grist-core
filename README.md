@@ -459,6 +459,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_HOST | hostname to use when listening on a port. Also decides the address a doc worker publishes for its peers, and the identity derived from it: set it to `0.0.0.0` to listen on every interface, and leave it unset to listen only on `localhost`. |
 | GRIST_PROXY_FOR_UNTRUSTED_URLS | Full URL of proxy for delivering webhook payloads. Default value is `direct` for delivering payloads without proxying. |
 | HTTPS_PROXY or https_proxy | Full URL of reverse web proxy (corporate proxy) for fetching the custom widgets repository or the OIDC config from the issuer. |
+| NO_PROXY or no_proxy | Comma or whitespace separated list of hosts to reach directly, bypassing the proxies set by `HTTPS_PROXY` and `GRIST_PROXY_FOR_UNTRUSTED_URLS`. Uses the usual `no_proxy` semantics: `*` bypasses every host, an entry matches a host or any of its subdomains (`.example.com` or `example.com`), and an optional `:port` suffix restricts the match to that port. |
 | GRIST_ID_PREFIX | for subdomains of form o-*, expect or produce o-${GRIST_ID_PREFIX}*. |
 | GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication. |
 | GRIST_INCLUDE_CUSTOM_SCRIPT_URL | if set, will load the referenced URL in a `<script>` tag on all app pages. |
