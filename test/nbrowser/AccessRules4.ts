@@ -9,6 +9,7 @@ import {
   findDefaultRuleSetWait,
   findTableWait,
   getRules,
+  revertAccessRulesIfChanged,
   startEditingAccessRules,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
@@ -21,7 +22,10 @@ describe("AccessRules4", function() {
   const cleanup = setupTestSuite();
   let testingHooks: ITestingHooks;
 
-  afterEach(() => gu.checkForErrors());
+  afterEach(async () => {
+    await revertAccessRulesIfChanged();
+    await gu.checkForErrors();
+  });
 
   before(async () => {
     testingHooks = await server.getTestingHooks();
