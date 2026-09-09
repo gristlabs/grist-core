@@ -9,6 +9,8 @@ import { makeTestId } from "app/client/lib/domUtils";
 import { sanitizeHttpUrl } from "app/client/lib/sanitizeUrl";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
+import { theme } from "app/client/ui2018/cssVars";
+import { loadingSpinner } from "app/client/ui2018/loaders";
 import { gristThemeObs } from "app/client/ui2018/theme";
 import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from "app/common/CustomWidget";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
@@ -25,7 +27,7 @@ import { CellFormatType } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
 
 import { MsgType, Rpc } from "grain-rpc";
-import { Computed, Disposable, dom, Observable } from "grainjs";
+import { Computed, Disposable, dom, Observable, styled } from "grainjs";
 import debounce from "lodash/debounce";
 import flatMap from "lodash/flatMap";
 import identity from "lodash/identity";
@@ -229,7 +231,17 @@ export class WidgetFrame extends DisposableWithEvents {
       testId("ready", use => use(this._readyCalled) && !use(this._isEmpty)),
       (elem) => { this._options.onElem(elem); },
     );
-    return this._iframe;
+    // Show a spinner for as long as the iframe itself is hidden (see `_visible` above), i.e.
+    // while a `showAfterReady` widget is still applying the theme. Not every widget calls
+    // grist.ready(), so we can't gate this on _readyCalled directly: that would spin forever
+    // for such widgets. `showAfterReady` is only set for gallery widgets whose manifest opts
+    // in via the `renderAfterReady` flag, declaring that they do call ready() - so this wait
+    // is already known to be bounded.
+    return cssWidgetFrameContainer(
+      this._iframe,
+      dom.maybe(use => !use(this._visible) && !use(this._isEmpty), () =>
+        cssSpinnerOverlay(loadingSpinner(), testId("spinner"))),
+    );
   }
 
   // Appends access level to query string.
@@ -294,6 +306,29 @@ export class WidgetFrame extends DisposableWithEvents {
     this._widget.set(widget || null);
   }
 }
+
+// Wraps the widget iframe so a loading spinner can be overlaid on top of it. Takes over the
+// flex-item role the bare iframe used to play in its parent (see iframe.custom_view in
+// CustomView.css), so the iframe keeps sizing itself to fill it exactly as before.
+const cssWidgetFrameContainer = styled("div", `
+  position: relative;
+  display: flex;
+  flex: auto;
+  width: 100%;
+  height: 100%;
+`);
+
+const cssSpinnerOverlay = styled("div", `
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${theme.mainPanelBg};
+  /* Purely a visual mask: some widgets are interactive before calling grist.ready()
+     (e.g. showing a confirmation button), so clicks must pass through to the iframe. */
+  pointer-events: none;
+`);
 
 const throwError = (access: AccessLevel) => {
   throw new Error("Access not granted. Current access level " + access);
