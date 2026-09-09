@@ -7520,10 +7520,10 @@ moment@2.29.4, "moment@>= 2.9.0", moment@>=2.14.0:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
 
-morgan@1.11.0:
-  version "1.11.0"
-  resolved "https://registry.yarnpkg.com/morgan/-/morgan-1.11.0.tgz#98464b8538802f14e9e5374ebe23ac364cd617e8"
-  integrity sha512-zSkVu3t18r39pw4ixfBKvfZi3y2UOqr7d4WYwcj3m8nXpEQK4rPO6GLzs/CExoRgmX3y9EjmmcXqv6jq0SK46g==
+morgan@1.12.0:
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/morgan/-/morgan-1.12.0.tgz#5745ed972ce8a23443a26fc12a041b53cf8b0d22"
+  integrity sha512-OHpTRQwn2ezasILW8iKe+Yww1XsfWsZIpUOLF7RDb2g5GwO3trPaRwi7+8BDiJ7HFx2Kg2mfUdCBcVhwYlOz2g==
   dependencies:
     basic-auth "~2.0.1"
     debug "2.6.9"
