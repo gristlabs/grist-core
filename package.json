@@ -192,7 +192,7 @@
     "ipaddr.js": "2.0.1",
     "jquery": "3.7.1",
     "jquery-ui": "1.14.2",
-    "js-yaml": "4.3.1",
+    "js-yaml": "4.3.2",
     "jsdom": "26.1.0",
     "jsesc": "3.0.2",
     "jsonwebtoken": "9.0.2",
