@@ -425,7 +425,7 @@ describe("DocMenu", function() {
     assert.equal(await driver.find(".test-modal-cancel").isPresent(), false);
     // Hit escape to close the menu
     await driver.sendKeys(Key.ESCAPE);
-    await gu.notPresent(".test-dm-rename-doc");
+    await gu.waitForNotPresent(".test-dm-rename-doc");
   });
 
   it("should show pinned docs", async function() {
@@ -566,12 +566,12 @@ async function checkInitials(initials: string, name: string) {
 
 async function confirm() {
   await driver.find(".test-modal-confirm").click();
-  await gu.notPresent(".test-modal-dialog");
+  await gu.waitForNotPresent(".test-modal-dialog");
 }
 
 async function cancel() {
   await driver.find(".test-modal-cancel").click();
-  await gu.notPresent(".test-modal-dialog");
+  await gu.waitForNotPresent(".test-modal-dialog");
 }
 
 async function checkDocName(name: string) {

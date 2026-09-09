@@ -1855,7 +1855,7 @@ namespace gristUtils {
   export async function closeSectionMenu(which: "sortAndFilter" | "viewLayout", section?: string | WebElement) {
     const sectionElem = section ? await getSection(section) : await driver.findWait(".active_section", 4000);
     await sectionElem.find(`.test-section-menu-${which}`).click();
-    return notPresent(`.grist-floating-menu`);
+    return waitForNotPresent(`.grist-floating-menu`);
   }
 
   /**
@@ -3598,7 +3598,7 @@ namespace gristUtils {
     await selectAll();
     await driver.sendKeys(name || Key.DELETE, Key.ENTER);
     await waitForServer();
-    await notPresent(".test-widget-title-section-name-input");
+    await waitForNotPresent(".test-widget-title-section-name-input");
   }
 
   /**
@@ -4396,9 +4396,7 @@ namespace gristUtils {
      * Waits for the select component to be displayed.
      */
       async waitForDisplay() {
-        await waitToPass(async () => {
-          assert.isTrue(await driver.findWait(this.selector, 1000).isDisplayed());
-        });
+        await waitForDisplay(this.selector);
       },
       /**
      * Waits until the select component is umonuted from dom.
@@ -4437,10 +4435,10 @@ namespace gristUtils {
   }
 
   /** Waits for the element to be not present in the dom */
-  export async function notPresent(selector: string) {
+  export async function waitForNotPresent(selector: string, timeMs: number = 100) {
     await waitToPass(async () => {
       assert.isFalse(await driver.find(selector).isPresent());
-    }, 100);
+    }, timeMs);
   }
 
   export async function waitForContent(selector: string, text: string | RegExp) {
@@ -4449,14 +4447,23 @@ namespace gristUtils {
     });
   }
 
-  export async function waitForDisplay(selector: string) {
-    await waitToPass(async () => {
-      assert.isTrue(await driver.find(selector).isDisplayed());
-    });
+  /**
+   * Waits for the element matching selector to be displayed, not merely present, re-finding on
+   * each poll so that re-renders don't leave a stale reference. Returns it.
+   */
+  export function waitForDisplay(selector: string, timeMs?: number): WebElementPromise {
+    return new WebElementPromise(driver, (async () => {
+      let elem!: WebElement;
+      await waitToPass(async () => {
+        elem = driver.find(selector);
+        assert.isTrue(await elem.isDisplayed(), `${selector} is not displayed`);
+      }, timeMs);
+      return elem;
+    })());
   }
 
   export async function waitForMenuToClose() {
-    await notPresent(".grist-floating-menu");
+    await waitForNotPresent(".grist-floating-menu");
   }
 
   /** Finds a tab by its name and clicks it */

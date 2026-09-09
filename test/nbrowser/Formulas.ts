@@ -1,7 +1,30 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { setupTestSuite } from "test/nbrowser/testUtils";
+import { cleanupExtraWindows, setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key, WebElement } from "mocha-webdriver";
+
+// Checks that a click opened a new tab at the given URL, and closes it.
+//
+// Listing window handles waits for the new tab's response. After that, commands on the tab wait
+// for its page to finish loading, which the Help Center may never do (it pulls third-party
+// resources), so cap that wait at 1s.
+async function checkDocTab(url: string) {
+  const mainTab = await driver.getWindowHandle();
+  // Chrome opens the tab asynchronously, so wait for its handle.
+  await gu.waitToPass(async () => assert.lengthOf(await driver.getAllWindowHandles(), 2));
+  const docTab = (await driver.getAllWindowHandles()).find(h => h !== mainTab)!;
+  const timeouts = await driver.manage().getTimeouts();
+  await driver.manage().setTimeouts({ pageLoad: 1000 });
+  try {
+    await driver.switchTo().window(docTab);
+    // If the load times out, the driver stops it, and the next read returns the URL right away.
+    assert.equal(await driver.getCurrentUrl().catch(() => driver.getCurrentUrl()), url);
+  } finally {
+    await driver.close();
+    await driver.switchTo().window(mainTab);
+    await driver.manage().setTimeouts(timeouts);
+  }
+}
 
 async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
   assert.equal(await elem.getCssValue("text-decoration-line"), yesNo ? "underline" : "none");
@@ -9,6 +32,7 @@ async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
 
 describe("Formulas", function() {
   this.timeout(20000);
+  cleanupExtraWindows();
   const cleanup = setupTestSuite();
 
   let session: gu.Session;
@@ -347,17 +371,7 @@ return [
     await gu.waitToPass(async () => {
       await driver.findContent(".ace_autocomplete .ace_line span", /DIAN/).click();
     });
-    // Switch to the new tab, and wait for the page to load. Chrome opens the tab
-    // asynchronously, so wait for the handle to show up before switching.
-    await gu.waitToPass(async () => {
-      assert.lengthOf(await driver.getAllWindowHandles(), 2);
-    });
-    let handles = await driver.getAllWindowHandles();
-    await driver.switchTo().window(handles[1]);
-    await gu.waitForUrl("support.getgrist.com");
-    assert.equal(await driver.getCurrentUrl(), "https://support.getgrist.com/functions/#median");
-    await driver.close();
-    await driver.switchTo().window(handles[0]);
+    await checkDocTab("https://support.getgrist.com/functions/#median");
 
     // Click now a part of the completion that's not the link. It should insert the suggestion.
     await driver.findContent(".ace_autocomplete .ace_line span", /value/).click();
@@ -399,12 +413,7 @@ return [
     await gu.waitToPass(async () => {
       await driver.findContent(".ace_autocomplete .ace_line span", /lookupRecords/).click();
     });
-    handles = await driver.getAllWindowHandles();
-    await driver.switchTo().window(handles[1]);
-    await gu.waitForUrl("support.getgrist.com");
-    assert.equal(await driver.getCurrentUrl(), "https://support.getgrist.com/functions/#lookuprecords");
-    await driver.close();
-    await driver.switchTo().window(handles[0]);
+    await checkDocTab("https://support.getgrist.com/functions/#lookuprecords");
 
     // Now click the non-link part.
     await driver.findContent(".ace_autocomplete .ace_line", /lookupRecords/).findContent("span", /Friends/).click();

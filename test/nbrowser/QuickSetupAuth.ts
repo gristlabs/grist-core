@@ -174,9 +174,11 @@ describe("QuickSetupAuth", function() {
       await confirm.click();
 
       // A choice made in the UI always sticks: it is staged and saved on apply, so the
-      // button offers Apply rather than a plain Continue.
-      const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
-      assert.match(await continueBtn.getText(), /Apply and Continue/);
+      // button offers Apply rather than a plain Continue. Retry, since the section re-renders
+      // as the staged choice lands.
+      await gu.waitToPass(async () => {
+        assert.match(await driver.find(".test-quick-setup-auth-continue").getText(), /Apply and Continue/);
+      }, 2000);
     });
 
     it("should open the getgrist.com configure modal from the CTA", async function() {
