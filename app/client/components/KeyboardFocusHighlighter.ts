@@ -36,10 +36,13 @@ export class KeyboardFocusHighlighter extends Disposable {
 export const kbFocusHighlighterClass = "kb-focus-highlighter-group";
 
 const cssKeyboardUser = styled("div", `
-  & .${kbFocusHighlighterClass} :is(a, input, textarea, select, button, [tabindex="0"]):focus-visible {
+  & .${kbFocusHighlighterClass} :is(a, input, textarea, select, button, [tabindex="0"]):focus-visible,
+  & .${kbFocusHighlighterClass}:focus-visible {
     outline: 3px solid ${components.kbFocusHighlight} !important;
   }
 `);
+
+export const whenKeyboardUserBodyCls = cssKeyboardUser.className;
 
 export const isKeyboardUser = () => {
   return document.documentElement.classList.contains(cssKeyboardUser.className);

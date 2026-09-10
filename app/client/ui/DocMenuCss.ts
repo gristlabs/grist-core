@@ -1,4 +1,5 @@
-import { cssFocusedPanel } from "app/client/components/RegionFocusSwitcher";
+import { whenKeyboardUserBodyCls } from "app/client/components/KeyboardFocusHighlighter";
+import { cssPanel } from "app/client/components/RegionFocusSwitcher";
 import { transientInput } from "app/client/ui/transientInput";
 import { bigBasicButton } from "app/client/ui2018/buttons";
 import { mediaSmall, theme, vars } from "app/client/ui2018/cssVars";
@@ -125,7 +126,7 @@ export const stickyHeader = styled(headerWrap, `
   margin-bottom: 0px;
   padding: 13px 0px 24px 0px;
   border-top: 3px solid transparent;
-  .${cssFocusedPanel.className}-focused:focus & {
+  .${whenKeyboardUserBodyCls} .${cssPanel.className}:focus & {
     border-top-color: ${components.kbFocusHighlight};
   }
 `);
