@@ -16,6 +16,7 @@ import { testPendingChecks, testPendingPastes } from "app/client/lib/testPending
 import { reportError, TopAppModel, TopAppModelImpl } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { setUpErrorHandling } from "app/client/models/errors";
+import { urlState } from "app/client/models/gristUrlState";
 import { createAppUI } from "app/client/ui/AppUI";
 import { openAccessibilityModal } from "app/client/ui/OpenAccessibilityModal";
 import { addViewportTag } from "app/client/ui/viewport";
@@ -217,7 +218,11 @@ export class AppImpl extends DisposableWithEvents implements App {
     this.comm.initialize(null);
 
     // Add the cssRootVars class to enable the variables in cssVars.
-    attachCssRootVars(this.topAppModel.productFlavor);
+    attachCssRootVars(
+      this.topAppModel.productFlavor,
+      false,
+      urlState().state.get().params?.style || "full",
+    );
     attachTheme();
     addViewportTag();
     this.autoDispose(createAppUI(this.topAppModel, this));

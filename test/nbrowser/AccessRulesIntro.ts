@@ -2,7 +2,8 @@
  * Test the intro screen of access rules, and how rules are first enabled and disabled.
  */
 import { UserAPI } from "app/common/UserAPI";
-import { assertChanged, assertSaved, enterRulePart, findDefaultRuleSetWait } from "test/nbrowser/aclTestUtils";
+import { assertChanged, assertSaved, enterRulePart, findDefaultRuleSetWait,
+  revertAccessRulesIfChanged } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -16,7 +17,10 @@ describe("AccessRulesIntro", function() {
   let ownerApi: UserAPI;
   let editorApi: UserAPI;
 
-  afterEach(() => gu.checkForErrors());
+  afterEach(async () => {
+    await revertAccessRulesIfChanged();
+    await gu.checkForErrors();
+  });
 
   before(async function() {
     const editorSession = await gu.session().teamSite.user("user2").login();
