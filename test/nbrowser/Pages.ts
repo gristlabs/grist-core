@@ -227,6 +227,28 @@ describe("Pages", function() {
     assert.deepEqual(await gu.getPageNames(), ["Interactions", "Documents", "People", "User & Leads", "Overview"]);
   });
 
+  it("opens the rename editor holding the focus, with the name selected", async () => {
+    // Renaming types over the name, so the editor has to arrive focused with its text selected.
+    // This catches a focus put off by longer than it takes to ask; it would not catch one put
+    // off by a few milliseconds, which is what this used to do.
+    await gu.openPage(/People/);
+    await driver.findContent(".test-treeview-label", "People").doClick();
+
+    const editor = await driver.find(".test-docpage-editor");
+    assert.equal(await editor.hasFocus(), true);
+    const selected = await driver.executeScript<string>(() => {
+      const input = document.activeElement as HTMLInputElement;
+      return input.value.slice(input.selectionStart ?? 0, input.selectionEnd ?? 0);
+    });
+    assert.equal(selected, "People");
+
+    await driver.sendKeys(Key.ESCAPE);
+    assert.deepEqual(
+      await gu.getPageNames(),
+      ["Interactions", "Documents", "People", "User & Leads", "Overview"],
+    );
+  });
+
   it("should not allow blank page name", async () => {
     // Begin renaming of People page
     await gu.openPageMenu("People");
@@ -362,7 +384,10 @@ describe("Pages", function() {
   it("should allow saving collapsed state", async () => {
     // Collapse Interactions and save. It should remain collapsed on page reload.
     await driver.findContent(".test-treeview-itemHeader", /Interactions/).find(".test-treeview-itemArrow").doClick();
-    assert.deepEqual(await gu.getPageNames(), ["Interactions", "", "People", "User & Leads", "Overview"]);
+    // The arrow collapses the tree on the spot, but the children go on their own schedule, so
+    // read this until it settles rather than once.
+    await gu.waitToPass(async () =>
+      assert.deepEqual(await gu.getPageNames(), ["Interactions", "", "People", "User & Leads", "Overview"]));
     await gu.openPageMenu("Interactions");
     await gu.findOpenMenuItem(".test-docpage-collapse-by-default", "Set default: Collapse").click();
     await gu.waitForServer();
@@ -380,7 +405,8 @@ describe("Pages", function() {
 
     // Expand Interactions and save. It should remain expanded on page reload.
     await driver.findContent(".test-treeview-itemHeader", /Interactions/).find(".test-treeview-itemArrow").doClick();
-    assert.deepEqual(await gu.getPageNames(), ["Interactions", "Documents", "People", "User & Leads", "Overview"]);
+    await gu.waitToPass(async () =>
+      assert.deepEqual(await gu.getPageNames(), ["Interactions", "Documents", "People", "User & Leads", "Overview"]));
     await gu.openPageMenu("Interactions");
     await gu.findOpenMenuItem(".test-docpage-expand-by-default", "Set default: Expand").click();
     await gu.waitForServer();

@@ -154,6 +154,26 @@ describe("ColumnFilterMenu", function() {
     );
   });
 
+  it("includes a value clicked while its checkbox still shows the old filter", async () => {
+    // The checkboxes follow the filter on a debounce, so just after None they can still show
+    // the old state, and a click there deletes instead of adding. The window is a moment wide,
+    // so it is made here rather than waited for.
+    await driver.findContent(".test-filter-menu-bulk-action", /None/).click();
+    const label = await driver.findContentWait(".test-filter-menu-value", /^Aba$/, 1000)
+      .findClosest("label");
+    await driver.executeScript((elem: HTMLElement) => {
+      elem.querySelector("input")!.checked = true;
+    }, label);
+
+    await label.click();
+    await driver.find(".test-filter-menu-apply-btn").click();
+
+    assert.deepEqual(
+      await gu.getVisibleGridCells({ cols: ["Name"], rowNums: [1, 2] }),
+      ["Aba", ""],
+    );
+  });
+
   it("should take other filters into account", async () => {
     const session = await gu.session().teamSite.login();
     doc = await session.tempDoc(cleanup, "SortFilterIconTest.grist");

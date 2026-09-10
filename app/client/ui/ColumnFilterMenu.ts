@@ -305,11 +305,15 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               cssCheckboxSquare(
                 { type: "checkbox" },
                 dom.on("change", (_ev, elem) => {
-                  if (elem.checked) {
-                    columnFilter.add(key);
-                  } else {
+                  // The listener above writes these boxes on a debounce, so just after All or
+                  // None they can still show the filter as it was. A click then toggles away
+                  // from a stale value and deletes what was meant to be added. Ask the filter.
+                  if (columnFilter.includes(key)) {
                     columnFilter.delete(key);
+                  } else {
+                    columnFilter.add(key);
                   }
+                  elem.checked = columnFilter.includes(key);
                 }),
                 (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
               ),
