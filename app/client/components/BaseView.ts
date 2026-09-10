@@ -622,9 +622,7 @@ export default class BaseView extends DisposableWithEvents {
     if (this.viewSection.disableAddRemoveRows() || this.disableEditing()) {
       return;
     }
-    const rowId = index != null ? this.viewData.getRowId(index) : undefined;
-    const insertPos = Number.isInteger(rowId) ?
-      this.tableModel.tableData.getValue(rowId, "manualSort") : null;
+    const insertPos = index != null ? this._getRowInsertPos(index, 1)[0] : null;
 
     return this.sendTableAction(["AddRecord", null, { manualSort: insertPos }])!
       .then((rowId) => {
@@ -999,11 +997,51 @@ export default class BaseView extends DisposableWithEvents {
    * Return a list of manual sort positions so that inserting {numInsert} rows
    * with the returned positions will place them in between index-1 and index.
    * when the GridView is sorted by MANUALSORT
+   *
+   * Computes values strictly between the two neighbors' actual manualSort values, rather
+   * than cloning one neighbor's value, so there's no reliance on how ties get broken (which
+   * differs between normal and reverse row order, since reverse row order negates the whole
+   * comparator, tie-break included).
    **/
-  protected _getRowInsertPos(index: number, numInserts: number) {
-    const rowId = this.viewData.getRowId(index);
-    const insertPos = this.tableModel.tableData.getValue(rowId, gristTypes.MANUALSORT);
-    return Array(numInserts).fill(insertPos);
+  protected _getRowInsertPos(index: number, numInserts: number): number[] {
+    const getManualSort = (idx: number): number | undefined => {
+      if (idx < 0 || idx >= this.viewData.peekLength) { return undefined; }
+      const rowId = this.viewData.getRowId(idx);
+      if (rowId === "new" || !Number.isInteger(rowId)) { return undefined; }
+      const value = this.tableModel.tableData.getValue(rowId as number, gristTypes.MANUALSORT);
+      return typeof value === "number" ? value : undefined;
+    };
+
+    const prevPos = getManualSort(index - 1);
+    const nextPos = getManualSort(index);
+
+    // In reverse row order (and only when unsorted, since an active column sort is never
+    // affected by the toggle), display order runs from largest manualSort (top) to smallest
+    // (bottom), the opposite of normal. This only matters when extrapolating beyond a single
+    // known neighbor (inserting at the very top or bottom edge); interpolating strictly
+    // between two known neighbors already works the same regardless of direction.
+    const opts = this.viewSection.optionsObj();
+    const isReverse = Boolean(opts?.reverseRowOrder);
+    const hasActiveSort = this.viewSection.activeDisplaySortSpec.peek().length > 0;
+    const dir = (isReverse && !hasActiveSort) ? -1 : 1;
+
+    let start: number;
+    let step: number;
+    if (prevPos !== undefined && nextPos !== undefined) {
+      step = (nextPos - prevPos) / (numInserts + 1);
+      start = prevPos + step;
+    } else if (nextPos !== undefined) {
+      step = dir;
+      start = nextPos - dir * numInserts;
+    } else if (prevPos !== undefined) {
+      step = dir;
+      start = prevPos + dir;
+    } else {
+      step = 1;
+      start = 1;
+    }
+
+    return Array.from({ length: numInserts }, (_, i) => start + i * step);
   }
 
   /**
