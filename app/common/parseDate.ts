@@ -64,7 +64,7 @@ const UNAMBIGUOUS_FORMATS = [
   ...PARSER_FORMATS.filter(f => f.includes("MMM")),
 ];
 
-const TIME_REGEX = /(?:^|\s+|T)(?:(\d\d?)(?::(\d\d?)(?::(\d\d?))?)?|(\d\d?)(\d\d))\s*([ap]m?)?$/i;
+const TIME_REGEX = /(?:^|\s|T)(?:(\d\d?)(?::(\d\d?)(?::(\d\d?))?)?|(\d\d?)(\d\d))\s*([ap]m?)?$/i;
 // [^a-zA-Z] because no letters are allowed directly before the abbreviation
 const UTC_REGEX = /[^a-zA-Z](UTC?|GMT|Z)$/i;
 const NUMERIC_TZ_REGEX = /([+-]\d\d?)(?::?(\d\d))?$/i;
