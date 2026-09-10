@@ -938,26 +938,25 @@ function settleTableDelta(td: TableDelta): TableDelta {
   }
   let sourceDeltas = td.columnDeltas;
   if (removedCols.size > 0 && Object.keys(td.columnDeltas).some(c => removedCols.has(c))) {
-    sourceDeltas = {};
+    sourceDeltas = Object.create(null);
     // Canonical (non-remapped) keys first, so an existing `-pre` entry wins on
     // any row collision with a stranded live-name cell.
     const entries = Object.entries(td.columnDeltas)
       .sort((a, b) => (removedCols.has(a[0]) ? 1 : 0) - (removedCols.has(b[0]) ? 1 : 0));
     for (const [colId, cd] of entries) {
       const target = removedCols.get(colId) ?? colId;
-      if (!hasOwn(sourceDeltas, target)) { sourceDeltas[target] = {}; }
+      if (!hasOwn(sourceDeltas, target)) { sourceDeltas[target] = Object.create(null); }
       const dest = sourceDeltas[target];
       for (const [rowId, cell] of Object.entries(cd)) {
-        const r = Number(rowId);
-        if (!(r in dest)) { dest[r] = cell; }
+        if (!hasOwn(dest, rowId)) { dest[rowId as any] = cell; }
       }
     }
   }
-  const columnDeltas: { [colId: string]: ColumnDelta } = {};
+  const columnDeltas: { [colId: string]: ColumnDelta } = Object.create(null);
   for (const [colId, cd] of Object.entries(sourceDeltas)) {
     const colNoPre = addedCols.has(colId);
     const colNoPost = colId.startsWith("-");
-    const kept: ColumnDelta = {};
+    const kept: ColumnDelta = Object.create(null);
     for (const [rowId, cell] of Object.entries(cd)) {
       const r = Number(rowId);
       const noPre = colNoPre || addedRows.has(r);
@@ -977,7 +976,7 @@ function settleTableDelta(td: TableDelta): TableDelta {
       // `[null, null]` carries no value, so drop it. Keep everything else,
       // including an insignificant `[v, v]`: a later merge may still need `v`.
       if (pre === null && post === null) { continue; }
-      kept[r] = [pre, post];
+      kept[rowId as any] = [pre, post];
     }
     if (Object.keys(kept).length > 0) { columnDeltas[colId] = kept; }
   }
@@ -1025,13 +1024,12 @@ function canonicalizeTableDelta(td: TableDelta): TableDelta {
   // Recycled rows (in both lists) carry per-entity cells where `null` marks an
   // entity boundary, so their equal-sided cells are significant, never stripped.
   const recycledRows = new Set(td.addRows.filter(r => removeSet.has(r)));
-  const columnDeltas: { [colId: string]: ColumnDelta } = {};
+  const columnDeltas: { [colId: string]: ColumnDelta } = Object.create(null);
   for (const [colId, cd] of Object.entries(td.columnDeltas)) {
-    const kept: ColumnDelta = {};
+    const kept: ColumnDelta = Object.create(null);
     for (const [rowId, cell] of Object.entries(cd)) {
-      const r = Number(rowId);
-      if (cellIsVacuous(cell) && !recycledRows.has(r)) { continue; }
-      kept[r] = cell;
+      if (cellIsVacuous(cell) && !recycledRows.has(Number(rowId))) { continue; }
+      kept[rowId as any] = cell;
     }
     if (Object.keys(kept).length > 0) { columnDeltas[colId] = kept; }
   }
@@ -1053,7 +1051,7 @@ function canonicalizeTableDelta(td: TableDelta): TableDelta {
  * is already recorded in the renames, so an empty change-set for it would just
  * be noise.) */
 function mapTableDeltas(sum: ActionSummary, fn: (td: TableDelta) => TableDelta): ActionSummary {
-  const tableDeltas: { [tableId: string]: TableDelta } = {};
+  const tableDeltas: { [tableId: string]: TableDelta } = Object.create(null);
   for (const [tableId, td] of Object.entries(sum.tableDeltas)) {
     const out = fn(td);
     if (!isEmptyTableDelta(out)) { tableDeltas[tableId] = out; }
