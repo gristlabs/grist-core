@@ -48,8 +48,10 @@ describe("ActiveDocShutdown", function() {
   const sandbox = sinon.createSandbox();
   const timeout = 500;
   const tmpTimeoutSec = timeout / 1000;
+  const defaultTimeoutSec = Deps.ACTIVEDOC_TIMEOUT;
+  let timeoutStub: sinon.SinonStub;
   beforeEach(function() {
-    sandbox.stub(Deps, "ACTIVEDOC_TIMEOUT").value(tmpTimeoutSec);
+    timeoutStub = sandbox.stub(Deps, "ACTIVEDOC_TIMEOUT").value(tmpTimeoutSec);
   });
 
   afterEach(function() {
@@ -320,6 +322,12 @@ return c
   });
 
   describe("_onInactive", function() {
+    // These tests call _onInactive() themselves. Restore the default timeout here, because with
+    // the reduced timeout, the doc's own inactivity timer may interfere by kicking in first.
+    beforeEach(function() {
+      timeoutStub.value(defaultTimeoutSec);
+    });
+
     async function prepareVacuumableDoc() {
       const adoc = await docTools.loadFixtureDoc("World-v0.grist");
       const docSession = docTools.createFakeSession("owners");
