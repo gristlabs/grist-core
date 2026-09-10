@@ -459,6 +459,13 @@ export interface ActiveDocAPI {
   autocomplete(txt: string, tableId: string, columnId: string, rowId: UIRowId | null): Promise<ISuggestionWithValue[]>;
 
   /**
+   * Returns a list of {tableId, colId} for every column whose formula statically references
+   * the given column (based on the same name-resolution logic used to rewrite formulas on
+   * rename).
+   */
+  findColDependents(tableId: string, colId: string): Promise<{ tableId: string, colId: string }[]>;
+
+  /**
    * Get recent actions in ActionGroup format with summaries included.
    */
   getActionSummaries(): Promise<GetActionSummariesResult>;

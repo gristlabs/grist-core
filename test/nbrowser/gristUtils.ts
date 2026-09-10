@@ -1905,8 +1905,20 @@ namespace gristUtils {
 
   export async function deleteColumn(col: IColHeader | string) {
     await openColumnMenu(col, "Delete column");
-    await waitForServer();
+    await confirmColumnDeletionIfPrompted();
     await wipeToasts();
+  }
+
+  /**
+   * Accepts confirmation dialog, when deleting a column references in a formula.
+   * Safe to call when no confirmation appears.
+   */
+  export async function confirmColumnDeletionIfPrompted() {
+    await waitForServer();
+    if (await driver.find(".test-modal-show-references").isPresent()) {
+      await driver.find(".test-modal-confirm").click();
+      await waitForServer();
+    }
   }
 
   export async function deleteRow(rowNum: number) {
