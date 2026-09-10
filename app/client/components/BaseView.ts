@@ -178,47 +178,38 @@ export default class BaseView extends DisposableWithEvents {
     this.sortedRows = rowset.SortedRowSet.create(this, null as any, this.tableModel.tableData);
 
     // Create the sortFunc, and re-sort when sortSpec changes.
-// Create the sortFunc, and re-sort when sortSpec changes.
     const sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel, { unversioned: true }));
     const updateSort = (spec: Sort.SortSpec) => {
       sortFunc.updateSpec(spec);
-      const rawOptions = ko.unwrap(this.viewSection.optionsObj);
-      const isReverse = Boolean(rawOptions && typeof rawOptions === "object" ? (rawOptions as any).reverseRowOrder : false);
+      const opts = this.viewSection.optionsObj();
+      const isReverse = Boolean(opts?.reverseRowOrder);
+      const hasActiveSort = Boolean(spec && spec.length > 0);
 
       this.sortedRows.updateSort((rowId1, rowId2) => {
         const isNew1 = rowId1 === "new";
         const isNew2 = rowId2 === "new";
 
+        // 1. Pin the add-row: to the top when reverse row order is on, to the bottom
+        //    otherwise. This applies regardless of whether a column sort is active.
         if (isReverse) {
-          // 1. PIN THE "+" ADD-ROW AT THE TOP:
-          // If rowId1 is "new", it comes first (-1). If rowId2 is "new", rowId1 comes after (1).
           if (isNew1) { return -1; }
           if (isNew2) { return 1; }
-
-          // 2. User-applied column sort
-          if (spec && spec.length > 0) {
-            return sortFunc.compare(rowId1 as number, rowId2 as number);
-          }
-
-          // 3. Reverse chronological: higher row IDs (newest) first
-          return (rowId2 as number) - (rowId1 as number);
         } else {
-          // 1. PIN THE "+" ADD-ROW AT THE BOTTOM:
-          // If rowId1 is "new", it comes last (1). If rowId2 is "new", rowId1 comes before (-1).
           if (isNew1) { return 1; }
           if (isNew2) { return -1; }
-
-          // 2. User-applied column sort
-          if (spec && spec.length > 0) {
-            return sortFunc.compare(rowId1 as number, rowId2 as number);
-          }
-
-          // 3. Normal chronological: lower row IDs (oldest) first
-          return (rowId1 as number) - (rowId2 as number);
         }
+
+        // 2. Compare data rows using the active column sort. SortFunc.updateSpec() always
+        //    appends manualSort as the final tiebreaker, so when no column sort is active,
+        //    this already reflects manualSort order (including any manual drag-reordering),
+        //    not row creation order.
+        const result = sortFunc.compare(rowId1 as number, rowId2 as number);
+
+        // 3. Reverse row order only flips the *default* (unsorted) order. An active column
+        //    sort is intentional and must never be affected by the toggle.
+        return (isReverse && !hasActiveSort) ? -result : result;
       });
     };
-
     this.autoDispose(this.viewSection.activeDisplaySortSpec.subscribe(updateSort));
     this.autoDispose(this.viewSection.optionsObj.subscribe(() => {
       updateSort(this.viewSection.activeDisplaySortSpec.peek());
@@ -546,7 +537,7 @@ export default class BaseView extends DisposableWithEvents {
     }
     const rowId = this.viewData.getRowId(this.cursor.rowIndex()!);
     // LazyArrayModel row model which is also used to build the cell dom. Needed since
-    // it may be used as a key to retrieve the cell dom, technical editor placement.
+    // it may be used as a key to retrieve the cell dom, which is useful for editor placement.
     const lazyRow = this.getRenderedRowModel(rowId);
     if (!lazyRow) {
       // TODO scroll into view. For now, just don't start discussion.
@@ -762,7 +753,7 @@ export default class BaseView extends DisposableWithEvents {
         .then((rowId) => {
           if (!this.isDisposed()) {
             this._exemptFromFilterRows.addExemptRow(rowId);
-            const opts = this.viewSection.optionsObj() as any;
+            const opts = this.viewSection.optionsObj();
             const isReverse = Boolean(opts?.reverseRowOrder);
             if (isReverse) {
               // In reverse row order, the add-row stays pinned at the top after a new
@@ -942,10 +933,30 @@ export default class BaseView extends DisposableWithEvents {
   }
 
   /**
+   * Returns the bounds of the data rows in the grid, excluding the add-row wherever it
+   * currently sits (start, in reverse row order; end, otherwise; or nowhere, in a read-only
+   * section with no add-row at all). Centralizes the "where's the add row" logic so that
+   * callers (row counts, shift-select, select-all, etc.) don't each need their own
+   * assumption about the add-row's position.
+   */
+  protected getDataRowBounds(): { firstDataRowIndex: number; lastDataRowIndex: number; dataRowCount: number } {
+    const total = this.viewData.peekLength;
+    if (total === 0) {
+      return { firstDataRowIndex: 0, lastDataRowIndex: -1, dataRowCount: 0 };
+    }
+    const hasAddRowAtStart = this.viewData.getRowId(0) === "new";
+    const hasAddRowAtEnd = this.viewData.getRowId(total - 1) === "new";
+    const firstDataRowIndex = hasAddRowAtStart ? 1 : 0;
+    const lastDataRowIndex = hasAddRowAtEnd ? total - 2 : total - 1;
+    const dataRowCount = Math.max(0, lastDataRowIndex - firstDataRowIndex + 1);
+    return { firstDataRowIndex, lastDataRowIndex, dataRowCount };
+  }
+
+  /**
    * Returns the index of the last non-AddNew row in the grid.
    */
   protected getLastDataRowIndex() {
-    return Math.max(0, this.viewData.peekLength - 1);
+    return this.getDataRowBounds().lastDataRowIndex;
   }
 
   /**

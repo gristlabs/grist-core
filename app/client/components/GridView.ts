@@ -152,7 +152,6 @@ export default class GridView extends BaseView {
   protected frozenMap: KoArray<ko.Computed<boolean>>;
   protected hoverColumn: ko.Observable<number>;
   private _insertColumnIndex: ko.Observable<number | null>;
-  protected editingFormula: ko.Computed<boolean>;
   protected changeHover: (index: number) => void;
   protected isColSelected: KoArray<ko.Computed<boolean>>;
   protected header: HTMLElement;
@@ -180,35 +179,39 @@ export default class GridView extends BaseView {
     this._inline = gridOptions?.inline ?? false;
     this._autoWidthHolder = this.autoDispose(new Holder());
 
-const sectionOptions = viewSectionModel.optionsObj;
+    const sectionOptions = viewSectionModel.optionsObj;
     this._rowIndexRenderer = gridOptions?.rowIndexRenderer ??
       (row => dom.domComputed((use) => {
-        const isAddRow = Boolean(use(row._isAddRow) || (use(row.id) as unknown) === "new");
+        // Show a "+" for the add-row itself, regardless of row-number display mode.
+        const isAddRow = use(row._isAddRow);
         if (isAddRow) {
           return "+";
         }
 
-        const opts = use(sectionOptions) as any;
+        const opts = use(sectionOptions);
         if (opts.rowNumbers === "rowId") {
           const rowId = use(row.id);
           if (typeof rowId !== "number") { return null; }
           return dom("span.gridview_row_id", String(rowId));
         }
 
-        const currentIdx = use(row._index)!;
         const isReverse = Boolean(opts?.reverseRowOrder);
-
+        const currentIdx = use(row._index)!;
         if (isReverse) {
-          // When reverse is ON, add-row is at index 0.
-          // Data rows start at index 1 and count down.
-          const totalRows = this.sortedRows.getKoArray().peekLength;
+          // When reverse is ON, the add-row sits at index 0, so data rows start at
+          // index 1 and count down from the total, newest (top) getting the highest number.
+          // Read the array via getObservable() (reactive) rather than peekLength (a plain
+          // getter), so row numbers update immediately when a row is added or removed.
+          const totalRows = use(this.sortedRows.getKoArray().getObservable()).length;
           return String(totalRows - currentIdx);
         } else {
-          // Standard Grist: data rows start at index 0 and count up (1, 2, 3...)
+          // Standard Grist: data rows start at index 0 and count up (1, 2, 3...).
           return String(currentIdx + 1);
         }
       }));
-
+    this._cornerRenderer = gridOptions?.cornerRenderer ??
+      (() => dom.on("click", () => this.selectAll()));
+    this.viewSection = viewSectionModel;
     this.isReadonly = this.gristDoc.isReadonly.get() ||
       this.viewSection.isVirtual() ||
       this.isPreview;
@@ -362,13 +365,6 @@ const sectionOptions = viewSectionModel.optionsObj;
 
     this._insertColumnIndex = ko.observable<number | null>(null);
 
-    // Checks if there is active formula editor for a column in this table.
-    this.editingFormula = ko.pureComputed(() => {
-      const isEditing = this.gristDoc.docModel.editingFormula();
-      if (!isEditing) { return false; }
-      return this.viewSection.viewFields().all().some(field => field.editingFormula());
-    });
-
     // Debounced method to change current hover column, this is needed
     // as mouse when moved from field to field will switch the hover-column
     // observable from current index to -1 and then immediately back to current index.
@@ -376,7 +372,7 @@ const sectionOptions = viewSectionModel.optionsObj;
     // will be discarded.
     this.changeHover = debounce((index) => {
       if (this.isDisposed()) { return; }
-      if (this.editingFormula()) {
+      if (this.gristDoc.docModel.editingFormula.peek()) {
         this.hoverColumn(index);
       }
     }, 0);
@@ -538,18 +534,18 @@ const sectionOptions = viewSectionModel.optionsObj;
     ctrlShiftRight: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "right" }); },
     ctrlShiftLeft: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "left" }); },
     fieldEditSave: function() {
-  const opts = this.viewSection.optionsObj() as any;
-  const isReverse = Boolean(opts?.reverseRowOrder);
-  const wasAddRow = this.viewData.getRowId(this.cursor.rowIndex()!) === "new";
+      const opts = this.viewSection.optionsObj();
+      const isReverse = Boolean(opts?.reverseRowOrder);
+      const wasAddRow = this.viewData.getRowId(this.cursor.rowIndex()!) === "new";
 
-  if (isReverse && wasAddRow) {
-    // In reverse row order, the add-row stays pinned at index 0 after a new
-    // record is entered — stay put instead of stepping onto the row just created.
-    return;
-  }
+      if (isReverse && wasAddRow) {
+        // In reverse row order, the add-row stays pinned at index 0 after a new
+        // record is entered. Stay put instead of stepping onto the row just created.
+        return;
+      }
 
-  this.cursor.rowIndex(this.cursor.rowIndex()! + 1);
-},
+      this.cursor.rowIndex(this.cursor.rowIndex()! + 1);
+    },
     // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
     editField: function(event?: KeyboardEvent) {
       closeRegisteredMenu();
@@ -1537,7 +1533,7 @@ const sectionOptions = viewSectionModel.optionsObj;
 
                   let filterTriggerCtl: PopupControl;
                   const isTooltip = ko.pureComputed(() =>
-                    this.editingFormula() && !this.isReadonly &&
+                    this.gristDoc.docModel.editingFormula() && !this.isReadonly &&
                     ko.unwrap(this.hoverColumn) === field._index(),
                   );
 
@@ -1562,7 +1558,7 @@ const sectionOptions = viewSectionModel.optionsObj;
                         dom.autoDispose(tooltip),
                         dom.autoDispose(isTooltip.subscribe((show) => {
                           if (show) {
-                            tooltip.show(t(`Click to insert`) + ` $${field.origCol.peek().colId.peek()}`);
+                            tooltip.show(t(`Click to insert`) + ` ${field.displayLabel.peek()}`);
                           } else {
                             tooltip.hide();
                           }
@@ -1811,7 +1807,7 @@ const sectionOptions = viewSectionModel.optionsObj;
             });
 
             const isTooltip = ko.pureComputed(() =>
-              this.editingFormula() && !this.isReadonly &&
+              this.gristDoc.docModel.editingFormula() && !this.isReadonly &&
               ko.unwrap(this.hoverColumn) === field._index(),
             );
 
@@ -1916,7 +1912,7 @@ const sectionOptions = viewSectionModel.optionsObj;
   protected cellMouseDown(elem: HTMLElement, event: MouseEvent) {
     const col = this.domToColModel(elem, selector.CELL);
     if (this.hoverColumn() === col._index()) {
-      return this._tooltipMouseDown(elem, selector.CELL);
+      return this._tooltipMouseDown(elem, selector.CELL, event);
     }
 
     if (event.shiftKey) {
@@ -1933,7 +1929,7 @@ const sectionOptions = viewSectionModel.optionsObj;
   protected colMouseDown(elem: HTMLElement, event: MouseEvent) {
     const col = this.domToColModel(elem, selector.COL);
     if (this.hoverColumn() === col._index()) {
-      return this._tooltipMouseDown(elem, selector.COL);
+      return this._tooltipMouseDown(elem, selector.COL, event);
     }
 
     this._colClickTime = Date.now();
@@ -1942,11 +1938,12 @@ const sectionOptions = viewSectionModel.optionsObj;
     this.cellSelector.row.end(this.getLastDataRowIndex());
   }
 
-  protected _tooltipMouseDown(elem: HTMLElement, elemType: ElemType) {
+  protected _tooltipMouseDown(elem: HTMLElement, elemType: ElemType, event: MouseEvent) {
     const row = this.domToRowModel(elem, elemType);
     const col = this.domToColModel(elem, elemType);
-    // FormulaEditor.ts overrides this command to insert the column id of the clicked column.
-    commands.allCommands.setCursor.run(row, col);
+    // FormulaEditor.ts overrides this command to insert the column id of the clicked column, and
+    // needs the event to keep the click from reaching the section.
+    commands.allCommands.setCursor.run(row, col, event);
   }
 
   protected rowMouseDown(elem: HTMLElement, event: MouseEvent) {
@@ -1963,7 +1960,7 @@ const sectionOptions = viewSectionModel.optionsObj;
   }
 
   protected colMouseMove(event: MouseEvent) {
-    if (this.editingFormula()) { return; }
+    if (this.gristDoc.docModel.editingFormula.peek()) { return; }
 
     const currentCol = Math.min(this.getMousePosCol(event.pageX),
       this.viewSection.viewFields().peekLength - 1);
@@ -1971,7 +1968,7 @@ const sectionOptions = viewSectionModel.optionsObj;
   }
 
   protected cellMouseMove(event: MouseEvent) {
-    if (this.editingFormula()) { return; }
+    if (this.gristDoc.docModel.editingFormula.peek()) { return; }
 
     this.colMouseMove(event);
     this.rowMouseMove(event);

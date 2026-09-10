@@ -91,6 +91,8 @@ export interface ViewSectionOptions extends ChartOptions {
   verticalGridlines?: boolean;
   horizontalGridlines?: boolean;
   zebraStripes?: boolean;
+  reverseRowOrder?: boolean;    // When true, pins the add-row to the top and (when unsorted)
+                                 // shows the newest rows first.
   rowNumbers?: RowNumbersMode;
   numFrozen?: number;
   rowHeight?: number;           // Optional limit on height of rows, in lines.
@@ -329,8 +331,6 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // re-computing the filter when selectedRows changes.
   selectedRowsActive: ko.Computed<boolean>;
 
-  editingFormula: ko.Computed<boolean>;
-
   // Selected fields (columns) for the section.
   selectedFields: ko.Observable<ViewFieldRec[]>;
 
@@ -480,16 +480,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // All table columns associated with this view section, excluding any hidden helper columns.
   this.columns = this.autoDispose(ko.pureComputed(() => this.table().visibleColumns()));
-  this.editingFormula = ko.pureComputed({
-    read: () => docModel.editingFormula(),
-    write: (val) => {
-      docModel.editingFormula(val);
-    },
-  });
   const defaultOptions: ViewSectionOptions = {
     verticalGridlines: true,
     horizontalGridlines: true,
     zebraStripes: false,
+    reverseRowOrder: false,
     rowNumbers: "number",
     customView: "",
     numFrozen: 0,
