@@ -1988,6 +1988,15 @@ describe("GranularAccess", function() {
         resource: 1, aclFormula: "newRec.A != 1", permissionsText: "-U",
       }],
     ]), /Only owners can modify access rules/);
+
+    await assert.isRejected(editor.applyUserActions(docId, [
+      ["ApplyDocActions", []],
+      ["ApplyUndoActions", []],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: 1, aclFormula: "newRec.A != 1", permissionsText: "-U",
+      }],
+    ]), /Only owners can modify access rules/);
+
     await assert.isFulfilled(owner.applyUserActions(docId, [
       ["AddRecord", "_grist_ACLRules", null, {
         resource: 1, aclFormula: 'user.Access != "owners"', permissionsText: "-R",

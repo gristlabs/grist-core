@@ -3385,13 +3385,16 @@ function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
   }
 }
 
+// Returns true as soon as some action satisfies `check`, descending into
+// ApplyDocActions/ApplyUndoActions groups.
 function scanActionsRecursively<T extends DocAction | UserAction>(actions: T[],
   check: (action: T) => boolean): boolean {
   for (const a of actions) {
     if (a[0] === "ApplyUndoActions" || a[0] === "ApplyDocActions") {
-      return scanActionsRecursively(a[1] as T[], check);
+      if (scanActionsRecursively(a[1] as T[], check)) { return true; }
+    } else {
+      if (check(a)) { return true; }
     }
-    if (check(a)) { return true; }
   }
   return false;
 }
