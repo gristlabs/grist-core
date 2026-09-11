@@ -28,12 +28,30 @@ function ChoiceEditor(options) {
   TextEditor.call(this, options);
 
   this.widgetOptionsJson = options.field.widgetOptionsJson;
-  this.choices = this.widgetOptionsJson.peek().choices || [];
+  const widgetOptions = this.widgetOptionsJson.peek() || {};
+  const sharedId = widgetOptions.sharedChoiceListId;
+
+  const rawDocSettings = options.field.documentSettings;
+  let docSettings = typeof rawDocSettings?.peek === "function" ?
+    rawDocSettings.peek() :
+    (typeof rawDocSettings?.get === "function" ? rawDocSettings.get() : rawDocSettings);
+
+  if (typeof docSettings === "string") {
+    try { docSettings = JSON.parse(docSettings); } catch (e) {
+      // Ignore JSON parse errors if document settings string is invalid
+    }
+  }
+  docSettings = docSettings || {};
+
+  const sharedLists = docSettings.sharedChoiceLists || {};
+  const sharedDef = sharedId ? sharedLists[sharedId] : null;
+
+  this.choices = sharedDef ? (sharedDef.choices || []) : (widgetOptions.choices || []);
   this.choicesSet = new Set(this.choices);
-  this.choiceOptions = this.widgetOptionsJson.peek().choiceOptions || {};
+  this.choiceOptions = sharedDef ? (sharedDef.choiceColors || {}) : (widgetOptions.choiceOptions || {});
 
   this.hasDropdownCondition = Boolean(options.field.dropdownCondition.peek()?.text);
-  this.dropdownConditionError;
+  this.dropdownConditionError = undefined;
 
   let acItems = this.choices.map(c => new ChoiceItem(c, false, false));
   if (this.hasDropdownCondition) {
@@ -64,9 +82,8 @@ function ChoiceEditor(options) {
     this.cellEditorDiv.appendChild(cssChoiceEditIcon("Dropdown"));
   }
 
-  // Whether to include a button to show a new choice.
-  // TODO: Disable when the user cannot change column configuration.
-  this.enableAddNew = !this.hasDropdownCondition;
+  // Disable inline addition when using a shared choice list or a condition
+  this.enableAddNew = !this.hasDropdownCondition && !sharedId;
 }
 
 dispose.makeDisposable(ChoiceEditor);
@@ -145,14 +162,7 @@ ChoiceEditor.prototype.buildNoItemsMessage = function() {
   }
 };
 
-/**
- * If the search text does not match anything exactly, adds 'new' item to it.
- *
- * Also see: prepForSave.
- */
 ChoiceEditor.prototype.maybeShowAddNew = function(result, text) {
-  // TODO: This logic is also mostly duplicated in ChoiceListEditor and ReferenceEditor.
-  // See if there's anything common we can factor out and re-use.
   this.showAddNew = false;
   if (!this.enableAddNew) {
     return result;

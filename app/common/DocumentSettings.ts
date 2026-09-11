@@ -2,6 +2,12 @@ import DocumentSettingsTI from "app/common/DocumentSettings-ti";
 
 import { CheckerT, createCheckers } from "ts-interface-checker";
 
+export interface SharedChoiceList {
+  name: string;
+  choices: string[];
+  choiceColors?: { [choice: string]: string };
+}
+
 export interface DocumentSettings {
   locale: string;
   currency?: string;
@@ -17,6 +23,7 @@ export interface DocumentSettings {
   // action to treat as a starting point, e.g. when a fork or
   // copy is made.
   baseAction?: DocState;
+  sharedChoiceLists?: { [listId: string]: SharedChoiceList };
 }
 
 /**
