@@ -751,6 +751,9 @@ export class ActiveDoc extends EventEmitter {
    *   `beforeShutdown` callback to use
    * (or none if not provided).
    *
+   * @param [options.compact] Whether to consider compacting the document as part of the
+   * shutdown. Like `beforeShutdown`, only the first call to this function has any say.
+   *
    * @param [options.afterShutdown] A function to call after shutdown.
    * NOTE: Unlike `beforeShutdown`, providing an `afterShutdown` callback will set or overwrite
    * the callback to be called after the shutdown, **even if** it is already in progress.
@@ -759,12 +762,16 @@ export class ActiveDoc extends EventEmitter {
    */
   public async shutdown(options: {
     beforeShutdown?: () => Promise<void>,
+    compact?: boolean,
     afterShutdown?: () => Promise<void>
   } = {}): Promise<void> {
     if (options.afterShutdown) {
       this._afterShutdownCallback = options.afterShutdown;
     }
-    this._doShutdown ||= this._doShutdownImpl({ beforeShutdown: options.beforeShutdown });
+    this._doShutdown ||= this._doShutdownImpl({
+      beforeShutdown: options.beforeShutdown,
+      compact: options.compact,
+    });
     await this._doShutdown;
   }
 
@@ -2610,7 +2617,9 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
-  private async _doShutdownImpl(options: { beforeShutdown?: () => Promise<void> }): Promise<void> {
+  private async _doShutdownImpl(
+    options: { beforeShutdown?: () => Promise<void>, compact?: boolean },
+  ): Promise<void> {
     const docSession = makeExceptionalDocSession("system");
     this._log.debug(docSession, "shutdown starting");
 
@@ -2677,6 +2686,13 @@ export class ActiveDoc extends EventEmitter {
 
         // Update data size; we'll be syncing both it and attachments size to the database soon.
         await safeCallAndWait("_updateDataSize", () => this._updateDataSize(usageOptions));
+
+        // Runs after the cleanup above, which is what leaves reclaimable pages, and before
+        // closeDocument flushes to external storage, so that the compacted file is what
+        // gets pushed.
+        if (options.compact) {
+          await this._compactOnShutdown();
+        }
       }
 
       this._syncDocUsageToDatabase(true);
@@ -3596,33 +3612,27 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
+  /**
+   * Compact the document, if DocStorage judges it worth doing. A VACUUM copies the
+   * document before replacing the original, so it needs up to twice the document's size
+   * in free disk space. Errors are logged and swallowed, so that a document that could
+   * not be compacted still shuts down cleanly.
+   */
+  private async _compactOnShutdown() {
+    try {
+      await this.docStorage.vacuum();
+    } catch (err) {
+      if (err.code === "ENOENT") {
+        this._log.warn(null, `Vacuum on inactive: Doc ${this.docName} is no longer available`);
+      } else {
+        this._log.warn(null, `Vacuum on inactive: Doc ${this.docName}\n ${err}`);
+      }
+    }
+  }
+
   private async _onInactive() {
     if (Deps.ACTIVEDOC_TIMEOUT_ACTION === "shutdown") {
-      await this.shutdown({
-        beforeShutdown: async () => {
-          // from sqlite official doc :
-          // The VACUUM command works by copying the contents of the
-          // database into a temporary database file and then overwriting
-          // the original with the contents of the temporary file.
-          // When overwriting the original, a rollback journal or write-ahead
-          // log WAL file is used just as it would be for any other database
-          // transaction. This means that when VACUUMing a database,
-          // as much as twice the size of the original database file is
-          // required in free disk space.
-          // ---
-          // The temporary copy and rollback machanisms must avoid any document
-          // corruption.
-          try {
-            await this.docStorage.vacuum();
-          } catch (err) {
-            if (err.code === "ENOENT") {
-              this._log.warn(null, `Vacuum on inactive: Doc ${this.docName} is no longer available`);
-            } else {
-              this._log.warn(null, `Vacuum on inactive: Doc ${this.docName}\n ${err}`);
-            }
-          }
-        },
-      });
+      await this.shutdown({ compact: true });
     }
   }
 

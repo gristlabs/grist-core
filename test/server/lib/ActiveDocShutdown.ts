@@ -8,6 +8,7 @@ import { Client } from "app/server/lib/Client";
 import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
 import { DocPluginManager } from "app/server/lib/DocPluginManager";
 import { DocSession, DocSessionPrecursor, makeExceptionalDocSession } from "app/server/lib/DocSession";
+import { Deps as DocStorageDeps } from "app/server/lib/DocStorage";
 import { createDocTools, createUpload } from "test/server/docTools";
 import * as testUtils from "test/server/testUtils";
 import { waitForIt } from "test/server/wait";
@@ -320,6 +321,12 @@ return c
   });
 
   describe("_onInactive", function() {
+    beforeEach(function() {
+      // The fixtures here are around 1MB, well under the size at which we would normally
+      // bother compacting a document.
+      sandbox.stub(DocStorageDeps, "MIN_SIZE_FOR_VACUUM").value(0);
+    });
+
     async function prepareVacuumableDoc() {
       const adoc = await docTools.loadFixtureDoc("World-v0.grist");
       const docSession = docTools.createFakeSession("owners");
@@ -362,16 +369,18 @@ return c
       sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
     });
 
-    it("should not mark as changed if VACUUM does not reduce size significantly", async function() {
-      // Open a doc, do nothing particular and close it
+    it("should not VACUUM a document with little free space to reclaim", async function() {
+      // Open a doc, do nothing particular and close it.
       const adoc = await docTools.loadFixtureDoc("World-v0.grist");
       const storageManager = docTools.getStorageManager();
+      const vacuumSpy = sandbox.spy(adoc.docStorage.getDB(), "vacuum");
       const markAsChangedSpy = sandbox.spy(storageManager, "markAsChanged");
       await (adoc as any)._onInactive();
+      sinon.assert.notCalled(vacuumSpy);
       sinon.assert.notCalled(markAsChangedSpy);
     });
 
-    it("should close the document anyway if the VACUUM fails", async function() {
+    it("should close the document anyway if the size check fails", async function() {
       const adoc = await docTools.loadFixtureDoc("World-v0.grist");
       const isDocOpen = async () => Boolean(await docTools.getDocManager().getActiveDoc(adoc.docName));
       assert.isTrue(await isDocOpen(), "doc should be open");
@@ -390,6 +399,60 @@ return c
 
       sinon.assert.notCalled(markAsChangedSpy);
       assert.isFalse(await isDocOpen(), "doc should be closed");
+    });
+
+    it("should not VACUUM at all when compaction is turned off", async function() {
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      await storageManager.flushDoc(adoc.docName);
+
+      // Thresholds the document would otherwise pass, so only the switch stops it.
+      sandbox.stub(DocStorageDeps, "MIN_FREE_RATIO_FOR_VACUUM").value(0);
+      sandbox.stub(DocStorageDeps, "VACUUM_ON_CLOSE").value(false);
+
+      const vacuumSpy = sandbox.spy(adoc.docStorage.getDB(), "vacuum");
+      const markAsChangedSpy = sandbox.spy(storageManager, "markAsChanged");
+      await (adoc as any)._onInactive();
+
+      sinon.assert.notCalled(vacuumSpy);
+      sinon.assert.notCalled(markAsChangedSpy);
+    });
+
+    it("should VACUUM on reclaimable bytes alone, without meeting the ratio", async function() {
+      // A large document can hold plenty of reclaimable space while still falling below
+      // the ratio, so a big enough number of bytes qualifies it on its own.
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      await storageManager.flushDoc(adoc.docName);
+
+      const { freeRatio, freeBytes } = await adoc.docStorage.getFreelistStats();
+      assert.isAbove(freeBytes, 0, "the fixture should have something on its freelist");
+
+      // Set the ratio threshold out of reach, and the bytes threshold within it.
+      sandbox.stub(DocStorageDeps, "MIN_FREE_RATIO_FOR_VACUUM").value(freeRatio + 0.01);
+      sandbox.stub(DocStorageDeps, "MIN_FREE_BYTES_FOR_VACUUM").value(freeBytes);
+
+      const vacuumSpy = sandbox.spy(adoc.docStorage.getDB(), "vacuum");
+      const markAsChangedSpy = sandbox.spy(storageManager, "markAsChanged");
+      await (adoc as any)._onInactive();
+
+      sinon.assert.called(vacuumSpy);
+      sinon.assert.calledWith(markAsChangedSpy, adoc.docName);
+    });
+
+    it("should mark as changed even if the VACUUM itself fails", async function() {
+      // A VACUUM that throws may still have rewritten the file, so the local copy has to
+      // be pushed regardless.
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      await storageManager.flushDoc(adoc.docName);
+
+      const markAsChangedSpy = sandbox.spy(storageManager, "markAsChanged");
+      sandbox.stub(adoc.docStorage.getDB(), "vacuum").rejects(new Error("vacuum blew up"));
+
+      await (adoc as any)._onInactive();
+
+      sinon.assert.calledWith(markAsChangedSpy, adoc.docName);
     });
 
     it("should successfully vacuum when other long queries are still running", async function() {
