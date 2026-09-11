@@ -166,6 +166,7 @@ export class ActionSummarizer {
       this._addRow(td, act[2], act[3], 0);
     } else if (Action.isUpdateRecord(act)) { // undoing, so this is reversal of a record update
       const td = this._forTable(summary, tableId);
+      td.updateRows.push(act[2]);
       this._addRow(td, act[2], act[3], 0);
     } else if (Action.isBulkAddRecord(act)) { // undoing, this may be reversing a table delete
       const td = this._forTable(summary, tableId);

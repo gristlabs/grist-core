@@ -1,9 +1,10 @@
 import { chunkByLattice, chunkByOwners, coalesceRecordChunks, LatticeStats } from "app/common/ActionLayout";
 import {
-  ActionSummaryOptions, canonicalizeSummary, concatenateSummaries, concatenateSummaryPair,
-  rebaseSummary, summarizeAction, summarizeStoredAndUndo,
+  ActionSummarizer, ActionSummaryOptions, canonicalizeSummary, concatenateSummaries,
+  concatenateSummaryPair, rebaseSummary, summarizeAction, summarizeStoredAndUndo,
 } from "app/common/ActionSummarizer";
-import { ActionSummary, asTabularDiffs, createEmptyTableDelta, LabelDelta, TableDelta } from "app/common/ActionSummary";
+import { ActionSummary, asTabularDiffs, createEmptyActionSummary, createEmptyTableDelta,
+  LabelDelta, TableDelta } from "app/common/ActionSummary";
 import { DocAction } from "app/common/DocActions";
 import { CellDelta } from "app/common/TabularDiff";
 import { TimeCursor } from "app/common/TimeQuery";
@@ -2072,6 +2073,19 @@ describe("ActionSummary concat: a leading restore's old value survives any group
     // summary that already has a `c5` column (from other rows).
     const pair = concatenateSummaryPair(restore, concatenateSummaryPair(rename, removals));
     assert.deepEqual(pair.tableDeltas.T1.columnDeltas.c5[3], cell(["v3"], null));
+  });
+
+  it("builds the same restore from a single-row undo as from a bulk one", function() {
+    // The tests above hand-build `restore`. The walk must reach it whichever
+    // way the restore is written, since the merges above reach the cell only
+    // through `updateRows`.
+    const walk = (act: DocAction) => {
+      const summary = createEmptyActionSummary();
+      new ActionSummarizer().addReverseAction(summary, act);
+      return summary;
+    };
+    assert.deepEqual(walk(["UpdateRecord", "T2", 3, { c5: "v3" }]), restore);
+    assert.deepEqual(walk(["BulkUpdateRecord", "T2", [3], { c5: ["v3"] }]), restore);
   });
 });
 
