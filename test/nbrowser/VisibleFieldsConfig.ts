@@ -1,7 +1,7 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
-import { addToRepl, assert, driver, stackWrapFunc } from "mocha-webdriver";
+import { addToRepl, assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 
 describe("VisibleFieldsConfig", function() {
   this.timeout(20000);
@@ -121,6 +121,23 @@ describe("VisibleFieldsConfig", function() {
     // wait for server and check that 'A' is visible
     await gu.waitForServer();
     assert.deepEqual(await driver.findAll(".g-column-label", e => e.getText()), ["A"]);
+  });
+
+  it("should handle focus correctly when using keyboard shortcuts", async function() {
+    await gu.sendKeys(Key.chord(Key.CONTROL, Key.ALT, "o"));
+    // Press Tab once to go inside the panel
+    await gu.sendKeys(Key.TAB);
+    // Then go backwards to directly tab through the elements at the bottom of the panel
+    await gu.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
+    // Pressing Tab once makes us focus the latest checkbox in the "Hidden columns" list. Toggle the column checkbox
+    await gu.sendKeys(Key.SPACE);
+    // Press Tab to focus the "Show columns" button, and press it
+    await gu.sendKeys(Key.TAB);
+    await gu.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+    assert.equal(await driver.switchTo().activeElement().getAttribute("aria-labelledby"), "hidden-fields-label");
+
+    await gu.undo();
   });
 
   it("should allow to 'Show' multiple column", async function() {
