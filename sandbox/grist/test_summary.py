@@ -542,6 +542,64 @@ class Address:
       [ 11,   "Amherst",  "MA"   , 1,       17.0      ],
     ])
 
+  def test_undo_owner_attribution(self):
+    # Each undo action is tagged with the index of the stored action that produced it
+    # (ActionGroup.undo_owner). Check the tagging over summary-table maintenance, where one user
+    # action fans out into several stored actions plus calc-flush restores: every owned undo
+    # belongs to a stored action on its own table, and the only unowned undos are the front
+    # restores of a removed row's formula values.
+    self.load_sample(self.sample)
+    self.apply_user_action(["CreateViewSection", 1, 0, "record", [11,12], None])
+    summary = "Address_summary_city_state"
+
+    def owners_of(out):
+      return [out.undo_owner.get(id(u)) for u in out.undo]
+
+    def check_owners(out):
+      for undo, owner in zip(out.undo, owners_of(out)):
+        if owner is None:
+          # A front calc-flush restore, inserted ahead of everything else.
+          self.assertIsInstance(undo, (actions.UpdateRecord, actions.BulkUpdateRecord))
+        else:
+          self.assertEqual(out.stored[owner].table_id, undo.table_id)
+
+    # Regroup a source row: one summary row is added and another emptied and removed. The removed
+    # row's formula values come back as unowned front restores; the rest pair up with their
+    # stored action, in particular the summary-table add/remove get their own owners rather than
+    # the source update that triggered them.
+    out = self.update_record("Address", 25, city="Salem")
+    self.assertPartialOutActions(out, {
+      "stored": [
+        actions.UpdateRecord("Address", 25, {'city': 'Salem'}),
+        actions.AddRecord(summary, 10, {'city': 'Salem', 'state': 'MA'}),
+        actions.RemoveRecord(summary, 5),
+        actions.UpdateRecord(summary, 10, {'amount': 5.0}),
+        actions.UpdateRecord(summary, 10, {'count': 1}),
+        actions.UpdateRecord(summary, 10, {'group': [25]}),
+      ],
+      "undo": [
+        actions.UpdateRecord(summary, 5, {'group': [25]}),
+        actions.UpdateRecord(summary, 5, {'count': 1}),
+        actions.UpdateRecord(summary, 5, {'amount': 5.0}),
+        actions.UpdateRecord("Address", 25, {'city': 'Bedford'}),
+        actions.RemoveRecord(summary, 10),
+        actions.AddRecord(summary, 5, {'city': 'Bedford', 'state': 'MA'}),
+      ],
+    })
+    check_owners(out)
+    self.assertEqual(owners_of(out), [None, None, None, 0, 1, 2])
+
+    # Add a source row that creates a new summary row: two adds, two owned removes.
+    out = self.add_record("Address", city="Amherst", state="MA", amount=17.0)
+    self.assertPartialOutActions(out, {
+      "undo": [
+        actions.RemoveRecord("Address", 32),
+        actions.RemoveRecord(summary, 11),
+      ],
+    })
+    check_owners(out)
+    self.assertEqual(owners_of(out), [0, 1])
+
   #----------------------------------------------------------------------
 
   @test_engine.test_undo
