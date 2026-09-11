@@ -206,7 +206,7 @@ class TestTempRowIds(test_engine.EngineTestCase):
       ['AddColumn', 'Schools', 'addresses', {'type': 'RefList:Address', 'isFormula': False}])])
 
     # An unresolved negative id rejects the whole bundle rather than storing an unusable ref.
-    with self.assertRaisesRegex(ValueError, r"unknown temporary row id -99 in column Schools\.addresses"):
+    with self.assertRaisesRegex(ValueError, r"temporary row id -99 in column Schools\.addresses"):
       self.engine.apply_user_actions([useractions.from_repr(
         ['AddRecord', 'Schools', None, {'name': 'S1', 'addresses': ['L', -99]}])])
 
@@ -214,9 +214,51 @@ class TestTempRowIds(test_engine.EngineTestCase):
     self.load_sample(testsamples.sample_students)
 
     # Same rejection for a single Ref, not just RefList.
-    with self.assertRaisesRegex(ValueError, r"unknown temporary row id -99 in column Schools\.address"):
+    with self.assertRaisesRegex(ValueError, r"temporary row id -99 in column Schools\.address"):
       self.engine.apply_user_actions([useractions.from_repr(
         ['AddRecord', 'Schools', None, {'name': 'S1', 'address': -99}])])
+
+  def test_refs_must_point_backwards(self):
+    self.load_sample(testsamples.sample_students)
+
+    # Temp ids resolve as rows land, so a reference to a row the bundle adds later cannot be
+    # translated. This is a rejection, not a stored negative id, and the message says so.
+    with self.assertRaisesRegex(ValueError, r"before it was added"):
+      self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
+        ['AddRecord', 'Schools', -1, {'name': 'S1', 'address': -1}],
+        ['AddRecord', 'Address', -1, {'city': 'C1'}],
+      )])
+
+    # The same bundle with the adds the other way round is fine.
+    out_actions = self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
+      ['AddRecord', 'Address', -1, {'city': 'C1'}],
+      ['AddRecord', 'Schools', -1, {'name': 'S1', 'address': -1}],
+    )])
+    self.assertPartialOutActions(out_actions, {
+      "stored": [
+        ['AddRecord', 'Address', 15, {'city': 'C1'}],
+        ['AddRecord', 'Schools', 5, {'name': 'S1', 'address': 15}],
+      ],
+    })
+
+    # A caller that cannot order its adds, because the references form a cycle, sets the
+    # reference in a later action instead. Everything still lands in the one bundle.
+    self.engine.apply_user_actions([useractions.from_repr(
+      ['AddColumn', 'Address', 'school', {'type': 'Ref:Schools', 'isFormula': False}])])
+    out_actions = self.engine.apply_user_actions([useractions.from_repr(ua) for ua in (
+      ['AddRecord', 'Schools', -2, {'name': 'S2'}],
+      ['AddRecord', 'Address', -2, {'city': 'C2'}],
+      ['BulkUpdateRecord', 'Schools', [-2], {'address': [-2]}],
+      ['BulkUpdateRecord', 'Address', [-2], {'school': [-2]}],
+    )])
+    self.assertPartialOutActions(out_actions, {
+      "stored": [
+        ['AddRecord', 'Schools', 6, {'name': 'S2'}],
+        ['AddRecord', 'Address', 16, {'city': 'C2'}],
+        ['UpdateRecord', 'Schools', 6, {'address': 16}],
+        ['UpdateRecord', 'Address', 16, {'school': 6}],
+      ],
+    })
 
   def test_update_remove(self):
     self.load_sample(testsamples.sample_students)

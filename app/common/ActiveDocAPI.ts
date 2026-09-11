@@ -559,14 +559,42 @@ export interface ApplyProposalResult {
   log: PatchLog;
 }
 
+// HTTP envelope for POST /proposals/:proposalId/apply; the direct
+// `ActiveDocAPI.applyProposal` returns the unwrapped `ApplyProposalResult`.
+export interface ApplyProposalResponse {
+  proposalId: number;
+  changes: ApplyProposalResult;
+}
+
 export interface PatchLog {
   changes: PatchItem[];
   applied: boolean;
 }
 
-export interface PatchItem {
+// One entry per engine action the patch built, or a single "error" entry if
+// it built none. A partial failure has no representation here: a patch
+// either builds its whole bundle or reports the one error that stopped it.
+export type PatchItem = PatchRowsItem | PatchCellsItem | PatchErrorItem;
+
+export interface PatchRowsItem {
+  kind: "add" | "remove";
+  tableId: string;
+  rowCount: number;
+}
+
+// Cells written to existing rows, or to rows added earlier in the same
+// bundle whose references had to wait for their targets to land.
+export interface PatchCellsItem {
+  kind: "update";
+  tableId: string;
+  cellCount: number;
+}
+
+// Why the patch applied nothing: the string form of whatever was thrown,
+// whether one of Patch's own guards refusing or the engine rejecting.
+export interface PatchErrorItem {
+  kind: "error";
   msg: string;
-  fail?: boolean;
 }
 
 export interface GetActionSummariesResult {
