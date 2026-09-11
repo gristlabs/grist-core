@@ -1,3 +1,4 @@
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { attachColumnFilterMenu } from "app/client/ui/ColumnFilterMenu";
@@ -102,6 +103,7 @@ export class FilterConfig extends Disposable {
           const filters = use(this._section.filters);
           return textButton(
             t("Add column"),
+            kbJumperAnchor,
             addFilterMenu(filters, this._popupControls, {
               menuOptions: {
                 placement: "bottom-end",

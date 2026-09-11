@@ -1,4 +1,5 @@
 import { GristDoc } from "app/client/components/GristDoc";
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import koArray from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
 import { makeT } from "app/client/lib/localization";
@@ -240,6 +241,7 @@ export class SortConfig extends Disposable {
         const cols = use(available);
         return textButton(
           t("Add column"),
+          kbJumperAnchor,
           dropdownWithSearch({
             popupOptions: menuOptions,
             options: () => cols.map(col => ({ label: col.label, value: col })),

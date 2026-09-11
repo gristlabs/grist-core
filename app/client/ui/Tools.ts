@@ -1,5 +1,7 @@
 import { ACLUsersPopup } from "app/client/aclui/ACLUsers";
 import { GristDoc } from "app/client/components/GristDoc";
+import { fixOutlineOverflow } from "app/client/components/KeyboardFocusHighlighter";
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { makeT } from "app/client/lib/localization";
 import { urlState } from "app/client/models/gristUrlState";
 import { getUserOrgPrefObs, markAsSeen } from "app/client/models/UserPrefs";
@@ -61,6 +63,8 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   updateCanViewAccessRules();
   return cssTools(
     { "aria-labelledby": "grist-tools-heading" },
+    kbJumperAnchor,
+    fixOutlineOverflow,
     cssTools.cls("-collapsed", use => !use(leftPanelOpen)),
     cssSectionHeader(cssSectionHeaderText(t("TOOLS"), { id: "grist-tools-heading" })),
     buildOpenAssistantButton(gristDoc, testId("assistant")),

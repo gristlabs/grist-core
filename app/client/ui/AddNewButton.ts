@@ -1,3 +1,4 @@
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { makeT } from "app/client/lib/localization";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -18,6 +19,7 @@ export function addNewButton(
   ...args: DomElementArg[]
 ) {
   return cssAddNewButton(
+    kbJumperAnchor,
     cssAddNewButton.cls("-open", isOpen),
     cssAddNewButton.cls("-disabled", isDisabled),
     // Setting spacing as flex items allows them to shrink faster when there isn't enough space.
