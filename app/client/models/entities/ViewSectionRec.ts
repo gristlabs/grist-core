@@ -91,6 +91,8 @@ export interface ViewSectionOptions extends ChartOptions {
   verticalGridlines?: boolean;
   horizontalGridlines?: boolean;
   zebraStripes?: boolean;
+  reverseRowOrder?: boolean;    // When true, pins the add-row to the top and (when unsorted)
+                                 // shows the newest rows first.
   rowNumbers?: RowNumbersMode;
   numFrozen?: number;
   rowHeight?: number;           // Optional limit on height of rows, in lines.
@@ -482,6 +484,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     verticalGridlines: true,
     horizontalGridlines: true,
     zebraStripes: false,
+    reverseRowOrder: false,
     rowNumbers: "number",
     customView: "",
     numFrozen: 0,

@@ -183,13 +183,32 @@ export default class GridView extends BaseView {
     const sectionOptions = viewSectionModel.optionsObj;
     this._rowIndexRenderer = gridOptions?.rowIndexRenderer ??
       (row => dom.domComputed((use) => {
-        if (use(sectionOptions).rowNumbers === "rowId") {
+        // Show a "+" for the add-row itself, regardless of row-number display mode.
+        const isAddRow = use(row._isAddRow);
+        if (isAddRow) {
+          return "+";
+        }
+
+        const opts = use(sectionOptions);
+        if (opts.rowNumbers === "rowId") {
           const rowId = use(row.id);
-          // The add-row's id observable is left blank (it has no rowId yet); show nothing for it.
           if (typeof rowId !== "number") { return null; }
           return dom("span.gridview_row_id", String(rowId));
         }
-        return String(use(row._index)! + 1);
+
+        const isReverse = Boolean(opts?.reverseRowOrder);
+        const currentIdx = use(row._index)!;
+        if (isReverse) {
+          // When reverse is ON, the add-row sits at index 0, so data rows start at
+          // index 1 and count down from the total, newest (top) getting the highest number.
+          // Read the array via getObservable() (reactive) rather than peekLength (a plain
+          // getter), so row numbers update immediately when a row is added or removed.
+          const totalRows = use(this.sortedRows.getKoArray().getObservable()).length;
+          return String(totalRows - currentIdx);
+        } else {
+          // Standard Grist: data rows start at index 0 and count up (1, 2, 3...).
+          return String(currentIdx + 1);
+        }
       }));
     this._cornerRenderer = gridOptions?.cornerRenderer ??
       (() => dom.on("click", () => this.selectAll()));
@@ -518,7 +537,19 @@ export default class GridView extends BaseView {
     ctrlShiftUp: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "up" }); },
     ctrlShiftRight: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "right" }); },
     ctrlShiftLeft: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "left" }); },
-    fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex()! + 1); },
+    fieldEditSave: function() {
+      const opts = this.viewSection.optionsObj();
+      const isReverse = Boolean(opts?.reverseRowOrder);
+      const wasAddRow = this.viewData.getRowId(this.cursor.rowIndex()!) === "new";
+
+      if (isReverse && wasAddRow) {
+        // In reverse row order, the add-row stays pinned at index 0 after a new
+        // record is entered. Stay put instead of stepping onto the row just created.
+        return;
+      }
+
+      this.cursor.rowIndex(this.cursor.rowIndex()! + 1);
+    },
     // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
     editField: function(event?: KeyboardEvent) {
       closeRegisteredMenu();

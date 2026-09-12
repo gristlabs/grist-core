@@ -36,7 +36,7 @@ import { BulkColValues, CellValue, DocAction, UserAction } from "app/common/DocA
 import { DocStateComparison } from "app/common/DocState";
 import * as gristTypes from "app/common/gristTypes";
 import { IGristUrlState } from "app/common/gristUrls";
-import { arrayRepeat, nativeCompare, roundDownToMultiple, waitObs } from "app/common/gutil";
+import { arrayRepeat, roundDownToMultiple, waitObs } from "app/common/gutil";
 import { DismissedPopup } from "app/common/Prefs";
 import { SortFunc } from "app/common/SortFunc";
 import { Sort } from "app/common/SortSpec";
@@ -181,12 +181,39 @@ export default class BaseView extends DisposableWithEvents {
     const sortFunc = new SortFunc(new ClientColumnGetters(this.tableModel, { unversioned: true }));
     const updateSort = (spec: Sort.SortSpec) => {
       sortFunc.updateSpec(spec);
+      const opts = this.viewSection.optionsObj();
+      const isReverse = Boolean(opts?.reverseRowOrder);
+      const hasActiveSort = Boolean(spec && spec.length > 0);
+
       this.sortedRows.updateSort((rowId1, rowId2) => {
-        const value = nativeCompare(rowId1 === "new", rowId2 === "new");
-        return value || sortFunc.compare(rowId1 as number, rowId2 as number);
+        const isNew1 = rowId1 === "new";
+        const isNew2 = rowId2 === "new";
+
+        // 1. Pin the add-row: to the top when reverse row order is on, to the bottom
+        //    otherwise. This applies regardless of whether a column sort is active.
+        if (isReverse) {
+          if (isNew1) { return -1; }
+          if (isNew2) { return 1; }
+        } else {
+          if (isNew1) { return 1; }
+          if (isNew2) { return -1; }
+        }
+
+        // 2. Compare data rows using the active column sort. SortFunc.updateSpec() always
+        //    appends manualSort as the final tiebreaker, so when no column sort is active,
+        //    this already reflects manualSort order (including any manual drag-reordering),
+        //    not row creation order.
+        const result = sortFunc.compare(rowId1 as number, rowId2 as number);
+
+        // 3. Reverse row order only flips the *default* (unsorted) order. An active column
+        //    sort is intentional and must never be affected by the toggle.
+        return (isReverse && !hasActiveSort) ? -result : result;
       });
     };
     this.autoDispose(this.viewSection.activeDisplaySortSpec.subscribe(updateSort));
+    this.autoDispose(this.viewSection.optionsObj.subscribe(() => {
+      updateSort(this.viewSection.activeDisplaySortSpec.peek());
+    }));
     updateSort(this.viewSection.activeDisplaySortSpec.peek());
 
     // Here we are subscribed to the bulk of the data (main table, possibly filtered).
@@ -595,9 +622,7 @@ export default class BaseView extends DisposableWithEvents {
     if (this.viewSection.disableAddRemoveRows() || this.disableEditing()) {
       return;
     }
-    const rowId = index != null ? this.viewData.getRowId(index) : undefined;
-    const insertPos = Number.isInteger(rowId) ?
-      this.tableModel.tableData.getValue(rowId, "manualSort") : null;
+    const insertPos = index != null ? this._getRowInsertPos(index, 1)[0] : null;
 
     return this.sendTableAction(["AddRecord", null, { manualSort: insertPos }])!
       .then((rowId) => {
@@ -726,7 +751,16 @@ export default class BaseView extends DisposableWithEvents {
         .then((rowId) => {
           if (!this.isDisposed()) {
             this._exemptFromFilterRows.addExemptRow(rowId);
-            this.setCursorPos({ rowId });
+            const opts = this.viewSection.optionsObj();
+            const isReverse = Boolean(opts?.reverseRowOrder);
+            if (isReverse) {
+              // In reverse row order, the add-row stays pinned at the top after a new
+              // record is created. Keep the cursor there instead of jumping down onto
+              // the row that was just added.
+              this.setCursorPos({ rowId: "new" });
+            } else {
+              this.setCursorPos({ rowId });
+            }
           }
           return rowId;
         })
@@ -897,11 +931,30 @@ export default class BaseView extends DisposableWithEvents {
   }
 
   /**
+   * Returns the bounds of the data rows in the grid, excluding the add-row wherever it
+   * currently sits (start, in reverse row order; end, otherwise; or nowhere, in a read-only
+   * section with no add-row at all). Centralizes the "where's the add row" logic so that
+   * callers (row counts, shift-select, select-all, etc.) don't each need their own
+   * assumption about the add-row's position.
+   */
+  protected getDataRowBounds(): { firstDataRowIndex: number; lastDataRowIndex: number; dataRowCount: number } {
+    const total = this.viewData.peekLength;
+    if (total === 0) {
+      return { firstDataRowIndex: 0, lastDataRowIndex: -1, dataRowCount: 0 };
+    }
+    const hasAddRowAtStart = this.viewData.getRowId(0) === "new";
+    const hasAddRowAtEnd = this.viewData.getRowId(total - 1) === "new";
+    const firstDataRowIndex = hasAddRowAtStart ? 1 : 0;
+    const lastDataRowIndex = hasAddRowAtEnd ? total - 2 : total - 1;
+    const dataRowCount = Math.max(0, lastDataRowIndex - firstDataRowIndex + 1);
+    return { firstDataRowIndex, lastDataRowIndex, dataRowCount };
+  }
+
+  /**
    * Returns the index of the last non-AddNew row in the grid.
    */
   protected getLastDataRowIndex() {
-    const last = this.viewData.peekLength - 1;
-    return (last >= 0 && this.viewData.getRowId(last) === "new") ? last - 1 : last;
+    return this.getDataRowBounds().lastDataRowIndex;
   }
 
   /**
@@ -944,11 +997,51 @@ export default class BaseView extends DisposableWithEvents {
    * Return a list of manual sort positions so that inserting {numInsert} rows
    * with the returned positions will place them in between index-1 and index.
    * when the GridView is sorted by MANUALSORT
+   *
+   * Computes values strictly between the two neighbors' actual manualSort values, rather
+   * than cloning one neighbor's value, so there's no reliance on how ties get broken (which
+   * differs between normal and reverse row order, since reverse row order negates the whole
+   * comparator, tie-break included).
    **/
-  protected _getRowInsertPos(index: number, numInserts: number) {
-    const rowId = this.viewData.getRowId(index);
-    const insertPos = this.tableModel.tableData.getValue(rowId, gristTypes.MANUALSORT);
-    return Array(numInserts).fill(insertPos);
+  protected _getRowInsertPos(index: number, numInserts: number): number[] {
+    const getManualSort = (idx: number): number | undefined => {
+      if (idx < 0 || idx >= this.viewData.peekLength) { return undefined; }
+      const rowId = this.viewData.getRowId(idx);
+      if (rowId === "new" || !Number.isInteger(rowId)) { return undefined; }
+      const value = this.tableModel.tableData.getValue(rowId as number, gristTypes.MANUALSORT);
+      return typeof value === "number" ? value : undefined;
+    };
+
+    const prevPos = getManualSort(index - 1);
+    const nextPos = getManualSort(index);
+
+    // In reverse row order (and only when unsorted, since an active column sort is never
+    // affected by the toggle), display order runs from largest manualSort (top) to smallest
+    // (bottom), the opposite of normal. This only matters when extrapolating beyond a single
+    // known neighbor (inserting at the very top or bottom edge); interpolating strictly
+    // between two known neighbors already works the same regardless of direction.
+    const opts = this.viewSection.optionsObj();
+    const isReverse = Boolean(opts?.reverseRowOrder);
+    const hasActiveSort = this.viewSection.activeDisplaySortSpec.peek().length > 0;
+    const dir = (isReverse && !hasActiveSort) ? -1 : 1;
+
+    let start: number;
+    let step: number;
+    if (prevPos !== undefined && nextPos !== undefined) {
+      step = (nextPos - prevPos) / (numInserts + 1);
+      start = prevPos + step;
+    } else if (nextPos !== undefined) {
+      step = dir;
+      start = nextPos - dir * numInserts;
+    } else if (prevPos !== undefined) {
+      step = dir;
+      start = prevPos + dir;
+    } else {
+      step = 1;
+      start = 1;
+    }
+
+    return Array.from({ length: numInserts }, (_, i) => start + i * step);
   }
 
   /**
