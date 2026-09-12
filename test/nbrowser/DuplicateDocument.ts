@@ -17,7 +17,7 @@ describe("DuplicateDocument", function() {
     await driver.findWait(".test-save-copy", 1000).click();
 
     // Should not allow saving a copy to an empty name.
-    await driver.findWait(".test-modal-dialog", 1000);
+    await gu.waitForCopyDialog();
     const nameElem = await driver.findWait(".test-copy-dest-name:focus", 200);
     await nameElem.sendKeys(Key.DELETE);
     assert.equal(await driver.find(".test-modal-confirm").getAttribute("disabled"), "true");
@@ -76,7 +76,7 @@ describe("DuplicateDocument", function() {
     }
     await driver.find(".test-tb-share").click();
     await driver.findWait(".test-save-copy", 1000).click();
-    await driver.findWait(".test-modal-dialog", 1000);
+    await gu.waitForCopyDialog();
     assert.equal(await driver.find(".test-copy-dest-name").value(), "DuplicateTest2 (copy)");
     assert.equal(await driver.find(".test-copy-dest-org").isPresent(), true);
     await driver.find(".test-copy-dest-org .test-select-open").click();
@@ -112,7 +112,7 @@ describe("DuplicateDocument", function() {
 
     await driver.find(".test-tb-share").click();
     await driver.findWait(".test-save-copy", 1000).click();
-    await driver.findWait(".test-modal-dialog", 1000);
+    await gu.waitForCopyDialog();
     assert.equal(await driver.find(".test-copy-dest-name").value(), "DuplicateTest2 (copy)");
     // No choice of orgs
     await gu.waitForServer();
@@ -150,7 +150,7 @@ describe("DuplicateDocument", function() {
 
     await driver.find(".test-tb-share").click();
     await driver.findWait(".test-save-copy", 1000).click();
-    await driver.findWait(".test-modal-dialog", 1000);
+    await gu.waitForCopyDialog();
     assert.equal(await driver.find(".test-copy-dest-name").value(), "DuplicateTest2 (copy)");
 
     // We can now switch between orgs.
@@ -195,7 +195,7 @@ describe("DuplicateDocument", function() {
     // Open the "Duplicate Document" dialog.
     await driver.find(".test-tb-share").click();
     await driver.findWait(".test-save-copy", 1000).click();
-    await driver.findWait(".test-modal-dialog", 1000);
+    await gu.waitForCopyDialog();
     assert.equal(await driver.find(".test-copy-dest-name").value(), "DuplicateTest2 (copy)");
 
     // Switching to personal org shows no workspaces but no errors either.
@@ -229,7 +229,7 @@ describe("DuplicateDocument", function() {
 
     await driver.find(".test-tb-share").click();
     await driver.findWait(".test-save-copy", 1000).click();
-    await driver.findWait(".test-modal-dialog", 1000);
+    await gu.waitForCopyDialog();
     await driver.find(".test-save-as-template").click();
     await gu.completeCopy({ destName: "DuplicateTest3", destWorkspace: "Test Workspace" });
 

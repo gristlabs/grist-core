@@ -9,6 +9,7 @@ import { viewCommands } from "app/client/components/RegionFocusSwitcher";
 import { SelectionSummary } from "app/client/components/SelectionSummary";
 import { KoArray } from "app/client/lib/koArray";
 import * as tableUtil from "app/client/lib/tableUtil";
+import { testPendingViewLoads } from "app/client/lib/testPendingOps";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import { ClientColumnGetters } from "app/client/models/ClientColumnGetters";
 import { DataRowModel } from "app/client/models/DataRowModel";
@@ -262,6 +263,14 @@ export default class BaseView extends DisposableWithEvents {
     // --------------------------------------------------
     // Observables local to this view
     this._isLoading = ko.observable(true);
+
+    testPendingViewLoads.start();
+    this.onDispose(() => {
+      if (this._isLoading.peek()) { testPendingViewLoads.end(); }
+    });
+    this.autoDispose(this._isLoading.subscribe((isLoading: boolean) => {
+      if (isLoading) { testPendingViewLoads.start(); } else { testPendingViewLoads.end(); }
+    }));
     this._pendingCursorPos = {
       cursorPos: this.viewSection.lastCursorPos,
       showFirstRowIfRowMissing: true,
