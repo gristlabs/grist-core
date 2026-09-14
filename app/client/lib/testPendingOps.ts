@@ -40,3 +40,13 @@ export const testPendingChecks = new TestPendingOps();
  * in-flight request counts go quiet between the two and look like success.
  */
 export const testPendingPastes = new TestPendingOps();
+
+/**
+ * Menu items that defer their action to the next tick, so the menu can close first.
+ */
+export const testPendingMenuActions = new TestPendingOps();
+
+/**
+ * Views waiting for data. Moving the cursor in one widget makes the widgets linked to it re-query.
+ */
+export const testPendingViewLoads = new TestPendingOps();

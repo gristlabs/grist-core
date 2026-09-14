@@ -712,6 +712,13 @@ namespace gristUtils {
     if (![Key.ENTER, Key.TAB].includes(lastKey!) && validate) {
       keys.push(Key.ENTER);
     }
+    // The input command below does nothing while a cell editor is in the DOM, and a closing one
+    // stays there a while. An editor holding the focus is live, and callers do type into those.
+    const noEditorIsClosing = () => driver.executeScript<boolean>(() => {
+      const editors = Array.from(document.querySelectorAll(".cell_editor"));
+      return editors.length === 0 || editors.some(e => e.contains(document.activeElement));
+    }).catch(() => false);
+    await driver.wait(noEditorIsClosing, 2000, "an editor was closing and did not go");
     await driver.executeScript((...args: any[]) => {
       (window as any).gristApp.allCommands.input.run(...args);
     }, ...(clear ? [""] : []));
@@ -1166,7 +1173,7 @@ namespace gristUtils {
  * `false` to wait for the focus to leave the main application.
  */
   export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
-    await driver.wait(async () => (await driver.find(".copypaste").hasFocus()) === yesNo, 5000);
+    await webdriverUtils.waitAppFocus(yesNo);
   }
 
   /**
@@ -1339,10 +1346,14 @@ namespace gristUtils {
     await findOpenMenu();
     await driver.find(".test-dp-empty-table").click();
     if (name) {
-      const prompt = await driver.find(".test-modal-prompt");
+      // The app's clipboard element can take the focus back while the document settles, and keys
+      // that land there go missing from the name: the dialog saves an observable that only
+      // advances on the field's own input events.
+      await waitAppFocus(false);
+      const prompt = await driver.findWait(".test-modal-prompt", 1000);
       await prompt.doClear();
       await prompt.click();
-      await driver.sendKeys(name);
+      await prompt.sendKeys(name);
     }
     await driver.find(".test-modal-confirm").click();
     await waitForServer();
@@ -1489,14 +1500,16 @@ namespace gristUtils {
   export async function removeTable(tableId: string, options: { dismissTips?: boolean } = {}) {
     await driver.find(".test-tools-raw").click();
     if (options.dismissTips) { await dismissBehavioralPrompts(); }
+    // The list is built after the page switches, so the read below can find no tables at all.
+    await driver.findContentWait(".test-raw-data-table-id", exactMatch(tableId), 2000);
     const tableIdList = await driver.findAll(".test-raw-data-table-id", e => e.getText());
     const tableIndex = tableIdList.indexOf(tableId);
     assert.isTrue(tableIndex >= 0, `No raw table with id ${tableId}`);
     const menus = await driver.findAll(".test-raw-data-table .test-raw-data-table-menu");
     assert.equal(menus.length, tableIdList.length);
     await menus[tableIndex].click();
-    await driver.findWait(".test-raw-data-menu-remove-table", 100).click();
-    await driver.findWait(".test-modal-confirm", 100).click();
+    await findOpenMenuItem(".test-raw-data-menu-remove-table").click();
+    await driver.findWait(".test-modal-confirm", 1000).click();
     await waitForServer();
   }
 
@@ -1812,17 +1825,19 @@ namespace gristUtils {
       .find(".test-raw-data-table-menu")
       .click();
     await findOpenMenuItem("li", "Rename table").click();
+    // Keys sent before the focus has left the app are lost. See addNewTable.
+    await waitAppFocus(false);
     if (newName !== undefined) {
-      const input = await driver.findWait(".test-widget-title-table-name-input", 100);
+      const input = await driver.findWait(".test-widget-title-table-name-input", 1000);
       await input.doClear();
       await input.click();
-      await driver.sendKeys(newName);
+      await input.sendKeys(newName);
     }
     if (newDescription !== undefined) {
-      const input = await driver.findWait(".test-widget-title-section-description-input", 100);
+      const input = await driver.findWait(".test-widget-title-section-description-input", 1000);
       await input.doClear();
       await input.click();
-      await driver.sendKeys(newDescription);
+      await input.sendKeys(newDescription);
     }
     await driver.find(".test-widget-title-save").click();
     await waitForServer();
@@ -2182,13 +2197,19 @@ namespace gristUtils {
     return await findOpenMenu(1000);
   }
 
+  /** Waits for the Save Copy dialog, which is built once a fetch of the orgs it offers returns. */
+  export async function waitForCopyDialog() {
+    await waitForServer();
+    await driver.findWait(".test-modal-dialog", 1000);
+  }
+
   /**
  * A helper to complete saving a copy of the document. Namely it is useful to call after clicking
  * either the `Copy As Template` or `Save Copy` (when on a forked document) button. Accept optional
  * `destName` and `destWorkspace` to change the default destination.
  */
   export async function completeCopy(options: { destName?: string, destWorkspace?: string, destOrg?: string } = {}) {
-    await driver.findWait(".test-modal-dialog", 1000);
+    await waitForCopyDialog();
     if (options.destName !== undefined) {
       const nameElem = await driver.find(".test-copy-dest-name").doClick();
       await setValue(nameElem, "");
@@ -2695,8 +2716,20 @@ namespace gristUtils {
     return setColor(driver.findWait(".test-fill-input", 1000), color);
   }
 
+  /**
+   * The picker saves as it closes, so wait for it to go before waiting for the request. It is
+   * slower to go than a plain menu, hence the budget above the 100ms default.
+   */
   export async function applyStyle() {
     await driver.find(".test-colors-save").click();
+    await waitForMenuToClose(2000);
+    await waitForServer();
+  }
+
+  /** As applyStyle, for the tests that dismiss the picker with the keyboard. */
+  export async function applyStyleWithEnter() {
+    await driver.sendKeys(Key.ENTER);
+    await waitForMenuToClose(2000);
     await waitForServer();
   }
 
@@ -3593,10 +3626,13 @@ namespace gristUtils {
   }
 
   async function doRenameSection(name: string) {
-    await driver.findWait(".test-widget-title-popup", 100);
-    await driver.find(".test-widget-title-section-name-input").click();
+    await driver.findWait(".test-widget-title-popup", 1000);
+    // Keys sent before the focus has left the app are lost. See addNewTable.
+    await waitAppFocus(false);
+    const input = driver.find(".test-widget-title-section-name-input");
+    await input.click();
     await selectAll();
-    await driver.sendKeys(name || Key.DELETE, Key.ENTER);
+    await input.sendKeys(name || Key.DELETE, Key.ENTER);
     await waitForServer();
     await waitForNotPresent(".test-widget-title-section-name-input");
   }
@@ -3606,10 +3642,13 @@ namespace gristUtils {
  */
   export async function renameActiveTable(name: string) {
     await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
-    await driver.findWait(".test-widget-title-popup", 100);
-    await driver.find(".test-widget-title-table-name-input").click();
+    await driver.findWait(".test-widget-title-popup", 1000);
+    // Keys sent before the focus has left the app are lost. See addNewTable.
+    await waitAppFocus(false);
+    const input = driver.find(".test-widget-title-table-name-input");
+    await input.click();
     await selectAll();
-    await driver.sendKeys(name, Key.ENTER);
+    await input.sendKeys(name, Key.ENTER);
     await waitAppFocus(true); // Wait for the editor to close so that waitForServer sees our request.
     await waitForServer();
   }
@@ -4215,9 +4254,9 @@ namespace gristUtils {
     },
 
     /** Returns the first `limit` options offered, once the dropdown is showing them. */
-    async getOptions(text?: string, limit?: number): Promise<string[]> {
+    async getOptions(text?: string, limit?: number, itemSelector: string = "li"): Promise<string[]> {
       await this.wait(text);
-      return (await driver.findAll(`${autocompleteMenu(text)} li`, el => el.getText())).slice(0, limit);
+      return (await driver.findAll(`${autocompleteMenu(text)} ${itemSelector}`, el => el.getText())).slice(0, limit);
     },
 
     /** Dismisses the dropdown with Escape, and waits for it to be gone. */
@@ -4342,6 +4381,34 @@ namespace gristUtils {
     await waitForPendingOps("testNumPendingPastes", "paste to complete", optTimeout);
   }
 
+  /**
+   * Waits for an open menu to hold the focus, which is when it starts handling keys. A menu takes
+   * the focus a tick after it is shown, so an Escape sent before then leaves it open.
+   */
+  export async function waitForMenuFocus(optTimeout: number = 1000) {
+    const menuHasFocus = () => driver.executeScript<boolean>(() => {
+      const active = document.activeElement;
+      return Array.from(document.querySelectorAll(".grist-floating-menu")).some(m => m.contains(active));
+    }).catch(() => false);
+    await driver.wait(menuHasFocus, optTimeout, "the open menu did not take the focus");
+  }
+
+  /**
+   * Waits for every view to have the data it asked for. Moving the cursor in one widget makes the
+   * widgets linked to it re-query, and the page has no other signal for when those queries finish.
+   */
+  export async function waitForViewLoads(optTimeout: number = 5000) {
+    await waitForPendingOps("testNumPendingViewLoads", "views to load their data", optTimeout);
+  }
+
+  /**
+   * Waits for a menu item's action to run. Items that let the menu close first defer their action
+   * to the next tick, and waitForServer is not a substitute, as no request is in flight by then.
+   */
+  export async function waitForMenuAction(optTimeout: number = 2000) {
+    await waitForPendingOps("testNumPendingMenuActions", "a menu action to run", optTimeout);
+  }
+
   /** Gets the value from the select component */
   export async function getSelectValue(selector: string) {
     return await driver.find(`${selector} .test-select-row`).getText();
@@ -4462,8 +4529,8 @@ namespace gristUtils {
     })());
   }
 
-  export async function waitForMenuToClose() {
-    await waitForNotPresent(".grist-floating-menu");
+  export async function waitForMenuToClose(optTimeout?: number) {
+    await waitForNotPresent(".grist-floating-menu", optTimeout);
   }
 
   /** Finds a tab by its name and clicks it */

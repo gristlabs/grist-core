@@ -1,6 +1,7 @@
 import { MenuCommand } from "app/client/components/commandList";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
+import { testPendingMenuActions } from "app/client/lib/testPendingOps";
 import { NeedUpgradeError, reportError } from "app/client/models/errors";
 import { textButton } from "app/client/ui2018/buttons";
 import { cssCheckboxSquare, cssLabel, cssLabelText } from "app/client/ui2018/checkbox";
@@ -590,9 +591,20 @@ export function menuItemTrimmed(
  * TODO disabling the element should not prevent the menu from closing; once fixed in weasel, this
  * can be removed.
  */
-export const menuItemAsync: typeof weasel.menuItem = function(action, ...args) {
-  return menuItem(() => setTimeout(action, 0), ...args);
-};
+export function menuItemAsync(
+  action: (item: HTMLElement, ev: Event) => void | Promise<unknown>, ...args: DomElementArg[]) {
+  return menuItem((item, ev) => {
+    // Start the count here rather than inside the timer, so it covers the wait for the next tick.
+    testPendingMenuActions.start();
+    setTimeout(async () => {
+      try {
+        await action(item, ev);
+      } finally {
+        testPendingMenuActions.end();
+      }
+    }, 0);
+  }, ...args);
+}
 
 export function menuItemCmd(
   cmd: MenuCommand,

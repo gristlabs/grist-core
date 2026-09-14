@@ -27,6 +27,8 @@ declare global {
       testNumPendingApiRequests?: () => number;
       testNumPendingChecks?: () => number;
       testNumPendingPastes?: () => number;
+      testNumPendingMenuActions?: () => number;
+      testNumPendingViewLoads?: () => number;
     };
     cmd?: { [name: string]: () => void };
     isRunningUnderElectron?: boolean;

@@ -547,9 +547,12 @@ describe("ReferenceList", function() {
   });
 
   describe("autocomplete", function() {
+    // Call before selecting an item: that replaces the search text in the box with the item's
+    // label, and the search text is what tells this list from the one the previous keystroke left.
     const getACOptions = stackWrapFunc(async (limit?: number) => {
       await driver.findWait(".test-ref-editor-item", 2000);
-      return (await driver.findAll(".test-ref-editor-item", el => el.getText())).slice(0, limit);
+      const text = await driver.find(".cell_editor .test-tokenfield .test-tokenfield-input").value();
+      return gu.autocomplete.getOptions(text, limit, ".test-ref-editor-item");
     });
 
     before(async function() {
@@ -777,6 +780,9 @@ describe("ReferenceList", function() {
       await driver.findContentWait(".test-treeview-itemHeader", /Colors/, 2000).click();
       await gu.waitForDocToLoad();
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.ARROW_DOWN));
+      // The grid renders only the rows around the cursor, so the rows read below are present
+      // only once the jump above has scrolled them into view.
+      await driver.findContentWait(".active_section .field_clip", /^almost pink$/, 2000);
       assert.deepEqual(
         await gu.getVisibleGridCells("Color Name", [146, 147]),
         ["pinkish", "almost pink"],

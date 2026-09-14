@@ -25,6 +25,7 @@ describe("RowMenu", function() {
     await firstRow.find(".test-row-menu-trigger").click();
     assert.isTrue(await gu.findOpenMenu(1000).isDisplayed());
     // close the menu
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);
     // make sure the menu is closed
     await driver.wait(async () => (await driver.findAll(".grist-floating-menu")).length === 0, 2000);
@@ -67,6 +68,7 @@ describe("RowMenu", function() {
     assert.isTrue(await gu.findOpenMenu(1000).isDisplayed());
 
     // send ESC to close the menu
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);
 
     // check that the context menu is gone
