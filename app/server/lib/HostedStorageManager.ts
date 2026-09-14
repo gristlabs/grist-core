@@ -606,6 +606,7 @@ export class HostedStorageManager implements IDocStorageManager {
   public getMode() {
     return this._mode;
   }
+
   private _isLocalStorageOnly() {
     return this._mode === StorageMode.LOCAL_ONLY;
   }
