@@ -2717,9 +2717,9 @@ namespace gristUtils {
   }
 
   /**
- * The picker saves as it closes, so wait for it to go before waiting for the request. It is
- * slower to go than a plain menu, hence the budget above the 100ms default.
- */
+   * The picker saves as it closes, so wait for it to go before waiting for the request. It is
+   * slower to go than a plain menu, hence the budget above the 100ms default.
+   */
   export async function applyStyle() {
     await driver.find(".test-colors-save").click();
     await waitForMenuToClose(2000);
