@@ -797,15 +797,10 @@ describe("Proposals", function() {
       ]);
     });
 
-    // The fork's add-then-remove nets to nothing, but summary concatenation
-    // reports the rowId in both addRows and removeRows, which is how a
-    // recycled id is reported too. Patch cannot tell the two apart, and
-    // guesses wrong at the cost of a trunk row, so it refuses both until
-    // https://github.com/gristlabs/grist-core/pull/2385 makes the summary
-    // sound. Then this becomes a genuine recycle to support.
     it("does not delete the wrong trunk row on an add-then-remove transient", async function() {
-      // Carol takes fork row id 4, which on the trunk is Frank. Applying
-      // the reported recycle would delete Frank and restore Carol.
+      // Carol briefly takes fork row id 4, which on the trunk is Frank. The
+      // fork nets to nothing, so the trunk must too. Mistaking this for a
+      // recycle would delete Frank.
       const { trunk, fork } = await setupForkWithAdvance({
         trunkSeed: [
           ["AddTable", "Customers", [
@@ -826,15 +821,8 @@ describe("Proposals", function() {
         ["RemoveRecord", "Customers", 4],
       ]);
       const proposal = await fork.makeProposal();
-      const result = await trunk.applyProposal(proposal.shortId);
-      // Refused, and visibly so: the proposal stays open rather than
-      // reporting success over a document it quietly damaged.
-      assert.isFalse(result.changes.log.applied);
-      assert.lengthOf(result.changes.log.changes, 1);
-      const [item] = result.changes.log.changes;
-      assert.equal(item.kind, "error");
-      assert.match(item.kind === "error" ? item.msg : "", /reuses row ids/);
-      assert.isUndefined(result.changes.proposal.status.status);
+      const actions = await applyAndGetActions(trunk, proposal.shortId);
+      assert.deepEqual(actions, []);
       const rows = await trunk.sql(
         "select name from Customers order by id",
       );
@@ -843,6 +831,57 @@ describe("Proposals", function() {
         { fields: { name: "Bob" } },
         { fields: { name: "Eve" } },
         { fields: { name: "Frank" } },
+      ]);
+    });
+
+    it("applies a recycled row id as a remove and a fresh add", async function() {
+      const { trunk, fork } = await setupForkWithAdvance({
+        trunkSeed: [
+          ["AddTable", "Customers", [
+            { id: "name", type: "Text", isFormula: false },
+          ]],
+          ["AddTable", "Orders", [
+            { id: "qty", type: "Numeric", isFormula: false },
+            { id: "customer", type: "Ref:Customers", isFormula: false },
+          ]],
+          ["AddRecord", "Customers", null, { name: "Alice" }],
+          ["AddRecord", "Customers", null, { name: "Bob" }],
+          ["AddRecord", "Customers", null, { name: "Eve" }],
+          ["AddRecord", "Orders", null, { qty: 1, customer: 3 }],
+        ],
+        trunkAdvance: [
+          ["AddRecord", "Customers", null, { name: "Frank" }],
+        ],
+      });
+      // Remove Eve, then add Carol, who reuses Eve's fork row id 3. On the
+      // trunk, id 3 is still Eve and Carol needs a fresh id past Frank's.
+      await fork.applyUserActions([["RemoveRecord", "Customers", 3]]);
+      const rC = await fork.applyUserActions([
+        ["AddRecord", "Customers", null, { name: "Carol" }],
+      ]);
+      assert.equal(rC.retValues[0], 3);
+      await fork.applyUserActions([
+        ["AddRecord", "Orders", null, { qty: 2, customer: 3 }],
+      ]);
+      const proposal = await fork.makeProposal();
+      await applyAndGetActions(trunk, proposal.shortId);
+      assert.deepEqual(
+        (await trunk.sql("select name from Customers order by id")).records,
+        [
+          { fields: { name: "Alice" } },
+          { fields: { name: "Bob" } },
+          { fields: { name: "Frank" } },
+          { fields: { name: "Carol" } },
+        ]);
+      // The order that named Eve loses its customer, as on the fork, rather
+      // than moving to Carol along with the id.
+      const orders = await trunk.sql(
+        "select o.qty, c.name as cn from Orders o " +
+        "left join Customers c on c.id = o.customer order by o.id",
+      );
+      assert.deepEqual(orders.records, [
+        { fields: { qty: 1, cn: null } },
+        { fields: { qty: 2, cn: "Carol" } },
       ]);
     });
 
