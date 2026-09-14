@@ -431,7 +431,7 @@ describe("HostedStorageManager", function() {
         cli = createClient(process.env.TEST_REDIS_URL);
         oldEnv = new EnvironmentSnapshot();
         await cli.flushdbAsync();
-        storageMode = StorageMode.S3_WITH_CACHE;
+        storageMode = StorageMode.EXTERNAL_WITH_CACHE;
         workers = new DocWorkerMap([cli]);
         await workers.addWorker({
           id: workerId,
@@ -478,7 +478,7 @@ describe("HostedStorageManager", function() {
             if (!process.env.GRIST_DOCS_MINIO_ACCESS_KEY) {
               this.skip();
             }
-            storageMode = StorageMode.S3_WITHOUT_CACHE;
+            storageMode = StorageMode.EXTERNAL_WITHOUT_CACHE;
             externalStorageCreate = requireStorage(create.getStorageOptions?.("minio")?.create);
             break;
           case "s3":
@@ -768,7 +768,7 @@ describe("HostedStorageManager", function() {
         const docPath = store.getDocPath(docId);
 
         await store.run(async () => {
-          const cacheRemainsAfterClosing = store.storageManager.getMode() === StorageMode.S3_WITH_CACHE;
+          const cacheRemainsAfterClosing = store.storageManager.getMode() === StorageMode.EXTERNAL_WITH_CACHE;
           await store.docManager.createNamedDoc(docSession, docId);
           const doc = await store.docManager.fetchDoc(docSession, docId);
           await doc.docStorage.exec("insert into Table1(id, A) values(1, 'magic word')");
@@ -1110,7 +1110,7 @@ describe("HostedStorageManager", function() {
         gristServer,
         tmpDir,
         workerId,
-        StorageMode.S3_WITH_CACHE,
+        StorageMode.EXTERNAL_WITH_CACHE,
         docWorkerMap,
         {
           setDocsMetadata: async (metadata) => {},
@@ -1144,7 +1144,7 @@ describe("HostedStorageManager", function() {
         workerId,
         docWorkerMap,
         externalStorageCreate,
-        StorageMode.S3_WITH_CACHE,
+        StorageMode.EXTERNAL_WITH_CACHE,
       );
 
       await testStore.run(async () => {
@@ -1191,7 +1191,7 @@ describe("HostedStorageManager", function() {
         workerId,
         docWorkerMap,
         externalStorageCreate,
-        StorageMode.S3_WITH_CACHE,
+        StorageMode.EXTERNAL_WITH_CACHE,
       );
 
       await testStore.run(async () => {
@@ -1214,7 +1214,7 @@ describe("HostedStorageManager", function() {
         workerId,
         docWorkerMap,
         externalStorageCreate,
-        StorageMode.S3_WITH_CACHE,
+        StorageMode.EXTERNAL_WITH_CACHE,
       );
 
       let docName: string = "";

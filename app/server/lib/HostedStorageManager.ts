@@ -57,8 +57,8 @@ export interface HostedStorageOptions {
 
 export enum StorageMode {
   LOCAL_ONLY,
-  S3_WITH_CACHE,
-  S3_WITHOUT_CACHE,
+  EXTERNAL_WITH_CACHE,
+  EXTERNAL_WITHOUT_CACHE,
 };
 
 const defaultOptions: HostedStorageOptions = {
@@ -158,7 +158,7 @@ export class HostedStorageManager implements IDocStorageManager {
       scheduleFromFirstAdd: true,
     });
 
-    if (this._isRemoteStorage()) {
+    if (this._isExternalStorage()) {
       this._baseStore = externalStoreDoc!;
       // Whichever store we have, we use checksums to deal with
       // eventual consistency.
@@ -374,7 +374,7 @@ export class HostedStorageManager implements IDocStorageManager {
       throw new Error("HostedStorageManager only implements permanent deletion in deleteDoc");
     }
     await this.closeDocument(docName, { keepLocalCache: true });
-    if (this._isRemoteStorage()) {
+    if (this._isExternalStorage()) {
       await this._ext.remove(docName);
       await this._extMeta.remove(docName);
     }
@@ -487,7 +487,7 @@ export class HostedStorageManager implements IDocStorageManager {
     // and unless the caller asked to keep the local cache, we remove
     // the local copy after flushing, to make the S3 version canonical. This also lets us later
     // release the assignment so a less-loaded worker can pick the doc up.
-    const shouldWipe = !keepLocalCache && this._mode === StorageMode.S3_WITHOUT_CACHE;
+    const shouldWipe = !keepLocalCache && this._mode === StorageMode.EXTERNAL_WITHOUT_CACHE;
 
     if (shouldWipe) {
       this._log.info(docName, "Removing local copy of this doc");
@@ -611,7 +611,7 @@ export class HostedStorageManager implements IDocStorageManager {
     return this._mode === StorageMode.LOCAL_ONLY;
   }
 
-  private _isRemoteStorage() {
+  private _isExternalStorage() {
     return this._mode !== StorageMode.LOCAL_ONLY;
   }
 
@@ -683,7 +683,7 @@ export class HostedStorageManager implements IDocStorageManager {
 
       // If the instance is configured to continue storing the closed documents in the FS cache,
       // and if the file exists locally, reuse it.
-      if (this._mode === StorageMode.S3_WITH_CACHE && await cacheExistsLocally()) {
+      if (this._mode === StorageMode.EXTERNAL_WITH_CACHE && await cacheExistsLocally()) {
         if (!docStatus.docMD5 || docStatus.docMD5 === DELETED_TOKEN || docStatus.docMD5 === "unknown") {
           // New doc appears to already exist, but may not exist in S3.
           // Let's check.
@@ -722,7 +722,7 @@ export class HostedStorageManager implements IDocStorageManager {
         trunkId: forkId ? trunkId : undefined,
         snapshotId,
         canCreateFork,
-        overwriteLocalDest: (this._mode === StorageMode.S3_WITHOUT_CACHE),
+        overwriteLocalDest: (this._mode === StorageMode.EXTERNAL_WITHOUT_CACHE),
       });
       if (fetched) { return true; }
       // S3 doesn't have the doc. If a local copy exists (e.g. a worker crashed
