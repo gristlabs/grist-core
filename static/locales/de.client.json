@@ -2418,5 +2418,8 @@
     },
     "AuthenticationSection": {
         "disabled": "deaktiviert"
+    },
+    "InstallationIdBlock": {
+        "Installation ID copied to clipboard": "Installations-ID in die Zwischenablage kopiert"
     }
 }

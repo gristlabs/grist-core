@@ -129,9 +129,14 @@ export function getRowIds(action: DataAction): number | number[];
 export function getRowIds(action: DataAction): number | number[] { return action[2]; }
 
 // Returns the row ids in a DataAction as a list, even if the action is not a bulk action.
+// A bulk action already carries a list; a single-row action wraps its one rowId to a
+// one-element list. This is purely defensive normalization so every caller can iterate:
+// a stored DataAction always carries real numeric ids (the data engine fills in any
+// null/negative auto-assign placeholder before the action is recorded), so `null` is not
+// expected to reach here.
 export function getRowIdsFromDocAction(action: DataAction): number[] {
   const ids = action[2];
-  return (typeof ids === "number") ? [ids] : ids;
+  return Array.isArray(ids) ? ids : [ids];
 }
 
 // Returns colValues from a DataAction other than a remove action (which doesn't have colValues).

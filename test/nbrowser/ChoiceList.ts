@@ -135,8 +135,21 @@ async function renameEntry(from: string, to: string) {
 }
 
 async function clickEntry(label: string) {
-  const entry = await driver.findWait(`.test-choice-list-entry .test-token-label[value='${label}']`, 100);
+  const selector = `.test-choice-list-entry .test-token-label[value='${label}']`;
+  const entry = await driver.findWait(selector, 100);
   await entry.click();
+  // Clicking the label is what focuses it and selects its text. Keys sent before that lands go
+  // to whatever held the focus before, and the rename silently does not happen.
+  await gu.waitForEditorFocus(selector);
+}
+
+/**
+ * Reads the ChoiceList column after a page switch, which renders the section before its rows, so
+ * this waits rather than reading once.
+ */
+async function assertFilteredCells(expected: string[]) {
+  await gu.waitToPass(async () =>
+    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ["ChoiceList"] }), expected));
 }
 
 async function saveChoiceEntries() {
@@ -748,12 +761,13 @@ describe("ChoiceList", function() {
 
     await driver.sendKeys(Key.ENTER);
     await gu.waitAppFocus(false);
-    // waitToPass used to avoid "stale element not found in the current frame" error with getEditModeFillColors
+    // These getters find the tokens then read them one at a time, so a re-render in between
+    // raises "stale element not found". They read the same tokens, so they retry together.
     await gu.waitToPass(async () => {
       assert.deepEqual(await getEditModeFillColors(), [DARK_GREEN_FILL, BLUE_FILL,  BLACK_FILL, WHITE_FILL]);
+      assert.deepEqual(await getEditModeTextColors(), [WHITE_TEXT,      BLACK_TEXT, WHITE_TEXT, BLACK_TEXT]);
+      assert.deepEqual(await getEditModeFontOptions(), [{ bold, underline, strikethrough }, {}, {}, { underline }]);
     }, 1000);
-    assert.deepEqual(await getEditModeTextColors(), [WHITE_TEXT,      BLACK_TEXT, WHITE_TEXT, BLACK_TEXT]);
-    assert.deepEqual(await getEditModeFontOptions(), [{ bold, underline, strikethrough }, {}, {}, { underline }]);
 
     // Undo, then re-do, verifying after each invocation
     await driver.find(".test-choice-list-entry .test-tokenfield .test-tokenfield-input").click();
@@ -954,7 +968,9 @@ describe("ChoiceList", function() {
     await gu.sendKeys(Key.ENTER);
     await gu.waitForServer();
     await gu.getCell("ChoiceList", 3).click();
-    await gu.enterCell(["one", Key.ENTER, "foo", Key.ENTER]);
+    // The third Enter closes the editor. Without it nothing is sent, so the wait for the server
+    // waits for nothing and the cell is written, with its old names, after the rename below.
+    await gu.enterCell(["one", Key.ENTER, "foo", Key.ENTER, Key.ENTER]);
     await gu.waitForServer();
 
     // Make sure right panel is open and has right focus.
@@ -1008,37 +1024,21 @@ describe("ChoiceList", function() {
 
     // Go back to Table1
     await gu.getPageItem("Table1").click();
-    // Make sure grid is filtered
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ["ChoiceList"] }), [
-      "one",
-      "one\nfoo",
-      "", // new row
-    ]);
+    // Make sure grid is filtered.
+    await assertFilteredCells(["one", "one\nfoo", ""]);
     // Rename one to five, foo to bar
     await editChoiceEntries();
     await renameEntry("one", "five");
     await renameEntry("foo", "bar");
     await saveChoiceEntries();
     // Make sure that there are still two records - filter should be changed to new values.
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ["ChoiceList"] }), [
-      "five",
-      "five\nbar",
-      "", // new row
-    ]);
+    await assertFilteredCells(["five", "five\nbar", ""]);
     // Make sure that it also renamed filters in diffrent section.
     await gu.getPageItem("Table1 (copy)").click();
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ["ChoiceList"] }), [
-      "five",
-      "five\nbar",
-      "", // new row
-    ]);
+    await assertFilteredCells(["five", "five\nbar", ""]);
     // Go back to previous names, filter still should work.
     await gu.undo();
-    assert.deepEqual(await gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ["ChoiceList"] }), [
-      "one",
-      "one\nfoo",
-      "", // new row
-    ]);
+    await assertFilteredCells(["one", "one\nfoo", ""]);
   },
   // Test if the column is reverted to state before the test
   () => gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: ["ChoiceList"] })));

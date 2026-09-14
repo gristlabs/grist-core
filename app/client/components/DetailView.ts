@@ -8,6 +8,7 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { renderAllRows } from "app/client/components/Printing";
 import RecordLayout from "app/client/components/RecordLayout";
 import { viewCommands } from "app/client/components/RegionFocusSwitcher";
+import { isEventOnLink } from "app/client/lib/domUtils";
 import kd from "app/client/lib/koDom";
 import koDomScrolly from "app/client/lib/koDomScrolly";
 import { makeT } from "app/client/lib/localization";
@@ -130,6 +131,9 @@ export default class DetailView extends BaseView {
 
     // Double-clicking on a field also starts editing the field.
     this.autoDispose(dom.onMatchElem(this.viewPane, ".g_record_detail_el", "dblclick", (event, elem) => {
+      // A cell click followed by a click on its link icon can arrive here as a double click.
+      if (isEventOnLink(event)) { return; }
+
       this.activateEditorAtCursor({
         event,
       });

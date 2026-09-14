@@ -35,7 +35,8 @@ const t = makeT("PagePanels");
 
 const AUTO_EXPAND_TIMEOUT_MS = 400;
 
-// delay must be greater than the time needed for transientInput to update focus (ie: 10ms);
+// Moving the focus arrives as a blur then a focus, in separate events. The delay keeps the
+// watcher from reading document.activeElement in the gap and deciding focus left the panel.
 const DELAY_BEFORE_TESTING_FOCUS_CHANGE_MS = 12;
 
 // data attributes added when panels are fully collapsed or expanded

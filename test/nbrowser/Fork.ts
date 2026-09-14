@@ -351,13 +351,17 @@ describe("Fork", function() {
         // Check others without view access to trunk cannot see fork
         await team.user("user2").login();
         await driver.get(forkUrl);
-        assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
-        assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
+        await gu.waitToPass(async () => {
+          assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
+          assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
+        });
 
         await server.removeLogin();
         await driver.get(forkUrl);
-        assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
-        assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
+        await gu.waitToPass(async () => {
+          assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
+          assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
+        });
       });
 
       it("fails to create forks with inconsistent user id", async function() {
@@ -379,8 +383,10 @@ describe("Fork", function() {
         // new doc user2 has no access granted via the doc, or
         // workspace, or org).
         await altSession.loadDoc(`/doc/new~${forkId}~${userId}`, { wait: false });
-        assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
-        assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
+        await gu.waitToPass(async () => {
+          assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
+          assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
+        });
 
         // Same, but as an anonymous user.
         const anonSession = await altSession.anon.login();
@@ -390,8 +396,10 @@ describe("Fork", function() {
 
         // A new doc cannot be created either (because of access mismatch).
         await altSession.loadDoc(`/doc/new~${forkId}~${userId}`, { wait: false });
-        assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
-        assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
+        await gu.waitToPass(async () => {
+          assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
+          assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
+        });
 
         // Now as a user who *is* allowed to create the fork.
         // But doc forks cannot be casually created this way anymore, so it still doesn't work.

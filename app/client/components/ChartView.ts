@@ -21,7 +21,7 @@ import { icon } from "app/client/ui2018/icons";
 import { IOptionFull, linkSelect, menu, menuItem, menuText, select } from "app/client/ui2018/menus";
 import { gristThemeObs } from "app/client/ui2018/theme";
 import { unstyledButton } from "app/client/ui2018/unstyled";
-import { nativeCompare, unwrap } from "app/common/gutil";
+import { nativeCompare, removePrefix, unwrap } from "app/common/gutil";
 import { Sort } from "app/common/SortSpec";
 import { BaseFormatter } from "app/common/ValueFormatter";
 import { decodeObject } from "app/plugin/objtypes";
@@ -36,6 +36,7 @@ import isNumber from "lodash/isNumber";
 import merge from "lodash/merge";
 import sum from "lodash/sum";
 import union from "lodash/union";
+import moment from "moment-timezone";
 
 import type { Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
   PlotData as PlotlyPlotData } from "plotly.js";
@@ -134,16 +135,18 @@ interface DataOptions extends Data {
 // Convert a list of Series into a set of Plotly traces.
 type ChartFunc = (series: Series[], options: ChartOptions, dataOptions?: DataOptions) => PlotData;
 
-// Helper for converting numeric Date/DateTime values (seconds since Epoch) to JS Date objects for
-// use with plotly.
-function dateGetter(getter: RowPropGetter): RowPropGetter {
+// Helper for converting numeric Date/DateTime values (seconds since Epoch) to date strings for
+// use with plotly, rendered in the given timezone.
+function dateGetter(getter: RowPropGetter, timezone: string): RowPropGetter {
   return (r: number) => {
     // 0's will turn into nulls, and non-numbers will turn into NaNs and then nulls. This prevents
     // Plotly from including 1970-01-01 onto X axis, which usually makes the plot useless.
     const val = (getter(r) as number) * 1000;
     // Plotly recommends using strings for dates rather than Date objects or timestamps. They are
     // interpreted more consistently. See https://github.com/plotly/plotly.js/issues/1532#issuecomment-290420534.
-    return val ? new Date(val).toISOString() : null;
+    // Plotly discards the UTC offset and plots the wall clock it is given, so the string must
+    // spell out the time as the user sees it elsewhere in the document.
+    return val ? moment.tz(val, timezone).toISOString(true) : null;
   };
 }
 
@@ -240,7 +243,9 @@ export class ChartView extends BaseView {
         const colId: string = field.displayColModel.peek().colId.peek();
         const getter = this.tableModel.tableData.getRowPropFunc(colId) as RowPropGetter;
         const pureType = field.displayColModel().pureType();
-        const fullGetter = (pureType === "Date" || pureType === "DateTime") ? dateGetter(getter) : getter;
+        // Date values are always UTC-based; a DateTime column carries its timezone in its type.
+        const timezone = removePrefix(field.displayColModel().type(), "DateTime:") || "UTC";
+        const fullGetter = (pureType === "Date" || pureType === "DateTime") ? dateGetter(getter, timezone) : getter;
         return {
           pureType,
           label: field.label(),

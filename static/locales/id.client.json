@@ -233,7 +233,14 @@
         "Profile": "Profil",
         "Enterprise": "Enterprise",
         "OAuth apps": "Aplikasi OAuth",
-        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Aplikasi OAuth memungkinkan Anda menghubungkan integrasi eksternal ke server Grist ini dengan keamanan dan kemudahan yang lebih baik dibandingkan saat menggunakan kunci API.\n\nAplikasi OAuth tersedia dengan [versi penuh Grist]({{fullGrist}})."
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Aplikasi OAuth memungkinkan Anda menghubungkan integrasi eksternal ke server Grist ini dengan keamanan dan kemudahan yang lebih baik dibandingkan saat menggunakan kunci API.\n\nAplikasi OAuth tersedia dengan [versi penuh Grist]({{fullGrist}}).",
+        "No usage data to show.": "Tidak ada data penggunaan untuk ditampilkan.",
+        "Personal site": "Situs pribadi",
+        "Usage summary": "Ringkasan penggunaan",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "Anda memiliki **{{left}} dari {{limit}}** panggilan **API** bulanan yang tersisa",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "Anda memiliki **{{left}} dari {{limit}}** kredit satu kali **Asisten AI** yang tersisa",
+        "You have **{{limit}}** monthly **API** calls": "Anda memiliki **{{limit}}** panggilan **API** bulanan",
+        "You have **{{limit}}** one time **AI Assistant** credits": "Anda memiliki **{{limit}}** kredit satu kali **Asisten AI**"
     },
     "AccountWidget": {
         "Access Details": "Detail Akses",
@@ -1586,7 +1593,13 @@
     "WelcomeSitePicker": {
         "Welcome back": "Selamat Datang kembali",
         "You can always switch sites using the account menu.": "Anda selalu dapat berpindah situs menggunakan menu akun.",
-        "You have access to the following Grist sites.": "Anda memiliki akses ke situs Grist berikut."
+        "You have access to the following Grist sites.": "Anda memiliki akses ke situs Grist berikut.",
+        "No sites available": "Tidak ada situs yang tersedia",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "Situs pribadi dinonaktifkan pada instalasi ini, dan Anda belum menjadi anggota situs tim mana pun.",
+        "Create a team site": "Buat situs tim",
+        "Ask an administrator to add you to a team site.": "Minta administrator untuk menambahkan Anda ke situs tim.",
+        "Sign in to see your sites": "Masuk untuk melihat situs Anda",
+        "Sign in": "Masuk"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "KETERANGAN"
@@ -1638,7 +1651,10 @@
         "Access overview": "Ikhtisar akses",
         "Share it publicly": "Bagikan secara publik",
         "Verify your sensitive data before sharing publicly": "Verifikasi data sensitif Anda sebelum membagikannya secara publik",
-        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "{{resourceType}} Anda akan dapat diakses oleh siapa pun yang memiliki tautan tersebut, baik yang dibagikan secara langsung maupun yang ditemukan melalui mesin pencari. \n Pastikan {{resourceType}} Anda tidak berisi data sensitif sebelum dibagikan."
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "{{resourceType}} Anda akan dapat diakses oleh siapa pun yang memiliki tautan tersebut, baik yang dibagikan secara langsung maupun yang ditemukan melalui mesin pencari. \n Pastikan {{resourceType}} Anda tidak berisi data sensitif sebelum dibagikan.",
+        "Configure notifications": "Konfigurasikan notifikasi",
+        "Invitation emails are not enabled on this installation.": "Email undangan tidak diaktifkan pada instalasi ini.",
+        "Invitation emails are not sent on Grist Community edition.": "Email undangan tidak dikirim pada Grist Community edition."
     },
     "SearchModel": {
         "Search all pages": "Cari semua halaman",
@@ -2823,7 +2839,32 @@
         "Choose how people sign in. You can change this anytime after setup.": "Pilih cara orang login. Anda dapat mengubahnya kapan saja setelah penyiapan.",
         "Continue without authentication": "Lanjutkan tanpa autentikasi",
         "Or connect your own identity provider": "Atau hubungkan identity provider Anda sendiri",
-        "Skip authentication setup?": "Lewati penyiapan autentikasi?"
+        "Skip authentication setup?": "Lewati penyiapan autentikasi?",
+        "Activate": "Aktifkan",
+        "Activate: {{name}}": "Aktifkan: {{name}}",
+        "Address this.": "Atasi hal ini.",
+        "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Siapa pun dapat mengakses seluruh data tanpa masuk. Hanya cocok untuk jaringan privat dan pengaturan sementara.",
+        "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Siapa pun yang dapat menjangkau server ini dapat mengakses seluruh data tanpa masuk. Pilih metode masuk di bawah ini.",
+        "Hide installation ID": "Sembunyikan ID instalasi",
+        "I have a key": "Saya memiliki kunci",
+        "I understand this server will run with no authentication": "Saya memahami bahwa server ini akan berjalan tanpa autentikasi",
+        "Meanwhile, finish setting up": "Sementara itu, selesaikan pengaturan",
+        "Missing activation key": "Kunci aktivasi tidak ditemukan",
+        "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.": "Hanya reverse proxy Anda yang boleh dapat menjangkau backend Grist secara langsung, atau pengguna dapat melewati proses masuk.",
+        "Other methods": "Metode lain",
+        "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.": "Pilih metode masuk yang didukung dan dapat digunakan saat ini: Masuk dengan getgrist.com (sederhana dan direkomendasikan), forwarded headers (untuk pengaturan reverse proxy), atau lanjutkan tanpa autentikasi untuk sementara.",
+        "Request activation key": "Minta kunci aktivasi",
+        "Requires activation key": "Memerlukan kunci aktivasi",
+        "Revert": "Kembalikan",
+        "Show installation ID": "Tampilkan ID instalasi",
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Single sign-on dengan **OIDC** atau **SAML** secara resmi didukung pada Grist edisi lengkap dan memerlukan kunci aktivasi — lihat [harga]({{pricingLink}}). Individu dan organisasi kecil dapat meminta [kunci aktivasi Grist gratis]({{faqLink}}).",
+        "Start your key request": "Mulai permintaan kunci Anda",
+        "Switch to: {{name}}": "Beralih ke: {{name}}",
+        "Was: {{name}}": "Sebelumnya: {{name}}",
+        "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "Saat kunci Anda tiba, masukkan kunci tersebut pada bagian **Edition**, lalu beralih ke **{{name}}** di sini.",
+        "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "Anda akan menerima respons melalui email, biasanya dalam 5 hari kerja. Kunci Anda akan terikat pada instalasi ini.",
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} aktif tetapi berada di luar konfigurasi yang didukung tanpa kunci aktivasi Grist Full. ",
+        "{{name}} requires an activation key": "{{name}} memerlukan kunci aktivasi"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Baris ini tidak tersedia atau tidak ada"
@@ -2847,7 +2888,8 @@
         "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Ideal untuk pengujian dan pembuatan prototipe. Login dengan akun getgrist.com tanpa perlu mengonfigurasi identity provider.",
         "Recommended": "Direkomendasikan",
         "Use getgrist.com sign-in": "Gunakan login getgrist.com",
-        "You can switch to OIDC, SAML, or another method at any time.": "Anda dapat beralih ke OIDC, SAML, atau metode lain kapan saja."
+        "You can switch to OIDC, SAML, or another method at any time.": "Anda dapat beralih ke OIDC, SAML, atau metode lain kapan saja.",
+        "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping.": "Pengguna masuk menggunakan akun getgrist.com. Paling mudah dikonfigurasi. Juga ideal untuk pengujian dan pembuatan prototipe."
     },
     "AirtableImportUI": {
         "Back": "Kembali",
@@ -3075,7 +3117,8 @@
         "macOS Sandbox": "Sandbox macOS",
         "Sandbox": "Sandbox",
         "No sandbox": "Tanpa sandbox",
-        "macOS sandbox": "Sandbox macOS"
+        "macOS sandbox": "Sandbox macOS",
+        "Revert": "Kembalikan"
     },
     "AdminPanelCss": {
         "Confirmed": "Dikonfirmasi",
@@ -3175,7 +3218,8 @@
         "Account settings": "Pengaturan akun",
         "Developer": "Pengembang",
         "Profile": "Profil",
-        "Authorized apps": "Aplikasi yang diizinkan"
+        "Authorized apps": "Aplikasi yang diizinkan",
+        "Personal site": "Situs pribadi"
     },
     "SettingsLayout": {
         "Authentication": "Autentikasi",
@@ -3377,5 +3421,64 @@
         "We saved your details, but couldn't subscribe you to updates.": "Detail Anda telah disimpan, tetapi kami tidak dapat mendaftarkan Anda untuk menerima pembaruan.",
         "We subscribed you for product updates, but couldn't save your other details.": "Anda telah didaftarkan untuk menerima pembaruan produk, tetapi detail lainnya tidak dapat disimpan.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Perubahan konfigurasi Anda telah diterapkan dan server telah dimulai ulang. Grist kini aktif dan tersedia bagi pengguna."
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Tambahkan kalender",
+        "Create new column": "Buat kolom baru",
+        "Date + time": "Tanggal + waktu",
+        "Date only": "Tanggal saja",
+        "Dates": "Tanggal",
+        "End": "Berakhir",
+        "End (optional)": "Berakhir (opsional)",
+        "None": "Tidak ada",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Pilih kolom yang berisi tanggal dan judul acara Anda, atau buat kolom baru.",
+        "Select a column": "Pilih kolom",
+        "Set up calendar": "Atur kalender",
+        "Start": "Mulai",
+        "Start and end must be the same date type.": "Tanggal mulai dan berakhir harus memiliki jenis tanggal yang sama.",
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "Tabel ringkasan ini tidak memiliki kolom tanggal. Tambahkan terlebih dahulu kolom rumus seperti MIN($group.Date).",
+        "This summary table has no text column. Events will show without labels.": "Tabel ringkasan ini tidak memiliki kolom teks. Acara akan ditampilkan tanpa label.",
+        "Title": "Judul",
+        "Title (optional)": "Judul (opsional)"
+    },
+    "CalendarView": {
+        "Day": "Hari",
+        "Month": "Bulan",
+        "New Event": "Acara Baru",
+        "Today": "Hari ini",
+        "Week": "Minggu"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "+{{count}} lainnya",
+        "+{{count}} more_other": "+{{count}} lainnya",
+        "End Date": "Tanggal Berakhir",
+        "Groups events by category. Each choice uses its own color and style.": "Mengelompokkan acara berdasarkan kategori. Setiap pilihan menggunakan warna dan gaya tersendiri.",
+        "Is All Day": "Sepanjang Hari",
+        "Start Date": "Tanggal Mulai",
+        "The label shown on the event.": "Label yang ditampilkan pada acara.",
+        "Title": "Judul",
+        "Type": "Jenis",
+        "When the event ends. If empty, the event lasts as long as its start.": "Waktu acara berakhir. Jika kosong, durasi acara akan mengikuti waktu mulainya.",
+        "When the event starts.": "Waktu acara dimulai.",
+        "Whether the event lasts all day.": "Menentukan apakah acara berlangsung sepanjang hari."
+    },
+    "InstallationIdBlock": {
+        "Copy": "Salin",
+        "Copy to clipboard": "Salin ke papan klip",
+        "Installation ID": "ID instalasi",
+        "Installation ID copied to clipboard": "ID instalasi disalin ke papan klip"
+    },
+    "AskTheAdmin": {
+        "1 person has asked for this.": "1 orang telah meminta ini.",
+        "Add a note": "Tambahkan catatan",
+        "Ask the admin for this": "Minta ini kepada admin",
+        "Note sent.": "Catatan terkirim.",
+        "Why do you want this? Press Enter to send.": "Mengapa Anda menginginkan ini? Tekan Enter untuk mengirim.",
+        "You and 1 other have asked for this.": "Anda dan 1 orang lainnya telah meminta ini.",
+        "You and {{count}} others have asked for this._one": "Anda dan {{count}} orang lainnya telah meminta ini.",
+        "You and {{count}} others have asked for this._other": "Anda dan {{count}} orang lainnya telah meminta ini.",
+        "You've asked for this.": "Anda telah meminta ini.",
+        "{{count}} people have asked for this._one": "{{count}} orang telah meminta ini.",
+        "{{count}} people have asked for this._other": "{{count}} orang telah meminta ini."
     }
 }

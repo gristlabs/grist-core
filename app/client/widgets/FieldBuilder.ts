@@ -15,7 +15,7 @@ import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/AppModel";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ColumnRec, DocModel, ViewFieldRec } from "app/client/models/DocModel";
-import { SaveableObjObservable, setSaveValue } from "app/client/models/modelUtil";
+import { type KoReactive, SaveableObjObservable, setSaveValue } from "app/client/models/modelUtil";
 import { FieldSettingsMenu } from "app/client/ui/FieldMenus";
 import { translateColumnTypeLabel } from "app/client/ui/GridViewMenus";
 import { cssBlockedCursor, cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
@@ -926,7 +926,7 @@ export class FieldBuilder extends Disposable {
     // Create a custom cleanup method, that won't destroy us when we loose focus while being detached.
     function setupEditorCleanup(
       owner: MultiHolder, gristDoc: GristDoc,
-      editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
+      editingFormula: KoReactive<boolean>, _saveEdit: () => Promise<unknown>,
     ) {
       // Just override the behavior on focus lost.
       const saveOnFocus = () => floatingExtension.active.get() ? void 0 : _saveEdit().catch(reportError);

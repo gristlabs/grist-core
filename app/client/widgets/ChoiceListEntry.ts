@@ -1,3 +1,4 @@
+import { onceAttached } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { IToken, TokenField } from "app/client/lib/TokenField";
 import { cssBlockedCursor } from "app/client/ui/RightPanelStyles";
@@ -313,7 +314,7 @@ export class ChoiceListEntry extends Disposable {
   }
 
   private _focusOnOpen(elem: HTMLInputElement): void {
-    setTimeout(() => focus(elem), 0);
+    onceAttached(elem, () => focus(elem));
   }
 
   private _renderToken(token: ChoiceItem) {

@@ -596,15 +596,15 @@ describe("ChartView1", function() {
     assert.deepEqual(data[0].type, "scatter");
     assert.deepEqual(data[0].name, "largeValue");
     assert.deepEqual(data[0].x, [
-      "2018-01-15T00:00:00.000Z", "2018-01-31T00:00:00.000Z", "2018-02-14T00:00:00.000Z",
-      "2018-03-04T00:00:00.000Z", "2018-03-14T00:00:00.000Z", "2018-03-26T00:00:00.000Z",
+      "2018-01-15T00:00:00.000+00:00", "2018-01-31T00:00:00.000+00:00", "2018-02-14T00:00:00.000+00:00",
+      "2018-03-04T00:00:00.000+00:00", "2018-03-14T00:00:00.000+00:00", "2018-03-26T00:00:00.000+00:00",
     ]);
     assert.deepEqual(data[0].y, [22, 33, 11, 44, 22, 55]);
     assert.deepEqual(data[1].type, "scatter");
     assert.deepEqual(data[1].name, "value");
     assert.deepEqual(data[0].x, [
-      "2018-01-15T00:00:00.000Z", "2018-01-31T00:00:00.000Z", "2018-02-14T00:00:00.000Z",
-      "2018-03-04T00:00:00.000Z", "2018-03-14T00:00:00.000Z", "2018-03-26T00:00:00.000Z",
+      "2018-01-15T00:00:00.000+00:00", "2018-01-31T00:00:00.000+00:00", "2018-02-14T00:00:00.000+00:00",
+      "2018-03-04T00:00:00.000+00:00", "2018-03-14T00:00:00.000+00:00", "2018-03-26T00:00:00.000+00:00",
     ]);
     assert.deepEqual(data[1].y, [16, 2, 3, 4, 5, 6]);
   });
@@ -847,5 +847,22 @@ describe("ChartView1", function() {
     await checkAxisConfig({ xaxis: "Group", yaxis: ["Y1", "Y2"] });
     await gu.checkForErrors();
     await gu.undo(2);
+  });
+
+  it("should render datetimes on X-axis in the column's timezone", async function() {
+    // Both values are 09:30 New York time: the first in winter (UTC-5), the second in summer
+    // (UTC-4). Plotly ignores timezone offsets, so what it renders is the wall clock we give it.
+    await api.applyUserActions(doc.id, [
+      ["AddTable", "DateTimes", [
+        { id: "When", type: "DateTime:America/New_York" },
+        { id: "Value", type: "Numeric" },
+      ]],
+      ["BulkAddRecord", "DateTimes", [null, null], { When: [1516026600, 1531661400], Value: [1, 2] }],
+    ]);
+    await gu.addNewPage(/Chart/, /DateTimes/);
+
+    const { data } = await getChartData();
+    assert.deepEqual(data[0].x, ["2018-01-15T09:30:00.000-05:00", "2018-07-15T09:30:00.000-04:00"]);
+    assert.deepEqual(data[0].y, [1, 2]);
   });
 });

@@ -2151,6 +2151,9 @@ export class ActiveDoc extends EventEmitter {
           sandboxActionBundle.retValues.push(retValues);
         }
       });
+      // The engine's undoOwner covers only the entries it produced, not the on-demand ones
+      // appended above. Drop it, so the summarizer falls back to inferring the grouping.
+      delete sandboxActionBundle.undoOwner;
     }
 
     return sandboxActionBundle;
