@@ -262,21 +262,13 @@ export class RegionFocusSwitcher extends Disposable {
     const targetsMain = targetRegionId === "main";
 
     // When not targeting the main panel, we don't always want to focus the given region _on click_.
-    //
-    // We only do it if clicking an empty area in the panel, or a focusable element like an input.
-    // Because we kind of expect these behaviors usually on the web: I click on
-    // an empty space, and I can start using Tab to navigate around the area I clicked ;
-    // I click inside an input, and I can use Tab to navigate to the following ones.
-    //
-    // Otherwise, we assume[*] clicks are on elements like buttons or links,
-    // and we don't want to lose focus of current section in this case.
-    // For example I don't want to focus out current table if just click the "undo" button in the header.
-    //
-    // [*]: for now, we "assume" because lots of interactive elements in Grist are divs with click handlers.
-    // So we can't reliably consider that clicking on a div is clicking on a "empty area".
-    // Ideally (WIP) we'd have a more reliable way to detect "buttons" and this code could be simplified.
-    const isFocusableElement = isMouseFocusableElement(event.target) || closestRegion === event.target;
-
+    // We only do it if clicking a focusable element like an input.
+    // Because we kind of expect this behavior usually on the web: I click inside an input,
+    // and I can use Tab to navigate around it.
+    // To better mimic browser behavior, we could also make it so that clicking empty areas in panels enables
+    // using Tab to navigate around the clicked area. But this is not implemented, as it might be weird for users
+    // to lose the current section's focus so easily.
+    const isFocusableElement = isMouseFocusableElement(event.target);
     if (targetsMain || !isFocusableElement) {
       // don't specify a section id here: we just want to focus back the view layout,
       // we don't specifically know which section, the view layout will take care of that.

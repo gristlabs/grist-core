@@ -32,6 +32,20 @@ const assertTabToNavigate = async (containerSelector?: string) => {
   assert.isTrue(await isNormalElementFocused(containerSelector));
 };
 
+/**
+ * Check that Tab moves the cursor within the current table.
+ * Assumes the first cell contains "hello"
+ */
+const assertTabMovesInTable = async () => {
+  await expectClipboardFocus(true, 0);
+  assert.equal(await gu.getActiveCell().getText(), "hello");
+  const secondCellText = await gu.getCell(1, 1).getText();
+  await driver.sendKeys(Key.TAB);
+  assert.equal(await gu.getActiveCell().getText(), secondCellText);
+  await gu.getCell(0, 1).click();
+  await expectClipboardFocus(true, 0);
+};
+
 const cycle = async (dir: "forward" | "backward" = "forward") => {
   const shortcut = dir === "forward" ?
     Key.chord(Key.CONTROL, "o") :
@@ -139,14 +153,7 @@ describe("RegionFocusSwitcher", function() {
     const session = await gu.session().teamSite.login();
     await session.tempDoc(cleanup, "Hello.grist");
 
-    await expectClipboardFocus(true, 0);
-    assert.equal(await gu.getActiveCell().getText(), "hello");
-    await driver.sendKeys(Key.TAB);
-    // after pressing tab once, we should be on the [first row, second column]-cell
-    const secondCellText = await gu.getCell(1, 1).getText();
-    const activeCellText = await gu.getActiveCell().getText();
-    assert.equal(activeCellText, secondCellText);
-    await expectClipboardFocus(true, 0);
+    await assertTabMovesInTable();
   });
 
   it("should cycle through regions with (Shift+)Ctrl+O", async () => {
@@ -301,12 +308,31 @@ describe("RegionFocusSwitcher", function() {
 
   it("should keep the active section focused when clicking a link or button of a panel-region", async function() {
     const session = await gu.session().teamSite.login();
-    await session.tempNewDoc(cleanup);
+    await session.tempDoc(cleanup, "Hello.grist");
 
     await gu.enterCell("test");
     await driver.find(".test-undo").click();
     await assertPanelFocus("top", false);
-    await expectClipboardFocus(true, 0);
+    await assertTabMovesInTable();
+  });
+
+  it("should keep the active section focused when clicking an empty space in a panel", async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempDoc(cleanup, "Hello.grist");
+
+    // Click the top panel header element at 110px from the left and 45px from the top, assuring
+    // we actually click an empty space in it (no children).
+    const title = await driver.find(".test-top-header");
+    const { width, height } = await title.getRect();
+    await driver.withActions(a => a
+      .move({
+        origin: title,
+        x: Math.round(110 - width / 2),
+        y: Math.round(45 - height / 2),
+      })
+      .click());
+    await assertPanelFocus("top", false);
+    await assertTabMovesInTable();
   });
 
   it("should jump between a widget and its header with Ctrl+I", async function() {
@@ -330,6 +356,23 @@ describe("RegionFocusSwitcher", function() {
 
     await jump();
     await assertSectionFocus(sectionId);
+  });
+
+  it("should keep the active section focused when clicking an empty space in a widget header", async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempDoc(cleanup, "Hello.grist");
+    // Click the widget header element at 20px from the left and 1px from the top, assuring
+    // we actually click an empty space in it (no children).
+    const title = await driver.find(".viewsection_title");
+    const { width, height } = await title.getRect();
+    await driver.withActions(a => a
+      .move({
+        origin: title,
+        x: Math.round(20 - width / 2),
+        y: Math.round(1 - height / 2),
+      })
+      .click());
+    await assertTabMovesInTable();
   });
 
   it("should jump through panel landmarks with (Shift+)Ctrl+I", async function() {
