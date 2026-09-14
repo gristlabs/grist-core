@@ -2684,7 +2684,6 @@ export class ActiveDoc extends EventEmitter {
       } catch (err) {
         this._log.error(docSession, "failed to shutdown some resources", err);
       }
-
       // No timeout on this callback: if it hangs, it will make the document unusable.
       await this._afterShutdownCallback?.();
     } finally {
