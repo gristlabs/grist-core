@@ -55,7 +55,6 @@ export type CommandName =
   "creatorPanel" |
   "focusSectionHeader" |
   "nextJumpTarget" |
-  "prevJumpTarget" |
   "shiftDown" |
   "shiftUp" |
   "shiftRight" |
@@ -440,11 +439,6 @@ export const groups: CommendGroupDef[] = [{
       name: "nextJumpTarget",
       keys: ["Ctrl+i"],
       desc: () => t("When focused on a page panel, focus next landmark"),
-      alwaysOn: true,
-    }, {
-      name: "prevJumpTarget",
-      keys: ["Ctrl+Shift+I"],
-      desc: () => t("When focused on a page panel, focus previous landmark"),
       alwaysOn: true,
     }, {
       name: "viewAsCard",

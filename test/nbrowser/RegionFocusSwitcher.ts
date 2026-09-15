@@ -375,7 +375,7 @@ describe("RegionFocusSwitcher", function() {
     await assertTabMovesInTable();
   });
 
-  it("should jump through panel landmarks with (Shift+)Ctrl+I", async function() {
+  it("should jump through panel landmarks with Ctrl+I", async function() {
     const session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
 
@@ -386,11 +386,9 @@ describe("RegionFocusSwitcher", function() {
     await jump();
     await assertActiveElementMatches(".test-dp-add-new");
 
-    // Tab one time to move focus inside the document pages list, then jump back to the
-    // previous landmark, it should be the "Document pages" navigation
+    // Pressing tab after jumping should work normally
     await driver.sendKeys(Key.TAB);
-    await jump("prev");
-    assert.equal(await driver.switchTo().activeElement().getAttribute("aria-label"), "Document pages");
+    await assertActiveElementMatches(".test-docpage-link");
 
     // Next landmark is the tools list, pressing tab once in it should focus the Access Rules link
     await jump();

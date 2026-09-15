@@ -86,7 +86,6 @@ export class RegionFocusSwitcher extends Disposable {
         return this._toggleCreatorPanel();
       },
       nextJumpTarget: () => this._jump("next"),
-      prevJumpTarget: () => this._jump("prev"),
       cancel: this._onEscapeKeypress.bind(this),
     }, this, true));
 
@@ -769,16 +768,14 @@ const isSectionHeaderPanel = (id: Region["id"]) => {
 };
 
 /**
- * Add this class to elements you want to be able to jump to/from with the nextJumpTarget and prevJumpTarget commands
- *
+ * Add this class to elements you want to be able to jump to/from with the nextJumpTarget command.
  * Note that using @see kbJumperAnchor is preferred over this as it also makes sure the element is focusable,
  * but this can be handy for specific use cases where kbJumperAnchor doesn't fit.
  */
 export const kbJumperClass = "kb_jumper_anchor";
 
 /**
- * Add this dom element arg to an element you want to be able to jump to/from with the nextJumpTarget and
- * prevJumpTarget commands.
+ * Add this dom element arg to an element you want to be able to jump to/from with the nextJumpTarget command.
  */
 export const kbJumperAnchor = (): DomElementArg => ([
   dom.cls(kbJumperClass),
