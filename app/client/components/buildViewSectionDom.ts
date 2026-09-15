@@ -91,6 +91,8 @@ export function buildViewSectionDom(options: {
     if (!use(vs.linkSrcSectionRef)) { return null; }
     return use(use(vs.linkSrcSection).titleDef);
   });
+
+  const regionFocusSwitcher = gristDoc.regionFocusSwitcher;
   return dom("div.view_leaf.viewsection_content.flexvbox.flexauto",
     testId(`viewlayout-section-${sectionRowId}`),
     dom.autoDispose(selectedBySectionTitle),
@@ -101,6 +103,8 @@ export function buildViewSectionDom(options: {
     dom.cls("active_section--no-focus", use => !vs.isDisposed() && use(vs.hasFocus) && !use(vs.hasRegionFocus)),
     dom.cls("active_section--no-indicator", use => !focusable || (!vs.isDisposed() && !use(vs.hasVisibleFocus))),
     dom.maybe<BaseView | null>(use => use(vs.viewInstance), viewInstance => dom("div.viewsection_title.flexhbox",
+      regionFocusSwitcher?.panelAttrs(`section-header-${sectionRowId}`, ""),
+      dom.attr("aria-label", use => t(`{{title}} widget header`, { title: use(vs.titleDef) })),
       cssDragIcon("DragDrop",
         dom.cls("viewsection_drag_indicator"),
         // Makes element grabbable only if grist is not readonly.
