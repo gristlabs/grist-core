@@ -101,6 +101,10 @@ def run(sandbox):
     return eng.autocomplete(txt, table_id, column_id, row_id, user)
 
   @export
+  def find_col_dependents(table_id, col_id):
+    return eng.find_col_dependents(table_id, col_id)
+
+  @export
   def find_col_from_values(values, n, opt_table_id):
     return eng.find_col_from_values(values, n, opt_table_id)
 

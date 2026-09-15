@@ -328,7 +328,7 @@ export class RightPanel extends Disposable {
     }));
 
     return domAsync(imports.loadViewPane().then((ViewPane) => {
-      const { buildNameConfig, buildFormulaConfig } = ViewPane.FieldConfig;
+      const { buildNameConfig, buildFormulaConfig, buildReferencesConfig } = ViewPane.FieldConfig;
       return dom.maybe(isColumnValid, () =>
         buildConfigContainer(
           cssSection(
@@ -370,6 +370,11 @@ export class RightPanel extends Disposable {
             cssLabel(t("TRANSFORM")),
             dom.maybe<FieldBuilder | null>(fieldBuilder, builder => builder.buildTransformDom()),
             testId("panel-transform"),
+          ),
+          cssSeparator(),
+          cssSection(
+            dom.hide(isMultiSelect),
+            dom.create(buildReferencesConfig, origColumn, this._gristDoc),
           ),
           this._disableIfReadonly(),
         ),
