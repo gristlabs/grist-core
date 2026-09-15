@@ -129,9 +129,10 @@ describe("VisibleFieldsConfig", function() {
     await gu.sendKeys(Key.TAB);
     // Then go backwards to directly tab through the elements at the bottom of the panel
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
-    // Pressing Tab once makes us focus the latest checkbox in the "Hidden columns" list. Toggle the column checkbox
+    // Pressing Shift+Tab once makes us focus the latest checkbox in the "Hidden columns" list.
+    // Toggle the column checkbox with spacebar.
     await gu.sendKeys(Key.SPACE);
-    // Press Tab to focus the "Show columns" button, and press it
+    // Press Tab to focus the "Show columns" button that just appeared, and press it
     await gu.sendKeys(Key.TAB);
     await gu.sendKeys(Key.ENTER);
     await gu.waitForServer();
