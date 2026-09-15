@@ -49,6 +49,3 @@ export interface FullUser extends UserProfile {
   prefs?: UserPrefs;
   createdAt?: Date; // Not filled for anonymous users.
 }
-
-export interface LoginSessionAPI {
-}
