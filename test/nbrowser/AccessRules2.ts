@@ -319,13 +319,13 @@ describe("AccessRules2", function() {
 
     // Select a different table, and check that the Column field dropdown gets updated.
     await userAttrRule.find(".test-rule-userattr-table").click();
-    await driver.sendKeys("Access", Key.ENTER);
+    await gu.findOpenMenuItem("li", "Access").click();
     await userAttrRule.find(".test-rule-userattr-col").click();
     await gu.waitToPass(async () => {
       assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()),
         ["Email", "SharedOnly", "id"]);
     });
-    await driver.sendKeys("Email", Key.ENTER);
+    await gu.findOpenMenuItem("li", "Email").click();
 
     // Remove ClientTable rules, and add a new one using the new UserAttribute.
     if (await findTable(/ClientsTable/).isPresent()) {
