@@ -166,7 +166,7 @@ export function viewSectionMenu(
         cssSmallIcon("Grow"),
         testId("expandSection"),
         dom.on("click", () =>  allCommands.expandSection.run()),
-        hoverTooltip("Expand section", { key: "expandSection" }),
+        hoverTooltip("Expand widget", { key: "expandSection" }),
       ),
     ),
   ];
