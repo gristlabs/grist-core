@@ -1,9 +1,8 @@
 import BaseView from "app/client/components/BaseView";
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { enableTabTrap, isFocusable } from "app/client/lib/focusUtils";
+import { enableTabTrap, isFocusable, kbFocusHighlighterClass } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { App } from "app/client/ui/App";
 import { SpecialDocPage } from "app/common/gristUrls";

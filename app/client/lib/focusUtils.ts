@@ -17,7 +17,6 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 
 import { Disposable, dom, DomElementArg, DomMethod } from "grainjs";
@@ -315,6 +314,11 @@ const focusableSelectors = [
 ];
 
 export const focusableSelectorsString = focusableSelectors.join(",");
+
+/**
+ * Add this class to a container element to have keyboard-focused children items visually highlighted.
+ */
+export const kbFocusHighlighterClass = "kb-focus-highlighter-group";
 
 export const kbFallbackClass = "kb_fallback_element";
 
