@@ -4,7 +4,7 @@
 import {
   assertChanged, assertSaved, enterRulePart, findDefaultRuleSet,
   findRuleSetColumnWait, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
-  removeTable, startEditingAccessRules,
+  removeTable, revertAccessRulesIfChanged, startEditingAccessRules,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -30,7 +30,10 @@ describe("AccessRules3", function() {
     return docId;
   });
 
-  afterEach(() => gu.checkForErrors());
+  afterEach(async () => {
+    await revertAccessRulesIfChanged();
+    await gu.checkForErrors();
+  });
 
   describe("SeedRule special", function() {
     // When a tooltip is present, it introduces this extra text into getText() result.

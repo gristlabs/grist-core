@@ -8,6 +8,7 @@ import { aclSelect } from "app/client/aclui/ACLSelect";
 import { ACLUsersPopup } from "app/client/aclui/ACLUsers";
 import { permissionsWidget } from "app/client/aclui/PermissionsWidget";
 import { GristDoc } from "app/client/components/GristDoc";
+import { UnsavedChange } from "app/client/components/UnsavedChanges";
 import { makeT } from "app/client/lib/localization";
 import { inlineMarkdown, markdown } from "app/client/lib/markdown";
 import { ISuggestionWithSubAttrs } from "app/client/lib/Suggestions";
@@ -68,6 +69,7 @@ import {
   dom,
   DomContents,
   DomElementArg,
+  Holder,
   IDisposableOwner,
   MutableObsArray,
   obsArray,
@@ -173,6 +175,8 @@ export class AccessRules extends Disposable {
   // Details of rule problems, for offering solutions to the user.
   private _ruleProblems = this.autoDispose(obsArray<AclRuleProblem>());
 
+  private _unsavedChangeHolder = Holder.create<UnsavedChange>(this);
+
   // Map of tableId to basic metadata for all tables in the document.
   private _aclResources = new Map<string, AclTableDescription>();
 
@@ -248,6 +252,18 @@ export class AccessRules extends Disposable {
       this.autoDispose(tableData.tableActionEmitter.addListener(this._onChange, this));
     }
     this.autoDispose(this.gristDoc.docPageModel.currentDoc.addListener(this._updateDocAccessData, this));
+
+    this.autoDispose(this._ruleStatus.addListener((status) => {
+      if (status !== RuleStatus.Unchanged) {
+        UnsavedChange.create(this._unsavedChangeHolder,
+          undefined,
+          () => this._ruleStatus.get() !== RuleStatus.Unchanged,
+          "manual",
+        );
+      } else {
+        this._unsavedChangeHolder.clear();
+      }
+    }));
 
     this.update().catch(e => this._errorMessage.set(e.message));
   }
