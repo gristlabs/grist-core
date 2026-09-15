@@ -5,8 +5,8 @@
  */
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
-import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
+import { kbFocusHighlighterClass } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { stripLinks } from "app/client/lib/markdown";
 import { ColumnFilter, NEW_FILTER_JSON } from "app/client/models/ColumnFilter";
