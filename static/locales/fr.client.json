@@ -1093,7 +1093,12 @@
         "Show {{label}}": "Montrer {{label}}",
         "Hidden {{label}}": "{{label}} caché",
         "Hide {{label}} (batch mode)": "Masquer {{label}} (mode groupé)",
-        "Show {{label}} (batch mode)": "Montrer {{label}} (mode groupé)"
+        "Show {{label}} (batch mode)": "Montrer {{label}} (mode groupé)",
+        "Clear hidden columns filter": "Réinitialiser le filtre des colonnes cachées",
+        "Clear visible columns filter": "Réinitialiser le filtre des colonnes visibles",
+        "Filter columns": "Filtrer les colonnes",
+        "Filter hidden columns": "Filtrer les colonnes cachées",
+        "Filter visible columns": "Filtrer les colonnes visibles"
     },
     "WidgetTitle": {
         "Override widget title": "Renommer la vue",

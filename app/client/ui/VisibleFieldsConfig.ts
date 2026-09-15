@@ -1,5 +1,6 @@
 import DetailView from "app/client/components/DetailView";
 import { GristDoc } from "app/client/components/GristDoc";
+import { normalizeText } from "app/client/lib/ACIndex";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
 import { makeT } from "app/client/lib/localization";
@@ -16,13 +17,16 @@ import { visuallyHiddenStyles } from "app/client/ui2018/visuallyHidden";
 import * as gutil from "app/common/gutil";
 import { IWidgetType } from "app/common/widgetTypes";
 
-import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe } from "grainjs";
+import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe, UseCB } from "grainjs";
 import ko from "knockout";
 import difference from "lodash/difference";
 import isEqual from "lodash/isEqual";
 
 const testId = makeTestId("test-vfc-");
 const t = makeT("VisibleFieldsConfig");
+
+/** Show a filter input once a list has more than this many columns. */
+const FILTER_INPUT_MIN_COUNT = 10;
 
 export type IField = ViewFieldRec | ColumnRec;
 
@@ -36,7 +40,10 @@ interface DraggableFieldsOption {
   skipFirst?: Observable<number>;
 
   // Allows to filter view fields.
-  filterFunc?: (field: ViewFieldRec, index: number) => boolean;
+  filterFunc?: (field: IField, index: number) => boolean;
+
+  // Observable that triggers re-filtering when it changes (e.g. search text).
+  filterTrigger?: Observable<unknown>;
 
   // Allows to prevent updates of the list. This option is to be used when skipFirst option is used
   // and it is useful to prevent the list to update during changes that only affect the skipped
@@ -71,6 +78,9 @@ export class VisibleFieldsConfig extends Disposable {
   });
 
   private _collapseHiddenFields = Observable.create(this, false);
+
+  private _visibleFilter = Observable.create(this, "");
+  private _hiddenFilter = Observable.create(this, "");
 
   /**
    * Set if and only if the corresponding selection is empty, ie: respectively
@@ -114,7 +124,7 @@ export class VisibleFieldsConfig extends Disposable {
   public buildVisibleFieldsConfigHelper(options: DraggableFieldsOption) {
     let fields = this._section.viewFields.peek();
 
-    if (options.skipFirst || options.filterFunc) {
+    if (options.skipFirst || options.filterFunc || options.filterTrigger) {
       const skipFirst = options.skipFirst || Observable.create(this, -1);
       const filterFunc = options.filterFunc || (() => true);
 
@@ -136,6 +146,9 @@ export class VisibleFieldsConfig extends Disposable {
       this.autoDispose(subscribe(skipFirst, update));
       if (options.freeze) {
         this.autoDispose(subscribe(options.freeze, update));
+      }
+      if (options.filterTrigger) {
+        this.autoDispose(subscribe(options.filterTrigger, update));
       }
       fields = newArray;
     }
@@ -170,8 +183,9 @@ export class VisibleFieldsConfig extends Disposable {
       hiddenFields: DraggableFieldsOption,
     }): [HTMLElement, HTMLElement] {
     const fieldsDraggable = this.buildVisibleFieldsConfigHelper(options.visibleFields);
+    const hiddenFields = this._buildFilteredHiddenFields(options.hiddenFields);
     const hiddenFieldsDraggable = kf.draggableList(
-      this._hiddenFields,
+      hiddenFields,
       options.hiddenFields.itemCreateFunc,
       {
         itemClass: cssDragRow.className,
@@ -200,6 +214,8 @@ export class VisibleFieldsConfig extends Disposable {
     const [fieldsDraggable, hiddenFieldsDraggable] = this.buildSectionFieldsConfigHelper({
       visibleFields: {
         itemCreateFunc: field => this._buildVisibleFieldItem(field as ViewFieldRec),
+        filterFunc: field => fieldMatchesFilter(field, this._visibleFilter.get()),
+        filterTrigger: this._visibleFilter,
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
@@ -207,6 +223,8 @@ export class VisibleFieldsConfig extends Disposable {
       },
       hiddenFields: {
         itemCreateFunc: field => this._buildHiddenFieldItem(field as ColumnRec),
+        filterFunc: field => fieldMatchesFilter(field, this._hiddenFilter.get()),
+        filterTrigger: this._hiddenFilter,
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
@@ -233,6 +251,11 @@ export class VisibleFieldsConfig extends Disposable {
               )
             ),
           ),
+        ),
+        this._buildFilterInput(
+          this._visibleFilter,
+          use => use(use(this._section.viewFields).getObservable()).length,
+          "visible",
         ),
         cssFieldsDraggable(
           cssFieldsDraggable.cls("-disabled", this._disabled),
@@ -290,6 +313,11 @@ export class VisibleFieldsConfig extends Disposable {
           "div",
           dom.hide(this._collapseHiddenFields),
           { id: "hidden-fields-list" },
+          this._buildFilterInput(
+            this._hiddenFilter,
+            use => use(this._hiddenFields.getObservable()).length,
+            "hidden",
+          ),
           cssFieldsDraggable(
             cssFieldsDraggable.cls("-disabled", this._disabled),
             dom.update(
@@ -345,24 +373,28 @@ export class VisibleFieldsConfig extends Disposable {
 
   // Set all checkboxes for the visible fields.
   private _setVisibleCheckboxes(visibleFieldsDraggable: Element, checked: boolean) {
+    const fields = this._section.viewFields.peek().peek()
+      .filter(field => fieldMatchesFilter(field, this._visibleFilter.get()));
     this._setCheckboxesHelper(
       visibleFieldsDraggable,
-      this._section.viewFields.peek().peek(),
+      fields,
       this._visibleFieldsSelection,
       checked,
     );
-    this._showVisibleBatchButtons.set(checked);
+    this._showVisibleBatchButtons.set(checked && fields.length > 0);
   }
 
   // Set all checkboxes for the hidden fields.
   private _setHiddenCheckboxes(hiddenFieldsDraggable: Element, checked: boolean) {
+    const fields = this._hiddenFields.peek()
+      .filter(field => fieldMatchesFilter(field, this._hiddenFilter.get()));
     this._setCheckboxesHelper(
       hiddenFieldsDraggable,
-      this._hiddenFields.peek(),
+      fields,
       this._hiddenFieldsSelection,
       checked,
     );
-    this._showHiddenBatchButtons.set(checked);
+    this._showHiddenBatchButtons.set(checked && fields.length > 0);
   }
 
   // A helper to set all checkboxes. Takes care of setting all checkboxes in the dom and updating
@@ -377,6 +409,68 @@ export class VisibleFieldsConfig extends Disposable {
       // add all ids to the selection
       fields.forEach(field => selection.add(field.id.peek()));
     }
+  }
+
+  private _buildFilteredHiddenFields(options: DraggableFieldsOption): KoArray<ColumnRec> {
+    if (!options.filterFunc && !options.filterTrigger) {
+      return this._hiddenFields;
+    }
+
+    const filterFunc = options.filterFunc || (() => true);
+    const newArray = new KoArray<ColumnRec>();
+
+    const update = () => {
+      const newValues = this._hiddenFields.peek().filter(filterFunc);
+      if (isEqual(newArray.all(), newValues)) { return; }
+      newArray.assign(newValues);
+    };
+    update();
+    this.autoDispose(this._hiddenFields.subscribe(update));
+    if (options.filterTrigger) {
+      this.autoDispose(subscribe(options.filterTrigger, update));
+    }
+    return newArray;
+  }
+
+  private _buildFilterInput(
+    filterObs: Observable<string>,
+    getCount: (use: UseCB) => number,
+    state: "visible" | "hidden",
+  ) {
+    // Show when the unfiltered list is long enough, or when a filter is already active so the
+    // user can clear it after the list shrinks.
+    return dom.maybe(
+      use => getCount(use) > FILTER_INPUT_MIN_COUNT || Boolean(use(filterObs)),
+      () => {
+        let filterInput: HTMLInputElement;
+        return cssFilterRow(
+          cssFilterIcon("Search"),
+          filterInput = cssFilterInput(
+            {
+              "type": "search",
+              "placeholder": t("Filter columns"),
+              "aria-label": state === "visible" ? t("Filter visible columns") : t("Filter hidden columns"),
+            },
+            dom.prop("value", filterObs),
+            dom.on("input", (_ev, elem) => filterObs.set(elem.value)),
+            testId(`${state}-filter`),
+          ),
+          dom.maybe(filterObs, () => cssClearFilterButton(
+            icon("CrossSmall"),
+            {
+              "aria-label": state === "visible" ?
+                t("Clear visible columns filter") :
+                t("Clear hidden columns filter"),
+            },
+            testId(`${state}-filter-clear`),
+            dom.on("click", () => {
+              filterObs.set("");
+              filterInput.focus();
+            }),
+          )),
+        );
+      },
+    );
   }
 
   private _buildHiddenFieldItem(column: IField) {
@@ -455,6 +549,12 @@ export class VisibleFieldsConfig extends Disposable {
     const action = ["BulkAddRecord", rowIds, colInfo];
     await this._gristDoc.docModel.viewFields.sendTableAction(action);
   }
+}
+
+function fieldMatchesFilter(field: IField, filter: string): boolean {
+  const query = normalizeText(filter);
+  if (!query) { return true; }
+  return normalizeText(field.label.peek()).includes(query);
 }
 
 function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,
@@ -579,4 +679,48 @@ const cssFieldsDraggable = styled("div", `
 const cssHeaderButton = styled(unstyledButton, `
   display: flex;
   align-items: center;
+`);
+
+const cssFilterRow = styled("div", `
+  display: flex;
+  align-items: center;
+  margin: 0 16px 8px 16px;
+  padding: 4px 8px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 3px;
+  background-color: ${theme.inputBg};
+`);
+
+const cssFilterIcon = styled(icon, `
+  flex-shrink: 0;
+  margin-right: 6px;
+  --icon-color: ${theme.lightText};
+`);
+
+const cssFilterInput = styled("input", `
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: ${theme.inputFg};
+  font-size: ${vars.mediumFontSize};
+  padding: 0;
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+
+  /* Hide the native clear button; we render our own. */
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+`);
+
+const cssClearFilterButton = styled(unstyledButton, `
+  flex-shrink: 0;
+  margin-left: 4px;
+  line-height: 1;
+  --icon-color: ${theme.lightText};
+  cursor: pointer;
 `);
