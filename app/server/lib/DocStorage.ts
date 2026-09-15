@@ -42,7 +42,26 @@ const maxSQLiteVariables = 500;     // Actually could be 999, so this is playing
 
 const PENDING_VALUE = [GristObjCode.Pending];
 
-const SHRINK_RATIO_FOR_PUSH = 0.1;
+export const Deps = {
+  // Whether to compact documents at all when they are closed for inactivity.
+  VACUUM_ON_CLOSE: appSettings.section("docStorage").flag("vacuumOnClose").requireBool({
+    envVar: "GRIST_VACUUM_ON_CLOSE",
+    defaultValue: true,
+  }),
+
+  // A document qualifies for compaction on either of the two thresholds below. The ratio
+  // is the general rule, since the cost of a push is proportional to the size of the
+  // document.
+  MIN_FREE_RATIO_FOR_VACUUM: 0.2,
+
+  // The absolute amount caps waste in large documents, where the ratio alone would leave
+  // too much sitting in the file: a 1GB document just under the ratio still holds nearly
+  // 200MB. It costs at most one VACUUM per 100MB a document frees.
+  MIN_FREE_BYTES_FOR_VACUUM: 100 * 1024 * 1024,
+
+  // Below this size, the push costs more than the reclaimed space is worth.
+  MIN_SIZE_FOR_VACUUM: 20 * 1024 * 1024,
+};
 
 // Number of days that soft-deleted attachments are kept in file storage before being completely deleted.
 // Once a file is deleted it can't be restored by undo, so we want it to be impossible or at least extremely unlikely
@@ -1568,28 +1587,65 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   /**
-   * Run a VACUUM on the document and mark it as changed only
-   * if the saved space is above the ratio defined in SHRINK_RATIO_FOR_PUSH.
-   * Therefore if the doc storage is a remote one (like S3), it would be pushed
-   * only when we meet this condition, otherwise it is assumed not to be necessary.
+   * How much of the document is on the freelist, as a fraction of its pages and in bytes.
+   * These PRAGMAs read the file header rather than scanning, so this is cheap at any size.
+   */
+  public async getFreelistStats(): Promise<{ freeRatio: number, freeBytes: number }> {
+    const pageCount = (await this.get("PRAGMA page_count"))?.page_count;
+    const freeCount = (await this.get("PRAGMA freelist_count"))?.freelist_count ?? 0;
+    const pageSize = (await this.get("PRAGMA page_size"))?.page_size ?? 0;
+    if (!pageCount) { return { freeRatio: 0, freeBytes: 0 }; }
+    return { freeRatio: freeCount / pageCount, freeBytes: freeCount * pageSize };
+  }
+
+  /**
+   * VACUUM the document if there is enough space to reclaim to justify it, then push the
+   * result. Once a VACUUM has run the push is not optional, since it changes the file's
+   * checksum, and the next open would otherwise discard the local copy and download the
+   * document again.
+   *
+   * The decision is based on the freelist, which holds the wholly freed pages that bulk
+   * deletion leaves behind, such as pruning action history or dropping a large table. A
+   * busy document reuses those pages, while one that has shrunk for good keeps them. It
+   * is not an estimate of what a VACUUM would save, since the freelist cannot see
+   * partially filled pages, but SQLite reuses those anyway.
    */
   public async vacuum(): Promise<void> {
+    if (!Deps.VACUUM_ON_CLOSE) { return; }
     const db = this._getDB();
 
     const initSize = await this.storageManager.getFsFileSize(this.docName);
-    log.rawInfo("Start Vacuum of doc ", { docId: this.docName });
-    await db.vacuum();
-    const size = await this.storageManager.getFsFileSize(this.docName);
-    if (size <= initSize * (1 - SHRINK_RATIO_FOR_PUSH)) {
-      log.rawInfo("Mark doc as changed because vacuuming saved more space than the minimal ratio.", {
+    const { freeRatio, freeBytes } = await this.getFreelistStats();
+    const worthReclaiming = freeRatio >= Deps.MIN_FREE_RATIO_FOR_VACUUM ||
+      freeBytes >= Deps.MIN_FREE_BYTES_FOR_VACUUM;
+    if (initSize < Deps.MIN_SIZE_FOR_VACUUM || !worthReclaiming) {
+      log.rawInfo("Skipping Vacuum of doc, nothing worth reclaiming", {
         docId: this.docName,
-        minimalRatio: SHRINK_RATIO_FOR_PUSH,
+        minRatio: Deps.MIN_FREE_RATIO_FOR_VACUUM,
+        minFreeBytes: Deps.MIN_FREE_BYTES_FOR_VACUUM,
+        minSize: Deps.MIN_SIZE_FOR_VACUUM,
+        freeRatio,
+        freeBytes,
         initSize,
-        currentSize: size,
       });
+      return;
+    }
+    log.rawInfo("Start Vacuum of doc", { docId: this.docName });
+    try {
+      await db.vacuum();
+    } finally {
+      // The file may have been rewritten even if something threw, so push regardless. A
+      // redundant push costs one upload; a missing one costs a full re-download.
       this._cachedDataSize = null;
       this.storageManager.markAsChanged(this.docName);
     }
+    log.rawInfo("Mark doc as changed because vacuuming rewrote it.", {
+      docId: this.docName,
+      freeRatio,
+      freeBytes,
+      initSize,
+      currentSize: await this.storageManager.getFsFileSize(this.docName).catch(() => null),
+    });
   }
 
   public async getPluginDataItem(pluginId: string, key: string): Promise<any> {
