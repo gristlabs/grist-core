@@ -148,6 +148,11 @@ describe("BootProbes with external storage", function() {
     server = await TestServer.startServer("home,docs", testDir, "probes", {
       GRIST_DEFAULT_EMAIL: "chimpy@getgrist.com",
       GRIST_DISABLE_S3: "",  // The helper disables external storage by default.
+      // In case MinIO or S3 is configured in the environment.
+      GRIST_DOCS_MINIO_BUCKET: "",
+      TEST_MINIO_BUCKET: "",
+      GRIST_DOCS_S3_BUCKET: "",
+      TEST_S3_BUCKET: "",
       GRIST_FS_STORAGE_DIR: path.join(testDir, "storage"),
     });
   });
