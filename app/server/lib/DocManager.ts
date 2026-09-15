@@ -2,13 +2,11 @@ import { ApiError } from "app/common/ApiError";
 import { mapSetOrClear, MapWithTTL } from "app/common/AsyncCreate";
 import { BrowserSettings } from "app/common/BrowserSettings";
 import { delay } from "app/common/delay";
-import { DocCreationInfo, DocEntry, DocListAPI,
-  OpenDocMode, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
+import { DocCreationInfo, OpenDocMode, OpenDocOptions, OpenLocalDocResult } from "app/common/DocListAPI";
 import { DocumentSettings, DocumentSettingsChecker } from "app/common/DocumentSettings";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
 import { parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
 import { safeJsonParse } from "app/common/gutil";
-import { tbind } from "app/common/tbind";
 import { TelemetryMetadataByLevel } from "app/common/Telemetry";
 import { NEW_DOCUMENT_CODE } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
@@ -125,21 +123,6 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   }
 
   /**
-   * Returns an implementation of the DocListAPI for the given Client object.
-   */
-  public getDocListAPIImpl(client: Client): DocListAPI {
-    return {
-      getDocList: tbind(this.listDocs, this, client),
-      createNewDoc: tbind(this.createNewDoc, this, client),
-      importSampleDoc: tbind(this.importSampleDoc, this, client),
-      importDoc: tbind(this.importDoc, this, client),
-      deleteDoc: tbind(this.deleteDoc, this, client),
-      renameDoc: tbind(this.renameDoc, this, client),
-      openDoc: tbind(this.openDoc, this, client),
-    };
-  }
-
-  /**
    * Returns the number of currently open docs.
    */
   public numOpenDocs(): number {
@@ -158,24 +141,6 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   }
 
   /**
-   * Returns a promise for all known Grist documents and document invites to show in the doc list.
-   */
-  public async listDocs(client: Client): Promise<{ docs: DocEntry[], docInvites: DocEntry[] }> {
-    const docs = await this.storageManager.listDocs();
-    return { docs, docInvites: [] };
-  }
-
-  /**
-   * Creates a new document, fetches it, and adds a table to it.
-   * @returns {Promise:String} The name of the new document.
-   */
-  public async createNewDoc(client: Client): Promise<string> {
-    log.debug("DocManager.createNewDoc");
-    const docSession = makeExceptionalDocSession("nascent", { client });
-    return this.createNamedDoc(docSession, "Untitled");
-  }
-
-  /**
    * Add an ActiveDoc created externally. This is a hook used by
    * grist-static.
    */
@@ -187,38 +152,6 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     const activeDoc: ActiveDoc = await this.createNewEmptyDoc(docSession, docId);
     await activeDoc.addInitialTable(docSession);
     return activeDoc.docName;
-  }
-
-  /**
-   * Creates a new document, fetches it, and adds a table to it.
-   * @param {String} sampleDocName: Doc name of a sample document.
-   * @returns {Promise:String} The name of the new document.
-   */
-  public async importSampleDoc(client: Client, sampleDocName: string): Promise<string> {
-    const sourcePath = this.storageManager.getSampleDocPath(sampleDocName);
-    if (!sourcePath) {
-      throw new Error(`no path available to sample ${sampleDocName}`);
-    }
-    log.info("DocManager.importSampleDoc importing", sourcePath);
-    const basenameHint = path.basename(sampleDocName);
-    const targetName = await docUtils.createNumbered(basenameHint, "-",
-      (name: string) => docUtils.createExclusive(this.storageManager.getPath(name)));
-
-    const targetPath = this.storageManager.getPath(targetName);
-    log.info("DocManager.importSampleDoc saving as", targetPath);
-    await docUtils.copyFile(sourcePath, targetPath);
-    return targetName;
-  }
-
-  /**
-   * Processes an upload, containing possibly multiple files, to create a single new document, and
-   * returns the new document's name/id.
-   */
-  public async importDoc(client: Client, uploadId: number): Promise<string> {
-    const userId = this._homeDbManager ? client.authSession.requiredUserId() : null;
-    const result = await this._doImportDoc(makeOptDocSession(client),
-      globalUploadSet.getUploadInfo(uploadId, this.makeAccessId(userId)), { naming: "classic" });
-    return result.id;
   }
 
   // Import a document, assigning it a unique id distinct from its title. Cleans up uploadId.
@@ -522,24 +455,6 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     this.unregisterSQLiteDB(activeDoc.docName);
     this._activeDocs.delete(activeDoc.docName);
     this._memoryUsedMB.delete(activeDoc);
-  }
-
-  public async renameDoc(client: Client, oldName: string, newName: string): Promise<void> {
-    log.debug("DocManager.renameDoc %s -> %s", oldName, newName);
-    const docPromise = this._activeDocs.get(oldName);
-    if (docPromise) {
-      const adoc: ActiveDoc = await docPromise;
-      await adoc.renameDocTo(makeOptDocSession(client), newName);
-      this._activeDocs.set(newName, docPromise);
-      const db = this._sqliteDbs.get(oldName);
-      if (db) {
-        this.registerSQLiteDB(newName, db);
-      }
-      this._activeDocs.delete(oldName);
-      this.unregisterSQLiteDB(oldName);
-    } else {
-      await this.storageManager.renameDoc(oldName, newName);
-    }
   }
 
   public markAsChanged(activeDoc: ActiveDoc, reason?: "edit") {
