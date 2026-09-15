@@ -555,27 +555,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Both Grist and SQL types are expected. Used to interpret Bool/BOOLEANs, and to parse
    * ChoiceList values.
    */
-  private static _decodeValue(val: any, gristType: string, sqlType: string): any {
-    if (val instanceof Uint8Array || Buffer.isBuffer(val)) {
-      val = marshal.loads(val);
-    }
-    if (gristType === "Bool") {
-      if (val === 0 || val === 1) {
-        // Boolean values come in as 0/1. If the column is of type "Bool", interpret those as
-        // true/false (note that the data engine does this too).
-        return Boolean(val);
-      }
-    }
-    if (isListType(gristType)) {
-      if (typeof val === "string" && val.startsWith("[")) {
-        try {
-          return ["L", ...JSON.parse(val)];
-        } catch (e) {
-          // Fall through without parsing
-        }
-      }
-    }
-    return val;
+  private static _decodeValue(val: any, gristType: string, _sqlType?: string): any {
+    return decodeSqliteValue(val, gristType);
   }
 
   /**
@@ -2023,4 +2004,25 @@ export interface FileInfo {
   ident: string;
   storageId: string | null;
   data: Buffer;
+}
+
+/**
+ * Decode a raw SQLite value to a Grist CellValue: unmarshal blobs,
+ * normalize Bool 0/1, restore "L" prefix on list-type JSON strings.
+ * This is the canonical conversion used by both the REST API (via
+ * DocStorage) and the SQL endpoint (via SqlValues).
+ */
+export function decodeSqliteValue(val: any, gristType: string): any {
+  if (val instanceof Uint8Array || Buffer.isBuffer(val)) {
+    try { val = marshal.loads(val); } catch { return null; }
+  }
+  if (gristType === "Bool") {
+    if (val === 0 || val === 1) { return Boolean(val); }
+  }
+  if (isListType(gristType)) {
+    if (typeof val === "string" && val.startsWith("[")) {
+      try { return ["L", ...JSON.parse(val)]; } catch { /* fall through */ }
+    }
+  }
+  return val;
 }
