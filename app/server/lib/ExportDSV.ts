@@ -136,7 +136,9 @@ function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
   // create formatters for columns
   const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
-  const colPropertyAsHeader = header ?? "label";
+  // Note: "colId" here refers to the visible field's own colId (rawColId), not `col.colId`,
+  // which may point at an internal helper display column (e.g. for Reference columns).
+  const colPropertyAsHeader = header === "colId" ? "rawColId" : "label";
   const csvMatrix = [viewColumns.map(col => col[colPropertyAsHeader])];
   // populate all the rows with values as strings
   rowIds.forEach((row) => {
