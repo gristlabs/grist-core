@@ -40,6 +40,8 @@ in
   node-gyp-build,
   node-gyp,
   node-pre-gyp,
+  makeWrapper,
+  gvisor,
   sandboxEnv ? [ ],
   pythonFun ? defaultPythonFun,
   pythonEnv ? python3.withPackages pythonFun,
@@ -94,6 +96,7 @@ stdenv.mkDerivation (finalAttrs: {
     node-gyp-build
     node-gyp
     node-pre-gyp
+    makeWrapper
   ];
 
   buildInputs = [ pythonEnv ];
@@ -202,6 +205,13 @@ stdenv.mkDerivation (finalAttrs: {
     unlink $out/grist-core/bower_components/bootstrap
 
     substituteAllInPlace $out/grist-core/sandbox/gvisor/run.py
+
+    mkdir -p "$out/bin"
+
+    makeWrapper ${lib.getExe nodejs} "$out/bin/grist" \
+      --add-flags "$out/grist-core/_build/app/server/MergedServer.js" \
+      --set NODE_PATH "$out/grist-core/_build:$out/grist-core/_build/stubs" \
+      --prefix PATH : ${lib.makeBinPath [ pythonEnv gvisor ]}
   '';
 
   passthru = {
