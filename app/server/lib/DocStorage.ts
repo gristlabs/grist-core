@@ -49,18 +49,17 @@ export const Deps = {
     defaultValue: true,
   }),
 
-  // A document qualifies for compaction on either of the two thresholds below. The ratio
-  // is the general rule, since the cost of a push is proportional to the size of the
-  // document.
+  // A document is compacted when its free space reaches this fraction of its size,
+  // clamped between the floor and ceiling below.
   MIN_FREE_RATIO_FOR_VACUUM: 0.2,
 
-  // The absolute amount caps waste in large documents, where the ratio alone would leave
+  // The floor skips compactions that reclaim too little to be worth a push.
+  FLOOR_FREE_BYTES_FOR_VACUUM: 2 * 1024 * 1024,
+
+  // The ceiling caps waste in large documents, where the ratio alone would leave
   // too much sitting in the file: a 1GB document just under the ratio still holds nearly
   // 200MB. It costs at most one VACUUM per 100MB a document frees.
-  MIN_FREE_BYTES_FOR_VACUUM: 100 * 1024 * 1024,
-
-  // Below this size, the push costs more than the reclaimed space is worth.
-  MIN_SIZE_FOR_VACUUM: 20 * 1024 * 1024,
+  CEIL_FREE_BYTES_FOR_VACUUM: 100 * 1024 * 1024,
 };
 
 // Number of days that soft-deleted attachments are kept in file storage before being completely deleted.
@@ -1616,14 +1615,14 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
     const initSize = await this.storageManager.getFsFileSize(this.docName);
     const { freeRatio, freeBytes } = await this.getFreelistStats();
-    const worthReclaiming = freeRatio >= Deps.MIN_FREE_RATIO_FOR_VACUUM ||
-      freeBytes >= Deps.MIN_FREE_BYTES_FOR_VACUUM;
-    if (initSize < Deps.MIN_SIZE_FOR_VACUUM || !worthReclaiming) {
+    const threshold = Math.min(
+      Math.max(Math.floor(initSize * Deps.MIN_FREE_RATIO_FOR_VACUUM), Deps.FLOOR_FREE_BYTES_FOR_VACUUM),
+      Deps.CEIL_FREE_BYTES_FOR_VACUUM,
+    );
+    if (freeBytes < threshold) {
       log.rawInfo("Skipping Vacuum of doc, nothing worth reclaiming", {
         docId: this.docName,
-        minRatio: Deps.MIN_FREE_RATIO_FOR_VACUUM,
-        minFreeBytes: Deps.MIN_FREE_BYTES_FOR_VACUUM,
-        minSize: Deps.MIN_SIZE_FOR_VACUUM,
+        threshold,
         freeRatio,
         freeBytes,
         initSize,
@@ -1634,8 +1633,9 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     try {
       await db.vacuum();
     } finally {
-      // The file may have been rewritten even if something threw, so push regardless. A
-      // redundant push costs one upload; a missing one costs a full re-download.
+      // vacuum() can reject after the file has already been rewritten, so mark it changed
+      // regardless. If it wasn't rewritten, the push finds the checksum unchanged and skips
+      // the upload.
       this._cachedDataSize = null;
       this.storageManager.markAsChanged(this.docName);
     }

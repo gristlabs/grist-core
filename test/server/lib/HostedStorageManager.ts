@@ -783,7 +783,7 @@ describe("HostedStorageManager", function() {
         //
         // Force the VACUUM to happen, however little this small, fresh document has to
         // reclaim, so that we test the push rather than the decision.
-        sandbox.stub(DocStorageDeps, "MIN_SIZE_FOR_VACUUM").value(0);
+        sandbox.stub(DocStorageDeps, "FLOOR_FREE_BYTES_FOR_VACUUM").value(0);
         sandbox.stub(DocStorageDeps, "MIN_FREE_RATIO_FOR_VACUUM").value(0);
 
         const docId = `vacuum-${uuidv4()}`;

@@ -327,9 +327,8 @@ return c
       // These tests call _onInactive() themselves. Restore the default timeout here, because with
       // the reduced timeout, the doc's own inactivity timer may interfere by kicking in first.
       timeoutStub.value(defaultTimeoutSec);
-      // The fixtures here are around 1MB, well under the size at which we would normally
-      // bother compacting a document.
-      sandbox.stub(DocStorageDeps, "MIN_SIZE_FOR_VACUUM").value(0);
+      // Keep the floor out of the way of these small fixtures.
+      sandbox.stub(DocStorageDeps, "FLOOR_FREE_BYTES_FOR_VACUUM").value(0);
     });
 
     async function prepareVacuumableDoc() {
@@ -435,7 +434,7 @@ return c
 
       // Set the ratio threshold out of reach, and the bytes threshold within it.
       sandbox.stub(DocStorageDeps, "MIN_FREE_RATIO_FOR_VACUUM").value(freeRatio + 0.01);
-      sandbox.stub(DocStorageDeps, "MIN_FREE_BYTES_FOR_VACUUM").value(freeBytes);
+      sandbox.stub(DocStorageDeps, "CEIL_FREE_BYTES_FOR_VACUUM").value(freeBytes);
 
       const vacuumSpy = sandbox.spy(adoc.docStorage.getDB(), "vacuum");
       const markAsChangedSpy = sandbox.spy(storageManager, "markAsChanged");
@@ -443,6 +442,23 @@ return c
 
       sinon.assert.called(vacuumSpy);
       sinon.assert.calledWith(markAsChangedSpy, adoc.docName);
+    });
+
+    it("should not VACUUM when free space is under the floor, whatever the ratio", async function() {
+      const adoc = await prepareVacuumableDoc();
+      const storageManager = docTools.getStorageManager();
+      await storageManager.flushDoc(adoc.docName);
+
+      const { freeBytes } = await adoc.docStorage.getFreelistStats();
+      sandbox.stub(DocStorageDeps, "MIN_FREE_RATIO_FOR_VACUUM").value(0);
+      sandbox.stub(DocStorageDeps, "FLOOR_FREE_BYTES_FOR_VACUUM").value(freeBytes + 1);
+
+      const vacuumSpy = sandbox.spy(adoc.docStorage.getDB(), "vacuum");
+      const markAsChangedSpy = sandbox.spy(storageManager, "markAsChanged");
+      await (adoc as any)._onInactive();
+
+      sinon.assert.notCalled(vacuumSpy);
+      sinon.assert.notCalled(markAsChangedSpy);
     });
 
     it("should mark as changed even if the VACUUM itself fails", async function() {
