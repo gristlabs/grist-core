@@ -1531,8 +1531,10 @@ describe("GranularAccess", function() {
     let rowNum = await addRecord("Idea");
     await gu.enterCell("Cool2");
     await gu.getCell({ col: "Category", rowNum }).click();
+    await gu.waitAppFocus();
     await gu.enterCell("Cat2");
     await gu.getCell({ col: "Idea", rowNum }).click();
+    await gu.waitAppFocus();
     await gu.enterCell("Cool2b");
     assert.equal(await gu.getCell({ col: "Category", rowNum }).getText(), "Cat2");
     assert.equal(await gu.getCell({ col: "Idea", rowNum }).getText(), "Cool2b");
