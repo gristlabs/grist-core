@@ -62,18 +62,18 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "grist-core";
-  version = "1.7.10";
+  version = "1.7.19";
 
   src = fetchFromGitHub {
     owner = "gristlabs";
     repo = "grist-core";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-0hecO/+w/ellB0ClsD+LTXOcyW6MeyxcjE1Z+herOtw=";
+    hash = "sha256-IKnSluSQnPHO+qAwWF7KR/ukIDHVVulmJqIqaMI88Lg=";
   };
 
   offlineCache = fetchYarnDeps {
     yarnLock = "${finalAttrs.src}/yarn.lock";
-    hash = "sha256-+pxRVc0BTLC2KGIR7vLhv+mNS+JPXCucXxHtyxU3VuE=";
+    hash = "sha256-E8LDY7GF9d7+iXxr4BLYRUkwQxcpVihMU6HrXJ80pic=";
   };
 
   patches = [
@@ -108,6 +108,10 @@ stdenv.mkDerivation (finalAttrs: {
 
     export HOME=$(mktemp -d)
     export npm_config_nodedir=${nodejs}
+
+    ${lib.optionalString (!enterpriseEdition) ''
+      echo community > grist-edition
+    ''}
 
     ${lib.optionalString enterpriseEdition ''
       pushd ext
