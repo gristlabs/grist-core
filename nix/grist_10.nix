@@ -212,6 +212,10 @@ stdenv.mkDerivation (finalAttrs: {
       --add-flags "$out/grist-core/_build/app/server/MergedServer.js" \
       --set NODE_PATH "$out/grist-core/_build:$out/grist-core/_build/stubs" \
       --prefix PATH : ${lib.makeBinPath [ pythonEnv gvisor ]}
+
+    makeWrapper ${lib.getExe nodejs} "$out/bin/grist-companion" \
+      --add-flags "$out/grist-core/_build/app/server/companion.js" \
+      --set NODE_PATH "$out/grist-core/_build:$out/grist-core/_build/stubs"
   '';
 
   passthru = {
