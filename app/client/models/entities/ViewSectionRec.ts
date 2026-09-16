@@ -27,7 +27,13 @@ import { UserAction } from "app/common/DocActions";
 import { RecalcWhen } from "app/common/gristTypes";
 import { arrayRepeat, safeJsonParse } from "app/common/gutil";
 import { Sort } from "app/common/SortSpec";
-import { isLegacyCalendarCustomDef, IWidgetType, WidgetType } from "app/common/widgetTypes";
+import {
+  DEFAULT_VIEW_SECTION_OPTIONS,
+  isLegacyCalendarCustomDef,
+  IWidgetType,
+  RowNumbersMode,
+  WidgetType,
+} from "app/common/widgetTypes";
 import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
@@ -81,10 +87,6 @@ export interface ChartOptions {
   orientation?: "v" | "h";
   aggregate?: boolean;
 }
-
-// What the row-number gutter of a grid shows: position numbers (default), bracketed row IDs,
-// or nothing (gutter collapsed).
-export type RowNumbersMode = "number" | "rowId" | "hidden";
 
 export interface ViewSectionOptions extends ChartOptions {
   // Options for GridView.
@@ -479,10 +481,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // All table columns associated with this view section, excluding any hidden helper columns.
   this.columns = this.autoDispose(ko.pureComputed(() => this.table().visibleColumns()));
   const defaultOptions: ViewSectionOptions = {
-    verticalGridlines: true,
-    horizontalGridlines: true,
-    zebraStripes: false,
-    rowNumbers: "number",
+    ...DEFAULT_VIEW_SECTION_OPTIONS,
     customView: "",
     numFrozen: 0,
   };

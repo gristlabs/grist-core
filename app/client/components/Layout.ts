@@ -52,18 +52,18 @@
  *    just have a way to serialize the layout to and from a JSON blob.
  */
 
-import { BoxSpec } from "app/client/lib/BoxSpec";
 import { Disposable } from "app/client/lib/dispose";
 import dom, { detachNode, findAncestor } from "app/client/lib/dom";
 import koArray, { isKoArray, KoArray } from "app/client/lib/koArray";
 import { cssClass, domData, foreach, scope, style, toggleClass } from "app/client/lib/koDom";
+import { BoxSpec } from "app/common/BoxSpec";
 
 import assert from "assert";
 
 import { Events as BackboneEvents } from "backbone";
 import * as ko from "knockout";
 import { computed, isObservable, observable, utils } from "knockout";
-import { identity, isEqual, last, uniqueId } from "underscore";
+import { difference, identity, isEqual, last, uniqueId } from "underscore";
 
 export interface ContentBox {
   leafId: ko.Observable<any>;
@@ -537,3 +537,62 @@ export class Layout extends Disposable {
 }
 
 Object.assign(Layout.prototype, BackboneEvents);
+
+/**
+ * Returns a copy of `spec` holding exactly `validLeafIds`, keeping the layout two boxes wide.
+ */
+export function purgeBoxSpec(options: {
+  spec: BoxSpec;
+  validLeafIds: number[];
+  restoreCollapsed?: boolean;
+}): BoxSpec {
+  const { spec, validLeafIds, restoreCollapsed } = options;
+  // We use tmpLayout as a way to manipulate the layout before we get a final spec from it.
+  const tmpLayout = Layout.create(spec, () => dom("div"), true);
+  const specFieldIds = tmpLayout.getAllLeafIds();
+
+  // For any stale fields (no longer among validLeafIds), remove them from tmpLayout.
+  difference(specFieldIds, validLeafIds).forEach(function(leafId: string | number) {
+    tmpLayout.getLeafBox(leafId)?.dispose();
+  });
+
+  // For all fields that should be in the spec but aren't, add them to tmpLayout. We maintain a
+  // two-column layout, so add a new row, or a second box to the last row if it's a leaf.
+  const missingLeafs = difference(validLeafIds, specFieldIds);
+  const collapsedLeafs = new Set((spec.collapsed || []).map(c => c.leaf));
+  missingLeafs.forEach(function(leafId: any) {
+    // Omit collapsed leafs from the spec.
+    if (!collapsedLeafs.has(leafId)) {
+      addToSpec(tmpLayout, leafId);
+    }
+  });
+
+  const newSpec = tmpLayout.getLayoutSpec();
+
+  // Restore collapsed state, omitting any leafs that are no longer valid.
+  if (spec.collapsed && restoreCollapsed) {
+    newSpec.collapsed = spec.collapsed.filter(c => c.leaf && validLeafIds.includes(c.leaf as number));
+  }
+
+  tmpLayout.dispose();
+  return newSpec;
+}
+
+function addToSpec(tmpLayout: Layout, leafId: number) {
+  const newBox = tmpLayout.buildLayoutBox({ leaf: leafId });
+  const root = tmpLayout.rootBox();
+  if (!root || root.isDisposed()) {
+    tmpLayout.setRoot(newBox);
+    return newBox;
+  }
+  const rows = root.childBoxes.peek();
+  const lastRow = rows[rows.length - 1];
+  if (rows.length >= 1 && lastRow.isLeaf()) {
+    // Add a new child to the last row.
+    lastRow.addChild(newBox, true);
+  } else {
+    // Add a new row.
+    tmpLayout.rootBox()!.addChild(newBox, true);
+  }
+  return newBox;
+}

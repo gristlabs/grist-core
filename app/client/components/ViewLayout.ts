@@ -9,11 +9,10 @@ import { buildDuplicateWidgetModal } from "app/client/components/duplicateWidget
 import { FormView } from "app/client/components/Forms/FormView";
 import GridView from "app/client/components/GridView";
 import { GristDoc } from "app/client/components/GristDoc";
-import { Layout } from "app/client/components/Layout";
+import { Layout, purgeBoxSpec } from "app/client/components/Layout";
 import { LayoutEditor } from "app/client/components/LayoutEditor";
 import { LayoutTray } from "app/client/components/LayoutTray";
 import { printViewSection } from "app/client/components/Printing";
-import { BoxSpec, purgeBoxSpec } from "app/client/lib/BoxSpec";
 import { Delay } from "app/client/lib/Delay";
 import { createObsArray } from "app/client/lib/koArrayWrap";
 import { makeT } from "app/client/lib/localization";
@@ -27,6 +26,7 @@ import { isNarrowScreen, mediaSmall, testId, theme } from "app/client/ui2018/css
 import { icon } from "app/client/ui2018/icons";
 import { cssLink } from "app/client/ui2018/links";
 import { ISaveModalOptions, saveModal } from "app/client/ui2018/modals";
+import { BoxSpec } from "app/common/BoxSpec";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 
 import {

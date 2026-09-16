@@ -1,9 +1,9 @@
-import { BoxSpec } from "app/client/lib/BoxSpec";
 import { KoArray } from "app/client/lib/koArray";
 import * as koUtil from "app/client/lib/koUtil";
 import { DocModel, IRowModel, PageRec, recordSet, refRecord } from "app/client/models/DocModel";
 import { TabBarRec, ViewSectionRec } from "app/client/models/DocModel";
 import * as modelUtil from "app/client/models/modelUtil";
+import { BoxSpec } from "app/common/BoxSpec";
 
 import * as ko from "knockout";
 

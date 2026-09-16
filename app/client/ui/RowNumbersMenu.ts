@@ -1,10 +1,11 @@
 import { makeT } from "app/client/lib/localization";
-import { RowNumbersMode, ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
+import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { reportError } from "app/client/models/errors";
 import { withInfoTooltip } from "app/client/ui/tooltips";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { IOptionFull, menuItem, menuSubHeader } from "app/client/ui2018/menus";
+import { RowNumbersMode } from "app/common/widgetTypes";
 
 import { DomElementArg, styled } from "grainjs";
 import * as weasel from "popweasel";
