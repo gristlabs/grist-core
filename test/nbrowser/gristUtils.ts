@@ -1728,9 +1728,15 @@ namespace gristUtils {
   }
 
   export async function search(what: string) {
-    await driver.find(".test-tb-search-icon").click();
+    // Open the search bar if it's closed.
+    if ((await getSearchInput().rect()).width <= 50) {
+      await driver.find(".test-tb-search-icon").click();
+    }
+    await searchIsOpened();
     const input = await driver.findWait(".test-tb-search-input input", 1000);
-
+    if (!await input.hasFocus()) {
+      await input.click();
+    }
     await driver.wait(async () => input.hasFocus(), 1000);
     await sendKeys(await selectAllKey(), what);
     // Sleep for search debounce time
