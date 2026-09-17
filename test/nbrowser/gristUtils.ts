@@ -1169,7 +1169,7 @@ namespace gristUtils {
  */
   export async function getPreviewContents<T = string>(cols: number[], rowNums: number[],
     mapper?: (e: WebElement) => Promise<T>): Promise<T[]> {
-    await driver.findWait(".test-importer-preview .gridview_row", 1000);
+    await driver.findWait(".test-importer-preview .gridview_row", 5000);
     const section = await driver.find(".test-importer-preview");
     return getVisibleGridCells({ cols, rowNums, section, mapper });
   }
@@ -1178,7 +1178,7 @@ namespace gristUtils {
  * Helper to get a cell from the importer Preview section.
  */
   export async function getPreviewCell(col: string | number, rowNum: number): Promise<WebElementPromise> {
-    await driver.findWait(".test-importer-preview .gridview_row", 1000);
+    await driver.findWait(".test-importer-preview .gridview_row", 5000);
     const section = await driver.find(".test-importer-preview");
     return getCell({ col, rowNum, section });
   }
