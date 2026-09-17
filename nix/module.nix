@@ -74,6 +74,21 @@ in
               Address to listen on
             '';
           };
+          GRIST_SERVERS = mkOption {
+            type = types.str;
+            default = "home,docs,static,app";
+            description = ''
+              Comma-separated list of Grist server components to run.
+            '';
+          };
+          GRIST_PORT = mkOption {
+            type = types.port;
+            default = 8484;
+            apply = toString;
+            description = ''
+              Port on which Grist listens.
+            '';
+          };
 
           GVISOR_FLAGS = mkOption {
             type = types.listOf types.str;
@@ -163,8 +178,7 @@ in
 
     services.grist = {
       environment = {
-        REDIS_URL = lib.mkIf cfg.enableRedis "redis://localhost:${builtins.toString config.services.redis.servers.grist.port}";
-        NODE_PATH = "${cfg.package}/grist-core/_build:${cfg.package}/grist-core/_build/stubs:${cfg.package}/grist-core/_build/ext";
+        REDIS_URL = lib.mkIf cfg.enableRedis "redis://localhost:${toString config.services.redis.servers.grist.port}";
       };
     };
 
@@ -187,9 +201,6 @@ in
       wantedBy = [ "multi-user.target" ];
 
       path = [
-        pkgs.nodejs
-        cfg.package.pythonEnv
-        pkgs.gvisor
         pkgs.procps
         pkgs.glibc.bin
       ];
@@ -197,7 +208,8 @@ in
       inherit (cfg) environment;
 
       serviceConfig = {
-        ExecStart = "${pkgs.nodejs}/bin/node ${cfg.package}/grist-core/_build/stubs/app/server/server.js";
+        ExecStartPre = "${cfg.package}/bin/grist-companion db migrate";
+        ExecStart = lib.getExe cfg.package;
 
         User = cfg.user;
         Group = cfg.group;
