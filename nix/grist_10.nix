@@ -36,7 +36,6 @@ in
   yarn,
   yarnConfigHook,
   nodejs,
-  prefetch-yarn-deps,
   fixup-yarn-lock,
   node-gyp-build,
   node-gyp,
@@ -93,7 +92,6 @@ stdenv.mkDerivation (finalAttrs: {
     yarn
     yarnConfigHook
     nodejs
-    prefetch-yarn-deps
     fixup-yarn-lock
     node-gyp-build
     node-gyp
