@@ -147,9 +147,10 @@ stdenv.mkDerivation (finalAttrs: {
       --production=false \
       --ignore-engines \
       --ignore-platform \
+      --ignore-scripts \
       --no-progress \
       --non-interactive \
-      --offline || true
+      --offline
 
     patchShebangs node_modules
     patchShebangs buildtools
