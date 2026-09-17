@@ -26,6 +26,7 @@ describe("ColorSelect", function() {
   before(async function() {
     this.timeout(60000);
     await driver.get(`${server.getHost()}/ColorSelect`);
+    await driver.findWait(".test-reset", 2000);
   });
 
   beforeEach(async function() {
