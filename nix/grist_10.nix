@@ -34,6 +34,7 @@ in
   fetchYarnDeps,
   python3,
   yarn,
+  yarnConfigHook,
   nodejs,
   prefetch-yarn-deps,
   fixup-yarn-lock,
@@ -90,6 +91,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     yarn
+    yarnConfigHook
     nodejs
     prefetch-yarn-deps
     fixup-yarn-lock
@@ -138,21 +140,6 @@ stdenv.mkDerivation (finalAttrs: {
       popd
     ''}
 
-    yarn config --offline set yarn-offline-mirror ${finalAttrs.offlineCache}
-    fixup-yarn-lock yarn.lock
-
-    yarn install \
-      --frozen-lockfile \
-      --force \
-      --production=false \
-      --ignore-engines \
-      --ignore-platform \
-      --ignore-scripts \
-      --no-progress \
-      --non-interactive \
-      --offline
-
-    patchShebangs node_modules
     patchShebangs buildtools
 
     runHook postConfigure
