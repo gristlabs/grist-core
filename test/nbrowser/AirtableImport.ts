@@ -34,12 +34,12 @@ describe("AirtableImport", function() {
       (window as any).testAirtableImportBaseUrlOverride = baseUrl;
     }, testHelperServerUrl);
 
-    const prefix = context === "home" ? "dm" : "dp";
-    await driver.findWait(`.test-${prefix}-add-new`, 2000).click();
     if (context === "home") {
-      await driver.findWait(".test-dm-import-from-airtable", 500).click();
+      await gu.openHomeImportMenu();
+      await driver.find(".test-dm-import-from-airtable").click();
     } else {
-      await driver.findContentWait(".test-dp-import-option", /Import from Airtable/i, 500).click();
+      await gu.openDocImportMenu();
+      await driver.findContent(".test-dp-import-option", /^Airtable$/).click();
     }
     await driver.findWait(".test-modal-dialog", 2000);
   }
@@ -218,14 +218,14 @@ describe("AirtableImport", function() {
 
       it("should redirect to sign-in page", async function() {
         await gu.refreshDismiss({ ignore: true });
-        await driver.findWait(".test-dp-add-new", 2000).click();
-        await driver.findContentWait(".test-dp-import-option", /Import from Airtable/i, 500).click();
+        await gu.openDocImportMenu();
+        await driver.findContent(".test-dp-import-option", /^Airtable$/).click();
 
         await gu.checkLoginPage();
 
         await ownerSession.loadDocMenu("/");
-        await driver.findWait(".test-dm-add-new", 2000).click();
-        await driver.findWait(".test-dm-import-from-airtable", 500).click();
+        await gu.openHomeImportMenu();
+        await driver.find(".test-dm-import-from-airtable").click();
 
         await gu.checkLoginPage();
       });
@@ -407,6 +407,56 @@ describe("AirtableImport", function() {
           "Skip",
         ]);
         assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 3 tables");
+        // Skipping via the dropdown unticks that table's checkbox; the rest stay ticked,
+        // leaving the header checkbox indeterminate.
+        assert.isFalse(
+          await driver.find(".test-import-airtable-table-tblfyhS37Hst5Hvsf-include").matches(":checked"));
+        assert.isTrue(await driver.find(".test-import-airtable-include-all").matches(":indeterminate"));
+      });
+
+      it("should allow including and skipping tables via checkboxes", async function() {
+        // Unticking is equivalent to choosing "Skip".
+        await driver.find(".test-import-airtable-table-tbl79ux7qppckp8hr-include").click();
+        assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+          "Skip",
+          "Structure only",
+          "New table",
+          "Skip",
+        ]);
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 2 tables");
+
+        // The header checkbox includes everything at once, restoring each table's own
+        // last destination rather than resetting them all to "New table".
+        await driver.find(".test-import-airtable-include-all").click();
+        assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+          "New table",
+          "Structure only",
+          "New table",
+          "New table",
+        ]);
+        assert.isTrue(await driver.find(".test-import-airtable-include-all").matches(":checked"));
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import 4 tables");
+
+        // And clears everything at once.
+        await driver.find(".test-import-airtable-include-all").click();
+        assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+          "Skip",
+          "Skip",
+          "Skip",
+          "Skip",
+        ]);
+        assert.equal(await driver.find(".test-import-airtable-import").getText(), "Import tables");
+
+        // Restore the selection the following tests expect.
+        await driver.find(".test-import-airtable-include-all").click();
+        await driver.find(".test-import-airtable-table-tblfyhS37Hst5Hvsf-destination").click();
+        await gu.findOpenMenuItem("li", "Skip").click();
+        assert.deepEqual(await driver.findAll(".test-import-airtable-destination-label", el => el.getText()), [
+          "New table",
+          "Structure only",
+          "New table",
+          "Skip",
+        ]);
       });
 
       it("should import Airtable base to a new Grist document", async function() {

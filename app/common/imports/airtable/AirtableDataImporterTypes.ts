@@ -1,7 +1,7 @@
-import { ListAirtableRecordsResult } from "app/common/airtable/AirtableAPI";
-import { AirtableTableId } from "app/common/airtable/AirtableAPITypes";
-import { AirtableBaseSchemaCrosswalk, GristTableId } from "app/common/airtable/AirtableCrosswalk";
 import { BulkColValues, TableColValues } from "app/common/DocActions";
+import { ListAirtableRecordsResult } from "app/common/imports/airtable/AirtableAPI";
+import { AirtableTableId } from "app/common/imports/airtable/AirtableAPITypes";
+import { AirtableBaseSchemaCrosswalk, GristTableId } from "app/common/imports/airtable/AirtableCrosswalk";
 import { AddOrUpdateRowsOptions } from "app/common/UserAPI";
 import { AddOrUpdateRecord, BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
 

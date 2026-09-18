@@ -1,12 +1,12 @@
 import { loadAirtableImportUI } from "app/client/lib/imports";
+import { cssImportModal } from "app/client/lib/imports/ImportCss";
 import { makeT } from "app/client/lib/localization";
+import { reportError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { HomeModel } from "app/client/models/HomeModel";
-import { cssModalTitle, cssModalWidth, modal } from "app/client/ui2018/modals";
+import { cssModalTitle, modal } from "app/client/ui2018/modals";
 
-import { styled } from "grainjs";
-
-import type { AirtableImportResult } from "app/client/lib/airtable/AirtableImporter";
+import type { AirtableImportResult } from "app/client/lib/imports/airtable/AirtableImporter";
 
 const t = makeT("startHomeAirtableImport");
 
@@ -37,16 +37,9 @@ export async function startHomeAirtableImport(home: HomeModel) {
     });
 
     return [
-      cssModalStyle.cls(""),
-      cssModalWidth("fixed-wide"),
+      cssImportModal.cls(""),
       cssModalTitle(t("Import from Airtable")),
       airtableImport.buildDom(),
     ];
   });
 }
-
-const cssModalStyle = styled("div", `
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-`);

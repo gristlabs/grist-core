@@ -8,7 +8,15 @@ import { UIRowId } from "app/plugin/GristAPI";
 export function isHiddenTable(tablesData: TableData, tableRef: UIRowId): boolean {
   const tableId = tablesData.getValue(tableRef, "tableId") as string | undefined;
   // The `!tableId` check covers the case of censored tables (see isTableCensored() below).
-  return !tableId || isSummaryTable(tablesData, tableRef) || tableId.startsWith("GristHidden_");
+  return !tableId || isSummaryTable(tablesData, tableRef) || isHiddenTableId(tableId);
+}
+
+/**
+ * Returns whether a tableId names an internal hidden table (e.g. "GristHidden_import"),
+ * as opposed to a user table.
+ */
+export function isHiddenTableId(tableId: string): boolean {
+  return tableId.startsWith("GristHidden_");
 }
 
 /**

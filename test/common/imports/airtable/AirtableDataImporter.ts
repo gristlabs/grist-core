@@ -1,15 +1,14 @@
-import { AirtableTableId } from "app/common/airtable/AirtableAPITypes";
+import { AirtableTableId } from "app/common/imports/airtable/AirtableAPITypes";
 import {
   AirtableBaseSchemaCrosswalk,
   AirtableTableCrosswalk,
   GristTableId,
-} from "app/common/airtable/AirtableCrosswalk";
-import { importDataFromAirtableBase } from "app/common/airtable/AirtableDataImporter";
-import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
-import { ReferenceTracker } from "app/common/airtable/AirtableReferenceTracker";
-import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
-import { ExistingColumnSchema } from "app/common/DocSchemaImportTypes";
-import { AddOrUpdateRecord, BulkAddOrUpdateRecordResult } from "app/plugin/DocApiTypes";
+} from "app/common/imports/airtable/AirtableCrosswalk";
+import { importDataFromAirtableBase } from "app/common/imports/airtable/AirtableDataImporter";
+import { AirtableDataImportParams } from "app/common/imports/airtable/AirtableDataImporterTypes";
+import { ReferenceTracker } from "app/common/imports/airtable/AirtableReferenceTracker";
+import { AirtableIdColumnLabel } from "app/common/imports/airtable/AirtableSchemaImporter";
+import { AddOrUpdateRecord, BulkAddOrUpdateRecordResult, ColumnMetadata } from "app/plugin/DocApiTypes";
 import { BulkColValues, GristObjCode } from "app/plugin/GristData";
 
 import Airtable from "airtable";
@@ -19,66 +18,72 @@ import nock from "nock";
 import fetch from "node-fetch";
 import * as sinon from "sinon";
 
+function gristCol(
+  id: string, colRef: number, label: string, type: string, isFormula: boolean,
+): ColumnMetadata {
+  return { id, fields: { colRef, label, type, isFormula } };
+}
+
 describe("AirtableDataImporter", function() {
   const AirtableIdColumnId = "Airtable_Id";
   const basicCrosswalkFields = [
     {
       airtableField: { id: "fld0", name: "Name", type: "singleLineText" as const, options: {} },
-      gristColumn: { id: "Name", ref: 100, label: "Name", type: "Text", isFormula: false },
+      gristColumn: gristCol("Name", 100, "Name", "Text", false),
     },
     {
       airtableField: { id: "fld1", name: "Count", type: "number" as const, options: {} },
-      gristColumn: { id: "Count", ref: 101, label: "Count", type: "Numeric", isFormula: true },
+      gristColumn: gristCol("Count", 101, "Count", "Numeric", true),
     },
     {
       airtableField: { id: "fld2", name: "Formula", type: "formula" as const, options: {} },
-      gristColumn: { id: "Formula", ref: 102, label: "Formula", type: "Any", isFormula: true },
+      gristColumn: gristCol("Formula", 102, "Formula", "Any", true),
     },
     {
       airtableField: { id: "fld3", name: "Links", type: "multipleRecordLinks" as const, options: {} },
-      gristColumn: { id: "Links", ref: 103, label: "Links", type: "RefList:Main", isFormula: false },
+      gristColumn: gristCol("Links", 103, "Links", "RefList:Main", false),
     },
     {
       airtableField: { id: "fld4", name: "AiField", type: "aiText" as const, options: {} },
-      gristColumn: { id: "AiField", ref: 104, label: "AiField", type: "Text", isFormula: false },
+      gristColumn: gristCol("AiField", 104, "AiField", "Text", false),
     },
     {
       airtableField: { id: "fld5", name: "CreatedBy", type: "createdBy" as const, options: {} },
-      gristColumn: { id: "CreatedBy", ref: 105, label: "CreatedBy", type: "Text", isFormula: false },
+      gristColumn: gristCol("CreatedBy", 105, "CreatedBy", "Text", false),
     },
     {
       airtableField: { id: "fld6", name: "ModifiedBy", type: "lastModifiedBy" as const, options: {} },
-      gristColumn: { id: "ModifiedBy", ref: 106, label: "ModifiedBy", type: "Text", isFormula: false },
+      gristColumn: gristCol("ModifiedBy", 106, "ModifiedBy", "Text", false),
     },
     {
       airtableField: { id: "fld7", name: "Collaborators", type: "multipleCollaborators" as const, options: {} },
-      gristColumn: { id: "Collaborators", ref: 107, label: "Collaborators", type: "Text", isFormula: false },
+      gristColumn: gristCol("Collaborators", 107, "Collaborators", "Text", false),
     },
     {
       airtableField: { id: "fld8", name: "SingleCollaborator", type: "singleCollaborator" as const, options: {} },
-      gristColumn: { id: "SingleCollaborator", ref: 108, label: "SingleCollaborator", type: "Text", isFormula: false },
+      gristColumn: gristCol("SingleCollaborator", 108, "SingleCollaborator", "Text", false),
     },
     {
       airtableField: { id: "fld9", name: "MultipleSelects", type: "multipleSelects" as const, options: {} },
-      gristColumn: { id: "MultipleSelects", ref: 109, label: "MultipleSelects", type: "ChoiceList", isFormula: false },
+      gristColumn: gristCol("MultipleSelects", 109, "MultipleSelects", "ChoiceList", false),
     },
     {
       airtableField: { id: "fld10", name: "Rollup", type: "rollup" as const, options: {} },
-      gristColumn: { id: "Rollup", ref: 110, label: "Rollup", type: "Any", isFormula: true },
+      gristColumn: gristCol("Rollup", 110, "Rollup", "Any", true),
     },
     {
       airtableField: { id: "fld11", name: "Lookup", type: "lookup" as const, options: {} },
-      gristColumn: { id: "Lookup", ref: 111, label: "Lookup", type: "Any", isFormula: true },
+      gristColumn: gristCol("Lookup", 111, "Lookup", "Any", true),
     },
     {
       airtableField: { id: "fld12", name: "Attachments", type: "multipleAttachments" as const, options: {} },
-      gristColumn: { id: "Attachments", ref: 112, label: "Attachments", type: "Attachments", isFormula: false },
+      gristColumn: gristCol("Attachments", 112, "Attachments", "Attachments", false),
     },
   ];
 
   function createBasicTableCrosswalk(airtableTableId: string, gristTableId: string): AirtableTableCrosswalk {
     const fields: AirtableTableCrosswalk["fields"] = new Map();
-    const gristColumns: ExistingColumnSchema[] = [];
+    const gristColumns: ColumnMetadata[] = [];
     const airtableFields: any[] = [];
 
     for (const fieldPair of basicCrosswalkFields) {
@@ -87,14 +92,12 @@ describe("AirtableDataImporter", function() {
       fields.set(fieldPair.airtableField.name, fieldPair);
     }
 
-    const airtableIdColumn = {
-      id: AirtableIdColumnId, ref: 111, label: AirtableIdColumnLabel, type: "Text", isFormula: false,
-    };
+    const airtableIdColumn = gristCol(AirtableIdColumnId, 111, AirtableIdColumnLabel, "Text", false);
     gristColumns.push(airtableIdColumn);
 
     return {
       airtableTable: { id: airtableTableId, name: gristTableId, primaryFieldId: "fld0", fields: airtableFields },
-      gristTable: { id: gristTableId, ref: 1, columns: gristColumns },
+      gristTable: { id: gristTableId, columns: gristColumns },
       fields,
       airtableIdColumn,
     };
@@ -899,7 +902,8 @@ type AirtableRecordKeyFieldsOnly = Pick<Airtable.Record<any>, "id" | "fields">;
 
 // Converts Airtable records into the expected bulk-column syntax
 function getBulkColSyntaxForRecords(tableCrosswalk: AirtableTableCrosswalk, records: AirtableRecordKeyFieldsOnly[]) {
-  const fieldMappings = Array.from(tableCrosswalk.fields.values()).filter(mapping => !mapping.gristColumn.isFormula);
+  const fieldMappings = Array.from(tableCrosswalk.fields.values())
+    .filter(mapping => !mapping.gristColumn.fields.isFormula);
   const bulkCol: BulkColValues = {};
 
   for (const fieldMapping of fieldMappings) {
@@ -928,7 +932,8 @@ function getBulkColSyntaxForRecords(tableCrosswalk: AirtableTableCrosswalk, reco
 function getAddOrUpdateSyntaxForRecords(
   tableCrosswalk: AirtableTableCrosswalk, records: AirtableRecordKeyFieldsOnly[],
 ) {
-  const fieldMappings = Array.from(tableCrosswalk.fields.values()).filter(mapping => !mapping.gristColumn.isFormula);
+  const fieldMappings = Array.from(tableCrosswalk.fields.values())
+    .filter(mapping => !mapping.gristColumn.fields.isFormula);
 
   const addOrUpdateRecords: AddOrUpdateRecord[] = records.map((record) => {
     const addOrUpdate: Required<AddOrUpdateRecord> = { require: {}, fields: {} };

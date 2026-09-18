@@ -115,6 +115,7 @@ const cssVersionFooter = styled("div", `
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: auto;
   padding: 8px 16px 8px 24px;
   border-top: 1px solid ${components.pagePanelsBorder};
   cursor: default;

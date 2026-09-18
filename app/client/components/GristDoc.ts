@@ -21,11 +21,11 @@ import { RecordCardPopup } from "app/client/components/RecordCardPopup";
 import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
 import { ActionGroupWithCursorPos, UndoStack } from "app/client/components/UndoStack";
 import { ViewLayout } from "app/client/components/ViewLayout";
-import { startDocAirtableImport } from "app/client/lib/airtable/startDocAirtableImport";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { DocPluginManager } from "app/client/lib/DocPluginManager";
-import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { startDocAirtableImport } from "app/client/lib/imports/airtable/startDocAirtableImport";
+import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
 import { createSessionObs } from "app/client/lib/sessionObs";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
@@ -617,7 +617,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     const importSourceElems = ImportSourceElement.fromArray(this.docPluginManager.pluginsList);
     const importMenuItems = [
       {
-        label: t("Import from file"),
+        label: t("File"),
         action: () => importFromFile(this, createPreview),
       },
       ...importSourceElems.map(importSourceElem => ({
@@ -625,7 +625,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview),
       })),
       ...(isFeatureEnabled("importFromAirtable") && [{
-        label: t("Import from Airtable"),
+        label: t("Airtable"),
         action: async () => {
           if (this.docPageModel.appModel.currentValidUser) {
             await startDocAirtableImport(this);

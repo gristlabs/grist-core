@@ -3,7 +3,38 @@ import {
   AirtableImportResult,
   applyAirtableImportSchemaAndImportData, ExistingDoc, NewDoc,
   validateAirtableSchemaImport,
-} from "app/client/lib/airtable/AirtableImporter";
+} from "app/client/lib/imports/airtable/AirtableImporter";
+import {
+  cssAccentIconColor,
+  cssDestinationIcon,
+  cssDestinationIconAndName,
+  cssDestinationMenu,
+  cssDestinationName,
+  cssFooterButtons,
+  cssHelperText,
+  cssIncludeColumn,
+  cssLoading,
+  cssMappingsGrid,
+  cssMappingsHeaderColumn,
+  cssScrollableContent,
+  cssTableIcon,
+  cssTableIconAndName,
+  cssTableName,
+  cssTableNameColumn,
+  cssTableWarnings,
+  cssWarningIcon,
+  cssWarningsLabel,
+  cssWarningsList,
+} from "app/client/lib/imports/ImportCss";
+import {
+  allTablesIncludedComputed,
+  ExistingTable,
+  IMPORT_TABLE_AND_DATA,
+  ImportTableMapping,
+  includedTablesComputed,
+  includeTableCheckbox,
+  NewTable,
+} from "app/client/lib/imports/ImportTableMapping";
 import { makeT } from "app/client/lib/localization";
 import { cssMarkdownSpan, markdown } from "app/client/lib/markdown";
 import { reportError } from "app/client/models/errors";
@@ -11,11 +42,15 @@ import { getHomeUrl } from "app/client/models/homeUrl";
 import { cssWell } from "app/client/ui/AdminPanelCss";
 import { cssCodeBlock } from "app/client/ui/CodeHighlight";
 import { textInput } from "app/client/ui/inputs";
-import { shadowScroll } from "app/client/ui/shadowScroll";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { bigBasicButton, bigPrimaryButton, textButton } from "app/client/ui2018/buttons";
-import { cssLabelText, cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
-import { isNarrowScreenObs, mediaSmall, testId, theme } from "app/client/ui2018/cssVars";
+import {
+  cssLabelText,
+  cssRadioCheckboxOptions,
+  radioCheckboxOption,
+  triStateSquareCheckbox,
+} from "app/client/ui2018/checkbox";
+import { isNarrowScreenObs, testId, theme } from "app/client/ui2018/cssVars";
 import { cssIconButton, icon } from "app/client/ui2018/icons";
 import { cssNestedLinks } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
@@ -29,16 +64,20 @@ import {
   selectMenu,
   selectOption,
 } from "app/client/ui2018/menus";
-import { cssModalBody, cssModalButtons } from "app/client/ui2018/modals";
-import { AirtableAPI } from "app/common/airtable/AirtableAPI";
-import { AirtableBaseSchema } from "app/common/airtable/AirtableAPITypes";
-import { AirtableImportProgress } from "app/common/airtable/AirtableDataImporterTypes";
-import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
+import { cssModalBody } from "app/client/ui2018/modals";
 import { BaseAPI } from "app/common/BaseAPI";
-import { DocSchemaImportWarning, ImportSchemaTransformParams, transformImportSchema } from "app/common/DocSchemaImport";
-import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
+import {
+  DocSchema,
+  DocSchemaImportWarning,
+  ImportSchemaTransformParams,
+  transformImportSchema,
+} from "app/common/DocSchemaImport";
 import { commonUrls } from "app/common/gristUrls";
-import { components, tokens } from "app/common/ThemePrefs";
+import { AirtableAPI } from "app/common/imports/airtable/AirtableAPI";
+import { AirtableBaseSchema } from "app/common/imports/airtable/AirtableAPITypes";
+import { AirtableImportProgress } from "app/common/imports/airtable/AirtableDataImporterTypes";
+import { gristDocSchemaFromAirtableSchema } from "app/common/imports/airtable/AirtableSchemaImporter";
+import { components } from "app/common/ThemePrefs";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
 import { UserAPI } from "app/common/UserAPI";
 import { MaybePromise } from "app/plugin/gutil";
@@ -53,20 +92,8 @@ interface AirtableBase {
   permissionLevel: string;       // Permission level (e.g., "owner", "create", "edit", "comment", "read", "none")
 }
 
-interface AirtableToGristMapping {
-  tableId: string;
+interface AirtableToGristMapping extends ImportTableMapping<NewTable | ExistingTable> {
   tableName: string;
-  destination: Observable<NewTable | ExistingTable | null>;
-}
-
-interface NewTable {
-  type: "new-table";
-  structureOnly: boolean;
-}
-
-interface ExistingTable {
-  type: "existing-table";
-  tableId: string;
 }
 
 interface TokenPayload {
@@ -77,7 +104,7 @@ interface TokenPayload {
 
 type AirtableImportStep = "auth" | "select-base" | "select-tables";
 
-type Destination = ExistingDoc & { docSchema?: Computed<ExistingDocSchema> } | Omit<NewDoc, "name">;
+type Destination = ExistingDoc & { docSchema?: Computed<DocSchema> } | Omit<NewDoc, "name">;
 
 export interface AirtableImportOptions {
   api: UserAPI;
@@ -158,6 +185,10 @@ export class AirtableImport extends Disposable {
     const newTablesCount = use(this._newTables).length;
     return existingTablesCount + newTablesCount;
   });
+
+  private _includedTables = includedTablesComputed(this, this._tableMappings);
+
+  private _allTablesIncluded = allTablesIncludedComputed(this, this._tableMappings, this._includedTables);
 
   private _warningsByTableId = Computed.create(this, (use) => {
     const warningsByTableId = new Map<string, DocSchemaImportWarning[]>();
@@ -421,6 +452,9 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
 
   private _tableMappingsList(mappings: AirtableToGristMapping[]) {
     return cssMappingsGrid(
+      cssIncludeColumn(
+        triStateSquareCheckbox(this._allTablesIncluded, testId("import-airtable-include-all")),
+      ),
       cssMappingsHeaderColumn(t("Source tables")),
       cssMappingsHeaderColumn(t("Destination")),
       mappings.map(m => this._tableMapping(m)),
@@ -430,6 +464,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
 
   private _tableMapping(mapping: AirtableToGristMapping) {
     return [
+      includeTableCheckbox(mapping, testId(`import-airtable-table-${mapping.tableId}-include`)),
       cssTableNameColumn(
         cssTableIconAndName(
           cssTableIcon("TypeTable"),
@@ -487,20 +522,23 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
   }
 
   private _destinationMenuOptions(mapping: AirtableToGristMapping) {
+    // Picking a destination also records it, so that unchecking and rechecking the table
+    // comes back to it rather than resetting to "New table".
+    const setDestination = (destination: NewTable | ExistingTable) => {
+      mapping.lastDestination = destination;
+      mapping.destination.set(destination);
+    };
+
     return [
       menuSubHeader(t("Choose destination")),
       selectOption(
-        () => {
-          mapping.destination.set({ type: "new-table", structureOnly: false });
-        },
+        () => setDestination(IMPORT_TABLE_AND_DATA),
         t("New table"),
         "Plus",
         cssAccentIconColor.cls(""),
       ),
       selectOption(
-        () => {
-          mapping.destination.set({ type: "new-table", structureOnly: true });
-        },
+        () => setDestination({ type: "new-table", structureOnly: true }),
         t("New table: structure only"),
         "Plus",
         cssAccentIconColor.cls(""),
@@ -518,9 +556,7 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
         menuSubHeader(t("Existing tables")),
         existingTables.map(({ id, name }) =>
           selectOption(
-            () => {
-              mapping.destination.set({ type: "existing-table", tableId: id });
-            },
+            () => setDestination({ type: "existing-table", tableId: id }),
             name || id,
             "FieldTable",
             cssAccentIconColor.cls(""),
@@ -725,10 +761,8 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
         this._tableMappings.set(baseSchema.tables.map(table => ({
           tableId: table.id,
           tableName: table.name,
-          destination: Observable.create(this, {
-            type: "new-table" as const,
-            structureOnly: false,
-          }),
+          destination: Observable.create<NewTable | ExistingTable | null>(this, IMPORT_TABLE_AND_DATA),
+          lastDestination: IMPORT_TABLE_AND_DATA,
         })));
       } catch (e) {
         // Log error to console so the root cause of the issue is available somewhere.
@@ -817,34 +851,8 @@ const cssTextInput = styled(textInput, `
   height: 28px;
 `);
 
-const cssHelperText = styled("div", `
-  color: ${theme.lightText};
-`);
-
 const cssTextButton = styled(textButton, `
   align-self: center;
-`);
-
-const cssLoading = styled("div", `
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: center;
-`);
-
-const cssScrollableContent = styled(shadowScroll, `
-  flex: 1 1 auto;
-  width: auto;
-  margin: 0 -64px;
-  padding: 16px 64px 24px 64px;
-  border-bottom: 1px solid ${theme.modalBorderDark};
-
-  @media ${mediaSmall} {
-    & {
-      margin: 0 -16px;
-      padding: 16px;
-    }
-  }
 `);
 
 const cssChooseBase = styled("div", `
@@ -887,110 +895,6 @@ const cssBaseId = styled(cssCodeBlock, `
   color: ${theme.lightText};
 `);
 
-const cssFooterButtons = styled(cssModalButtons, `
-  margin: 16px 0 -16px 0;
-`);
-
-const cssMappingsGrid = styled("div", `
-  align-items: baseline;
-  display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(220px, auto) minmax(160px, auto) auto;
-
-  @media ${mediaSmall} {
-    & {
-      grid-template-columns: minmax(160px, auto) minmax(120px, auto);
-    }
-  }
-`);
-
-const cssMappingsHeaderColumn = styled("div", `
-  color: ${components.mediumText};
-  font-size: ${tokens.smallFontSize};
-  text-transform: uppercase;
-`);
-
-const cssTableNameColumn = styled("div", `
-  font-weight: bold;
-  grid-column: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`);
-
-const cssTableIconAndName = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 16px;
-`);
-
-const cssTableIcon = styled(icon, `
-  flex-shrink: 0;
-  --icon-color: ${theme.accentIcon};
-`);
-
-const cssTableName = styled("div", `
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`);
-
-const cssDestinationIconAndName = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`);
-
-const cssDestinationIcon = styled(icon, `
-  flex-shrink: 0;
-  --icon-color: ${theme.accentIcon};
-`);
-
-const cssDestinationName = styled("div", `
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`);
-
-const cssAccentIconColor = styled("div", `
-  --icon-color: ${theme.accentIcon};
-`);
-
-const cssTableWarnings = styled("div", `
-  align-items: center;
-  display: flex;
-  gap: 4px;
-
-  @media ${mediaSmall} {
-    & {
-      grid-column-start: 2;
-      grid-column-end: 3;
-      margin-bottom: 8px;
-    }
-  }
-`);
-
-const cssWarningIcon = styled(icon, `
-  flex-shrink: 0;
-  height: 20px;
-  width: 20px;
-  --icon-color: ${theme.iconError};
-`);
-
-const cssWarningsLabel = styled("div", `
-  cursor: default;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`);
-
-const cssWarningsList = styled("ul", `
-  margin: 0px;
-  max-width: 400px;
-  padding: 8px 16px;
-  text-align: left;
-`);
-
 const cssProgressBarContainer = styled("div", `
   width: 100%;
   height: 4px;
@@ -1005,8 +909,4 @@ const cssProgressBarFill = styled(cssProgressBarContainer, `
   &-approaching-limit {
     background: ${theme.progressBarErrorFg};
   }
-`);
-
-const cssDestinationMenu = styled("div", `
-  grid-column: 2;
 `);

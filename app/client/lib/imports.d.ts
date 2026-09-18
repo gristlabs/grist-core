@@ -1,6 +1,6 @@
 import * as GristDocModule from "app/client/components/GristDoc";
 import * as ViewPane from "app/client/components/ViewPane";
-import * as AirtableImportUI from "app/client/lib/airtable/AirtableImportUI";
+import * as AirtableImportUI from "app/client/lib/imports/airtable/AirtableImportUI";
 import * as AccountPageModule from "app/client/ui/AccountPage";
 import * as ActivationPageModule from "app/client/ui/ActivationPage";
 import * as AdminPanelModule from "app/client/ui/AdminPanel";

@@ -1,7 +1,7 @@
 import { ClientScope } from "app/client/components/ClientScope";
 import { guessTimezone } from "app/client/lib/guessTimezone";
 import { HomePluginManager } from "app/client/lib/HomePluginManager";
-import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement";
 import { localStorageObs } from "app/client/lib/localStorageObs";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { reportMessage, UserError } from "app/client/models/errors";

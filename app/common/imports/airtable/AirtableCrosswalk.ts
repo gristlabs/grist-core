@@ -1,15 +1,12 @@
+import { DocSchema, DocTableSchema } from "app/common/DocSchemaImport";
 import {
   AirtableBaseSchema,
   AirtableFieldName, AirtableFieldSchema,
   AirtableTableId,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPITypes";
-import { AirtableIdColumnLabel } from "app/common/airtable/AirtableSchemaImporter";
-import {
-  ExistingColumnSchema,
-  ExistingDocSchema,
-  ExistingTableSchema,
-} from "app/common/DocSchemaImportTypes";
+} from "app/common/imports/airtable/AirtableAPITypes";
+import { AirtableIdColumnLabel } from "app/common/imports/airtable/AirtableSchemaImporter";
+import { ColumnMetadata } from "app/plugin/DocApiTypes";
 
 export type GristTableId = string;
 
@@ -19,26 +16,26 @@ export interface AirtableBaseSchemaCrosswalk {
 
 export interface AirtableTableCrosswalk {
   airtableTable: AirtableTableSchema;
-  gristTable: ExistingTableSchema;
+  gristTable: DocTableSchema;
   fields: Map<AirtableFieldName, AirtableFieldMappingInfo>
   // Special case - ID isn't a field in Airtable, but it's useful to have a mapping if it exists.
-  airtableIdColumn?: ExistingColumnSchema;
+  airtableIdColumn?: ColumnMetadata;
 }
 
 export interface AirtableFieldMappingInfo {
   airtableField: AirtableFieldSchema;
-  gristColumn: ExistingColumnSchema;
+  gristColumn: ColumnMetadata;
 }
 
 /**
  * Creates a mapping from fields in an Airtable schema to fields in a Grist schema.
  * @param {AirtableBaseSchema} airtableSchema
- * @param {ExistingDocSchema} gristSchema
+ * @param {DocSchema} gristSchema
  * @param {Map<AirtableTableId, GristTableId>} tableMap
  * @returns {{schemaCrosswalk: AirtableBaseSchemaCrosswalk, warnings: DocSchemaImportWarning[]}}
  */
 export function createAirtableBaseToGristDocCrosswalk(
-  airtableSchema: AirtableBaseSchema, gristSchema: ExistingDocSchema, tableMap: Map<AirtableTableId, GristTableId>,
+  airtableSchema: AirtableBaseSchema, gristSchema: DocSchema, tableMap: Map<AirtableTableId, GristTableId>,
 ): { schemaCrosswalk: AirtableBaseSchemaCrosswalk, warnings: AirtableCrosswalkWarning[] } {
   const schemaCrosswalk: AirtableBaseSchemaCrosswalk = {
     tables: new Map(),
@@ -74,14 +71,15 @@ export function createAirtableBaseToGristDocCrosswalk(
 }
 
 function createAirtableTableToGristTableCrosswalk(
-  airtableTableSchema: AirtableTableSchema, gristTableSchema: ExistingTableSchema,
+  airtableTableSchema: AirtableTableSchema, gristTableSchema: DocTableSchema,
 ) {
   const warnings: AirtableCrosswalkWarning[] = [];
   const crosswalk: AirtableTableCrosswalk = {
     airtableTable: airtableTableSchema,
     gristTable: gristTableSchema,
     fields: new Map(),
-    airtableIdColumn: gristTableSchema.columns.find(column => column.label === AirtableIdColumnLabel),
+    airtableIdColumn: gristTableSchema.columns.find(
+      column => column.fields.label === AirtableIdColumnLabel),
   };
 
   for (const field of airtableTableSchema.fields) {
@@ -101,8 +99,8 @@ function createAirtableTableToGristTableCrosswalk(
   return { crosswalk, warnings };
 }
 
-function findGristColumnForField(field: AirtableFieldSchema, gristSchema: ExistingTableSchema) {
-  return gristSchema.columns.find(column => column.label === field.name);
+function findGristColumnForField(field: AirtableFieldSchema, gristSchema: DocTableSchema) {
+  return gristSchema.columns.find(column => column.fields.label === field.name);
 }
 
 export interface AirtableCrosswalkWarning {

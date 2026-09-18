@@ -1,6 +1,6 @@
 import { PluginScreen } from "app/client/components/PluginScreen";
 import { guessTimezone } from "app/client/lib/guessTimezone";
-import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement";
 import { checkBrowserUploadSizeLimit } from "app/client/lib/uploads";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { openFilePicker } from "app/client/ui/FileDialog";

@@ -1554,7 +1554,8 @@ export class ActiveDoc extends EventEmitter {
    */
   public async getTables(
     docSession: OptDocSession,
-    expand: ExpandTableOption[] = []): Promise<TableMetadata[]> {
+    expand: ExpandTableOption[] = [],
+    includeHidden = false): Promise<TableMetadata[]> {
     const metaTables = await this.fetchMetaTables(docSession);
     const [, , tableRefs, tableData] = metaTables._grist_Tables;
 
@@ -1574,7 +1575,7 @@ export class ActiveDoc extends EventEmitter {
         table.fields[key] = tableData[key][index];
       }
       if (includeColumns) {
-        table.columns = this._colMetadataRecords(metaTables, tableRef);
+        table.columns = this._colMetadataRecords(metaTables, tableRef, includeHidden);
       }
       tables.push(table);
     });

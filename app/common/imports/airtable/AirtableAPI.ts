@@ -2,8 +2,8 @@ import {
   AirtableBaseSchema,
   AirtableFieldSchema, AirtableListBasesResponse,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPITypes";
-import AirtableSchemaTypeSuite from "app/common/airtable/AirtableAPITypes-ti";
+} from "app/common/imports/airtable/AirtableAPITypes";
+import AirtableSchemaTypeSuite from "app/common/imports/airtable/AirtableAPITypes-ti";
 
 import Airtable, { Record, SelectOptions as QueryParams } from "airtable";
 import { CheckerT, createCheckers } from "ts-interface-checker";

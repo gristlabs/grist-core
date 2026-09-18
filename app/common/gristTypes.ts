@@ -333,6 +333,27 @@ export function isRefListType(type: string) {
   return type === "Attachments" || type?.startsWith("RefList:");
 }
 
+/**
+ * Whether a column type refers to records of another table, i.e. is Ref or RefList.
+ */
+export function isRefType(type: string) {
+  const pureType = extractTypeFromColType(type);
+  return pureType === "Ref" || pureType === "RefList";
+}
+
+/**
+ * Whether a column is a real formula column, i.e. one that computes its own values and
+ * rejects writes.
+ *
+ * `isFormula` alone is not enough to tell. A column with `isFormula` set and an empty formula
+ * is an "empty" column: it is still writable, and is converted to a data column on first write
+ * (see _ensure_column_accepts_data in useractions.py). A column with a formula but without
+ * `isFormula` is a trigger formula, which is also writable.
+ */
+export function isRealFormulaColumn(column: { isFormula?: boolean, formula?: unknown }) {
+  return Boolean(column.isFormula) && Boolean(column.formula);
+}
+
 export function isListType(type: string) {
   return type === "ChoiceList" || isRefListType(type);
 }

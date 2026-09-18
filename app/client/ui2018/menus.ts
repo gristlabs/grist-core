@@ -8,6 +8,7 @@ import { cssCheckboxSquare, cssLabel, cssLabelText } from "app/client/ui2018/che
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
+import { loadingSpinner } from "app/client/ui2018/loaders";
 import { cssSelectBtn } from "app/client/ui2018/select";
 
 import {
@@ -292,6 +293,34 @@ export function linkSelect<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOp
   options: weasel.ISelectUserOptions = {}) {
   const _btn = cssSelectBtnLink(testId("select-open"));
   return select(obs, optionArray, { buttonCssClass: _btn.className, ...options });
+}
+
+/**
+ * Same as select(), but for options that are loaded asynchronously, `optionArray` holds null
+ * until the options are available. While loading, the select shows a single "Loading..." option
+ * with a spinner.
+ *
+ * NOTE: The loading option is selectable and carries a value due to weasel's menu having an
+ * an infinite loop bug when opened with no selectable item. TODO: fix the bug in weasel.
+ */
+export function selectWithLoader<T>(
+  obs: Observable<T>,
+  optionArray: Observable<IOption<T>[] | null>,
+  options: SelectOptions<T> = {}) {
+  const { renderOptionArgs, ...otherOptions } = options;
+
+  const items = Computed.create(null, (use): IOption<T>[] =>
+    use(optionArray) ?? [{ value: use(obs), label: t("Loading...") }]);
+
+  return dom.update(
+    select(obs, items, {
+      ...otherOptions,
+      renderOptionArgs: op => optionArray.get() === null ?
+        cssOptionRowLoadingSpinner(loadingSpinner(loadingSpinner.cls("-inline"))) :
+        renderOptionArgs?.(op),
+    }),
+    dom.autoDispose(items),
+  );
 }
 
 export interface IMultiSelectUserOptions {
@@ -683,6 +712,12 @@ export const cssOptionRow = styled("span", `
   display: flex;
   align-items: center;
   width: 100%;
+`);
+
+const cssOptionRowLoadingSpinner = styled("div", `
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
 `);
 
 export const cssOptionRowIcon = styled(icon, `

@@ -505,11 +505,11 @@ describe("Fork", function() {
 
         // helper that get the number of items in the add new menu
         async function getAddNewEntryCount() {
-          await driver.find(".test-dp-add-new").click();
+          await gu.openDocImportMenu();
           let items: string[];
           await gu.waitToPass(async () => {
             items = await driver.findAll(".grist-floating-menu li", e => e.getText());
-            assert.include(items, "Import from file");
+            assert.include(items, "File");
           }, 1000);
           await driver.sendKeys(Key.ESCAPE);
           return items!.length;

@@ -35,7 +35,7 @@ import { WidgetType } from "app/common/widgetTypes";
 import { Document } from "app/gen-server/entity/Document";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { forwardDocApiRequest, getDocWorkerInternalUrl } from "app/gen-server/lib/DocApiProxy";
-import { HomeDBManager, makeDocAuthResult } from "app/gen-server/lib/homedb/HomeDBManager";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
@@ -62,6 +62,7 @@ import { DocApiTriggers } from "app/server/lib/DocApiTriggers";
 import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import {
   applyQueryParameters,
+  confirmDocIdForRead,
   getCellFormatParameter,
   getErrorPlatform,
   getQueryParameters,
@@ -193,6 +194,16 @@ export class DocWorkerApi {
     const throttled = this._tracker.throttle.bind(this._tracker);
 
     const withDoc = (callback: WithDocHandler) => throttled(this._requireActiveDoc(callback));
+
+    // Endpoints that aren't part of grist-core, but still need an ActiveDoc, are registered
+    // here so that they get the same access middleware as the ones below.
+    this._grist.create.addExtraDocWorkerEndpoints?.(this._grist, {
+      app: this._app,
+      dbManager: this._dbManager,
+      docWorkerMap: this._docWorkerMap,
+      canEdit,
+      withDoc,
+    });
     // Apply user actions to a document.
     this._app.post("/api/docs/:docId/apply", canEdit, withDoc(async (activeDoc, req, res) => {
       const parseStrings = !isAffirmative(req.query.noparse);
@@ -321,8 +332,9 @@ export class DocWorkerApi {
       withDoc(async (activeDoc, req, res) => {
         const expand = optStringParam(req.query.expand, "expand")?.split(",") ?? [];
         const expandOptions = ExpandTableOption.checkAll(expand);
+        const includeHidden = isAffirmative(req.query.hidden);
         const tables = await handleSandboxError("", [],
-          activeDoc.getTables(docSessionFromRequest(req), expandOptions));
+          activeDoc.getTables(docSessionFromRequest(req), expandOptions, includeHidden));
         res.json({ tables });
       }),
     );
@@ -1745,19 +1757,8 @@ export class DocWorkerApi {
     return id;
   }
 
-  /**
-   * Check for read access to the given document, and return its
-   * canonical docId.  Throws error if read access not available.
-   * This method is used for documents that are not the main document
-   * associated with the request, but are rather an extra source to be
-   * read from, so the access information is not cached in the
-   * request.
-   */
   private async _confirmDocIdForRead(req: Request, urlId: string): Promise<string> {
-    const docAuth = await makeDocAuthResult(this._dbManager.getDoc({ ...getScope(req), urlId }));
-    if (docAuth.error) { throw docAuth.error; }
-    assertAccess("viewers", docAuth);
-    return docAuth.docId!;
+    return confirmDocIdForRead(this._dbManager, req, urlId);
   }
 
   private async _getDownloadFilename(req: Request, tableId?: string, optDoc?: Document): Promise<string> {

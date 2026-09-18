@@ -520,6 +520,9 @@ export interface UserAPI {
   deleteUser(userId: number, name: string): Promise<void>;
   getBaseUrl(): string;  // Get the prefix for all the endpoints this object wraps.
   forRemoved(): UserAPI; // Get a version of the API that works on removed resources.
+  // Get a version of the API pinned to one site, rather than following the site the page is
+  // on. Needed to reach a resource that lives elsewhere, such as a document on another site.
+  forOrg(orgDomain: string): UserAPI;
   getWidgets(): Promise<ICustomWidget[]>;
   /**
    * Deletes account and personal org with all documents. Note: deleteUser doesn't clear documents, and this method
@@ -574,6 +577,7 @@ export interface ArchiveUploadResult {
 interface GetRowsParams {
   filters?: QueryFilters;
   immediate?: boolean;
+  hidden?: boolean;
 }
 
 interface SqlResult extends TableRecordValuesWithoutIds {
@@ -590,6 +594,7 @@ export type ExpandTableOption = typeof ExpandTableOption.type;
 
 interface GetTablesParams {
   expand?: ExpandTableOption[];
+  hidden?: boolean;
 }
 
 /**
@@ -792,6 +797,12 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   public forRemoved(): UserAPI {
     const extraParameters = new Map<string, string>([["showRemoved", "1"]]);
     return new UserAPIImpl(this._homeUrl, { ...this._options, extraParameters });
+  }
+
+  public forOrg(orgDomain: string): UserAPI {
+    // An /o/ already in the base is left alone by addCurrentOrgToPath, so this pins the
+    // client to the given site instead of following the site the page is on.
+    return new UserAPIImpl(`${this._urlWithoutOrg}/o/${orgDomain}`, this._options);
   }
 
   public async getSessionActive(): Promise<ActiveSessionInfo> {
@@ -1213,6 +1224,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     if (options?.expand) {
       url.searchParams.set("expand", options.expand.join(","));
     }
+    if (options?.hidden) {
+      url.searchParams.set("hidden", "true");
+    }
     return this.requestJson(url.href);
   }
 
@@ -1628,6 +1642,9 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     }
     if (options?.immediate) {
       url.searchParams.append("immediate", "true");
+    }
+    if (options?.hidden) {
+      url.searchParams.append("hidden", "true");
     }
     return this.requestJson(url.href);
   }

@@ -1,13 +1,14 @@
-import { AirtableFieldSchema } from "app/common/airtable/AirtableAPITypes";
+import { isRefListType } from "app/common/gristTypes";
+import { AirtableFieldSchema } from "app/common/imports/airtable/AirtableAPITypes";
 import {
   AttachmentsByColumnId,
   AttachmentTracker,
   extractAttachmentsFromRecordField,
   isAttachmentField,
   TableAttachmentTracker,
-} from "app/common/airtable/AirtableAttachmentTracker";
-import { AirtableBaseSchemaCrosswalk } from "app/common/airtable/AirtableCrosswalk";
-import { AirtableDataImportParams } from "app/common/airtable/AirtableDataImporterTypes";
+} from "app/common/imports/airtable/AirtableAttachmentTracker";
+import { AirtableBaseSchemaCrosswalk } from "app/common/imports/airtable/AirtableCrosswalk";
+import { AirtableDataImportParams } from "app/common/imports/airtable/AirtableDataImporterTypes";
 import {
   extractRefFromRecordField,
   getRefFieldLinkedTableId,
@@ -15,8 +16,7 @@ import {
   ReferenceTracker,
   RefValuesByColumnId,
   TableReferenceTracker,
-} from "app/common/airtable/AirtableReferenceTracker";
-import { isRefListType } from "app/common/gristTypes";
+} from "app/common/imports/airtable/AirtableReferenceTracker";
 import { AddOrUpdateRecord } from "app/plugin/DocApiTypes";
 import { CellValue, GristObjCode } from "app/plugin/GristData";
 import { convertToBulkColValues } from "app/plugin/TableOperationsImpl";
@@ -42,7 +42,8 @@ export async function importDataFromAirtableBase(
 
   for (const [tableId, tableCrosswalk] of schemaCrosswalk.tables.entries()) {
     // Filter out any formula columns early - Grist will error on any write to formula columns.
-    const fieldMappings = Array.from(tableCrosswalk.fields.values()).filter(mapping => !mapping.gristColumn.isFormula);
+    const fieldMappings = Array.from(tableCrosswalk.fields.values())
+      .filter(mapping => !mapping.gristColumn.fields.isFormula);
     const gristColumnIds = fieldMappings.map(mapping => mapping.gristColumn.id);
 
     // Airtable ID needs to be handled separately to fields, as it's not stored as a field in Airtable
@@ -55,7 +56,7 @@ export async function importDataFromAirtableBase(
       .map(mapping => ({
         id: mapping.gristColumn.id,
         tableId: resolveLinkedTableId(schemaCrosswalk, mapping.airtableField),
-        isList: isRefListType(mapping.gristColumn.type),
+        isList: isRefListType(mapping.gristColumn.fields.type),
       }));
 
     let tableReferenceTracker: TableReferenceTracker | undefined;

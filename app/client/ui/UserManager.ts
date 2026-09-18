@@ -22,7 +22,7 @@ import { IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
 import { UserManagerModel, UserManagerModelImpl } from "app/client/models/UserManagerModel";
 import { getResourceParent, ResourceType } from "app/client/models/UserManagerModel";
 import { buildAskTheAdmin } from "app/client/ui/AskTheAdmin";
-import { getAutomationsStatus } from "app/client/ui/AutomationStatus";
+import { getAutomationsStatus } from "app/client/ui/FeatureStatus";
 import { computeSetupSteps, setupFeatureNeeds, SetupStep } from "app/client/ui/SetupSteps";
 import { shadowScroll } from "app/client/ui/shadowScroll";
 import { hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip } from "app/client/ui/tooltips";

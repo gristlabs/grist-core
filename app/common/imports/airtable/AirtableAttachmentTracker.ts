@@ -1,9 +1,9 @@
-import { AirtableFieldSchema } from "app/common/airtable/AirtableAPITypes";
-import { AirtableFieldMappingInfo, GristTableId } from "app/common/airtable/AirtableCrosswalk";
-import { createEmptyBulkColValues } from "app/common/airtable/AirtableReferenceTracker";
 import { TableColValues } from "app/common/DocActions";
 import { getMaxUploadSizeAttachmentMB } from "app/common/gristUrls";
 import { arrayRepeat, byteString } from "app/common/gutil";
+import { AirtableFieldSchema } from "app/common/imports/airtable/AirtableAPITypes";
+import { AirtableFieldMappingInfo, GristTableId } from "app/common/imports/airtable/AirtableCrosswalk";
+import { createEmptyBulkColValues } from "app/common/imports/airtable/AirtableReferenceTracker";
 import { GristObjCode } from "app/plugin/GristData";
 
 import pick from "lodash/pick";

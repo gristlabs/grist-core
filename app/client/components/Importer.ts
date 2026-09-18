@@ -8,7 +8,7 @@ import { buildParseOptionsForm, ParseOptionValues } from "app/client/components/
 import { PluginScreen } from "app/client/components/PluginScreen";
 import { makeTestId } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
 import {
   checkBrowserUploadSizeLimit, fetchURL, isDriveUrl, selectPicker,

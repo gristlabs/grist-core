@@ -1,11 +1,11 @@
+import { ColumnImportSchema } from "app/common/DocSchemaImport";
+import { RecalcWhen } from "app/common/gristTypes";
 import {
   AirtableBaseSchema,
   AirtableFieldSchema,
   AirtableTableSchema,
-} from "app/common/airtable/AirtableAPITypes";
-import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
-import { ColumnImportSchema } from "app/common/DocSchemaImport";
-import { RecalcWhen } from "app/common/gristTypes";
+} from "app/common/imports/airtable/AirtableAPITypes";
+import { gristDocSchemaFromAirtableSchema } from "app/common/imports/airtable/AirtableSchemaImporter";
 
 import * as crypto from "crypto";
 

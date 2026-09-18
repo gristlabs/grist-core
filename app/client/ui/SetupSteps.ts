@@ -5,7 +5,7 @@
  */
 import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
-import { getAutomationsStatus } from "app/client/ui/AutomationStatus";
+import { getAutomationsStatus } from "app/client/ui/FeatureStatus";
 import { SetupFeatureId, SetupStepId } from "app/common/Config";
 import { isFullEditionDeployment } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";

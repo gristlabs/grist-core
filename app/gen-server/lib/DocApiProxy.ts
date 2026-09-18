@@ -144,6 +144,7 @@ export class DocApiProxy {
     app.use("/api/docs/:docId/snapshots", withDoc);
     app.use("/api/docs/:docId/usersForViewAs", withDoc);
     app.use("/api/docs/:docId/replace", withDoc);
+    app.use("/api/docs/:docId/import/grist", withDoc);
     app.use("/api/docs/:docId/flush", withDoc);
     app.use("/api/docs/:docId/states", withDoc);
     app.use("/api/docs/:docId/compare", withDoc);

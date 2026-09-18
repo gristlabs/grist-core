@@ -1,9 +1,4 @@
 import {
-  AirtableBaseSchema, AirtableChoiceValue,
-  AirtableFieldSchema,
-  AirtableTableSchema,
-} from "app/common/airtable/AirtableAPITypes";
-import {
   ColumnImportSchema,
   DocSchemaImportWarning,
   FormulaTemplate,
@@ -11,6 +6,11 @@ import {
   OriginalTableRef,
 } from "app/common/DocSchemaImport";
 import { RecalcWhen } from "app/common/gristTypes";
+import {
+  AirtableBaseSchema, AirtableChoiceValue,
+  AirtableFieldSchema,
+  AirtableTableSchema,
+} from "app/common/imports/airtable/AirtableAPITypes";
 
 /**
  * Design note: this needs to be deterministic and based solely on the Airtable base schema,

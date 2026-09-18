@@ -9,7 +9,7 @@
 
 exports.loadAccountPage = () => import("app/client/ui/AccountPage" /* webpackChunkName: "AccountPage" */);
 exports.loadActivationPage = () => import("app/client/ui/ActivationPage" /* webpackChunkName: "ActivationPage" */);
-exports.loadAirtableImportUI = () => import("app/client/lib/airtable/AirtableImportUI" /* webpackChunkName: "AirtableImport" */);
+exports.loadAirtableImportUI = () => import("app/client/lib/imports/airtable/AirtableImportUI" /* webpackChunkName: "AirtableImport" */);
 exports.loadAuditLogsPage = () => import("app/client/ui/AuditLogsPage" /* webpackChunkName: "AuditLogsPage" */);
 exports.loadBillingPage = () => import("app/client/ui/BillingPage" /* webpackChunkName: "BillingModule" */);
 exports.loadBootPage = () => import("app/client/ui/BootPage" /* webpackChunkName: "BootPage" */);

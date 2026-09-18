@@ -1,8 +1,8 @@
-import { AirtableFieldSchema } from "app/common/airtable/AirtableAPITypes";
-import { AirtableFieldMappingInfo } from "app/common/airtable/AirtableCrosswalk";
-import { UpdateRowsFunc } from "app/common/airtable/AirtableDataImporterTypes";
 import { CellValue, TableColValues } from "app/common/DocActions";
 import { isNonNullish } from "app/common/gutil";
+import { AirtableFieldSchema } from "app/common/imports/airtable/AirtableAPITypes";
+import { AirtableFieldMappingInfo } from "app/common/imports/airtable/AirtableCrosswalk";
+import { UpdateRowsFunc } from "app/common/imports/airtable/AirtableDataImporterTypes";
 import { BulkColValues, GristObjCode } from "app/plugin/GristData";
 
 export type RefValuesByColumnId = Record<string, string[] | undefined>;

@@ -1039,28 +1039,58 @@ namespace gristUtils {
   }
 
   /**
- * From a document page, start import from a file, and wait for the import dialog to open.
- */
+   * From a document page, open the "Add new" menu.
+   */
+  export async function openDocAddNewMenu(): Promise<void> {
+    await driver.wait(() => driver.find(".test-dp-add-new").isDisplayed(), 3000);
+    // Sometimes the button won't click straight off, I'm not sure why.
+    await waitToPass(async () => {
+      await driver.findWait(".test-dp-add-new", 1000).doClick();
+    }, 5000);
+    await driver.findWait(".test-dp-add-new-menu", 1000);
+  }
+
+  /**
+   * From a document page, open "Add new" and expand the "Import from..." submenu, if present.
+   */
+  export async function openDocImportMenu(): Promise<void> {
+    await openDocAddNewMenu();
+    if (await driver.find(".test-dp-import-menu").isPresent()) {
+      await driver.find(".test-dp-import-menu").mouseMove();
+      await driver.findWait(".test-dp-import-menu-items", 1000);
+    }
+  }
+
+  /**
+   * From the doc menu, open "Add new" and expand its "Import from..." submenu, if present.
+   */
+  export async function openHomeImportMenu(): Promise<void> {
+    await driver.findWait(".test-dm-add-new", 1000).doClick();
+    await driver.findWait(".grist-floating-menu", 1000);
+    if (await driver.find(".test-dm-import-menu").isPresent()) {
+      await driver.find(".test-dm-import-menu").mouseMove();
+      await driver.findWait(".test-dm-import-menu-items", 1000);
+    }
+  }
+
+  /**
+   * From a document page, start import from a file, and wait for the import dialog to open.
+   */
   export async function importFileDialog(filePath: string): Promise<void> {
     await fileDialogUpload(filePath, async () => {
-      await driver.wait(() => driver.find(".test-dp-add-new").isDisplayed(), 3000);
-      // Sometimes the button won't click straight off, I'm not sure why.
-      await waitToPass(async () => {
-        await driver.findWait(".test-dp-add-new", 1000).doClick();
-      }, 5000);
-      await findOpenMenuItem(".test-dp-import-option", /Import from file/i).doClick();
+      await openDocImportMenu();
+      await findOpenMenuItem(".test-dp-import-option", /^(Import from )?File$/).doClick();
     });
     await driver.findWait(".test-importer-dialog", 5000);
     await waitForServer(15_000);
   }
 
   /**
- * From a document page, start an import from a URL.
- */
+   * From a document page, start an import from a URL.
+   */
   export async function importUrlDialog(url: string): Promise<void> {
-    await driver.wait(() => driver.find(".test-dp-add-new").isDisplayed(), 3000);
-    await driver.findWait(".test-dp-add-new", 1000).doClick();
-    await driver.findContentWait(".test-dp-import-option", /Import from URL/i, 2000).doClick();
+    await openDocImportMenu();
+    await driver.findContentWait(".test-dp-import-option", /^(Import from )?URL$/, 2000).doClick();
     await driver.findWait(".test-importer-dialog", 5000);
     await waitForServer();
     const iframe = driver.find(".test-importer-dialog").find("iframe");
@@ -1159,7 +1189,7 @@ namespace gristUtils {
   export async function docMenuImport(filePath: string) {
     await fileDialogUpload(filePath, async () => {
       await driver.findWait(".test-dm-add-new", 1000).doClick();
-      await driver.findWait(".test-dm-import", 100).doClick();
+      await driver.findWait(".test-dm-import", 1000).doClick();
     });
   }
 

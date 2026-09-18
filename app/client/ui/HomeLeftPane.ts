@@ -1,5 +1,6 @@
-import { startHomeAirtableImport } from "app/client/lib/airtable/startHomeAirtableImport";
 import { loadUserManager } from "app/client/lib/imports";
+import { startHomeAirtableImport } from "app/client/lib/imports/airtable/startHomeAirtableImport";
+import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
 import { urlState } from "app/client/models/gristUrlState";
@@ -7,6 +8,7 @@ import { HomeModel } from "app/client/models/HomeModel";
 import { getWorkspaceInfo, workspaceName } from "app/client/models/WorkspaceInfo";
 import { addNewButton, cssAddNewButton } from "app/client/ui/AddNewButton";
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
+import { buildHomeGristImportMenuItem } from "app/client/ui/GristImportEntryPoints";
 import {
   createAccessibilityTools,
   createHelpTools,
@@ -28,7 +30,14 @@ import { transientInput } from "app/client/ui/transientInput";
 import { createVersionFooter } from "app/client/ui/VersionFooter";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { menu, menuIcon, menuItem, upgradableMenuItem, upgradeText } from "app/client/ui2018/menus";
+import {
+  menu,
+  menuIcon,
+  menuItem,
+  menuItemSubmenu,
+  upgradableMenuItem,
+  upgradeText,
+} from "app/client/ui2018/menus";
 import { confirmModal } from "app/client/ui2018/modals";
 import { stretchedLink } from "app/client/ui2018/stretchedLink";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
@@ -36,7 +45,7 @@ import * as roles from "app/common/roles";
 import { getGristConfig } from "app/common/urlUtils";
 import { Workspace } from "app/common/UserAPI";
 
-import { computed, dom, domComputed, DomElementArg, observable, Observable, styled } from "grainjs";
+import { computed, dom, domComputed, DomContents, DomElementArg, observable, Observable, styled } from "grainjs";
 
 const t = makeT("HomeLeftPane");
 
@@ -200,28 +209,9 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
       dom.cls("disabled", !home.newDocWorkspace.get()),
       testId("dm-import"),
     ),
-    domComputed(home.importSources, importSources => ([
-      ...importSources.map((source, i) =>
-        menuItem(() => newDocMethods.importFromPluginAndOpen(home, source),
-          menuIcon("Import"),
-          source.importSource.label,
-          dom.cls("disabled", !home.newDocWorkspace.get()),
-          testId(`dm-import-plugin`),
-        )),
-    ])),
-    menuItem(
-      async () => {
-        if (home.app.currentValidUser) {
-          await startHomeAirtableImport(home);
-        } else {
-          window.location.href = getLoginOrSignupUrl();
-        }
-      },
-      menuIcon("Import"), t("Import from Airtable"),
-      dom.show(isFeatureEnabled("importFromAirtable")),
-      dom.cls("disabled", !home.newDocWorkspace.get()),
-      testId("dm-import-from-airtable"),
-    ),
+    domComputed(home.importSources, importSources =>
+      buildImportMenu(home, getImportSources(home, importSources))),
+    buildHomeGristImportMenuItem(home),
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
     upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon("Folder"), t("Create workspace"),
@@ -230,6 +220,63 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
     ),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];
+}
+
+interface HomeImportSource {
+  label: string;
+  action: () => void;
+  testId: DomElementArg;
+}
+
+function getImportSources(home: HomeModel, importSources: ImportSourceElement[]): HomeImportSource[] {
+  return [
+    ...importSources.map(source => ({
+      label: source.importSource.label,
+      action: () => newDocMethods.importFromPluginAndOpen(home, source),
+      testId: testId("dm-import-plugin"),
+    })),
+    ...(isFeatureEnabled("importFromAirtable") ? [{
+      label: t("Airtable"),
+      action: async () => {
+        if (home.app.currentValidUser) {
+          await startHomeAirtableImport(home);
+        } else {
+          window.location.href = getLoginOrSignupUrl();
+        }
+      },
+      testId: testId("dm-import-from-airtable"),
+    }] : []),
+  ];
+}
+
+// An "Import from..." submenu of the available import sources, shown as a single menu
+// item when there is only one source, and omitted when there are none.
+function buildImportMenu(home: HomeModel, importSources: HomeImportSource[]): DomContents {
+  if (importSources.length === 0) { return null; }
+  if (importSources.length === 1) {
+    const [importSource] = importSources;
+    return menuItem(importSource.action,
+      menuIcon("Import"),
+      t("Import from {{importSource}}", { importSource: importSource.label }),
+      dom.cls("disabled", !home.newDocWorkspace.get()),
+      importSource.testId,
+    );
+  }
+  return menuItemSubmenu(
+    () => [
+      ...importSources.map(importSource =>
+        menuItem(importSource.action,
+          importSource.label,
+          dom.cls("disabled", !home.newDocWorkspace.get()),
+          importSource.testId,
+        ),
+      ),
+      testId("dm-import-menu-items"),
+    ],
+    {},
+    menuIcon("Import"), t("Import from..."),
+    testId("dm-import-menu"),
+  );
 }
 
 function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Workspace | null>) {

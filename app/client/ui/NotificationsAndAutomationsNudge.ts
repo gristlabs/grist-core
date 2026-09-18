@@ -12,7 +12,7 @@ import { AppModel, getHomeUrl } from "app/client/models/AppModel";
 import { DocInfo } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { buildAskTheAdmin } from "app/client/ui/AskTheAdmin";
-import { getAutomationsStatus } from "app/client/ui/AutomationStatus";
+import { getAutomationsStatus } from "app/client/ui/FeatureStatus";
 import { collapsibleContent, cssCollapseIcon, SectionCard } from "app/client/ui/SettingsLayout";
 import {
   computeSetupSteps,

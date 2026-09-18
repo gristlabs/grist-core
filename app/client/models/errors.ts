@@ -81,7 +81,7 @@ export function reportSuccess(msg: MessageType, options?: Partial<INotifyOptions
   return reportMessage(msg, { level: "success", ...options });
 }
 
-function isUnhelpful(err: Error | string, ev: ErrorEvent) {
+function isUnhelpful(err: unknown, ev: ErrorEvent) {
   if (ev.message === "ResizeObserver loop completed with undelivered notifications.") {
     // Sometimes on Chrome, changing the browser zoom level causes this benign error to
     // be thrown. It seems to only appear on the Access Rules page, and may have something
@@ -103,7 +103,8 @@ function isUnhelpful(err: Error | string, ev: ErrorEvent) {
     return true;
   }
 
-  if (typeof err === "object" && typeof err?.stack === "string" && err.stack.includes("chrome-extension://")) {
+  const stack = (err as { stack?: unknown } | null | undefined)?.stack;
+  if (typeof stack === "string" && stack.includes("chrome-extension://")) {
     // Sometimes we can tell when the error is really from a browser extension rather than Grist.
     // These usually don't interfere, and the report of the error is more disruptive than the
     // error itself.
@@ -123,30 +124,28 @@ const unhelpfulErrors = new Set<string>();
  * Not all errors will be shown as an error toast, depending on the content of the error
  * this function might show a simple toast message.
  */
-export function reportError(err: Error | string, ev?: ErrorEvent): void {
-  if (err instanceof MutedError) {
+export function reportError(error: unknown, ev?: ErrorEvent): void {
+  if (error instanceof MutedError) {
     return;
   }
-  log.error(`ERROR:`, err);
-  if (String(err).match(/GristWSConnection disposed/)) {
+  log.error(`ERROR:`, error);
+  if (String(error).match(/GristWSConnection disposed/)) {
     // This error can be emitted while a page is reloaded, and isn't worth reporting.
     return;
   }
-  if (ev && isUnhelpful(err, ev)) {
+  if (ev && isUnhelpful(error, ev)) {
     // Report just once to the server. There is little point reporting subsequent such errors once
     // we know they happen, since each individual error has no useful information.
     if (!unhelpfulErrors.has(ev.message)) {
-      logError(err);
+      logError(error);
       unhelpfulErrors.add(ev.message);
     }
     return;
   }
 
-  logError(err);
+  logError(error);
   if (_notifier && !_notifier.isDisposed()) {
-    if (!isError(err)) {
-      err = new Error(String(err));
-    }
+    const err: Error = isError(error) ? error : new Error(String(error));
 
     const details: ApiErrorDetails | undefined = (err as any).details;
     const code: unknown = (err as any).code;
@@ -232,7 +231,7 @@ export function setUpErrorHandling(doReportError = reportError, koUtil?: any) {
  * over-logging (regular errors such as access rights or account limits) and
  * under-logging (javascript errors during startup might never get reported).
  */
-export function logError(error: Error | string) {
+export function logError(error: unknown) {
   if (!pageHasHome()) { return; }
   const docId = G.window.gristDocPageModel?.currentDocId?.get();
   fetchFromHome("/api/log", {

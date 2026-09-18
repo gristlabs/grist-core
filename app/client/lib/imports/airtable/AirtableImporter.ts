@@ -1,12 +1,7 @@
-import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
+import { getDocSchema } from "app/client/lib/DocSchemaImport";
 import { makeT } from "app/client/lib/localization";
-import { AirtableAPI, listRecords } from "app/common/airtable/AirtableAPI";
-import { AirtableBaseSchema } from "app/common/airtable/AirtableAPITypes";
-import { AirtableCrosswalkWarning, createAirtableBaseToGristDocCrosswalk } from "app/common/airtable/AirtableCrosswalk";
-import { importDataFromAirtableBase } from "app/common/airtable/AirtableDataImporter";
-import { AirtableImportProgress } from "app/common/airtable/AirtableDataImporterTypes";
-import { gristDocSchemaFromAirtableSchema } from "app/common/airtable/AirtableSchemaImporter";
 import {
+  DocSchema,
   DocSchemaImportTool,
   DocSchemaImportWarning,
   ImportSchema,
@@ -14,7 +9,15 @@ import {
   transformImportSchema,
   validateImportSchema,
 } from "app/common/DocSchemaImport";
-import { ExistingDocSchema } from "app/common/DocSchemaImportTypes";
+import { AirtableAPI, listRecords } from "app/common/imports/airtable/AirtableAPI";
+import { AirtableBaseSchema } from "app/common/imports/airtable/AirtableAPITypes";
+import {
+  AirtableCrosswalkWarning,
+  createAirtableBaseToGristDocCrosswalk,
+} from "app/common/imports/airtable/AirtableCrosswalk";
+import { importDataFromAirtableBase } from "app/common/imports/airtable/AirtableDataImporter";
+import { AirtableImportProgress } from "app/common/imports/airtable/AirtableDataImporterTypes";
+import { gristDocSchemaFromAirtableSchema } from "app/common/imports/airtable/AirtableSchemaImporter";
 import { UserAPI } from "app/common/UserAPI";
 
 export interface ExistingDoc {
@@ -66,7 +69,7 @@ export async function applyAirtableImportSchemaAndImportData(params: {
   );
   const docApi = userApi.getDocAPI(docId);
 
-  const existingDocSchema = await getExistingDocSchema(docApi);
+  const existingDocSchema = await getDocSchema(docApi);
   const initialTables = existingDocSchema.tables.map(table => table.id);
 
   const docSchemaCreator = new DocSchemaImportTool(actions => docApi.applyUserActions((actions)));
@@ -90,7 +93,7 @@ export async function applyAirtableImportSchemaAndImportData(params: {
     await docSchemaCreator.removeTables(initialTables);
   }
 
-  const finalGristDocSchema = await getExistingDocSchema(docApi);
+  const finalDocSchema = await getDocSchema(docApi);
 
   const skipDataTableIds = new Set(structureOnlyTableIds);
   const dataTableInfo = Array.from(tableIdsMap.values()).filter(({ originalId: id }) => !skipDataTableIds.has(id));
@@ -113,7 +116,7 @@ export async function applyAirtableImportSchemaAndImportData(params: {
   }
 
   const { schemaCrosswalk, warnings: crosswalkWarnings } =
-    createAirtableBaseToGristDocCrosswalk(baseSchema, finalGristDocSchema, dataTableMapping);
+    createAirtableBaseToGristDocCrosswalk(baseSchema, finalDocSchema, dataTableMapping);
 
   // TODO - Update these steps to show the crosswalk warnings to user before starting data import.
   if (crosswalkWarnings.length > 0) {
@@ -146,7 +149,7 @@ export async function applyAirtableImportSchemaAndImportData(params: {
 
 export function validateAirtableSchemaImport(
   baseSchema: AirtableBaseSchema,
-  existingDocSchema?: ExistingDocSchema,
+  existingDocSchema?: DocSchema,
   transformations?: ImportSchemaTransformParams,
 ): DocSchemaImportWarning[] {
   const warnings: DocSchemaImportWarning[] = [];

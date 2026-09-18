@@ -1,4 +1,4 @@
-import { listRecords } from "app/common/airtable/AirtableAPI";
+import { listRecords } from "app/common/imports/airtable/AirtableAPI";
 
 import Airtable from "airtable";
 import { assert } from "chai";
