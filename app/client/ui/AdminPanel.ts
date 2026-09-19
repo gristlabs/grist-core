@@ -233,6 +233,10 @@ class AdminInstallationPanel extends Disposable {
   private _drafts = DraftChangesManager.create(this);
 
   private _checks: AdminChecks;
+  // True once fetchAvailableChecks has settled. Prevents a flash of the
+  // access-denied card while probes are still [] from initialization
+  // (same gate as QuickSetup).
+  private _checksLoaded = Observable.create<boolean>(this, false);
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
   private _authCheck: Observable<AdminCheckRequest | undefined>;
@@ -292,18 +296,23 @@ class AdminInstallationPanel extends Disposable {
       return this._buildMainContentForOthers();
     }
 
-    this._checks.fetchAvailableChecks().catch((err) => {
-      reportError(err);
-    });
+    this._checks.fetchAvailableChecks()
+      .catch((err) => {
+        reportError(err);
+      })
+      .finally(() => {
+        if (this.isDisposed()) { return; }
+        this._checksLoaded.set(true);
+      });
 
     // If probes are available, show the panel as normal.
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
-    return dom.maybe(use => use(this._checks.probes), probes => [
-      probes.length > 0 ?
+    return dom.maybe(this._checksLoaded, () =>
+      this._checks.probes.get().length > 0 ?
         this._buildMainContentForAdmin() :
         this._buildMainContentForOthers(),
-    ]);
+    );
   }
 
   public async restartGrist(): Promise<void> {
@@ -705,7 +714,9 @@ now, and takes effect the next time you restart Grist manually.")),
         // Until the probe lands, show a neutral placeholder rather than the
         // alarming default. Otherwise a real admin (and our tests) see
         // "out of service" briefly on every page load.
-        if (!result) { return cssValueLabel(t("checking")); }
+        if (!result || result.status === "none") {
+          return cssValueLabel(t("checking"));
+        }
         if (result.details?.inService) {
           return cssValueLabel(cssHappyText(t("in service")));
         }
@@ -764,7 +775,9 @@ now, and takes effect the next time you restart Grist manually.")),
         const req = this._checks.requestCheckById(use, "boot-key");
         const result = req ? use(req.result) : undefined;
 
-        if (!result) { return cssValueLabel(t("checking")); }
+        if (!result || result.status === "none") {
+          return cssValueLabel(t("checking"));
+        }
         if (result.details?.disabled) {
           return cssValueLabel(cssHappyText(t("disabled")));
         }
