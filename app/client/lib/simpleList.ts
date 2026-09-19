@@ -13,8 +13,8 @@
  * // toggle popup
  * dom('input', dom.on('click', () => ctl.toggle()));
  */
-import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/domUtils";
+import { kbFocusHighlighterClass } from "app/client/lib/focusUtils";
 import { menuCssClass, menuItem } from "app/client/ui2018/menus";
 
 import { Disposable, dom, DomArg, Observable, styled } from "grainjs";
