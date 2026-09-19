@@ -430,8 +430,22 @@ export default class DetailView extends BaseView {
       dom.maybe(showControls, () => dom("div.grist-single-record__menu.flexhbox.flexnone",
         dom("div.grist-single-record__menu__count.flexitem",
           // Total should not include the add record row
-          kd.text(() => this._isAddRow() ? "Add record" :
-            `${this.cursor.rowIndex()! + 1} of ${this.getLastDataRowIndex() + 1}`),
+          kd.text(() => {
+            if (this._isAddRow()) { return "Add record"; }
+
+            const { firstDataRowIndex, dataRowCount } = this.getDataRowBounds();
+            const idx = this.cursor.rowIndex()!;
+            const opts = this.viewSection.optionsObj();
+            const isReverse = Boolean(opts?.reverseRowOrder);
+
+            // In reverse row order, the same chronological position a row would have in
+            // normal order is preserved, just displayed top-to-bottom in reverse, matching
+            // the row-number gutter in GridView.
+            const position = isReverse
+              ? dataRowCount - (idx - firstDataRowIndex)
+              : (idx - firstDataRowIndex) + 1;
+            return `${position} of ${dataRowCount}`;
+          }),
         ),
         dom("div.detail-buttons",
           dom("div.detail-button.detail-left",
