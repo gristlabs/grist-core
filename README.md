@@ -438,7 +438,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING | Whether Grist is allowed to automatically check if a newer Grist version is available. Defaults to "true" on the default `grist` and `grist-ee` Docker images. Defaults false in `grist-oss` and everywhere else. |
 | GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE | If set, the deprecated DELETE /api/orgs/:orgId endpoint is available. |
 | GRIST_APP_ROOT | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories). |
-| GRIST_ATTACHMENT_THRESHOLD_MB | attachment storage limit per document beyond which Grist will recommend external storage (if available). Defaults to 50MB. |
+| GRIST_ATTACHMENTS_THRESHOLD_MB | attachment storage limit per document beyond which Grist will recommend external storage (if available). Defaults to 50MB. |
 | GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup |
 | GRIST_BOOT_KEY | if set, use this key to sign in as the installation admin at `/boot`. New installs auto-generate one and print it on startup; set this only if you want a key of your own choosing. |
 | GRIST_BROADCAST_TIMEOUT_MS | Set the maximum time a web client has to accept a broadcast message about a document before being disconnected (default: 1 minute). |
