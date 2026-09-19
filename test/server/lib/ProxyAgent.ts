@@ -1,6 +1,6 @@
 import log from "app/server/lib/log";
 import {
-  agents, fetchUntrustedWithAgent, GristProxyAgent, test_generateProxyAgents,
+  agents, fetchUntrustedWithAgent, GristProxyAgent, shouldProxyBypass, test_generateProxyAgents,
 } from "app/server/lib/ProxyAgent";
 import { getAvailablePort } from "app/server/lib/serverUtils";
 import { serveSomething, Serving } from "test/server/customUtil";
@@ -94,6 +94,68 @@ describe("ProxyAgent", function() {
 
       assert.isUndefined(proxyAgents.untrusted);
     });
+
+    it("should pass the no_proxy env var to both proxy agents", function() {
+      process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
+      process.env.no_proxy = "example.com, .internal";
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assert.equal(proxyAgents.trusted?.noProxy, "example.com, .internal");
+      assert.equal(proxyAgents.untrusted?.noProxy, "example.com, .internal");
+    });
+
+    it("should prefer NO_PROXY over no_proxy", function() {
+      process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
+      process.env.NO_PROXY = "from-upper";
+      process.env.no_proxy = "from-lower";
+
+      const proxyAgents = test_generateProxyAgents();
+
+      assert.equal(proxyAgents.trusted?.noProxy, "from-upper");
+    });
+  });
+
+  describe("shouldProxyBypass", function() {
+    it("returns false when the bypass list is empty or undefined", function() {
+      assert.isFalse(shouldProxyBypass("https://example.com", undefined));
+      assert.isFalse(shouldProxyBypass("https://example.com", ""));
+      assert.isFalse(shouldProxyBypass("https://example.com", "  , "));
+    });
+
+    it("bypasses everything when the list is '*'", function() {
+      assert.isTrue(shouldProxyBypass("https://example.com", "*"));
+      assert.isTrue(shouldProxyBypass("http://10.0.0.1:8080", "other, *"));
+    });
+
+    it("matches an exact host", function() {
+      assert.isTrue(shouldProxyBypass("https://example.com/path", "example.com"));
+      assert.isFalse(shouldProxyBypass("https://notexample.com", "example.com"));
+    });
+
+    it("matches a domain suffix, with or without a leading dot", function() {
+      assert.isTrue(shouldProxyBypass("https://api.internal.example.com", ".example.com"));
+      assert.isTrue(shouldProxyBypass("https://api.internal.example.com", "example.com"));
+      assert.isFalse(shouldProxyBypass("https://example.com.evil.com", "example.com"));
+    });
+
+    it("splits the list on commas and whitespace", function() {
+      assert.isTrue(shouldProxyBypass("https://b.com", "a.com, b.com\tc.com"));
+      assert.isTrue(shouldProxyBypass("https://c.com", "a.com, b.com\tc.com"));
+      assert.isFalse(shouldProxyBypass("https://d.com", "a.com, b.com\tc.com"));
+    });
+
+    it("honors an optional port on a bypass entry", function() {
+      assert.isTrue(shouldProxyBypass("https://example.com", "example.com:443"));
+      assert.isFalse(shouldProxyBypass("https://example.com", "example.com:8443"));
+      assert.isTrue(shouldProxyBypass("http://example.com:8080", "example.com:8080"));
+    });
+
+    it("is case-insensitive on the host", function() {
+      assert.isTrue(shouldProxyBypass("https://EXAMPLE.com", "example.com"));
+      assert.isTrue(shouldProxyBypass("https://example.com", "EXAMPLE.COM"));
+    });
   });
 
   describe("proxy error handling", async function() {
@@ -145,6 +207,40 @@ describe("ProxyAgent", function() {
         /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
         /warn: ProxyAgent error.*((request.*failed)|(ECONNREFUSED)|(AggregateError))/,
       ]);
+    });
+  });
+
+  describe("proxy bypass", async function() {
+    let serving: Serving;
+    let testProxyServer: TestProxyServer;
+
+    beforeEach(async function() {
+      const port = await getAvailablePort(22340);
+      testProxyServer = await TestProxyServer.Prepare(port);
+      serving = await serveSomething((app) => {
+        app.all("/200", (_, res) => { res.sendStatus(200); res.end(); });
+      });
+      process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = `http://localhost:${testProxyServer.port}`;
+    });
+
+    afterEach(async function() {
+      await serving.shutdown();
+      await testProxyServer.dispose().catch(() => {});
+    });
+
+    it("routes a request through the proxy when the host is not on the bypass list", async function() {
+      sandbox.stub(agents, "untrusted").value(test_generateProxyAgents().untrusted);
+
+      assert.equal((await fetchUntrustedWithAgent(serving.url + "/200")).status, 200);
+      assert.equal(testProxyServer.proxyCallCounter, 1, "The proxy should have been called");
+    });
+
+    it("connects directly when the host is on the no_proxy bypass list", async function() {
+      process.env.no_proxy = "localhost, 127.0.0.1";
+      sandbox.stub(agents, "untrusted").value(test_generateProxyAgents().untrusted);
+
+      assert.equal((await fetchUntrustedWithAgent(serving.url + "/200")).status, 200);
+      assert.equal(testProxyServer.proxyCallCounter, 0, "The proxy should have been bypassed");
     });
   });
 });
