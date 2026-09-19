@@ -4,12 +4,23 @@
 import * as t from "ts-interface-checker";
 // tslint:disable:object-literal-key-quotes
 
+export const SharedChoiceList = t.iface([], {
+  "name": "string",
+  "choices": t.array("string"),
+  "choiceColors": t.opt(t.iface([], {
+    [t.indexKey]: "string",
+  })),
+});
+
 export const DocumentSettings = t.iface([], {
   "locale": "string",
   "currency": t.opt("string"),
   "engine": t.opt("EngineCode"),
   "attachmentStoreId": t.opt("string"),
   "baseAction": t.opt("DocState"),
+  "sharedChoiceLists": t.opt(t.iface([], {
+    [t.indexKey]: "SharedChoiceList",
+  })),
 });
 
 export const EngineCode = t.lit("python3");
@@ -20,6 +31,7 @@ export const DocState = t.iface([], {
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
+  SharedChoiceList,
   DocumentSettings,
   EngineCode,
   DocState,
