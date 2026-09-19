@@ -43,6 +43,15 @@
   z-index: 20; /* z-index must be here, doesnt work on children*/
   border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
   width: fit-content;
+  height: auto;
+  min-height: var(--gridview-header-height);
+}
+
+.column_names {
+  display: flex;
+  align-items: stretch;
+  height: auto;
+  min-height: var(--gridview-header-height);
 }
 
 .gridview_data_header {
@@ -55,8 +64,13 @@
 }
 
 .field.column_name {
-  line-height: var(--gridview-header-height);
-  height: var(--gridview-header-height); /* Also should match height for overlay elements */
+  min-height: var(--gridview-header-height);
+  height: auto;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* also .field.column_name, style set in viewCommon */
@@ -452,9 +466,26 @@
 }
 
 .g-column-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 3px 6px;
+  box-sizing: border-box;
+  text-align: left;
+  line-height: 1.25;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.g-column-label .widget_text,
+.g-column-label span {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  text-overflow: clip !important;
 }
 
 .g-column-label .info_toggle_icon {
@@ -462,4 +493,33 @@
   height: 13px;
   margin-right: 4px;
   z-index: 1;
+}
+/* --- Multiline Column Headers --- */
+
+/* Allow the sticky container and header row to grow in height */
+.gridview_stick-top,
+.gridview_data_header,
+.column_names {
+  height: auto !important;
+  min-height: var(--gridview-header-height) !important;
+}
+
+/* Allow individual header cells to wrap and stretch vertically */
+.gridview_data_pane .field.column_name {
+  height: auto !important;
+  min-height: var(--gridview-header-height) !important;
+  line-height: 1.25 !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Allow all child labels and text spans inside the header cell to wrap */
+.gridview_data_pane .field.column_name * {
+  white-space: normal !important;
+  text-overflow: clip !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
 }
