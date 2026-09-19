@@ -49,16 +49,3 @@ export interface FullUser extends UserProfile {
   prefs?: UserPrefs;
   createdAt?: Date; // Not filled for anonymous users.
 }
-
-export interface LoginSessionAPI {
-  /**
-   * Logs out by clearing all data in the session store besides the session cookie itself.
-   * Broadcasts the logged out state to all clients.
-   */
-  logout(): Promise<void>;
-
-  /**
-   * Replaces the user profile object in the session and broadcasts the new profile to all clients.
-   */
-  updateProfile(profile: UserProfile): Promise<void>;
-}

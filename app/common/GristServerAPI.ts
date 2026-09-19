@@ -1,12 +1,8 @@
-import { BasketClientAPI } from "app/common/BasketClientAPI";
 import { DocListAPI } from "app/common/DocListAPI";
-import { LoginSessionAPI } from "app/common/LoginSessionAPI";
 import { UserConfig } from "app/common/UserConfig";
 
 export interface GristServerAPI extends
   DocListAPI,
-  LoginSessionAPI,
-  BasketClientAPI,
   UserAPI,
   MiscAPI {}
 
