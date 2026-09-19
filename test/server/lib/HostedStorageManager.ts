@@ -30,6 +30,7 @@ import { createDummyGristServer, GristServer } from "app/server/lib/GristServer"
 import {
   HostedStorageManager,
   HostedStorageOptions,
+  StorageMode,
 } from "app/server/lib/HostedStorageManager";
 import log from "app/server/lib/log";
 import { SQLiteDB } from "app/server/lib/SQLiteDB";
@@ -290,7 +291,9 @@ class TestStore {
     private _workerId: string,
     private _workers: IDocWorkerMap,
     private _externalStorageCreate: ExternalStorageCreator,
-    private _attachmentStoreProvider?: IAttachmentStoreProvider) {
+    private _storageMode: StorageMode,
+    private _attachmentStoreProvider?: IAttachmentStoreProvider,
+  ) {
   }
 
   public async run<T>(fn: () => Promise<T>): Promise<T> {
@@ -338,7 +341,7 @@ class TestStore {
     const storageManager = new HostedStorageManager(gristServer,
       this._localDirectory,
       this._workerId,
-      false,
+      this._storageMode,
       this._workers,
       dbManager,
       externalStorageCreator,
@@ -406,7 +409,7 @@ describe("HostedStorageManager", function() {
     await removeConnection();
   });
 
-  for (const storage of ["azure", "s3", "minio", "filesystem", "cached"] as const) {
+  for (const storage of ["azure", "s3", "minio", "minio-cache-wiped", "filesystem", "cached"] as const) {
     describe(storage, function() {
       const sandbox = sinon.createSandbox();
       let oldEnv: EnvironmentSnapshot;
@@ -415,6 +418,7 @@ describe("HostedStorageManager", function() {
       let cli: RedisClient;
       let store: TestStore;
       let workers: DocWorkerMap;
+      let storageMode: StorageMode;
       // Local doc-worker dir.  store.removeAll() wipes its contents between tests,
       // so anything that must survive (e.g. the filesystem-backend snapshot store)
       // lives elsewhere -- see filesystemSnapshotsDir below.
@@ -428,6 +432,7 @@ describe("HostedStorageManager", function() {
         cli = createClient(process.env.TEST_REDIS_URL);
         oldEnv = new EnvironmentSnapshot();
         await cli.flushdbAsync();
+        storageMode = StorageMode.EXTERNAL_WITH_CACHE;
         workers = new DocWorkerMap([cli]);
         await workers.addWorker({
           id: workerId,
@@ -470,6 +475,13 @@ describe("HostedStorageManager", function() {
             }
             externalStorageCreate = requireStorage(create.getStorageOptions?.("minio")?.create);
             break;
+          case "minio-cache-wiped":
+            if (!process.env.GRIST_DOCS_MINIO_ACCESS_KEY) {
+              this.skip();
+            }
+            storageMode = StorageMode.EXTERNAL_WITHOUT_CACHE;
+            externalStorageCreate = requireStorage(create.getStorageOptions?.("minio")?.create);
+            break;
           case "s3":
             if (!process.env.TEST_S3_BUCKET) {
               this.skip();
@@ -487,7 +499,7 @@ describe("HostedStorageManager", function() {
             break;
           }
         }
-        store = new TestStore(tmpDir, workerId, workers, externalStorageCreate);
+        store = new TestStore(tmpDir, workerId, workers, externalStorageCreate, storageMode);
       });
 
       after(async function() {
@@ -751,6 +763,53 @@ describe("HostedStorageManager", function() {
         });
       });
 
+      it("wipes or keeps the local cache after closing a document depending on the storage mode", async function() {
+        const docId = `wipe-cache-${uuidv4()}`;
+        await workers.assignDocWorker(docId);
+        const docPath = store.getDocPath(docId);
+
+        await store.run(async () => {
+          const cacheRemainsAfterClosing = store.storageManager.getMode() === StorageMode.EXTERNAL_WITH_CACHE;
+          await store.docManager.createNamedDoc(docSession, docId);
+          const doc = await store.docManager.fetchDoc(docSession, docId);
+          await doc.docStorage.exec("insert into Table1(id, A) values(1, 'magic word')");
+          await store.waitForUpdates();
+
+          // Sanity check: local cache files exist while the doc is open.
+          assert.isTrue(await fse.pathExists(docPath));
+          assert.isTrue(await fse.pathExists(docPath + "-hash-doc"));
+
+          // Closing the doc should wipe the local cache when an external storage
+          // backend is configured.
+          await store.closeDoc(doc);
+
+          const message = (cacheType: string) =>
+            `the ${cacheType} should have ${cacheRemainsAfterClosing ? "remained" : "NOT remained"} after the document is closed`;
+          assert.equal(await fse.pathExists(docPath), cacheRemainsAfterClosing, message("doc cache"));
+          assert.equal(await fse.pathExists(docPath + "-hash-doc"), cacheRemainsAfterClosing, message("hash doc"));
+          assert.equal(
+            await fse.pathExists(docPath + "-hash-meta"), cacheRemainsAfterClosing, message("hash meta data"),
+          );
+
+          // Spy on S3 fetches so we can tell a genuine cache reuse apart from a
+          // silent re-download. When the local cache is kept and its content is
+          // unchanged, reopening must NOT hit external storage; when the cache was
+          // wiped, reopening must download the doc back from S3.
+          const fetchFromS3Spy = sandbox.spy(store.storageManager as any, "_fetchFromS3");
+
+          const reopenedDoc = await store.docManager.fetchDoc(docSession, docId);
+          const res = await reopenedDoc.docStorage.get("select A from Table1 where id=1");
+          assert.deepEqual(res, { A: "magic word" });
+
+          assert.equal(
+            fetchFromS3Spy.called, !cacheRemainsAfterClosing,
+            cacheRemainsAfterClosing ?
+              "reopening should reuse the local cache without downloading from S3" :
+              "reopening should download from S3 since the local cache was wiped",
+          );
+        });
+      });
+
       // Viewing a document should not mark it as changed (unless a document-level migration
       // needed to run).
       it("viewing a document does not generally change it", async function() {
@@ -921,7 +980,7 @@ describe("HostedStorageManager", function() {
       });
 
       it("can access snapshots with old schema versions", async function() {
-        const snapshotId = `World~v=1`;
+        const snapshotId = `OldSchema~v=1`;
         await workers.assignDocWorker(snapshotId);
         await store.run(async () => {
           // Pretend we have a snapshot of World-v33.grist and fetch/load it.
@@ -1090,7 +1149,7 @@ describe("HostedStorageManager", function() {
         gristServer,
         tmpDir,
         workerId,
-        false,
+        StorageMode.EXTERNAL_WITH_CACHE,
         docWorkerMap,
         {
           setDocsMetadata: async (metadata) => {},
@@ -1104,7 +1163,7 @@ describe("HostedStorageManager", function() {
       sandbox.restore();
     });
 
-    it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
+    it("doesn't wipe local docs being open when they exist on disk but not remote storage", async function() {
       const storageManager = new HostedStorageManager(...defaultParams);
 
       const docId = "NewDoc";
@@ -1124,6 +1183,7 @@ describe("HostedStorageManager", function() {
         workerId,
         docWorkerMap,
         externalStorageCreate,
+        StorageMode.EXTERNAL_WITH_CACHE,
       );
 
       await testStore.run(async () => {
@@ -1170,6 +1230,7 @@ describe("HostedStorageManager", function() {
         workerId,
         docWorkerMap,
         externalStorageCreate,
+        StorageMode.EXTERNAL_WITH_CACHE,
       );
 
       await testStore.run(async () => {
@@ -1192,6 +1253,7 @@ describe("HostedStorageManager", function() {
         workerId,
         docWorkerMap,
         externalStorageCreate,
+        StorageMode.EXTERNAL_WITH_CACHE,
       );
 
       let docName: string = "";
@@ -1209,9 +1271,8 @@ describe("HostedStorageManager", function() {
 
       await testStore.run(async () => {
         await testStore.docManager.fetchDoc(docSession, docName);
+        assert.isTrue(await fse.pathExists(docPath), "the document cache should exist as long as it remains open");
       });
-
-      assert.isTrue(await fse.pathExists(docPath));
     });
   });
 
