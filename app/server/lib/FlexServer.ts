@@ -1658,8 +1658,9 @@ export class FlexServer implements GristServer {
         .read({ envVar: "GRIST_DISABLE_S3" }).getAsBool();
       if (disabled || !haveExternalStorage) {
         this._disableExternalStorage = true;
-        externalStorage.flag("active").set(false);
       }
+      // Boot probes read this.
+      externalStorage.flag("active").set(!this._disableExternalStorage);
       // If external storage is disabled, it disables the backends for both
       // HostedStorageManager and the "snapshots" attachment store, so a probe
       // here could only cause a spurious startup failure.

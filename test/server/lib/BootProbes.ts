@@ -1,8 +1,14 @@
 import { OutgoingRequestsProbeDetails } from "app/common/BootProbe";
 import { _outgoingRequestsProbe } from "app/server/lib/BootProbes";
 import { OUTGOING_REQUEST_ENV_VARS } from "app/server/lib/outgoingRequests";
-import { EnvironmentSnapshot } from "test/server/testUtils";
+import { configForUser } from "test/gen-server/testUtils";
+import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
+import { TestServer } from "test/server/lib/helpers/TestServer";
+import { createTestDir, EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
 
+import * as path from "path";
+
+import axios from "axios";
 import { assert } from "chai";
 
 async function runProbe() {
@@ -123,5 +129,49 @@ describe("BootProbes outgoing-requests", () => {
     const { details } = await runProbe();
     assert.equal(details.proxy.trustedConfigured, true);
     assert.equal(details.proxy.untrustedConfigured, false);
+  });
+});
+
+describe("BootProbes with external storage", function() {
+  this.timeout(30000);
+  setTmpLogLevel("error");
+
+  let env: EnvironmentSnapshot;
+  let server: TestServer;
+  const chimpy = configForUser("Chimpy");
+
+  before(async function() {
+    env = new EnvironmentSnapshot();
+    const testDir = await createTestDir("BootProbesExternalStorage");
+    await prepareDatabase(testDir, env);
+    // A separate process, so storage settings don't leak into other tests via appSettings.
+    server = await TestServer.startServer("home,docs", testDir, "probes", {
+      GRIST_DEFAULT_EMAIL: "chimpy@getgrist.com",
+      GRIST_DISABLE_S3: "",  // The helper disables external storage by default.
+      // In case MinIO or S3 is configured in the environment.
+      GRIST_DOCS_MINIO_BUCKET: "",
+      TEST_MINIO_BUCKET: "",
+      GRIST_DOCS_S3_BUCKET: "",
+      TEST_S3_BUCKET: "",
+      GRIST_FS_STORAGE_DIR: path.join(testDir, "storage"),
+    });
+  });
+
+  after(async function() {
+    await TestServer.stopAll([server]);
+    env.restore();
+  });
+
+  it("reports backups as enabled when a storage backend is active", async function() {
+    const resp = await axios.get(`${server.serverUrl}/api/probes/backups`, chimpy);
+    assert.equal(resp.status, 200);
+    assert.equal(resp.data.status, "success");
+    assert.equal(resp.data.details.backend, "filesystem");
+  });
+
+  it("treats documents as durable when a storage backend is active", async function() {
+    const resp = await axios.get(`${server.serverUrl}/api/probes/persist-data`, chimpy);
+    assert.equal(resp.status, 200);
+    assert.equal(resp.data.details.docs, "durable");
   });
 });
