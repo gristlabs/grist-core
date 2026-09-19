@@ -117,7 +117,22 @@
         "Language": "Γλώσσα",
         "Theme": "Θέμα",
         "Email": "E-mail",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Ο έλεγχος ταυτότητας δύο παραγόντων είναι ένα επιπλέον επίπεδο ασφάλειας για τον λογαριασμό σας στο Grist, το οποίο έχει σχεδιαστεί για να διασφαλίζει ότι είστε το μόνο άτομο που μπορεί να έχει πρόσβαση στον λογαριασμό σας, ακόμα κι αν κάποιος γνωρίζει τον κωδικό πρόσβασής σας."
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Ο έλεγχος ταυτότητας δύο παραγόντων είναι ένα επιπλέον επίπεδο ασφάλειας για τον λογαριασμό σας στο Grist, το οποίο έχει σχεδιαστεί για να διασφαλίζει ότι είστε το μόνο άτομο που μπορεί να έχει πρόσβαση στον λογαριασμό σας, ακόμα κι αν κάποιος γνωρίζει τον κωδικό πρόσβασής σας.",
+        "Basic info": "Βασικές πληροφορίες",
+        "Developer": "Προγραμματιστής",
+        "Home": "Αρχική",
+        "Profile": "Προφίλ",
+        "Enterprise": "Επιχείρηση",
+        "OAuth apps": "Εφαρμογές OAuth",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Οι εφαρμογές OAuth επιτρέπουν εξωτερικές διασυνδέσεις με τον εξυπηρετητή Grist με περισσότερη ασφάλεια και ευκολία απο τις απλές συνδέσεις με κλειδιά API.\n\nΟι εφαρμογές OAuth είναι διαθέσιμες με την [πλήρη έκδοση του λογισμικού Grist] {{fullGrist}}.",
+        "Accessibility": "Προσιτότητα",
+        "No usage data to show.": "Δεν υπάρχουν διαθέσιμα δεδομένα χρήσης.",
+        "Personal site": "Προσωπικός ιστότοπος",
+        "Usage summary": "Σύνοψη χρήσης",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "Έχετε **{{left}} από {{limit}}** διαθέσιμες μηνιαίες κλήσεις **API**",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "Έχετε **{{left}} από {{limit}}** διαθέσιμες εφάπαξ χρήσης μονάδες για τον **Βοηθό AI**",
+        "You have **{{limit}}** monthly **API** calls": "Έχετε **{{limit}}** μηνιαίες κλήσεις **API**",
+        "You have **{{limit}}** one time **AI Assistant** credits": "Έχετε **{{limit}}** εφάπαξ χρήσης μονάδες για τον **Βοηθό AI**"
     },
     "AccountWidget": {
         "Document settings": "Ρυθμίσεις Εγγράφου",
@@ -136,7 +151,9 @@
         "Sign up": "Εγγραφή",
         "Manage team": "Διαχείριση Ομάδας",
         "Sign out": "Αποσύνδεση",
-        "Support Grist": "Υποστήριξη Grist"
+        "Support Grist": "Υποστήριξη Grist",
+        "Site settings": "Ρυθμίσεις ιστοτόπου",
+        "Account settings": "Ρυθμίσεις λογαριασμού"
     },
     "ApiKey": {
         "Create": "Δημιουργία",
