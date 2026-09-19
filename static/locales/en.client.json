@@ -1273,7 +1273,11 @@
         "Users from table": "Users from table",
         "View as": "View as",
         "Other users from table": "Other users from table",
-        "Shared users": "Shared users"
+        "Shared users": "Shared users",
+        "Search users": "Search users",
+        "Filter by name or email": "Filter by name or email",
+        "Clear filter": "Clear filter",
+        "No matching users": "No matching users"
     },
     "TypeTransform": {
         "Apply": "Apply",
