@@ -346,6 +346,7 @@ export async function doExportSection(
 
   // The columns named in sort order need to now become display columns
   sortSpec = sortSpec || gutil.safeJsonParse(viewSection.sortColRefs, []);
+  const hasActiveSort = Boolean(sortSpec && sortSpec.length > 0);
   sortSpec = sortSpec!.map((colSpec) => {
     const colRef = Sort.getColRef(colSpec);
     if (typeof colRef !== "number") {
@@ -368,7 +369,15 @@ export async function doExportSection(
   const getters = new ServerColumnGetters(rowIds, dataByColId, columns);
   const sorter = new SortFunc(getters);
   sorter.updateSpec(sortSpec);
-  rowIds.sort((a, b) => sorter.compare(a, b));
+  // Reverse row order only flips the *default* (unsorted) order, mirroring the client-side
+  // grid, and only ever pins the add-row in the client's grid rendering, so it has no bearing
+  // on exported rows there. An active column sort is never affected by the toggle.
+  const viewOptions = gutil.safeJsonParse(viewSection.options, {}) as { reverseRowOrder?: boolean };
+  const isReverse = Boolean(viewOptions.reverseRowOrder);
+  rowIds.sort((a, b) => {
+    const result = sorter.compare(a, b);
+    return (isReverse && !hasActiveSort) ? -result : result;
+  });
   // create cell accessors
   const tableAccess = columnsForFilters.map(col => getters.getColGetter(col.id)!);
   // create row filter based on all columns filter
