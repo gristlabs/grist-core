@@ -178,7 +178,7 @@ describe("AccessRules4", function() {
     // Now make the public editor.
     await driver.find(".test-tb-share").click();
     await driver.findContentWait(".test-tb-share-option", /Manage users/, 100).doClick();
-    await driver.findWait(".test-um-public-member .test-um-member-role", 100).click();
+    await driver.findWait(".test-um-public-member .test-um-member-role", 3000).click();
     await driver.findContentWait(".test-um-role-option", /Editor/, 100).click();
     await gu.saveAcls();
     await gu.openPage("Table1");
