@@ -712,6 +712,7 @@ describe("Comments", function() {
     await waitForPopup("empty");
     assert.isEmpty(await getEditorText("start"));
     await gu.sendKeys(Key.ESCAPE);
+    await assertNoPopup();
 
     // Clicking comment should not send the empty comment.
     await gu.getCell("A", 2).click();
@@ -2156,7 +2157,7 @@ async function waitForInput(which?: EditorType) {
 
 async function assertNoPopup() {
   await gu.waitToPass(async () => {
-    assert.isFalse(await driver.find(".test-comments-popup").isPresent());
+    assert.isFalse(await driver.find(".test-discussion-popup").isPresent());
   });
 }
 
