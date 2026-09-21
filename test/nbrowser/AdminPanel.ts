@@ -157,7 +157,7 @@ describe("AdminPanel", function() {
     // Reload the page and check that the Grist config indicates telemetry is set to "limited".
     await driver.navigate().refresh();
     await gu.waitForAdminPanel();
-    toggle = await switchElement("telemetry");
+    toggle = await switchElement("telemetry", { visible: true });
     assert.equal(await isEnabled(toggle), true);
     await toggleItem("telemetry");
     await driver.findContentWait(".test-support-grist-page-telemetry-section button", /Opt out of Telemetry/, 2000);
@@ -209,7 +209,7 @@ describe("AdminPanel", function() {
     // Check that the Support Grist page reports telemetry is enabled.
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
-    const toggle = await switchElement("telemetry");
+    const toggle = await switchElement("telemetry", { visible: true });
     assert.equal(await isEnabled(toggle), true);
     await toggleItem("telemetry");
     assert.equal(
