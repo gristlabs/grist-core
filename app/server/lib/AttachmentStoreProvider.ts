@@ -42,10 +42,12 @@ export interface IAttachmentStoreSpecification {
   create: (storeId: string) => Promise<IAttachmentStore>,
 }
 
+export type AttachmentStoreLabel = "snapshots" | "test-filesystem";
+
 // All the information needed to create a particular store instance
 export interface IAttachmentStoreConfig {
   // This is the name for the store, but it also used to construct the store ID.
-  label: string;
+  label: AttachmentStoreLabel;
   spec: IAttachmentStoreSpecification;
 }
 
@@ -165,7 +167,7 @@ const GRIST_EXTERNAL_ATTACHMENTS_MODE = settings.flag("mode").requireString({
   defaultValue: "snapshots",
 });
 
-export function getConfiguredStandardAttachmentStore(): string | undefined {
+export function getConfiguredStandardAttachmentStore(): AttachmentStoreLabel | undefined {
   switch (GRIST_EXTERNAL_ATTACHMENTS_MODE) {
     case "snapshots":
       return "snapshots";
