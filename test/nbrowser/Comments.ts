@@ -568,6 +568,7 @@ describe("Comments", function() {
     await waitForInput();
     await gu.sendKeys("Owners comment");
     await enter();
+    await gu.sendKeys(Key.ESCAPE);
     await assertNoPopup();
 
     await asSupport();
