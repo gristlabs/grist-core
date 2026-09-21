@@ -28,6 +28,8 @@ describe("CopyPasteLinked", function() {
     assert.equal(await cell.getText(), "John Malik");
 
     await clipboard.lockAndPerform(async (cb) => {
+      // A copy sent before the grid has the focus is dropped.
+      await gu.waitAppFocus();
       // Copy the cell's value to the clipboard.
       await cb.copy();
 

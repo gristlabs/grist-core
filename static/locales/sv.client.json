@@ -102,7 +102,9 @@
         "OAuth apps": "OAuth appar",
         "Accessibility": "Tillgänglighet",
         "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth appar låter dig ansluta externa integrationer till denna Gristserver på ett säkrare och bekvämare sätt än att använda API-nycklar.\n\nOAuth appar är tillgängliga i [fullversionen av Grist]({{fullGrist}}).",
-        "Personal site": "Personlig sajt"
+        "Personal site": "Personlig sajt",
+        "No usage data to show.": "Ingen användningsdata att visa.",
+        "Usage summary": "Användningsöversikt"
     },
     "AccountWidget": {
         "Access Details": "Tillgångsdetaljer",

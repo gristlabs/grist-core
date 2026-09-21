@@ -180,15 +180,20 @@ export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: 
 }
 
 /**
- * Whether a mouse event landed on a link.
+ * Whether a mouse or touch event landed on a link.
  *
  * The event's own target is not enough for a double click. A double click made of two clicks on
  * different elements is dispatched on the closest ancestor the two share, so selecting a cell and
  * then clicking the link icon inside it reports the cell, not the link. What is under the pointer
  * is the second click's element either way.
+ *
+ * Only a double click needs that. Anything else, such as the touchend of a double tap, is
+ * dispatched on the element it happened on, and has no coordinates to look up anyway (Firefox
+ * throws if elementFromPoint is given undefined).
  */
 export function isEventOnLink(event: Event): boolean {
   if ((event.target as HTMLElement | null)?.closest("a")) { return true; }
+  if (event.type !== "dblclick") { return false; }
   const { clientX, clientY } = event as MouseEvent;
   return Boolean(document.elementFromPoint(clientX, clientY)?.closest("a"));
 }
