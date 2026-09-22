@@ -187,7 +187,9 @@
         "Key": "Κλειδί",
         "Memory Error": "Σφάλμα Μνήμης",
         "Translators: please translate this only when your language is ready to be offered to users": "Μεταφραστές: παρακαλούμε μεταφράστε αυτό μόνο όταν η γλώσσα σας είναι έτοιμη να προσφερθεί στους χρήστες",
-        "Description": "Περιγραφή"
+        "Description": "Περιγραφή",
+        "Disabled screen reader improvements": "Απενενεργοποιημένες βελτιώσεις ανάγνωσης οθόνης",
+        "Enabled screen reader improvements": "Ενεργοποιημένες βελτιώσεις ανάγνωσης οθόνης"
     },
     "AppHeader": {
         "Home page": "Αρχική Σελίδα",
@@ -258,8 +260,8 @@
         "Split Series": "Διαίρεση Σειρών",
         "X-AXIS": "Άξονας-Χ",
         "Aggregate values": "Συνολικές τιμές",
-        "non-numeric columns are not shown": "Δεν εμγανίζονται μη-αριθμητικές στήλες",
-        "non-numeric column is not shown": "δεν εμφανίζεται μη-αριθμητική στήλη",
+        "non-numeric columns are not shown": "οι μη-αριθμητικές στήλες δεν εμφανίζονται",
+        "non-numeric column is not shown": "η μη-αριθμητική στήλη δεν εμφανίζεται",
         "selected new x-axis": "επιλεγμένος νέος άξονας x",
         "Remove": "Αφαίρεση",
         "Donut chart": "Γράφημα με Ντόνατ",
@@ -478,7 +480,8 @@
         "Allow others to suggest changes": "Επιτρέψτε σε άλλους να προτείνουν αλλαγές",
         "Enable suggestions": "Ενεργοποίηση προτάσεων",
         "Suggestions": "Προτάσεις",
-        "experiment": "πείραμα"
+        "experiment": "πείραμα",
+        "For number formats": "Για τις μορφές αριθμών"
     },
     "DocumentUsage": {
         "Data size": "Μέγεθος δεδομένων",
@@ -551,7 +554,9 @@
         "Horizontal gridlines": "Οριζόντιες Γραμμές Πλέγματος",
         "Zebra stripes": "Ρίγες Ζέβρας",
         "Grid Options": "Επιλογές Πλέγματος",
-        "Vertical gridlines": "Κάθετες Γραμμές Πλέγματος"
+        "Vertical gridlines": "Κάθετες Γραμμές Πλέγματος",
+        "Show": "Εμφάνιση",
+        "row numbers": "αριθμοι σειράς"
     },
     "GridViewMenus": {
         "Add column": "Προσθήκη στήλης",
@@ -622,7 +627,9 @@
         "Created at": "Δημιουργήθηκε στις",
         "No reference columns.": "Δεν υπάρχουν στήλες αναφοράς.",
         "Detect Duplicates in...": "Εντοπισμός Διπλότυπων σε...",
-        "Show hidden columns": "Εμφάνιση κρυφών στηλών"
+        "Show hidden columns": "Εμφάνιση κρυφών στηλών",
+        "Row numbers": "Αριθμοί σειράς",
+        "Numbers": "Αριθμοί"
     },
     "GristDoc": {
         "Import from file": "Εισαγωγή από αρχείο",
@@ -630,7 +637,8 @@
         "go to webhook settings": "μεταβείτε στις ρυθμίσεις του webhook",
         "Added new linked section to view {{viewName}}": "Προστέθηκε νέα συνδεδεμένη ενότητα στην προβολή {{viewName}}",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Οι νέες αλλαγές έχουν προσωρινά ανασταλεί. Η ουρά webhooks έχει υπερχειλίσει. Ελέγξτε τις ρυθμίσεις των webhooks, καταργήστε τα μη έγκυρα webhooks και καθαρίστε την ουρά.",
-        "Import from Airtable": "Εισαγωγή από Airtable"
+        "Import from Airtable": "Εισαγωγή από Airtable",
+        "{{title}} widget": "γραφικό στοιχείο {{title}}"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Οποιαδήποτε έγγραφα δημιουργούνται σε αυτόν τον ιστότοπο θα εμφανίζονται εδώ.",
@@ -706,7 +714,9 @@
     },
     "LeftPanelCommon": {
         "Help Center": "Κέντρο Βοήθειας",
-        "Accessibility": "Προσβασιμότητα"
+        "Accessibility": "Προσβασιμότητα",
+        "(Screen reader improvements enabled)": "(Βελτιώσεις αναγνώστη οθόνης ενεργοποιημένες)",
+        "Screen reader improvements enabled": "Βελτιώσεις αναγνώστη οθόνης ενεργοποιημένες"
     },
     "MakeCopyMenu": {
         "As template": "Ως Πρότυπο",
@@ -758,7 +768,9 @@
         "Give feedback": "Υποβολή σχολίων",
         "No notifications": "Δεν υπάρχουν ειδοποιήσεις",
         "Go to your free personal site": "Μεταβείτε στον δωρεάν προσωπικό σας ιστότοπο",
-        "Upgrade Plan": "Αναβάθμιση Προγράμματος"
+        "Upgrade Plan": "Αναβάθμιση Προγράμματος",
+        "How you could gain access": "Πώς να αποκτήσετε πρόσβαση",
+        "What's blocking you": "Tί σας εμποδίζει"
     },
     "OnBoardingPopups": {
         "Finish": "Ολοκλήρωση",
@@ -777,7 +789,10 @@
         "Select data": "Επιλογή Δεδομένων",
         "Add to page": "Προσθήκη στη Σελίδα",
         "New Table": "Νέος Πίνακας",
-        "SELECT BY": "ΕΠΙΛΟΓΗ ΜΕ"
+        "SELECT BY": "ΕΠΙΛΟΓΗ ΜΕ",
+        "{{table}} grouped by… (press to select fields)": "{{table}} ομαδοποιημένος ανά... (πιέστε για επιλογή πεδίων)",
+        "Press Space to add fields": "Πατήστε το πλήκτρο δισατήματος για να προσθέσετε πεδία",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Χρησιμοποιήστε τα πλήκτρα βέλους άνω και κάτω για μετακίνηση μεταξύ επιλογών. Πατήστε Enter και Esc για μετακίνηση μεταξύ βημάτων."
     },
     "Pages": {
         "Delete": "Διαγραφή",
@@ -863,7 +878,8 @@
         "Add referenced columns": "Προσθήκη στηλών με αναφορά",
         "Default field value": "Προεπιλεγμένη τιμή πεδίου",
         "Select a field in the form widget to configure.": "Επιλέξτε ένα πεδίο στο γραφικό στοιχείο (widget) φόρμας για να το διαμορφώσετε.",
-        "Chart options": "Επιλογές γραφήματος"
+        "Chart options": "Επιλογές γραφήματος",
+        "You may use {{placeholder}} placeholder for the ID of the added record.": "Μπορείτε να χρησιμοποιήσετε το σύμβολο κράτησης θέσης {{placeholder}} για το αναγνωριστικό της εγγραφής που προστέθηκε."
     },
     "RowContextMenu": {
         "Duplicate rows_one": "Αντιγραφή σειράς",
@@ -936,7 +952,9 @@
     "ThemeConfig": {
         "Appearance ": "Εμφάνιση ",
         "Switch appearance automatically to match system": "Αυτόματη αλλαγή εμφάνισης ώστε να ταιριάζει με το σύστημα",
-        "Light": "Φωτεινό"
+        "Light": "Φωτεινό",
+        "Dark": "Σκοτεινό",
+        "Light (High Contrast)": "Φωτεινό (υψηλή αντίθεση)"
     },
     "Tools": {
         "API console": "Κονσόλα API",
@@ -1106,7 +1124,10 @@
         "this document": "αυτό το έγγραφο",
         "your email": "το email σας",
         "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Δεν θα λαμβάνετε πλέον ειδοποιήσεις μέσω email σχετικά με τις {{suggestions}} στο {{docName}} στη διεύθυνση {{email}}.",
-        "suggestions": "προτάσεις"
+        "suggestions": "προτάσεις",
+        "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Δεν θα λαμβάνετε πλεον ειδοποιήσεις μέσω email σχετικές με {{automations}} στο {{docName}} στη διεύθυνση {{email}}.",
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Έχετε διαγραφεί από τις ειδοποιήσεις αυτοματισμού για το {{docName}}. Μπορείτε να ενημερώσετε τις προτιμήσεις σας ανά πάσα στιγμή στις ρυθμίσεις εγγράφου.",
+        "automations": "αυτοματισμοί"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Οι χώροι εργασίας είναι διαθέσιμοι στα ομαδικά προγράμματα. ",
@@ -1163,7 +1184,8 @@
         "Lines": "Γραμμές",
         "Multi line": "Πολλαπλές γραμμές",
         "Single line": "Μονή γραμμή",
-        "false": "ψευδής"
+        "false": "ψευδής",
+        "Maximum characters": "Μέγιστος αριθμός χαρακτήρων"
     },
     "ACLUsers": {
         "Users from table": "Χρήστες από τον πίνακα",
@@ -1434,7 +1456,7 @@
         "Ask the bot.": "Ρώτα το ρομπότ.",
         "Capabilities": "Δυνατότητες",
         "There are some things you should know when working with me:": "Υπάρχουν μερικά πράγματα που πρέπει να γνωρίζετε όταν συνεργάζεστε μαζί μου:",
-        "What do you need help with?": "Με τι χρειάζεσαι βοήθεια;",
+        "What do you need help with?": "Πως μπορώ να σας βοηθήσω;",
         "Formula AI Assistant is only available for logged in users.": "Ο Βοηθός Τεχνητής Νοημοσύνης Φόρμουλας είναι διαθέσιμος μόνο για συνδεδεμένους χρήστες.",
         "For higher limits, contact the site owner.": "Για υψηλότερα όρια, επικοινωνήστε με τον κάτοχο του ιστότοπου.",
         "For higher limits, {{upgradeNudge}}.": "Για υψηλότερα όρια, {{upgradeNudge}}.",
@@ -1517,7 +1539,10 @@
         "Access overview": "Επισκόπηση πρόσβασης",
         "Share it publicly": "Κοινοποιήστε το δημόσια",
         "Verify your sensitive data before sharing publicly": "Επαληθεύστε τα ευαίσθητα δεδομένα σας πριν τα κοινοποιήσετε δημόσια",
-        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Το {{resourceType}} σας θα είναι προσβάσιμο σε οποιονδήποτε διαθέτει τον σύνδεσμο, είτε κοινοποιήθηκε απευθείας είτε βρέθηκε μέσω μιας μηχανής αναζήτησης.\n\nΒεβαιωθείτε ότι το {{resourceType}} σας δεν περιέχει ευαίσθητα δεδομένα πριν από την κοινοποίηση."
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Το {{resourceType}} σας θα είναι προσβάσιμο σε οποιονδήποτε διαθέτει τον σύνδεσμο, είτε κοινοποιήθηκε απευθείας είτε βρέθηκε μέσω μιας μηχανής αναζήτησης.\n\nΒεβαιωθείτε ότι το {{resourceType}} σας δεν περιέχει ευαίσθητα δεδομένα πριν από την κοινοποίηση.",
+        "Configure notifications": "Ρύθμιση ειδοποιήσεων",
+        "Invitation emails are not enabled on this installation.": "Τα email πρόσκλησης δεν είναι ενεργοποιημένα για αυτή την εγκατάσταση.",
+        "Invitation emails are not sent on Grist Community edition.": "Δεν αποστέλλονται email πρόσκλησης στην έκδοση Grist Community."
     },
     "SupportGristPage": {
         "Help Center": "Κέντρο Βοήθειας",
@@ -1717,7 +1742,9 @@
         "error in {{provider}}: {{verdict}}": "σφάλμα στον {{provider}}: {{verdict}}",
         "Please restart Grist manually.": "Παρακαλώ επανεκκινήστε το Grist χειροκίνητα.",
         "Restart Grist to apply pending changes.": "Επανεκκινήστε το Grist για να εφαρμόσετε τις αλλαγές που εκκρεμούν.",
-        "Restart unavailable": "Η επανεκκίνηση δεν είναι διαθέσιμη"
+        "Restart unavailable": "Η επανεκκίνηση δεν είναι διαθέσιμη",
+        "Fallback authentication method": "Εναλλακτική μέθοδος ελέγχου ταυτότητας",
+        "Server": "Εξυπηρετητής"
     },
     "ChoiceListEditor": {
         "No choices to select": "Δεν υπάρχουν επιλογές για να διαλέξετε",
@@ -1951,12 +1978,20 @@
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Πληκτρολογήστε DELETE αν είστε βέβαιοι ότι πράγματι επιθυμείτε να κάνετε αυτήν τη διαγραφή.\nΕάν δεν είστε σίγουροι ή δεν καταλαβαίνετε τι θα κάνει αυτή η λειτουργία,\nθα ήταν συνετό να την ακυρώσετε."
     },
     "GridView": {
-        "Click to insert": "Κάντε κλικ για εισαγωγή"
+        "Click to insert": "Κάντε κλικ για εισαγωγή",
+        "row {{rowNum}} {{colName}}": "σειρά {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "σειρά {{rowNum}} {{colName}} (νέα σειρά)"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Καλώς ήρθες πίσω",
         "You can always switch sites using the account menu.": "Μπορείτε πάντα να αλλάζετε ιστότοπους χρησιμοποιώντας το μενού λογαριασμού.",
-        "You have access to the following Grist sites.": "Έχετε πρόσβαση στις ακόλουθες τοποθεσίες Grist."
+        "You have access to the following Grist sites.": "Έχετε πρόσβαση στις ακόλουθες τοποθεσίες Grist.",
+        "No sites available": "Κανένας ιστοτόπος διαθέσιμος",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "Οι προσωπικοί ιστοτόποι είναι απενεργοποιημένοι σε αυτή την εγκατάσταση, και δεν είστε μέλος κανενός απο τους ιστοτόπους ομάδας.",
+        "Create a team site": "Δημιουργία ιστοτόπου ομάδας",
+        "Ask an administrator to add you to a team site.": "Ζητήστε από έναν διαχειριστή να σας προσθέσει σε έναν ιστοτόπο ομάδας.",
+        "Sign in to see your sites": "Συνδεθείτε για να δείτε τους ιστότοπούς σας",
+        "Sign in": "Σύνδεση"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "ΠΕΡΙΓΡΑΦΗ"
@@ -2174,7 +2209,11 @@
     "ColorSelect": {
         "Cancel": "Ακύρωση",
         "Apply": "Εφαρμογή",
-        "Default cell style": "Προεπιλεγμένο στυλ κελιού"
+        "Default cell style": "Προεπιλεγμένο στυλ κελιού",
+        "default": "προεπιλογή",
+        "fill": "γέμισμα",
+        "none": "κανένα",
+        "text": "κείμενο"
     },
     "FilterConfig": {
         "Add column": "Προσθήκη Στήλης",
@@ -2770,7 +2809,10 @@
         "Start and end must be the same date type.": "Αρχή και τέλος πρέπει να είναι ιδίου τύπου ημερομηνίας.",
         "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "Αυτός ο συνοπτικός πίνακας δεν διαθέτει στήλη ημερομηνίας. Προσθέστε πρώτα μια στήλη τύπου, π.χ. MIN($group.Date).",
         "Title": "Τίτλος",
-        "Title (optional)": "Τίτλος (προαιρετικό)"
+        "Title (optional)": "Τίτλος (προαιρετικό)",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Επιλέξτε τις στήλες που περιέχουν τις ημερομηνίες και τίτλους συμβάντων, ή δημιουργήστε νέες.",
+        "Set up calendar": "Ρύθμιση ημερολογίου",
+        "This summary table has no text column. Events will show without labels.": "Ο συνοπτικός πίνακας δεν περιέχει στήλες κειμένου. Τα συμβάντα θα εμφανίζονται χωρίς ετικέτες."
     },
     "CalendarView": {
         "Day": "Ημέρα",
@@ -2781,6 +2823,16 @@
     },
     "CalendarWrapper": {
         "End Date": "Ημερομηνία τέλους",
-        "Groups events by category. Each choice uses its own color and style.": "Ομαδοποίηση συμβάντων σε κατηγορίες. Κάθε επιλογή διαθέτει το δικό της στυλ και χρώμα."
+        "Groups events by category. Each choice uses its own color and style.": "Ομαδοποίηση συμβάντων σε κατηγορίες. Κάθε επιλογή διαθέτει το δικό της στυλ και χρώμα.",
+        "+{{count}} more_one": "+{{count}} περισσότερα",
+        "+{{count}} more_other": "+{{count}} περισσότερα",
+        "Is All Day": "Ολοήμερη",
+        "Start Date": "Ημερομηνία έναρξης",
+        "The label shown on the event.": "Η ετικέτα που εμφανίζεται στο συμβάν.",
+        "Title": "Τίτλος",
+        "Type": "Τύπος",
+        "When the event ends. If empty, the event lasts as long as its start.": "Η στιγμή λήξης του σύμβαντος. Εαν είναι κενή, το συμβάν έχει στιγμιαία διάρκεια.",
+        "When the event starts.": "Η στιγμή αρχής σύμβαντος.",
+        "Whether the event lasts all day.": "Επιλογή ολοήμερου σύμβαντος."
     }
 }
