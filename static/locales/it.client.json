@@ -470,7 +470,19 @@
         "Save": "Salva",
         "Theme": "Tema",
         "Two-factor authentication": "Autenticazione a due fattori",
-        "Language": "Lingua"
+        "Language": "Lingua",
+        "Basic info": "Informazioni di base",
+        "Developer": "Sviluppatore",
+        "Home": "Pagina iniziale",
+        "Profile": "Profilo",
+        "Enterprise": "Enterprise",
+        "OAuth apps": "Applicazioni OAuth",
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Le applicazioni OAuth permettono di collegare integrazioni esterne a questo server Grist con maggiore sicurezza e convenienza rispetto all'uso di chiavi API.\n\nLe applicazioni OAuth sono disponibili solo nella [versione complete di Grist]({{fullGrist}}).",
+        "Accessibility": "Accessibilità",
+        "No usage data to show.": "Nessun dato d'utilizzo disponibile.",
+        "Personal site": "Sito personale",
+        "Usage summary": "Sommario d'utilizzo",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "Sono rimanenti **{{left}} di {{limit}}** chiamate api mensili"
     },
     "AccessRules": {
         "Permission to edit document structure": "Permesso di modificare la struttura del documento",
@@ -530,7 +542,20 @@
         "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Dopo aver disabilitato le Regole di Accesso, gli Editor possono cambiare la struttura del documento e modificare le formule. Sia chi ha diritti di modifica che di sola visualizzazione potrà comunque vedere tutti i dati del documento, come anche copiare e scaricarli.",
         "After enabling Access Rules, Editors will no longer be able to change the structure of the\ndocument or edit formulas. Only Owners will be able to copy or download the document.\n\nThese settings can be changed under 'Special rules'.": "Dopo aver abilitato le regole di accesso, agli Editor non sarà più possibile cambiare la struttura del\ndocumento o modificare le formule. Solo ai proprietari sarà possibile copiare o scaricare il documento.\n\nQueste impostazioni possono essere modificate in 'Regole speciali'",
         "Allow Editors to edit structure (e.g. modify and delete tables, columns, and layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access all data, regardless of table and column access rules!": "Permette agli Editor di modificare la struttura (i.e. modificare o cancellare tabelle, colonne, layout) e scrivere formule. Importante: se spuntato, agli Editor sarà possibile modificare le formule, che significa che gli sarà possibile accedere a tutti i dati, indipendentemente dalle regole di accesso delle tabelle e colonne!",
-        "Allow everyone to view access rules.": "Permette a chiunque di visualizzare le regole di accesso."
+        "Allow everyone to view access rules.": "Permette a chiunque di visualizzare le regole di accesso.",
+        "Trying to add TableRules for existing table {{tableId}}": "Cerco di aggiungere TableRules per la tabella {{tableId}} esistente",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Usare un attributo semplice di user.LinkKey, per esempio user.LinkKey.qualcosa",
+        "## Access Rules\n\nBasic access to this document is controlled using the 'Manage Users' option in the 'Share' menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.\n\nFor more granular control, you can create Access Rules to limit who can view or edit specific\ntables, columns, or rows — useful for sensitive data or role-based permissions.\n[Learn more.]({{helpAccessRules}})": "## Regole di accesso\n\nL'accesso base a questo documento è gestito tramite l'opzione 'Gestisci utenti' nel menu 'Condividi', dove è possibile assegnare ruoli di collaborazione come Proprietario, Editor o Visualizzatore.\n\nPer un controllo più granulare, è possibile creare regole di accesso per limitare chi può visualizzare o modificare specifiche\ntabelle, colonne o righe — una funzionalità utile per dati sensibili o autorizzazioni basate sui ruoli.\n[Scopri di più.]({{helpAccessRules}})",
+        "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Aggira tutte le restrizioni di lettura e consenti a chiunque di copiare l'intero documento o di visualizzarlo integralmente in modalità \"fiddle\". Utilizza questa opzione solo per esempi e modelli, non per documenti contenenti dati sensibili.",
+        "Continue": "Continua",
+        "Disable Access Rules": "Disabilita regole di accesso",
+        "Disable and save": "Disabilita e salva",
+        "Enable Access Rules": "Abilita regole di accesso",
+        "Permission to access the document in full by all users": "Autorizzazione per tutti gli utenti ad accedere al documento completo",
+        "Permission to access the document in full by unrestricted users": "Autorizzazione all'accesso completo al documento da parte di utenti senza restrizioni",
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Impedisci agli utenti diversi dai proprietari di copiare o scaricare il documento completo. Nota: questa impostazione riguarda solo gli utenti senza restrizioni di lettura, poiché gli altri saranno comunque soggetti a limitazioni, a prescindere da questa configurazione.",
+        "Special rules for templates": "Regole speciali per i template",
+        "This options should be off if Editors' access is to be limited. ": "Questa opzione dovrebbe essere disabilitata se si vuole fornire agli Editor accesso limitato. "
     },
     "ACUserManager": {
         "Enter email address": "Inserisci indirizzo e-mail",
