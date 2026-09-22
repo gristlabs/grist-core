@@ -129,6 +129,8 @@ export interface OIDCConfig {
   readonly namePropertyKey?: string;
   /** The key of the attribute to use for the user's email. */
   readonly emailPropertyKey: string;
+  /** The key of the attribute to use for the user's picture URL (optional). */
+  readonly picturePropertyKey: string;
   /** Alternative URL to redirect user upon logout (overrides the IdP's end_session_endpoint). */
   readonly endSessionEndpoint: string;
   /** If true, won't attempt to call the IdP's end_session_endpoint on logout. */
@@ -189,6 +191,11 @@ export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
     defaultValue: "email",
   });
 
+  const picturePropertyKey = section.flag("picturePropertyKey").readString({
+    envVar: "GRIST_OIDC_SP_PROFILE_PICTURE_ATTR",
+    defaultValue: "picture",
+  });
+
   const endSessionEndpoint = section.flag("endSessionEndpoint").readString({
     envVar: "GRIST_OIDC_IDP_END_SESSION_ENDPOINT",
     defaultValue: "",
@@ -224,6 +231,7 @@ export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
     httpTimeout,
     namePropertyKey,
     emailPropertyKey,
+    picturePropertyKey,
     endSessionEndpoint,
     skipEndSessionEndpoint,
     acrValues,
@@ -464,6 +472,7 @@ export class OIDCBuilder {
     return {
       email: String(userInfo[this._config.emailPropertyKey]),
       name: this._extractName(userInfo),
+      picture: (userInfo[this._config.picturePropertyKey] as string) || undefined,
       // extra fields could be returned by the IdP that we might want to store
       extra: pick(userInfo, process.env.GRIST_IDP_EXTRA_PROPS?.split(",") || []),
     };
