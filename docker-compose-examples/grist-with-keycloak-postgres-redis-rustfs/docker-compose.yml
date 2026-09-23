@@ -17,12 +17,13 @@ services:
       # Redis setup
       REDIS_URL: redis://grist-redis
 
-      # MinIO setup. This requires the bucket set up on the MinIO instance with versioning enabled.
+      # S3 storage (RustFS here). The bucket must have versioning enabled.
+      # Despite the MINIO names, these work with any S3-compatible store.
       GRIST_DOCS_MINIO_ACCESS_KEY: grist
-      GRIST_DOCS_MINIO_SECRET_KEY: ${MINIO_PASSWORD:-grist-minio-password}
+      GRIST_DOCS_MINIO_SECRET_KEY: ${RUSTFS_PASSWORD:-grist-rustfs-password}
       GRIST_DOCS_MINIO_USE_SSL: 0
       GRIST_DOCS_MINIO_BUCKET: grist-docs
-      GRIST_DOCS_MINIO_ENDPOINT: grist-minio
+      GRIST_DOCS_MINIO_ENDPOINT: grist-rustfs
       GRIST_DOCS_MINIO_PORT: 9000
 
       # External Storage for attachments
@@ -80,9 +81,9 @@ services:
         condition: service_started
       grist-redis:
         condition: service_started
-      grist-minio:
+      grist-rustfs:
         condition: service_started
-      minio-setup:
+      rustfs-setup:
         condition: service_completed_successfully
       # Grist contacts Keycloak at startup to set up OpenID Connect, so it
       # must wait for Keycloak to be ready.
@@ -106,31 +107,41 @@ services:
     volumes:
       - ${PERSIST_DIR:-./persist}/redis:/data
 
-  grist-minio:
-    image: minio/minio:latest
+  grist-rustfs:
+    image: rustfs/rustfs:latest
     environment:
-      MINIO_ROOT_USER: grist
-      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-grist-minio-password}
+      RUSTFS_ACCESS_KEY: grist
+      RUSTFS_SECRET_KEY: ${RUSTFS_PASSWORD:-grist-rustfs-password}
     volumes:
-      - ${PERSIST_DIR:-./persist}/minio:/data
-    command:
-      server /data --console-address=":9001"
-
-  # This sets up the buckets required in MinIO. It is only needed to make this example work.
-  # It isn't necessary for deployment and can be safely removed.
-  minio-setup:
-    image: minio/mc
-    environment:
-      MINIO_PASSWORD: ${MINIO_PASSWORD:-grist-minio-password}
+      - ${PERSIST_DIR:-./persist}/rustfs:/data
     depends_on:
-      grist-minio:
+      rustfs-permissions:
+        condition: service_completed_successfully
+
+  # Docker creates RustFS's data directory owned by root, but RustFS runs as
+  # UID 10001 and can't write there. This one-off step, run as root, gives
+  # the directory to UID 10001 before RustFS starts.
+  rustfs-permissions:
+    image: rustfs/rustfs:latest
+    user: "0:0"
+    entrypoint: ["chown", "10001:10001", "/data"]
+    volumes:
+      - ${PERSIST_DIR:-./persist}/rustfs:/data
+
+  # Creates the versioned bucket. Only needed for this example; safe to remove.
+  rustfs-setup:
+    image: rustfs/rc:latest
+    environment:
+      RUSTFS_PASSWORD: ${RUSTFS_PASSWORD:-grist-rustfs-password}
+    depends_on:
+      grist-rustfs:
         condition: service_started
     restart: on-failure
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set myminio http://grist-minio:9000 grist \"$$MINIO_PASSWORD\";
-      /usr/bin/mc mb myminio/grist-docs;
-      /usr/bin/mc version enable myminio/grist-docs;
+      rc alias set rustfs http://grist-rustfs:9000 grist \"$$RUSTFS_PASSWORD\" &&
+      rc bucket create --ignore-existing rustfs/grist-docs &&
+      rc bucket version enable rustfs/grist-docs
       "
 
   keycloak-db:
