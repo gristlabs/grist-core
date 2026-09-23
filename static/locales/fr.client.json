@@ -1680,7 +1680,10 @@
         "Access overview": "Aperçu de l'accès",
         "Share it publicly": "Partager publiquement",
         "Verify your sensitive data before sharing publicly": "Vérifier vos données sensibles avant de partager publiquement",
-        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Votre {{resourceType}} sera accessible par toute personne ayant le lien, que ce soit via un partage directe ou à travers un moteur de recherche.\n Assurez vous que votre {{resourceType}} ne contienne pas de données sensible avant de partager."
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Votre {{resourceType}} sera accessible par toute personne ayant le lien, que ce soit via un partage directe ou à travers un moteur de recherche.\n Assurez vous que votre {{resourceType}} ne contienne pas de données sensible avant de partager.",
+        "Configure notifications": "Configurer les notifications",
+        "Invitation emails are not enabled on this installation.": "Les mails d'invitation ne sont pas activés sur cette installation.",
+        "Invitation emails are not sent on Grist Community edition.": "Les mails d'invitation ne sont pas envoyés dans la version communautaire de Grist."
     },
     "SearchModel": {
         "Search all tables": "Rechercher toutes les tables",
@@ -1703,7 +1706,13 @@
     "WelcomeSitePicker": {
         "Welcome back": "Bon retour parmi nous",
         "You can always switch sites using the account menu.": "Vous pouvez toujours changer d'espace en utilisant le menu du compte.",
-        "You have access to the following Grist sites.": "Vous avez accès aux espaces Grist suivants."
+        "You have access to the following Grist sites.": "Vous avez accès aux espaces Grist suivants.",
+        "No sites available": "Aucun site disponible",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "Les espaces personnels sont désactivés sur cette installation, et vous n'êtes pas encore membre d'un espace d'équipe.",
+        "Create a team site": "Créer un espace d'équipe",
+        "Ask an administrator to add you to a team site.": "Demander à un administrateur de vous ajouter à un espace d'équipe.",
+        "Sign in to see your sites": "Connectez-vous pour voir vos sites",
+        "Sign in": "Se connecter"
     },
     "CardContextMenu": {
         "Insert card above": "Insérer une fiche au dessus",
@@ -2942,7 +2951,9 @@
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Faire du nouvel e-mail l'administrateur d'installation. Les Espaces d'équipes, Dossiers, et documents resteront la propriété de {{email}}. Ces changements seront effectifs après le redémarrage du serveur Grist.",
         "New admin": "Nouvel administrateur",
         "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Remplacer complètement {{email}} par le nouvel e-mail d'administration. Le nouvel e-mail deviendra l'administrateur d'installation, ainsi que le propriétaire de tout les éléments appartenant précédemment à vous@exemple.fr.",
-        "An account with {{email}} already exists.": "Un compte {{email}} existe déjà."
+        "An account with {{email}} already exists.": "Un compte {{email}} existe déjà.",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.": "Faire de la nouvelle adresse e-mail l'administrateur de l'instance. Les organisations, les espaces de travail et les documents appartiendront encore à **{{email}}**. Ces modifications prendront effet après le redémarrage de ce serveur Grist.",
+        "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.": "Remplacer **{{email}}** par le nouvel e-mail partout. Le nouvel e-mail deviendra administrateur de l'instance, et le propriétaire de tous les objets dont **{{email}}** était auparavant propriétaire."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Importer depuis Airtable"
@@ -3424,5 +3435,58 @@
         "Copy to clipboard": "Copier dans le presse-papier",
         "Installation ID": "Identifiant d'installation",
         "Installation ID copied to clipboard": "Identifiant d'installation copié dans le presse-papier"
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Ajouter un calendrier",
+        "Create new column": "Créer une nouvelle colonne",
+        "Date + time": "Date et heure",
+        "Date only": "Date seulement",
+        "Dates": "Dates",
+        "End": "Fin",
+        "End (optional)": "Fin (optionnelle)",
+        "None": "Aucun",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Choisissez les colonnes qui contiennent vos dates et noms d'événements, ou créez-en de nouvelles.",
+        "Select a column": "Sélectionnez une colonne",
+        "Set up calendar": "Configurer le calendrier",
+        "Start": "Début",
+        "Start and end must be the same date type.": "Le début et la fin doivent avoir le même type de date.",
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "Cette table agrégée n'a pas de colonne de date. Ajoutez d'abord une colonne de formule telle que MIN($group.Date).",
+        "This summary table has no text column. Events will show without labels.": "Cette table agrégée n'a pas de colonne de texte. Les événements seront affichés sans étiquette.",
+        "Title": "Titre",
+        "Title (optional)": "Titre (optionnel)"
+    },
+    "CalendarView": {
+        "Day": "Jour",
+        "Month": "Mois",
+        "New Event": "Nouvel événement",
+        "Today": "Aujourd'hui",
+        "Week": "Semaine"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "{{count}} de plus",
+        "+{{count}} more_other": "{{count}} de plus",
+        "End Date": "Date de fin",
+        "Groups events by category. Each choice uses its own color and style.": "Regroupe les événements par catégorie. Chaque catégorie utilise sa propre couleur et son propre style.",
+        "Is All Day": "Journée entière",
+        "Start Date": "Date de début",
+        "The label shown on the event.": "L'étiquette indiquée sur l'événement.",
+        "Title": "Titre",
+        "Type": "Type",
+        "When the event ends. If empty, the event lasts as long as its start.": "Quand l'événement se termine. Si vide, l'événement dure aussi longtemps que sa date de début.",
+        "When the event starts.": "Quand l'événement commence.",
+        "Whether the event lasts all day.": "Si l'événement dure toute la journée."
+    },
+    "AskTheAdmin": {
+        "1 person has asked for this.": "Une personne a demandé cela.",
+        "Add a note": "Ajouter une note",
+        "Ask the admin for this": "Demander à l'administrateur",
+        "Note sent.": "Note envoyée.",
+        "Why do you want this? Press Enter to send.": "Pourquoi souhaitez-vous cela ? Appuyez sur Entrée pour envoyer.",
+        "You and 1 other have asked for this.": "Vous et 1 autre personne ont demandé cela.",
+        "You and {{count}} others have asked for this._one": "Vous et {{count}} autres personnes ont demandé cela.",
+        "You and {{count}} others have asked for this._other": "Vous et {{count}} autres personnes ont demandé cela.",
+        "You've asked for this.": "Vous avez demandé cela.",
+        "{{count}} people have asked for this._one": "{{count}} personnes ont demandé cela.",
+        "{{count}} people have asked for this._other": "{{count}} personnes ont demandé cela."
     }
 }
