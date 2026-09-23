@@ -46,6 +46,12 @@ const toggleCreatorPanelFocus = async () => {
   await gu.sendKeys(Key.chord(modKey, Key.ALT, "o"));
 };
 
+const tabUntilFocused = async (selector: string, direction: "forward" | "backward" = "forward") => {
+  while (!(await driver.switchTo().activeElement().matches(selector))) {
+    await gu.sendKeys(direction === "forward" ? Key.TAB : Key.chord(Key.SHIFT, Key.TAB));
+  }
+};
+
 const panelMatchs = {
   left: ".test-left-panel",
   top: ".test-top-header",
@@ -53,7 +59,7 @@ const panelMatchs = {
   main: ".test-main-content",
 };
 const assertPanelFocus = async (panel: "left" | "top" | "right" | "main", expected: boolean = true) => {
-  assert.equal(await gu.hasFocus(panelMatchs[panel]), expected);
+  await gu.waitToPass(async () => assert.equal(await gu.hasFocus(panelMatchs[panel]), expected), 200);
 };
 
 const assertSectionFocus = async (sectionId: number, expected: boolean = true) => {
@@ -108,7 +114,7 @@ const assertCycleThroughRegions = async ({ sections = 1 }: { sections?: number }
 };
 
 describe("RegionFocusSwitcher", function() {
-  this.timeout(60000);
+  this.timeout(30000);
   const cleanup = setupTestSuite();
 
   it("should tab though elements in non-document pages", async () => {
@@ -262,13 +268,60 @@ describe("RegionFocusSwitcher", function() {
 
     // Click on an input on the top panel
     await driver.find(".test-bc-doc").click();
-    await driver.sendKeys(Key.TAB);
     assert.isTrue(await isNormalElementFocused(".test-top-header"));
 
-    // in that case (mouse click) when pressing esc, we directly focus back to view section
+    // Since we used the mouse to focus the input, pressing Esc should exit early to the active view section
     await driver.sendKeys(Key.ESCAPE);
     await assertPanelFocus("top", false);
     await expectClipboardFocus(true, 0);
+  });
+
+  it("should switch to keyboard-user mode after using tab inside a panel", async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempNewDoc(cleanup);
+
+    // We do the same as the previous test, but now we press Tab after clicking the input.
+    // We should stay in "keyboard user" mode, and now, pressing Esc should first focus back the panel itself,
+    // then the active view section when pressed again.
+    const docInput = await driver.find(".test-bc-doc");
+    await docInput.click();
+    assert.isTrue(await isNormalElementFocused(".test-top-header"));
+
+    await driver.sendKeys(Key.TAB);
+    assert.isTrue(await isNormalElementFocused(".test-top-header"));
+    assert.isTrue(
+      await driver.switchTo().activeElement().getId() != await docInput.getId(),
+      "focus should not have stayed on the doc input after pressing Tab",
+    );
+
+    await driver.sendKeys(Key.ESCAPE);
+    await assertPanelFocus("top");
+
+    await driver.sendKeys(Key.ESCAPE);
+    await assertPanelFocus("top", false);
+    await expectClipboardFocus(true);
+  });
+
+  it("should stay focused in a panel after a keyboard-user action", async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempNewDoc(cleanup);
+    await toggleCreatorPanelFocus();
+    await assertPanelFocus("right");
+
+    // submit a value in an input that stays as-is on submit: focus should stay on the input
+    await tabUntilFocused("#row-height-max-input");
+    await driver.find("#row-height-max-input").sendKeys("4");
+    await driver.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+    assert.equal(await driver.switchTo().activeElement().getId(), await driver.find("#row-height-max-input").getId());
+
+    // submit a value in an input that disappears on submit (even if for just a millisecond):
+    // focus should fallback to the panel
+    await tabUntilFocused("#right-widget-title-input", "backward");
+    await driver.find("#right-widget-title-input").sendKeys("testing one two");
+    await driver.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+    await assertPanelFocus("right");
   });
 
   it("should focus a section-region when clicking on it", async function() {
