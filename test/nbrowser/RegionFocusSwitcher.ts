@@ -32,18 +32,42 @@ const assertTabToNavigate = async (containerSelector?: string) => {
   assert.isTrue(await isNormalElementFocused(containerSelector));
 };
 
+/**
+ * Check that Tab moves the cursor within the current table.
+ * Assumes the first cell contains "hello"
+ */
+const assertTabMovesInTable = async () => {
+  await expectClipboardFocus(true, 0);
+  assert.equal(await gu.getActiveCell().getText(), "hello");
+  const secondCellText = await gu.getCell(1, 1).getText();
+  await driver.sendKeys(Key.TAB);
+  assert.equal(await gu.getActiveCell().getText(), secondCellText);
+  await gu.getCell(0, 1).click();
+  await expectClipboardFocus(true, 0);
+};
+
 const cycle = async (dir: "forward" | "backward" = "forward") => {
-  const modKey = await gu.modKey();
   const shortcut = dir === "forward" ?
-    Key.chord(modKey, "o") :
-    Key.chord(modKey, Key.SHIFT, "O");
+    Key.chord(Key.CONTROL, "o") :
+    Key.chord(Key.CONTROL, Key.SHIFT, "O");
 
   await gu.sendKeys(shortcut);
 };
 
 const toggleCreatorPanelFocus = async () => {
-  const modKey = await gu.modKey();
-  await gu.sendKeys(Key.chord(modKey, Key.ALT, "o"));
+  await gu.sendKeys(Key.chord(Key.CONTROL, Key.ALT, "o"));
+};
+
+const jump = async (dir: "next" | "prev" = "next") => {
+  const shortcut = dir === "next" ?
+    Key.chord(Key.CONTROL, "i") :
+    Key.chord(Key.CONTROL, Key.SHIFT, "I");
+  await gu.sendKeys(shortcut);
+};
+
+const assertActiveElementMatches = async (selector: string, expected: boolean = true) => {
+  const activeElement = await driver.switchTo().activeElement();
+  assert.equal(await activeElement.matches(selector), expected);
 };
 
 const panelMatchs = {
@@ -59,6 +83,10 @@ const assertPanelFocus = async (panel: "left" | "top" | "right" | "main", expect
 const assertSectionFocus = async (sectionId: number, expected: boolean = true) => {
   await expectClipboardFocus(expected);
   assert.equal(await gu.getSectionId() === sectionId, expected);
+};
+
+const assertSectionHeaderFocus = async (sectionId: number, expected: boolean = true) => {
+  await assertActiveElementMatches(`[data-grist-region-id="section-header-${sectionId}"]`, expected);
 };
 
 /**
@@ -125,14 +153,7 @@ describe("RegionFocusSwitcher", function() {
     const session = await gu.session().teamSite.login();
     await session.tempDoc(cleanup, "Hello.grist");
 
-    await expectClipboardFocus(true, 0);
-    assert.equal(await gu.getActiveCell().getText(), "hello");
-    await driver.sendKeys(Key.TAB);
-    // after pressing tab once, we should be on the [first row, second column]-cell
-    const secondCellText = await gu.getCell(1, 1).getText();
-    const activeCellText = await gu.getActiveCell().getText();
-    assert.equal(activeCellText, secondCellText);
-    await expectClipboardFocus(true, 0);
+    await assertTabMovesInTable();
   });
 
   it("should cycle through regions with (Shift+)Ctrl+O", async () => {
@@ -287,12 +308,109 @@ describe("RegionFocusSwitcher", function() {
 
   it("should keep the active section focused when clicking a link or button of a panel-region", async function() {
     const session = await gu.session().teamSite.login();
-    await session.tempNewDoc(cleanup);
+    await session.tempDoc(cleanup, "Hello.grist");
 
     await gu.enterCell("test");
     await driver.find(".test-undo").click();
     await assertPanelFocus("top", false);
-    await expectClipboardFocus(true, 0);
+    await assertTabMovesInTable();
+  });
+
+  it("should keep the active section focused when clicking an empty space in a panel", async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempDoc(cleanup, "Hello.grist");
+
+    // Click the top panel header element at 110px from the left and 45px from the top, assuring
+    // we actually click an empty space in it (no children).
+    const title = await driver.find(".test-top-header");
+    const { width, height } = await title.getRect();
+    await driver.withActions(a => a
+      .move({
+        origin: title,
+        x: Math.round(110 - width / 2),
+        y: Math.round(45 - height / 2),
+      })
+      .click());
+    await assertPanelFocus("top", false);
+    await assertTabMovesInTable();
+  });
+
+  it("should jump between a widget and its header with Ctrl+I", async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempNewDoc(cleanup);
+
+    const sectionId = await gu.getSectionId();
+
+    await jump();
+    await assertSectionHeaderFocus(sectionId);
+    await assertTabToNavigate(`[data-grist-region-id="section-header-${sectionId}"]`);
+
+    await driver.sendKeys(Key.ESCAPE);
+    await assertSectionHeaderFocus(sectionId);
+
+    await driver.sendKeys(Key.ESCAPE);
+    await assertSectionFocus(sectionId);
+
+    await jump();
+    await assertSectionHeaderFocus(sectionId);
+
+    await jump();
+    await assertSectionFocus(sectionId);
+  });
+
+  it("should keep the active section focused when clicking an empty space in a widget header", async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempDoc(cleanup, "Hello.grist");
+    // Click the widget header element at 20px from the left and 1px from the top, assuring
+    // we actually click an empty space in it (no children).
+    const title = await driver.find(".viewsection_title");
+    const { width, height } = await title.getRect();
+    await driver.withActions(a => a
+      .move({
+        origin: title,
+        x: Math.round(20 - width / 2),
+        y: Math.round(1 - height / 2),
+      })
+      .click());
+    await assertTabMovesInTable();
+  });
+
+  it("should jump through panel landmarks with Ctrl+I", async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempNewDoc(cleanup);
+
+    await cycle();
+    await assertPanelFocus("left");
+
+    // First landmark is the "Add New" button
+    await jump();
+    await assertActiveElementMatches(".test-dp-add-new");
+
+    // Pressing tab after jumping should work normally
+    await driver.sendKeys(Key.TAB);
+    await assertActiveElementMatches(".test-docpage-link");
+
+    // Next landmark is the tools list, pressing tab once in it should focus the Access Rules link
+    await jump();
+    await driver.sendKeys(Key.TAB);
+    await assertActiveElementMatches(".test-tools-access-rules a");
+
+    // There is no landmark left: jumping should loop back to the first landmark
+    await jump();
+    await assertActiveElementMatches(".test-dp-add-new");
+
+    // Cycling through regions and coming back should keep the landmark focus
+    await cycle();
+    await assertPanelFocus("top");
+    await cycle();
+    await cycle();
+    await assertActiveElementMatches(".test-dp-add-new");
+
+    await driver.sendKeys(Key.ESCAPE);
+    await assertPanelFocus("left");
+
+    await driver.sendKeys(Key.ESCAPE);
+    await expectClipboardFocus(true);
   });
 
   afterEach(() => gu.checkForErrors());
