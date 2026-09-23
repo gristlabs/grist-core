@@ -10,7 +10,7 @@
  */
 
 import { parseSubdomain } from "app/common/gristUrls";
-import { tryParseUrl } from "app/common/gutil";
+import { getSetMapValue, tryParseUrl } from "app/common/gutil";
 import { DocWorkerInfo } from "app/server/lib/DocWorkerMap";
 
 import { format as formatUrl } from "url";
@@ -285,6 +285,37 @@ export function makeWorkerId(url: string): string {
     parsed.port,
     ...parsed.pathname.split("/").map(sanitizeIdPart),
   ].filter(Boolean).join(ID_SEPARATOR);
+}
+
+/**
+ * Drop the /v/TAG/ that Grist appends to a worker's url. It changes on upgrade, and version tags
+ * are not used for routing.
+ */
+function withoutVersionTag(internalUrl: string): string {
+  return internalUrl.replace(/\/v\/[^/]+\/?$/, "");
+}
+
+/**
+ * Find groups of workers with the same address. Requests to that address reach only one of them,
+ * so documents held by the others fail to open.
+ *
+ * Addresses are compared by the worker id makeWorkerId gives them, not as exact strings. Two
+ * addresses that give the same id count as the same, even if they differ slightly, since an id
+ * derived from either one would collide. The version tag is dropped first, so servers midway
+ * through an upgrade are still compared correctly.
+ *
+ * Only happens when worker ids do not come from addresses: set with GRIST_DOC_WORKER_ID, or taken
+ * from the machine. Workers whose ids come from the same address share a single registration.
+ */
+export function findSharedAddresses<T extends { id: string, internalUrl: string }>(
+  workers: T[],
+): T[][] {
+  const byName = new Map<string, T[]>();
+  for (const worker of workers) {
+    const name = makeWorkerId(withoutVersionTag(worker.internalUrl));
+    getSetMapValue(byName, name, () => []).push(worker);
+  }
+  return [...byName.values()].filter(group => group.length > 1);
 }
 
 // Name a worker after its machine, for when its url names no server in particular. Not routable,

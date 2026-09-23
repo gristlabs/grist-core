@@ -1,6 +1,7 @@
 import {
   deriveDocWorkerIdentity,
   DocWorkerIdentityContext,
+  findSharedAddresses,
   getRedisLocalAddress,
   makeWorkerId,
 } from "app/server/lib/DocWorkerIdentity";
@@ -106,6 +107,73 @@ describe("DocWorkerIdentity", function() {
       // A broken APP_DOC_INTERNAL_URL should name a worker and fail where the url is used,
       // rather than throwing out of startup.
       assert.equal(makeWorkerId("not a url"), "not-a-url");
+    });
+  });
+
+  describe("findSharedAddresses", function() {
+    it("finds nothing when every server has its own address", function() {
+      assert.deepEqual(findSharedAddresses([
+        { id: "a", internalUrl: "http://10.1.2.3:8484/v/tag1/" },
+        { id: "b", internalUrl: "http://10.1.2.4:8484/v/tag1/" },
+      ]), []);
+    });
+
+    it("groups servers that published one address between them", function() {
+      // Servers named apart from their addresses -- by GRIST_DOC_WORKER_ID, or by their machines
+      // where no url named them -- so both are registered, and nothing can route to more than one
+      // of them.
+      assert.deepEqual(findSharedAddresses([
+        { id: "a", internalUrl: "https://grist.example.com/v/tag1/" },
+        { id: "b", internalUrl: "https://grist.example.com/v/tag1/" },
+        { id: "c", internalUrl: "http://10.1.2.5:8484/v/tag1/" },
+      ]), [[
+        { id: "a", internalUrl: "https://grist.example.com/v/tag1/" },
+        { id: "b", internalUrl: "https://grist.example.com/v/tag1/" },
+      ]]);
+    });
+
+    it("finds nothing when workers share a host but route by path", function() {
+      assert.deepEqual(findSharedAddresses([
+        { id: "a", internalUrl: "http://grist-lb/internal/dw/10-42-0-17" },
+        { id: "b", internalUrl: "http://grist-lb/internal/dw/10-42-0-18" },
+      ]), []);
+    });
+
+    it("groups addresses a worker id cannot tell apart, which is the danger it reports", function() {
+      // Different addresses -- the scheme differs, and each default port is implicit -- but they
+      // yield one name, so the two servers would take one identity.
+      assert.lengthOf(findSharedAddresses([
+        { id: "a", internalUrl: "https://grist-lb/dw/x" },
+        { id: "b", internalUrl: "http://grist-lb/dw/x" },
+      ]), 1);
+    });
+
+    it("ignores an address it cannot parse, rather than grouping such servers together", function() {
+      assert.deepEqual(findSharedAddresses([
+        { id: "a", internalUrl: "not a url" },
+        { id: "b", internalUrl: "also not a url" },
+      ]), []);
+    });
+
+    it("groups servers whose addresses differ only by Grist's version tag", function() {
+      // What a rollout looks like partway through. The tag is the one part of a url Grist hands
+      // out that changes when a server is upgraded, and nothing routes on it, so servers sharing
+      // an address must still be reported while their tags disagree. Each is reported at the
+      // address it actually published, since those differ.
+      assert.deepEqual(findSharedAddresses([
+        { id: "a", internalUrl: "https://grist.example.com/v/tag1/" },
+        { id: "b", internalUrl: "https://grist.example.com/v/tag2/" },
+      ]), [[
+        { id: "a", internalUrl: "https://grist.example.com/v/tag1/" },
+        { id: "b", internalUrl: "https://grist.example.com/v/tag2/" },
+      ]]);
+    });
+
+    it("still tells apart servers routed by path, whatever their tags", function() {
+      assert.deepEqual(findSharedAddresses([
+        { id: "a", internalUrl: "http://grist-lb/internal/dw/10-42-0-17/v/tag1/" },
+        { id: "b", internalUrl: "http://grist-lb/internal/dw/10-42-0-18/v/tag2/" },
+      ]), []);
     });
   });
 

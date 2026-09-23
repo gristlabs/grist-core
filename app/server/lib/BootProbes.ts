@@ -10,6 +10,7 @@ import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
+import { isFleetIncluded, reportServers } from "app/server/lib/multiServerStatus";
 import { getAvailableSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
 import {
   getAllowedWebhookDomains,
@@ -86,6 +87,7 @@ export class BootProbes {
     this._probes.push(_sandboxProvidersProbe);
     this._probes.push(_dataPersistsProbe);
     this._probes.push(_outgoingRequestsProbe);
+    this._probes.push(_multiServerProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -395,6 +397,15 @@ const _backupsProbe: Probe = {
       },
     };
   },
+};
+
+/**
+ * Reports on any worker pool, whether or not it is a Grist Fleet.
+ */
+const _multiServerProbe: Probe = {
+  id: "multi-server",
+  name: "Servers sharing this installation",
+  apply: (server, req) => reportServers(server, { fleetIncluded: isFleetIncluded(req) }),
 };
 
 const _sandboxProvidersProbe: Probe = {

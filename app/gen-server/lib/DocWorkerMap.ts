@@ -87,6 +87,10 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     throw new Error("getRegisteredWorkers is not answerable without redis");
   }
 
+  public async getRegisteredWorkerCount(): Promise<number> {
+    return this._worker ? 1 : 0;
+  }
+
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
     this._available = available;
   }
@@ -287,6 +291,12 @@ export class DocWorkerMap implements IDocWorkerMap {
     } finally {
       await lock.unlock();
     }
+  }
+
+  public async getRegisteredWorkerCount(): Promise<number> {
+    // scard, not smembers: this is asked on behalf of an installation that is told how many
+    // servers it runs and nothing further, so the ids are not fetched in the first place.
+    return await this._client.scardAsync("workers");
   }
 
   public async getRegisteredWorkers(): Promise<DocWorkerRegistration[]> {

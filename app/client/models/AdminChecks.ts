@@ -60,12 +60,10 @@ export class AdminChecks {
       result = Observable.create(this._parent, { status: "none" });
       this._results.set(id, result);
     }
-    let request = this._requests.get(id);
-    if (!request) {
-      request = new AdminCheckRunner(this._installAPI, id, this._results, this._parent, options.background);
-      this._requests.set(id, request);
+    if (!this._requests.has(id)) {
+      this._requests.set(id,
+        new AdminCheckRunner(this._installAPI, id, result, this._parent, options.background));
     }
-    request.start();
     return {
       probe,
       result,
@@ -113,9 +111,21 @@ export class AdminChecks {
   public discardIfFault(id: BootProbeIds) {
     const result = this._results.get(id);
     if (result?.get().status !== "fault") { return; }
-    result.dispose();
-    this._results.delete(id);
+    this.discard(id);
+  }
+
+  /**
+   * Drop one cached probe result, so the next {@link requestCheck} re-runs it.
+   * For an action that changes what a single check would find: {@link reloadChecks}
+   * would re-run every check on the page, some of which are expensive.
+   *
+   * Reset rather than disposed: whoever asked for the check is still watching this observable, and
+   * would be left bound to a dead one while the answer arrived on its replacement.
+   */
+  public discard(id: BootProbeIds) {
+    this._requests.get(id)?.abandon();
     this._requests.delete(id);
+    this._results.get(id)?.set({ status: "none" });
   }
 }
 
@@ -132,33 +142,37 @@ export interface AdminCheckRequest {
  * Manage a single check.
  */
 export class AdminCheckRunner {
+  private _discarded = false;
+
+  // Holds the observable it was made for, rather than looking one up by id when its answer
+  // arrives. A discarded check is asked again under the same observable, and the abandoned request
+  // would otherwise write an answer to a question nobody asked.
   constructor(private _installAPI: InstallAPI,
     public id: string,
-    public results: Map<string, Observable<BootProbeResult>>,
+    public result: Observable<BootProbeResult>,
     public parent: Disposable,
     background: boolean = false) {
     testPendingChecks.start();
     this._installAPI.runCheck(id, { background }).then((result) => {
-      if (parent.isDisposed()) { return; }
-      const ob = results.get(id);
-      if (ob) {
-        ob.set(result);
-      }
+      if (this._abandoned()) { return; }
+      this.result.set(result);
     }).catch((e) => {
-      if (parent.isDisposed()) { return; }
-      results.get(id)?.set({ status: "fault", details: { error: String(e) } });
+      if (this._abandoned()) { return; }
+      this.result.set({ status: "fault", details: { error: String(e) } });
     }).finally(() => {
       // After the observable is set, so a count of zero means values are already written.
       testPendingChecks.end();
     });
   }
 
-  public start() {
-    let result = this.results.get(this.id);
-    if (!result) {
-      result = Observable.create(this.parent, { status: "none" });
-      this.results.set(this.id, result);
-    }
+  /** Give up on this answer, so a later request for the same check owns the observable. */
+  public abandon() {
+    this._discarded = true;
+  }
+
+  /** Whether anything is still waiting on this answer. */
+  private _abandoned(): boolean {
+    return this._discarded || this.parent.isDisposed() || this.result.isDisposed();
   }
 }
 

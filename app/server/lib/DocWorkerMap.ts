@@ -67,6 +67,8 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
 
   getRegisteredWorkers(): Promise<DocWorkerRegistration[]>;
 
+  getRegisteredWorkerCount(): Promise<number>;
+
   // Set whether worker is accepting new assignments.  This does not automatically
   // release existing assignments.
   setWorkerAvailability(workerId: string, available: boolean): Promise<void>;

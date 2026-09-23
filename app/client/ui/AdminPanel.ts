@@ -24,6 +24,7 @@ import {
   HidableToggle,
 } from "app/client/ui/AdminPanelCss";
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
+import { ServersSection } from "app/client/ui/AdminServersSection";
 import { buildSetupRequestsItem } from "app/client/ui/AdminSetupRequests";
 import { App } from "app/client/ui/App";
 import { AuditLogStreamingConfig, getDestinationDisplayName } from "app/client/ui/AuditLogStreamingConfig";
@@ -244,6 +245,7 @@ class AdminInstallationPanel extends Disposable {
   // alternative content that doesn't need the section anyway.
   private _authSection: AuthenticationSection | undefined;
   private _sandboxSection: SandboxSetupSection;
+  private _serversSection: ServersSection;
 
   // Banner visibility: shown when a tracked section has restart-required
   // pending changes, or the user has applied changes without a restart and
@@ -272,6 +274,7 @@ class AdminInstallationPanel extends Disposable {
     }
 
     this._sandboxSection = SandboxSetupSection.create(this, this._checks, { inAdminPanel: true });
+    this._serversSection = ServersSection.create(this, { checks: this._checks });
 
     this._drafts.addSection(this._baseUrlSection);
     this._drafts.addSection(this._editionSection);
@@ -432,6 +435,7 @@ now, and takes effect the next time you restart Grist manually.")),
 
     return [
       cssPageTitle(t("Installation")),
+      this._serversSection.buildWarning(),
       dom.maybe(this._showRestartBanner, () => cssRestartBannerShell(
         (elem) => {
           this._restartBanner.bannerElem.current = elem;
@@ -536,6 +540,7 @@ now, and takes effect the next time you restart Grist manually.")),
           value: this._baseUrlSection.buildStatusDisplay(),
           expandedContent: this._baseUrlSection.buildDom(),
         }),
+        this._serversSection.buildItem(),
         SectionItem({
           id: "version",
           name: t("Version"),
@@ -1117,6 +1122,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
             "backups",
             "persist-data",
             "outgoing-requests",
+            "multi-server",
           ].includes(probe.id);
           const show = isRedundant ? options.showRedundant : options.showNovel;
           if (!show) { return null; }
