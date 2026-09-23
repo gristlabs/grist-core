@@ -1142,7 +1142,12 @@
         "Hidden {{label}}": "Hidden {{label}}",
         "Show {{label}}": "Show {{label}}",
         "Hide {{label}} (batch mode)": "Hide {{label}} (batch mode)",
-        "Show {{label}} (batch mode)": "Show {{label}} (batch mode)"
+        "Show {{label}} (batch mode)": "Show {{label}} (batch mode)",
+        "Clear hidden columns filter": "Clear hidden columns filter",
+        "Clear visible columns filter": "Clear visible columns filter",
+        "Filter columns": "Filter columns",
+        "Filter hidden columns": "Filter hidden columns",
+        "Filter visible columns": "Filter visible columns"
     },
     "WidgetTitle": {
         "Cancel": "Cancel",
@@ -3458,5 +3463,11 @@
         "You've asked for this.": "You've asked for this.",
         "{{count}} people have asked for this._one": "{{count}} people have asked for this.",
         "{{count}} people have asked for this._other": "{{count}} people have asked for this."
+    },
+    "confirmLeaveOnNavigation": {
+        "Exit without saving": "Exit without saving",
+        "Stay on the page": "Stay on the page",
+        "Unsaved changes": "Unsaved changes",
+        "You have unsaved changes. If you leave now, your changes will be lost.": "You have unsaved changes. If you leave now, your changes will be lost."
     }
 }
