@@ -571,9 +571,10 @@ export interface PatchLog {
   applied: boolean;
 }
 
-// One entry per engine action the patch built, or a single "error" entry if
-// it built none. A partial failure has no representation here: a patch
-// either builds its whole bundle or reports the one error that stopped it.
+// One entry per engine action the patch applied, or a single "error" entry if
+// it applied none, whether it failed while building its actions or the engine
+// rejected them. A partial failure has no representation here: a patch
+// applies its whole bundle or none of it.
 export type PatchItem = PatchRowsItem | PatchCellsItem | PatchErrorItem;
 
 export interface PatchRowsItem {

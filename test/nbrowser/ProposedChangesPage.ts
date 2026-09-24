@@ -801,10 +801,11 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
-  // The sibling tests above accept while the trunk stands still, so both
-  // documents hand out the same row ids and an untranslated reference is
-  // right by luck. Moving the trunk on first removes that luck, so checks
-  // here go through the referenced name rather than an id.
+  // In the tests above, the trunk doesn't change before the suggestion is
+  // accepted. So new rows get the same ids on both documents, and a
+  // reference would come out right even if Grist never adjusted it. Here
+  // the trunk adds a row of its own first, so the ids differ. That's why
+  // this test checks references by name rather than by id.
   it("creates a new Reference when the trunk has moved on", async function() {
     const { api, doc } = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
@@ -866,20 +867,19 @@ describe("ProposedChangesPage", function() {
     const url = await driver.getCurrentUrl();
 
     await workOnCopy(url);
-    // Add a row and edit another. The add is the one to watch: nothing is
-    // wrong with it, and it must still not land.
-    await gu.getCell("B", 3).click();
-    await gu.waitAppFocus();
-    await gu.enterCell("Newt");
-    await gu.getCell("B", 1).click();
-    await gu.waitAppFocus();
-    await gu.enterCell("Bird");
+    // Add a row and edit another. Only the edit will fail. We check that
+    // the new row doesn't land either, since a suggestion applies in full
+    // or not at all.
+    await gu.sendActions([
+      ["AddRecord", "Life", null, { B: "Newt" }],
+      ["UpdateRecord", "Life", 1, { B: "Bird" }],
+    ]);
 
     await proposeChange();
     await driver.findContentWait("span", /original document/, 2000).click();
     await driver.findWait(".test-proposals-header", 2000);
 
-    // Delete the row the proposal edits, so the engine rejects that part.
+    // Delete the row the proposal edits, so the proposal no longer applies.
     await api.applyUserActions(doc.id, [["RemoveRecord", "Life", 1]]);
     await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
 
@@ -892,7 +892,7 @@ describe("ProposedChangesPage", function() {
     assert.match(
       await driver.findContentWait(".test-notifier-toast-message",
         /Could not apply this suggestion/, 2000).getText(),
-      /non-existent record/,
+      /changes row 1 of Life, which was removed/,
     );
     await gu.wipeToasts();
     assert.notMatch(

@@ -219,6 +219,8 @@ class TestTempRowIds(test_engine.EngineTestCase):
         ['AddRecord', 'Schools', None, {'name': 'S1', 'address': -99}])])
 
   def test_refs_must_point_backwards(self):
+    # Accepting a proposal (app/server/lib/Patch.ts) is built on the rules checked here: it adds
+    # every row before setting any reference to an added row, so that cycles work too.
     self.load_sample(testsamples.sample_students)
 
     # Temp ids resolve as rows land, so a reference to a row the bundle adds later cannot be

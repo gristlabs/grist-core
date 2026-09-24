@@ -1,8 +1,10 @@
+import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { PatchItem } from "app/common/ActiveDocAPI";
 import { CellValue, UserAction } from "app/common/DocActions";
 import { DocStateComparisonDetails } from "app/common/DocState";
 import { isList } from "app/common/gristTypes";
 import { DocAPI, UserAPI } from "app/common/UserAPI";
+import { GristObjCode } from "app/plugin/GristData";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { Patch } from "app/server/lib/Patch";
 import { TestServer } from "test/gen-server/apiUtils";
@@ -285,11 +287,10 @@ describe("Proposals", function() {
       ]);
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
-      // Two Adds (parent and reply land in separate column-set groups),
-      // then the reply's self-Ref is set once both temp ids are known.
+      // One Add for both rows, since the reply's self-Ref is kept out of
+      // it, then that Ref is set once both temp ids are known.
       assert.sameDeepMembers(actions, [
-        { kind: "add", tableId: "Comments", count: 1 },
-        { kind: "add", tableId: "Comments", count: 1 },
+        { kind: "add", tableId: "Comments", count: 2 },
         { kind: "update", tableId: "Comments", count: 1 },
       ]);
       const result = await trunk.sql(
@@ -332,8 +333,7 @@ describe("Proposals", function() {
       const actions = await applyAndGetActions(trunk, proposal.shortId);
       // Both rows add first, then the reply's parent_id is set.
       assert.sameDeepMembers(actions, [
-        { kind: "add", tableId: "Comments", count: 1 },
-        { kind: "add", tableId: "Comments", count: 1 },
+        { kind: "add", tableId: "Comments", count: 2 },
         { kind: "update", tableId: "Comments", count: 1 },
       ]);
       const result = await trunk.sql(
@@ -603,11 +603,10 @@ describe("Proposals", function() {
       ]);
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
-      // B and C add in one group, A in another (different column set);
-      // A's self-RefList is set afterwards.
+      // All three add together, since A's self-RefList is kept out of the
+      // Add. It is set afterwards.
       assert.sameDeepMembers(actions, [
-        { kind: "add", tableId: "Articles", count: 2 },
-        { kind: "add", tableId: "Articles", count: 1 },
+        { kind: "add", tableId: "Articles", count: 3 },
         { kind: "update", tableId: "Articles", count: 1 },
       ]);
       // Fork-side row ids are meaningless on the trunk; look up by title.
@@ -675,10 +674,9 @@ describe("Proposals", function() {
         ],
       });
       // A is added first (lowest fork row id) and later updated to point
-      // at B, C, and the shared ancestor row. A's column set {title,
-      // related} differs from B and C's {title}, so they add in separate
-      // groups. The whole list is held back and rebuilt in the update,
-      // preserving the passthrough ancestor id and the list order.
+      // at B, C, and the shared ancestor row. The whole list is kept out of
+      // A's Add, so all three rows add together, and it is set in full by
+      // the update, preserving the passthrough ancestor id and the order.
       const rA = await fork.applyUserActions([
         ["AddRecord", "Articles", null, { title: "A" }],
       ]);
@@ -694,8 +692,7 @@ describe("Proposals", function() {
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
       assert.sameDeepMembers(actions, [
-        { kind: "add", tableId: "Articles", count: 1 },
-        { kind: "add", tableId: "Articles", count: 2 },
+        { kind: "add", tableId: "Articles", count: 3 },
         { kind: "update", tableId: "Articles", count: 1 },
       ]);
       const articles = await trunk.getRows("Articles");
@@ -919,6 +916,35 @@ describe("Proposals", function() {
       ]);
     });
 
+    it("keeps added rows in the order they were made", async function() {
+      // Rex and Kit name a new customer, so their Ref waits for an update,
+      // and they write different columns in their Adds than Tom does.
+      const { trunk, fork } = await setupForkWithAdvance({
+        trunkSeed: [
+          ["AddTable", "Customers", [{ id: "name", type: "Text", isFormula: false }]],
+          ["AddTable", "Pets", [
+            { id: "name", type: "Text", isFormula: false },
+            { id: "owner", type: "Ref:Customers", isFormula: false },
+          ]],
+          ["AddRecord", "Customers", null, { name: "Ann" }],
+        ],
+        trunkAdvance: [
+          ["AddRecord", "Pets", null, { name: "trunk-pet" }],
+        ],
+      });
+      const r = await fork.applyUserActions([["AddRecord", "Customers", null, { name: "Cat" }]]);
+      const cat = r.retValues[0];
+      await fork.applyUserActions([
+        ["AddRecord", "Pets", null, { name: "Rex", owner: cat }],
+        ["AddRecord", "Pets", null, { name: "Tom", owner: 1 }],
+        ["AddRecord", "Pets", null, { name: "Kit", owner: cat }],
+      ]);
+      const proposal = await fork.makeProposal();
+      await applyAndGetActions(trunk, proposal.shortId);
+      const pets = await trunk.sql("select name from Pets order by manualSort");
+      assert.deepEqual(pets.records.map(rec => rec.fields.name), ["trunk-pet", "Rex", "Tom", "Kit"]);
+    });
+
     it("groups updates by changed-column-set", async function() {
       // Regression: disjoint changed columns must go in separate BulkUpdates
       // so the BulkUpdate doesn't null out cells the source didn't clear.
@@ -953,9 +979,9 @@ describe("Proposals", function() {
     });
 
     it("sets held-back columns separately when they differ across rows", async function() {
-      // Regression: two rows sharing a column set but deferring different
-      // columns. A single BulkUpdate would null out each row's
-      // inline-translated cell (here, the "ancestor" references).
+      // Regression: two rows setting the same columns, but with the Refs
+      // to new rows in different ones. A single BulkUpdate would null out
+      // each row's Ref to "ancestor", which went in with its Add.
       const { trunk, fork } = await setupForkWithAdvance({
         trunkSeed: [
           ["AddTable", "Comments", [
@@ -985,9 +1011,10 @@ describe("Proposals", function() {
       ]);
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
-      // 1 BulkAdd + 2 updates (disjoint held-back column sets).
+      // What goes in each Add differs too, so 2 Adds + 2 updates.
       assert.sameDeepMembers(actions, [
-        { kind: "add", tableId: "Comments", count: 2 },
+        { kind: "add", tableId: "Comments", count: 1 },
+        { kind: "add", tableId: "Comments", count: 1 },
         { kind: "update", tableId: "Comments", count: 1 },
         { kind: "update", tableId: "Comments", count: 1 },
       ]);
@@ -1003,6 +1030,84 @@ describe("Proposals", function() {
         { fields: { body: "A", parent: "B", quoted: "ancestor" } },
         { fields: { body: "B", parent: "ancestor", quoted: "A" } },
       ]);
+    });
+
+    describe("when the trunk has removed rows", function() {
+      // Row 3 (Cat) is the last row, so a new row on the trunk after
+      // removing it takes its id.
+      async function setup(trunkAdvance: UserAction[]) {
+        return setupForkWithAdvance({
+          trunkSeed: [
+            ["AddTable", "Customers", [{ id: "name", type: "Text", isFormula: false }]],
+            ["AddTable", "Orders", [
+              { id: "qty", type: "Numeric", isFormula: false },
+              { id: "customer", type: "Ref:Customers", isFormula: false },
+            ]],
+            ["AddRecord", "Customers", 1, { name: "Ann" }],
+            ["AddRecord", "Customers", 2, { name: "Ben" }],
+            ["AddRecord", "Customers", 3, { name: "Cat" }],
+          ],
+          trunkAdvance,
+        });
+      }
+
+      const reuseCat: UserAction[] = [
+        ["RemoveRecord", "Customers", 3],
+        ["AddRecord", "Customers", null, { name: "Dan" }],
+      ];
+
+      async function assertRefused(trunk: DocAPI, shortId: number, pattern: RegExp) {
+        const before = await trunk.sql("select * from Customers order by id");
+        const result = await trunk.applyProposal(shortId);
+        assert.isFalse(result.changes.log.applied);
+        const [item] = result.changes.log.changes;
+        assert.match(item.kind === "error" ? item.msg : "", pattern);
+        assert.deepEqual((await trunk.sql("select * from Customers order by id")).records, before.records);
+        assert.equal(result.changes.proposal.status.status, undefined);
+      }
+
+      it("refuses to change a row whose id the trunk reused", async function() {
+        const { trunk, fork } = await setup(reuseCat);
+        assert.deepEqual((await trunk.getRows("Customers")).name, ["Ann", "Ben", "Dan"]);
+        await fork.applyUserActions([["UpdateRecord", "Customers", 3, { name: "Cathy" }]]);
+        const proposal = await fork.makeProposal();
+        await assertRefused(trunk, proposal.shortId, /changes row 3 of Customers, which was removed/);
+      });
+
+      it("refuses to change a row the trunk removed", async function() {
+        const { trunk, fork } = await setup([["RemoveRecord", "Customers", 2]]);
+        await fork.applyUserActions([["UpdateRecord", "Customers", 2, { name: "Benny" }]]);
+        const proposal = await fork.makeProposal();
+        await assertRefused(trunk, proposal.shortId, /changes row 2 of Customers, which was removed/);
+      });
+
+      it("refuses a reference to a row whose id the trunk reused", async function() {
+        const { trunk, fork } = await setup(reuseCat);
+        await fork.applyUserActions([["AddRecord", "Orders", null, { qty: 1, customer: 3 }]]);
+        const proposal = await fork.makeProposal();
+        await assertRefused(trunk, proposal.shortId, /Orders.customer to refer to row 3 of Customers/);
+        assert.deepEqual((await trunk.getRows("Orders")).id, []);
+      });
+
+      it("lets a reference to a row the trunk removed dangle", async function() {
+        const { trunk, fork } = await setup([["RemoveRecord", "Customers", 3]]);
+        await fork.applyUserActions([["AddRecord", "Orders", null, { qty: 1, customer: 3 }]]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        assert.deepEqual((await trunk.getRows("Orders")).customer, [3]);
+        assert.deepEqual((await trunk.getRows("Customers")).name, ["Ann", "Ben"]);
+      });
+
+      it("leaves the trunk's new row alone when both sides removed the old one", async function() {
+        const { trunk, fork } = await setup(reuseCat);
+        await fork.applyUserActions([
+          ["RemoveRecord", "Customers", 3],
+          ["UpdateRecord", "Customers", 1, { name: "Annie" }],
+        ]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        assert.deepEqual((await trunk.getRows("Customers")).name, ["Annie", "Ben", "Dan"]);
+      });
     });
 
     it("refuses to apply a summary marked mayBeIncomplete", async function() {
@@ -1024,7 +1129,7 @@ describe("Proposals", function() {
         },
         rightChanges: { tableRenames: [], tableDeltas: {} },
       };
-      const log = await patch.applyChanges(details);
+      const log = await patch.applyChanges(details, createEmptyActionSummary());
       assert.isFalse(log.applied);
       assert.lengthOf(log.changes, 1);
       const [item] = log.changes;
@@ -1057,39 +1162,313 @@ describe("Proposals", function() {
       assert.equal(result.changes.proposal.status.status, "applied");
     });
 
+    describe("with two-way references", function() {
+      // Pets.owner is a Ref:Owners, and Owners.Pets is its reverse RefList.
+      // The engine keeps the two in step, so a change to either side shows
+      // up in the summary on both.
+      async function setup(options: { oneToOne?: boolean } = {}) {
+        const { trunk, fork } = await setupForkWithAdvance({
+          trunkSeed: [
+            ["AddTable", "Owners", [{ id: "name", type: "Text", isFormula: false }]],
+            ["AddTable", "Pets", [
+              { id: "name", type: "Text", isFormula: false },
+              { id: "owner", type: "Ref:Owners", isFormula: false },
+            ]],
+            ["AddReverseColumn", "Pets", "owner"],
+            ["AddRecord", "Owners", null, { name: "Ann" }],
+            ["AddRecord", "Owners", null, { name: "Ben" }],
+            ["AddRecord", "Pets", null, { name: "Rex", owner: 1 }],
+            ["AddRecord", "Pets", null, { name: "Tom", owner: 2 }],
+            ...(options.oneToOne ? [["ModifyColumn", "Owners", "Pets", { type: "Ref:Pets" }] as UserAction] : []),
+          ],
+          trunkAdvance: [
+            ["AddRecord", "Owners", null, { name: "trunk-only" }],
+            ["AddRecord", "Pets", null, { name: "trunk-pet" }],
+          ],
+        });
+        return { trunk, fork };
+      }
+
+      // Each owner's pets, and each pet's owner, both by name.
+      async function state(api: DocAPI) {
+        const owners = await labelsById(api, "Owners", "name");
+        const pets = await labelsById(api, "Pets", "name");
+        const ownerRows = await api.getRows("Owners");
+        const petRows = await api.getRows("Pets");
+        return {
+          pets: Object.fromEntries(ownerRows.id.map((id, i) =>
+            [owners.get(id), listedLabels(ownerRows.Pets[i] ?? [GristObjCode.List], pets)])),
+          owner: Object.fromEntries(petRows.id.map((id, i) =>
+            [pets.get(id), owners.get(Number(petRows.owner[i])) ?? null])),
+        };
+      }
+
+      it("moves a pet to a new owner", async function() {
+        const { trunk, fork } = await setup();
+        const r = await fork.applyUserActions([["AddRecord", "Owners", null, { name: "Cat" }]]);
+        await fork.applyUserActions([["UpdateRecord", "Pets", 1, { owner: r.retValues[0] }]]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        assert.deepEqual(await state(trunk), {
+          pets: { "Ann": [], "Ben": ["Tom"], "trunk-only": [], "Cat": ["Rex"] },
+          owner: { "Rex": "Cat", "Tom": "Ben", "trunk-pet": null },
+        });
+      });
+
+      it("gives an owner a new pet, from the owner's side", async function() {
+        const { trunk, fork } = await setup();
+        const r = await fork.applyUserActions([["AddRecord", "Pets", null, { name: "Kit" }]]);
+        await fork.applyUserActions([["UpdateRecord", "Owners", 1, { Pets: ["L", 1, r.retValues[0]] }]]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        assert.deepEqual(await state(trunk), {
+          pets: { "Ann": ["Rex", "Kit"], "Ben": ["Tom"], "trunk-only": [] },
+          owner: { "Rex": "Ann", "Tom": "Ben", "trunk-pet": null, "Kit": "Ann" },
+        });
+      });
+
+      it("swaps pets between existing owners", async function() {
+        const { trunk, fork } = await setup();
+        await fork.applyUserActions([["BulkUpdateRecord", "Pets", [1, 2], { owner: [2, 1] }]]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        assert.deepEqual(await state(trunk), {
+          pets: { "Ann": ["Tom"], "Ben": ["Rex"], "trunk-only": [] },
+          owner: { "Rex": "Ben", "Tom": "Ann", "trunk-pet": null },
+        });
+      });
+
+      it("adds an owner and a pet that point at each other", async function() {
+        const { trunk, fork } = await setup();
+        const r = await fork.applyUserActions([["AddRecord", "Owners", null, { name: "Cat" }]]);
+        await fork.applyUserActions([["AddRecord", "Pets", null, { name: "Kit", owner: r.retValues[0] }]]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        assert.deepEqual(await state(trunk), {
+          pets: { "Ann": ["Rex"], "Ben": ["Tom"], "trunk-only": [], "Cat": ["Kit"] },
+          owner: { "Rex": "Ann", "Tom": "Ben", "trunk-pet": null, "Kit": "Cat" },
+        });
+      });
+
+      it("reorders an owner's pets", async function() {
+        // Only Ann's list changes, since every pet keeps its owner.
+        const { trunk, fork } = await setupForkWithAdvance({
+          trunkSeed: [
+            ["AddTable", "Owners", [{ id: "name", type: "Text", isFormula: false }]],
+            ["AddTable", "Pets", [
+              { id: "name", type: "Text", isFormula: false },
+              { id: "owner", type: "Ref:Owners", isFormula: false },
+            ]],
+            ["AddReverseColumn", "Pets", "owner"],
+            ["AddRecord", "Owners", null, { name: "Ann" }],
+            ["AddRecord", "Pets", null, { name: "Rex", owner: 1 }],
+            ["AddRecord", "Pets", null, { name: "Kit", owner: 1 }],
+          ],
+        });
+        await fork.applyUserActions([["UpdateRecord", "Owners", 1, { Pets: ["L", 2, 1] }]]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        assert.deepEqual((await state(trunk)).pets.Ann, ["Kit", "Rex"]);
+      });
+
+      describe("when one-to-one", function() {
+        // Both sides are Refs, so each owner has at most one pet. The engine
+        // checks that after every action, not just at the end of a bundle.
+        async function pairs(api: DocAPI) {
+          const owners = await labelsById(api, "Owners", "name");
+          const pets = await labelsById(api, "Pets", "name");
+          const ownerRows = await api.getRows("Owners");
+          const petRows = await api.getRows("Pets");
+          return {
+            pet: Object.fromEntries(ownerRows.id.map((id, i) =>
+              [owners.get(id), pets.get(Number(ownerRows.Pets[i])) ?? null])),
+            owner: Object.fromEntries(petRows.id.map((id, i) =>
+              [pets.get(id), owners.get(Number(petRows.owner[i])) ?? null])),
+          };
+        }
+
+        it("swaps pets when one is also renamed", async function() {
+          const { trunk, fork } = await setup({ oneToOne: true });
+          // Rex's row writes a different set of columns than Tom's, so the
+          // two land in separate updates.
+          await fork.applyUserActions([
+            ["BulkUpdateRecord", "Pets", [1, 2], { owner: [2, 1] }],
+            ["UpdateRecord", "Pets", 1, { name: "Rexy" }],
+          ]);
+          const proposal = await fork.makeProposal();
+          await applyAndGetActions(trunk, proposal.shortId);
+          assert.deepEqual(await pairs(trunk), {
+            pet: { "Ann": "Tom", "Ben": "Rexy", "trunk-only": null },
+            owner: { "Rexy": "Ben", "Tom": "Ann", "trunk-pet": null },
+          });
+        });
+
+        it("hands a removed pet's owner to a new pet", async function() {
+          const { trunk, fork } = await setup({ oneToOne: true });
+          // Ann is only free once Rex is gone, so the remove has to come first.
+          await fork.applyUserActions([
+            ["RemoveRecord", "Pets", 1],
+            ["AddRecord", "Pets", null, { name: "Kit", owner: 1 }],
+          ]);
+          const proposal = await fork.makeProposal();
+          await applyAndGetActions(trunk, proposal.shortId);
+          assert.deepEqual(await pairs(trunk), {
+            pet: { "Ann": "Kit", "Ben": "Tom", "trunk-only": null },
+            owner: { "Tom": "Ben", "trunk-pet": null, "Kit": "Ann" },
+          });
+        });
+
+        it("hands an owner over to a new pet", async function() {
+          const { trunk, fork } = await setup({ oneToOne: true });
+          // The Add for Kit comes before the update that frees Ann.
+          await fork.applyUserActions([
+            ["UpdateRecord", "Pets", 1, { owner: 0 }],
+            ["AddRecord", "Pets", null, { name: "Kit", owner: 1 }],
+          ]);
+          const proposal = await fork.makeProposal();
+          await applyAndGetActions(trunk, proposal.shortId);
+          assert.deepEqual(await pairs(trunk), {
+            pet: { "Ann": "Kit", "Ben": "Tom", "trunk-only": null },
+            owner: { "Rex": null, "Tom": "Ben", "trunk-pet": null, "Kit": "Ann" },
+          });
+        });
+      });
+
+      it("drops a reorder of a list the trunk also changed", async function() {
+        const { trunk, fork } = await setupForkWithAdvance({
+          trunkSeed: [
+            ["AddTable", "Owners", [{ id: "name", type: "Text", isFormula: false }]],
+            ["AddTable", "Pets", [
+              { id: "name", type: "Text", isFormula: false },
+              { id: "owner", type: "Ref:Owners", isFormula: false },
+            ]],
+            ["AddReverseColumn", "Pets", "owner"],
+            ["AddRecord", "Owners", null, { name: "Ann" }],
+            ["AddRecord", "Pets", null, { name: "Rex", owner: 1 }],
+            ["AddRecord", "Pets", null, { name: "Kit", owner: 1 }],
+          ],
+          // Meanwhile, the trunk gives Ann another pet.
+          trunkAdvance: [["AddRecord", "Pets", null, { name: "Max", owner: 1 }]],
+        });
+        await fork.applyUserActions([["UpdateRecord", "Owners", 1, { Pets: ["L", 2, 1] }]]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        // Writing the fork's list would have taken Max from Ann.
+        assert.deepEqual(await state(trunk), {
+          pets: { Ann: ["Rex", "Kit", "Max"] },
+          owner: { Rex: "Ann", Kit: "Ann", Max: "Ann" },
+        });
+      });
+
+      it("keeps a reorder when the trunk changed other cells of the row in bulk", async function() {
+        // Eleven owners, so a bulk change to all of them is past the default
+        // row cap of a summary.
+        const names = ["Ann", ...Array.from({ length: 10 }, (_, i) => `O${i}`)];
+        const { trunk, fork } = await setupForkWithAdvance({
+          trunkSeed: [
+            ["AddTable", "Owners", [{ id: "name", type: "Text", isFormula: false }]],
+            ["AddTable", "Pets", [
+              { id: "name", type: "Text", isFormula: false },
+              { id: "owner", type: "Ref:Owners", isFormula: false },
+            ]],
+            ["AddReverseColumn", "Pets", "owner"],
+            ["BulkAddRecord", "Owners", names.map((_, i) => i + 1), { name: names }],
+            ["AddRecord", "Pets", null, { name: "Rex", owner: 1 }],
+            ["AddRecord", "Pets", null, { name: "Kit", owner: 1 }],
+          ],
+          trunkAdvance: [
+            ["BulkUpdateRecord", "Owners", names.map((_, i) => i + 1), { name: names.map(n => `${n}!`) }],
+          ],
+        });
+        await fork.applyUserActions([["UpdateRecord", "Owners", 1, { Pets: ["L", 2, 1] }]]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        assert.deepEqual((await state(trunk)).pets["Ann!"], ["Kit", "Rex"]);
+      });
+
+      it("handles a many-to-many pair, set from both sides", async function() {
+        const { trunk, fork } = await setupForkWithAdvance({
+          trunkSeed: [
+            ["AddTable", "Tags", [{ id: "name", type: "Text", isFormula: false }]],
+            ["AddTable", "Posts", [
+              { id: "title", type: "Text", isFormula: false },
+              { id: "tags", type: "RefList:Tags", isFormula: false },
+            ]],
+            ["AddReverseColumn", "Posts", "tags"],
+            ["AddRecord", "Tags", null, { name: "old" }],
+            ["AddRecord", "Posts", null, { title: "P1", tags: ["L", 1] }],
+          ],
+          trunkAdvance: [
+            ["AddRecord", "Tags", null, { name: "trunk-tag" }],
+            ["AddRecord", "Posts", null, { title: "trunk-post" }],
+          ],
+        });
+        // One new tag set from the post's side, another from the tag's.
+        const rTag = await fork.applyUserActions([
+          ["AddRecord", "Tags", null, { name: "new" }],
+          ["AddRecord", "Posts", null, { title: "P2" }],
+        ]);
+        const [newTag, p2] = rTag.retValues;
+        await fork.applyUserActions([
+          ["UpdateRecord", "Posts", 1, { tags: ["L", 1, newTag] }],
+          ["AddRecord", "Tags", null, { name: "other", Posts: ["L", 1, p2] }],
+        ]);
+        const proposal = await fork.makeProposal();
+        await applyAndGetActions(trunk, proposal.shortId);
+        const tags = await labelsById(trunk, "Tags", "name");
+        const posts = await labelsById(trunk, "Posts", "title");
+        const postRows = await trunk.getRows("Posts");
+        const tagRows = await trunk.getRows("Tags");
+        assert.deepEqual(
+          Object.fromEntries(postRows.id.map((id, i) =>
+            [posts.get(id), listedLabels(postRows.tags[i] ?? [GristObjCode.List], tags)])),
+          { "P1": ["old", "new", "other"], "trunk-post": [], "P2": ["other"] });
+        assert.deepEqual(
+          Object.fromEntries(tagRows.id.map((id, i) =>
+            [tags.get(id), listedLabels(tagRows.Posts[i] ?? [GristObjCode.List], posts)])),
+          { "old": ["P1"], "trunk-tag": [], "new": ["P1"], "other": ["P1", "P2"] });
+      });
+    });
+
     it("leaves the document untouched when the engine rejects the bundle", async function() {
+      // Each customer has at most one desk, and each desk one customer.
       const { trunk, fork } = await setupForkWithAdvance({
         trunkSeed: [
+          ["AddTable", "Desks", [{ id: "label", type: "Text", isFormula: false }]],
           ["AddTable", "Customers", [
             { id: "name", type: "Text", isFormula: false },
-            { id: "score", type: "Numeric", isFormula: false },
+            { id: "desk", type: "Ref:Desks", isFormula: false },
           ]],
-          ["AddRecord", "Customers", null, { name: "Alice", score: 1 }],
-          ["AddRecord", "Customers", null, { name: "Zoe", score: 9 }],
+          ["AddReverseColumn", "Customers", "desk"],
+          ["ModifyColumn", "Desks", "Customers", { type: "Ref:Customers" }],
+          ["AddRecord", "Desks", null, { label: "D1" }],
+          ["AddRecord", "Customers", null, { name: "Alice" }],
+          ["AddRecord", "Customers", null, { name: "Zoe" }],
         ],
       });
       // Two adds and an update, in that order within the bundle.
       await fork.applyUserActions([
-        ["AddRecord", "Customers", null, { name: "Bob", score: 2 }],
-        ["AddRecord", "Customers", null, { name: "Carol", score: 3 }],
-        ["UpdateRecord", "Customers", 1, { name: "Alice II" }],
+        ["AddRecord", "Customers", null, { name: "Bob" }],
+        ["AddRecord", "Customers", null, { name: "Carol" }],
+        ["UpdateRecord", "Customers", 1, { desk: 1 }],
       ]);
       const proposal = await fork.makeProposal();
-      // Delete the row the update targets, so the engine rejects that
-      // action after the adds in the same bundle have already been
-      // processed. No guard in Patch catches this one.
-      await trunk.applyUserActions([["RemoveRecord", "Customers", 1]]);
-      const before = await trunk.sql("select id, score from Customers order by id");
+      // Give the desk to Zoe meanwhile. The engine then rejects the update
+      // giving it to Alice, after the adds in the same bundle have already
+      // been processed. No guard in Patch catches this one.
+      await trunk.applyUserActions([["UpdateRecord", "Customers", 2, { desk: 1 }]]);
+      const before = await trunk.sql("select id, name, desk from Customers order by id");
 
       const result = await trunk.applyProposal(proposal.shortId);
       assert.isFalse(result.changes.log.applied);
-      assert.deepEqual(result.changes.log.changes.map(c => c.kind), ["error"]);
+      const [item] = result.changes.log.changes;
+      assert.match(item.kind === "error" ? item.msg : "", /UNIQUE reference constraint/);
 
       // The adds were in the same bundle as the failing update, so none
       // of them landed: no half-applied wreckage to clean up.
-      const after = await trunk.sql("select id, score from Customers order by id");
+      const after = await trunk.sql("select id, name, desk from Customers order by id");
       assert.deepEqual(after.records, before.records);
-      assert.lengthOf(after.records, 1);
+      assert.lengthOf(after.records, 2);
     });
   });
 });

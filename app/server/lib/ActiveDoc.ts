@@ -1029,24 +1029,27 @@ export class ActiveDoc extends EventEmitter {
     // recompute the changes since the branch point and now.
     const states = await this.getRecentStates(docSession);
     const hash = proposal.comparison.comparison?.parent?.h;
-
-    if (hash) {
-      const changes = await getChanges(docSession, this, {
-        states,
-        rightHash: states[0].h,
-        leftHash: hash,
-      });
-      const rightChanges = changes.details?.rightChanges;
-      if (rightChanges) {
-        rebaseSummary(rightChanges, origDetails.leftChanges);
-      }
+    if (!hash) {
+      // Details are only computed when there is a branch point.
+      throw new ApiError("Proposal branch point not found", 500);
     }
+    // Throws if the branch point has dropped out of recent history.
+    // Uncapped, like the proposal's own changes, since Patch reads cells
+    // from these too.
+    const changes = await getChanges(docSession, this, {
+      states,
+      rightHash: states[0].h,
+      leftHash: hash,
+      maxRows: null,
+    });
+    const trunkChanges = changes.details!.rightChanges;
+    rebaseSummary(trunkChanges, origDetails.leftChanges);
 
     let result: PatchLog = { changes: [], applied: false };
     if (options?.dismiss === undefined) {
       const patch = new Patch(this, docSession);
       const { details } = removeMetadataChangesFromDetails(origDetails);
-      result = await patch.applyChanges(details);
+      result = await patch.applyChanges(details, trunkChanges);
       if (result.applied) {
         await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
           status: "applied",
