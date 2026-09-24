@@ -727,9 +727,9 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
     info.lastSuccessfulStep = "create";
 
     // Step 2: Run a simple Python call to check if the sandbox can execute code.
-    // Give up after 5 seconds if it takes too long.
+    // Give up after 10 seconds if it takes too long.
     const timeoutProm = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Sandbox test timed out after 5s")), 5000).unref(),
+      setTimeout(() => reject(new Error("Sandbox test timed out after 10s")), 10000).unref(),
     );
     const result = await Promise.race([sandbox.pyCall("get_version"), timeoutProm]);
     if (typeof result !== "number") {
