@@ -872,7 +872,6 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
 
       ...options.testSandboxArgs,
       // Ignore options.pythonArgs - no python process runs for pyodide
-      "--",
       scriptPath,
       ...(options.comment ? [options.comment] : []),
       ...(options.appendArgs ?? []),
