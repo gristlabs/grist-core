@@ -104,9 +104,9 @@ export function buildLinkNodes(
       let linkedSection: LinkNodeSection | undefined;
       if (linkedSectionId) {
         linkedSection = getSectionById(linkedSectionId);
-        const sourceColumn = linkedSection.linkSrcColRef;
-        const targetColumn = linkedSection.linkTargetColRef;
-        const sourceTable = getTableById(linkedSection.parentId);
+        const sourceColumn = currentSection.linkSrcColRef;
+        const targetColumn = currentSection.linkTargetColRef;
+        const sourceTable = getTableById(linkedSection.tableRef);
         isAncestorSameTableCursorLink.push(
           sourceColumn === 0 &&
           targetColumn === 0 &&
