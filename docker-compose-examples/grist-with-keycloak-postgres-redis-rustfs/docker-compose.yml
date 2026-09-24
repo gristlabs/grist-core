@@ -120,11 +120,11 @@ services:
 
   # Docker creates RustFS's data directory owned by root, but RustFS runs as
   # UID 10001 and can't write there. This one-off step, run as root, gives
-  # the directory to UID 10001 before RustFS starts.
+  # the directory and its contents to UID 10001 before RustFS starts.
   rustfs-permissions:
     image: rustfs/rustfs:latest
     user: "0:0"
-    entrypoint: ["chown", "10001:10001", "/data"]
+    entrypoint: ["chown", "-R", "10001:10001", "/data"]
     volumes:
       - ${PERSIST_DIR:-./persist}/rustfs:/data
 
