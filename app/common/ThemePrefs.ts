@@ -565,8 +565,8 @@ export const componentsCssMapping = {
   switchHoverShadow: "switch-hover-shadow",
   scrollShadow: "scroll-shadow",
   toggleCheckboxFg: "toggle-checkbox-fg",
-  toggleCheckboxBg: "toggle-checkbox-bg",
-  toggleCheckboxBorder: "toggle-checkbox-border",
+  toggleCheckboxUncheckedBg: "toggle-checkbox-unchecked-bg",
+  toggleCheckboxUncheckedBorder: "toggle-checkbox-unchecked-border",
   numericSpinnerFg: "numeric-spinner-fg",
   widgetGalleryBorder: "widget-gallery-border",
   widgetGalleryBorderSelected: "widget-gallery-border-selected",
@@ -979,8 +979,8 @@ export interface SpecificThemeTokens {
     announcementPopupBg: Token;
     scrollShadow: Token;
     toggleCheckboxFg: Token;
-    toggleCheckboxBg: Token;
-    toggleCheckboxBorder: Token;
+    toggleCheckboxUncheckedBg: Token;
+    toggleCheckboxUncheckedBorder: Token;
     numericSpinnerFg: Token;
     widgetGalleryBorder: Token;
     widgetGalleryShadow: Token;
