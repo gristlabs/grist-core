@@ -1,5 +1,5 @@
 import { ActionGroup } from "app/common/ActionGroup";
-import { AssistanceRequest, AssistanceResponse } from "app/common/Assistance";
+import { AssistanceRequest, AssistanceResponse, DeveloperPromptVersion } from "app/common/Assistance";
 import { BulkAddRecord, CellValue, TableDataAction, UserAction } from "app/common/DocActions";
 import { DocStateComparison } from "app/common/DocState";
 import { PredicateFormulaProperties } from "app/common/PredicateFormula";
@@ -351,6 +351,7 @@ export interface TimingStatus {
  */
 export interface AssistantState {
   prompt: string;
+  developerPromptVersion?: DeveloperPromptVersion;
 }
 
 /**

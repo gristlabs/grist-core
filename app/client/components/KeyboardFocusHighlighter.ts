@@ -35,8 +35,16 @@ export class KeyboardFocusHighlighter extends Disposable {
  */
 export const kbFocusHighlighterClass = "kb-focus-highlighter-group";
 
+/**
+ * Add this class to an element to prevent {@link KeyboardFocusHighlighter} from highlighting it.
+ */
+export const kbFocusHighlighterIgnoreClass = "kb-focus-highlighter-ignore";
+
+const focusableSelector =
+  `:is(a, input, textarea, select, button, [tabindex="0"]):focus-visible:not(.${kbFocusHighlighterIgnoreClass})`;
+
 const cssKeyboardUser = styled("div", `
-  & .${kbFocusHighlighterClass} :is(a, input, textarea, select, button, [tabindex="0"]):focus-visible {
+  & .${kbFocusHighlighterClass} ${focusableSelector} {
     outline: 3px solid ${components.kbFocusHighlight} !important;
   }
 `);

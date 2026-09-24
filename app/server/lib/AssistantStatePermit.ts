@@ -1,3 +1,4 @@
+import { DeveloperPromptVersion } from "app/common/Assistance";
 import { IPermitStore, Permit } from "app/server/lib/Permit";
 
 /**
@@ -23,6 +24,7 @@ import { IPermitStore, Permit } from "app/server/lib/Permit";
 export interface AssistantStatePermit extends Permit {
   prompt: string;
   docId?: string;
+  developerPromptVersion?: DeveloperPromptVersion;
 }
 
 /**

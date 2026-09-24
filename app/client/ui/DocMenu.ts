@@ -99,7 +99,15 @@ function buildAllDocumentsPage(home: HomeModel) {
     buildHomeIntro(home),
     home.app.isPersonal && !home.app.currentValidUser ?
       null :
-      dom.maybe(home.available, () => dom.create(DocList, { home })),
+      dom.maybe(home.available, () => [
+        css.stickyHeader(
+          css.workspaceHeaderWrap(
+            css.workspaceHeader(t("Documents")),
+            testId("doc-header"),
+          ),
+        ),
+        dom.create(DocList, { home }),
+      ]),
   ];
 }
 

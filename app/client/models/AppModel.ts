@@ -6,6 +6,7 @@ import { error } from "app/client/lib/log";
 import { reportError, setErrorNotifier } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { newUserAPIImpl } from "app/client/models/homeUrl";
+import { Impressions } from "app/client/models/Impressions";
 import { Notifier } from "app/client/models/NotifyModel";
 import { getUserPrefObs, getUserPrefsObs, markAsSeen } from "app/client/models/UserPrefs";
 import { getFlavor, ProductFlavor } from "app/client/ui/CustomThemes";
@@ -139,6 +140,7 @@ export interface AppModel {
   planName: string | null;
 
   behavioralPromptsManager: BehavioralPromptsManager;
+  impressions: Impressions;
 
   refreshOrgUsage(): Promise<void>;
   showUpgradeModal(): Promise<void>;
@@ -368,6 +370,8 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   public readonly behavioralPromptsManager: BehavioralPromptsManager =
     BehavioralPromptsManager.create(this, this);
+
+  public readonly impressions: Impressions = Impressions.create(this, this);
 
   constructor(
     public readonly topAppModel: TopAppModel,

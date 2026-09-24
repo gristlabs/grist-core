@@ -148,6 +148,7 @@ export const IconList = [
   "Skip",
   "Smiley",
   "Sort",
+  "Sparkle",
   "Sparks",
   "Star",
   "Stop",

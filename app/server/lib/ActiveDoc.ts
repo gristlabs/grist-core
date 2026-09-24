@@ -2473,7 +2473,7 @@ export class ActiveDoc extends EventEmitter {
       return null;
     }
 
-    return pick(permit, "prompt");
+    return pick(permit, "prompt", "developerPromptVersion");
   }
 
   public getMemoryUsedMB(): number {
