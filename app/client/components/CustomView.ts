@@ -15,9 +15,8 @@ import {
   WidgetFrame,
 } from "app/client/components/WidgetFrame";
 import { CustomSectionElement, ViewProcess } from "app/client/lib/CustomSectionElement";
-import dom from "app/client/lib/dom";
+import { testId as oldTestId } from "app/client/lib/dom";
 import { makeTestId } from "app/client/lib/domUtils";
-import * as kd from "app/client/lib/koDom";
 import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { CustomViewSectionDef } from "app/client/models/entities/ViewSectionRec";
@@ -27,7 +26,7 @@ import { AccessLevel } from "app/common/CustomWidget";
 import { defaultLocale } from "app/common/gutil";
 import { PluginInstance } from "app/common/PluginInstance";
 
-import { dom as grains } from "grainjs";
+import { dom } from "grainjs";
 import * as ko from "knockout";
 
 const t = makeT("CustomView");
@@ -238,19 +237,19 @@ export class CustomView extends BaseView {
       dom.autoDispose(showSectionNotification),
       dom.autoDispose(showPluginContent),
 
-      kd.maybe(this._hasUnmappedColumns, () => dom("div.custom_view_no_mapping",
+      dom.maybe(this._hasUnmappedColumns, () => dom("div.custom_view_no_mapping",
         testId("not-mapped"),
         dom("img", { src: "img/empty-widget.svg" }),
 
-        kd.maybe(this._hasAclHiddenColumns, () => [
-          dom("h1", kd.text(t("Some required columns are hidden by access rules"))),
+        dom.maybe(this._hasAclHiddenColumns, () => [
+          dom("h1", t("Some required columns are hidden by access rules")),
           dom("p",
             t("To use this widget, all mapped columns must be visible. \
 Please contact document owner or modify access rules."),
           ),
         ]),
-        kd.maybe(() => !this._hasAclHiddenColumns(), () => [
-          dom("h1", kd.text(t("Some required columns aren't mapped"))),
+        dom.maybe(use => !use(this._hasAclHiddenColumns), () => [
+          dom("h1", t("Some required columns aren't mapped")),
           dom("p",
             t("To use this widget, please map all non-optional columns from the creator panel on the right."),
           ),
@@ -258,12 +257,13 @@ Please contact document owner or modify access rules."),
       )),
       // todo: should display content in webview when running electron
       // prefer widgetId; spelunk in widgetDef for older docs
-      kd.scope(() => [
-        this._hasUnmappedColumns(), mode(), url(), access(), widgetId() || widgetDef()?.widgetId || "", pluginId(),
-      ], ([_hide, _mode, _url, _access, _widgetId, _pluginId]: string[]) =>
+      dom.domComputed(use => [
+        use(this._hasUnmappedColumns), use(mode), use(url), use(access),
+        use(widgetId) || use(widgetDef)?.widgetId || "", use(pluginId),
+      ] as const, ([_hide, _mode, _url, _access, _widgetId, _pluginId]) =>
         _mode === "url" ?
           dom("div.flexauto.custom_view_content",
-            kd.style("display", _hide ? "none" : "flex"),
+            dom.style("display", _hide ? "none" : "flex"),
             this._buildIFrame({
               baseUrl: _url,
               access: builtInSettings.accessLevel || (_access as AccessLevel || AccessLevel.none),
@@ -274,18 +274,18 @@ Please contact document owner or modify access rules."),
           ) :
           null,
       ),
-      kd.maybe(showPluginNotification, () => buildNotification("Plugin ",
-        dom("strong", kd.text(this.customDef.pluginId)), " was not found",
-        dom.testId("customView_notification_plugin"),
+      dom.maybe(showPluginNotification, () => buildNotification("Plugin ",
+        dom("strong", dom.text(this.customDef.pluginId)), " was not found",
+        oldTestId("customView_notification_plugin"),
       )),
-      kd.maybe(showSectionNotification, () => buildNotification("Section ",
-        dom("strong", kd.text(this.customDef.sectionId)), " was not found in plugin ",
-        dom("strong", kd.text(this.customDef.pluginId)),
-        dom.testId("customView_notification_section"),
+      dom.maybe(showSectionNotification, () => buildNotification("Section ",
+        dom("strong", dom.text(this.customDef.sectionId)), " was not found in plugin ",
+        dom("strong", dom.text(this.customDef.pluginId)),
+        oldTestId("customView_notification_section"),
       )),
       // When showPluginContent() is true then _foundSection() is also and _customSection is not
       // undefined (invariant).
-      kd.maybe(showPluginContent, () => this._customSection!.element),
+      dom.maybe(showPluginContent, () => this._customSection!.element),
     );
   }
 
@@ -373,7 +373,7 @@ Please contact document owner or modify access rules."),
     // array of nodes (comment, node, comment) and it somehow breaks the dispose order. Collapsed widgets
     // relay on a correct order of dispose, and are detaching nodes just before they are disposed, so if
     // the order is wrong, the node is disposed without being detached first.
-    return grains.update(widgetFrame.buildDom(), dom.autoDispose(widgetFrame));
+    return dom.update(widgetFrame.buildDom(), dom.autoDispose(widgetFrame));
   }
 }
 
@@ -403,8 +403,8 @@ function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
       timer = null;
     }
   }
-  return grains.update(frame,
-    grains.on("mouseenter", () => {
+  return dom.update(frame,
+    dom.on("mouseenter", () => {
       // Make sure we weren't dispose (should not happen)
       if (disposed) { return; }
       // If frame already has focus, do nothing.
@@ -423,8 +423,8 @@ function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
         }
       }, 70); // 70 is enough to make it look like a click.
     }),
-    grains.on("mouseleave", stop),
-    grains.onDispose(() => {
+    dom.on("mouseleave", stop),
+    dom.onDispose(() => {
       stop();
       disposed = true;
     }),
