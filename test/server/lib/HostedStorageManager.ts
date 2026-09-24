@@ -465,7 +465,7 @@ describe("HostedStorageManager", function() {
             externalStorageCreate = requireStorage(create.getStorageOptions?.("azure")?.create);
             break;
           case "minio":
-            if (!process.env.GRIST_DOCS_MINIO_ACCESS_KEY) {
+            if (!process.env.GRIST_DOCS_MINIO_ACCESS_KEY && !process.env.GRIST_DOCS_S3_ACCESS_KEY) {
               this.skip();
             }
             externalStorageCreate = requireStorage(create.getStorageOptions?.("minio")?.create);

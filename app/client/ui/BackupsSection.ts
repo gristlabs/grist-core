@@ -28,8 +28,8 @@ interface BackendInfo {
 
 const STORAGE_BACKENDS: Record<BackendName, BackendInfo> = {
   minio: {
-    label: () => t("S3 (MinIO client)"),
-    description: () => t("AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others."),
+    label: () => t("S3-compatible"),
+    description: () => t("Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself."),
   },
   s3: {
     label: () => t("S3 (AWS client)"),
@@ -191,12 +191,12 @@ export class BackupsSection extends Disposable {
       switch (selected) {
         case "minio": {
           return cssInstructions(
-            dom("div", t("Set these environment variables and restart Grist to enable MinIO storage:")),
+            dom("div", t("Set these environment variables and restart Grist to enable S3-compatible storage:")),
             cssCodeBlock(
-              "GRIST_DOCS_MINIO_BUCKET=my-grist-docs\n" +
-              "GRIST_DOCS_MINIO_ENDPOINT=s3.amazonaws.com\n" +
-              "GRIST_DOCS_MINIO_ACCESS_KEY=...\n" +
-              "GRIST_DOCS_MINIO_SECRET_KEY=...",
+              "GRIST_DOCS_S3_BUCKET=my-grist-docs\n" +
+              "GRIST_DOCS_S3_ENDPOINT=s3.example.com\n" +
+              "GRIST_DOCS_S3_ACCESS_KEY=...\n" +
+              "GRIST_DOCS_S3_SECRET_KEY=...",
             ),
             dom("div",
               cssLink(
