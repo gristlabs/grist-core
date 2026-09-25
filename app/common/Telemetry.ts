@@ -385,7 +385,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
       prompt: {
         description: "The message sent to the AI Assistant.",
-        dataType: "string",
+        dataType: "object",
       },
       developerPromptVersion: {
         description: 'The developer prompt version. May be `"default"`, `"new-document"` or `"new-document-no-intro"`.',

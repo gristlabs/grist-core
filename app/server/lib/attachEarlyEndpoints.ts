@@ -111,14 +111,14 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         path: mreq.path,
         email: mreq.user?.loginEmail,
       };
-      log.rawDebug(`Restart[${mreq.method}] starting:`, meta);
+      log.rawInfo(`Restart[${mreq.method}] starting:`, meta);
       res.on("finish", () => {
         // If we have IPC with parent process (e.g. when running under
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
-        log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
+        log.rawInfo(`Restart[${mreq.method}] finishing:`, meta);
         if (process.send && canRestart()) {
-          log.rawDebug(`Restart[${mreq.method}] requesting restart:`, meta);
+          log.rawInfo(`Restart[${mreq.method}] requesting restart:`, meta);
           process.send({ action: "restart" });
         }
       });

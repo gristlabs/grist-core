@@ -73,7 +73,7 @@ import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
 import { IWebSocketProxy } from "app/server/lib/IWebSocketProxy";
-import log, { logAsJson } from "app/server/lib/log";
+import log, { logAsJson, metaField } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
 import { testSandboxFlavor } from "app/server/lib/NSandbox";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
@@ -315,7 +315,7 @@ export class FlexServer implements GristServer {
         userConfig = obj;
       },
       onBackupMade() {
-        log.info("backup skipped");
+        log.debug("backup skipped");
       },
     };
 
@@ -1139,11 +1139,24 @@ export class FlexServer implements GristServer {
 
     this.app.post("/api/log", async (req, resp) => {
       const mreq = req as RequestWithLogin;
+      // The body comes from logError() in client's errors.ts. Coerce to fixed types to ensure that
+      // JSON log stays indexable.
+      const { event, docId, page, browser } = req.body;
       log.rawWarn("client error", {
-        event: req.body.event,
-        docId: req.body.docId,
-        page: req.body.page,
-        browser: req.body.browser,
+        event: event ? {
+          message: metaField.string(event.message),
+          stack: metaField.string(event.stack),
+          status: metaField.number(event.status),
+          // Expected to be an ApiErrorDetails object, from an ApiError thrown on the client.
+          details: metaField.object(event.details),
+        } : undefined,
+        docId: metaField.string(docId),
+        page: metaField.string(page),
+        browser: browser ? {
+          language: metaField.string(browser.language),
+          platform: metaField.string(browser.platform),
+          userAgent: metaField.string(browser.userAgent),
+        } : undefined,
         org: mreq.org,
         email: mreq.user?.loginEmail,
         userId: mreq.userId,
@@ -2093,9 +2106,9 @@ export class FlexServer implements GristServer {
 
   public setReady(value: boolean) {
     if (value) {
-      log.debug("FlexServer is ready");
+      log.info("FlexServer is ready");
     } else {
-      log.debug("FlexServer is no longer ready");
+      log.info("FlexServer is no longer ready");
     }
     this._isReady = value;
   }
@@ -2580,7 +2593,7 @@ export class FlexServer implements GristServer {
           // in them being dropped again.
           await workers.releaseAssignment(this.worker.id, assignment);
         } catch (err) {
-          log.info("problem dealing with assignment", assignment, err);
+          log.warn("problem dealing with assignment", assignment, err);
         }
       }));
       // Check for any assignments that slipped through at the last minute.
@@ -2710,8 +2723,8 @@ export class FlexServer implements GristServer {
       const privateKeyFile = process.env.GRIST_TEST_SSL_KEY;
       if (!certFile) { throw new Error("Set GRIST_TEST_SSL_CERT to location of certificate file"); }
       if (!privateKeyFile) { throw new Error("Set GRIST_TEST_SSL_KEY to location of private key file"); }
-      log.debug(`https support: reading cert from ${certFile}`);
-      log.debug(`https support: reading private key from ${privateKeyFile}`);
+      log.info(`https support: reading cert from ${certFile}`);
+      log.info(`https support: reading private key from ${privateKeyFile}`);
       httpsServer = logServer(https.createServer({
         ...getServerFlags(),
         key: fse.readFileSync(privateKeyFile, "utf8"),

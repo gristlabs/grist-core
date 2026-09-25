@@ -46,13 +46,13 @@ export class SafePythonComponent extends BaseComponent {
   }
 
   protected async deactivateImplementation(): Promise<void> {
-    log.info("SafePython deactivating ...");
+    log.debug("SafePython deactivating ...");
     if (!this._sandbox) {
-      log.info("  sandbox is undefined");
+      log.debug("  sandbox is undefined");
     }
     if (this._sandbox) {
       await this._sandbox.shutdown();
-      log.info("SafePython done deactivating the sandbox");
+      log.debug("SafePython done deactivating the sandbox");
       delete this._sandbox;
     }
   }

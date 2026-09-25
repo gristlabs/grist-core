@@ -75,10 +75,11 @@ export const REMOVE_UNUSED_ATTACHMENTS_DELAY = { delayMs: 60 * 60 * 1000, varian
  */
 export function getSqliteMode() {
   return appSettings.section("features")
-    .section("sqlite").flag("mode").readString({
+    .section("sqlite").flag("mode").requireString({
       envVar: "GRIST_SQLITE_MODE",
-      acceptedValues: ["wal", "sync"],
-    }) as "wal" | "sync" | undefined;
+      defaultValue: "nosync",
+      acceptedValues: ["nosync", "sync", "wal"],
+    }) as "nosync" | "sync" | "wal";
 }
 
 export class DocStorage implements ISQLiteDB, OnDemandStorage {
@@ -746,7 +747,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       "PRAGMA trusted_schema = OFF;",  // mitigation suggested by https://www.sqlite.org/security.html#untrusted_sqlite_database_files
     ];
     const sqliteMode = getSqliteMode();
-    if (sqliteMode === undefined) {
+    if (sqliteMode === "nosync") {
       // Historically, Grist has used this setting.
       settings.push("PRAGMA synchronous = OFF;");
     } else if (sqliteMode === "sync") {

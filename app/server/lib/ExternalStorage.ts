@@ -205,7 +205,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
       if (prevChecksum && prevChecksum === checksum && !metadata?.label) {
         // nothing to do, checksums match
         const snapshotId = await this._options.latestVersion.load(key);
-        log.info("ext %s upload: %s unchanged, not sending (checksum %s, version %s)", this.label, key,
+        log.debug("ext %s upload: %s unchanged, not sending (checksum %s, version %s)", this.label, key,
           checksum, snapshotId);
         return Unchanged;
       }
@@ -290,7 +290,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
         // Rename the temporary file to its proper name. The destination should NOT
         // exist in this case, and this should fail if it does.
         await fse.move(tmpPath, fname, { overwrite: false });
-        log.info("ext %s download: %s renamed from %s to %s", this.label, fromKey, tmpPath, fname);
+        log.debug("ext %s download: %s renamed from %s to %s", this.label, fromKey, tmpPath, fname);
         if (fromKey === toKey) {
           // Save last S3 snapshot id observed for this key.
           await this._options.latestVersion.save(toKey, downloadedSnapshotId);
@@ -357,7 +357,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
         const attemptStart = Date.now();
         const result = await operation();
         const [attemptMs, totalMs] = [Date.now() - attemptStart, Date.now() - start];
-        log.info(`operation ${name} took ${attemptMs} ms (attempt: ${backoffCount}, total: ${totalMs} ms)`);
+        log.debug(`operation ${name} took ${attemptMs} ms (attempt: ${backoffCount}, total: ${totalMs} ms)`);
         if (result !== undefined) { return result; }
         problems.push([Date.now() - start, "not ready"]);
       } catch (err) {

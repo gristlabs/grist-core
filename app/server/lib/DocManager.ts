@@ -170,7 +170,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * @returns {Promise:String} The name of the new document.
    */
   public async createNewDoc(client: Client): Promise<string> {
-    log.debug("DocManager.createNewDoc");
+    log.info("DocManager.createNewDoc");
     const docSession = makeExceptionalDocSession("nascent", { client });
     return this.createNamedDoc(docSession, "Untitled");
   }
@@ -303,7 +303,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    *
    */
   public async deleteDoc(client: Client | null, docName: string, deletePermanently: boolean): Promise<string> {
-    log.debug("DocManager.deleteDoc starting for %s", docName);
+    log.info("DocManager.deleteDoc starting for %s", docName);
     const docPromise = this._activeDocs.get(docName);
     if (docPromise) {
       // Call activeDoc's shutdown method first, to remove the doc from internal structures.
@@ -765,7 +765,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       }
       await options.register?.(id, basename);
       if (ext === ".grist") {
-        log.debug(`DocManager._doImportDoc: Importing .grist doc`);
+        log.info(`DocManager._doImportDoc: Importing .grist doc`);
         const docName = await this._createNewDoc(id);
         await this.importGristDoc(docSession, docName, uploadInfo.files[0].absPath);
         // Go ahead and claim this document. If we wanted to serve it

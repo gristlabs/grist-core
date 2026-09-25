@@ -206,7 +206,7 @@ export class NSandbox implements ISandbox {
     shutdown.addCleanupHandler(this, this.shutdown);
 
     if (this._recordBuffersDir) {
-      log.rawDebug(`Recording sandbox buffers in ${this._recordBuffersDir}`, this._logMeta);
+      log.rawInfo(`Recording sandbox buffers in ${this._recordBuffersDir}`, this._logMeta);
       fs.mkdirSync(this._recordBuffersDir, { recursive: true });
     }
   }
@@ -290,7 +290,7 @@ export class NSandbox implements ISandbox {
    * stdout, and stderr.
    */
   private _initializeMinimalPipeMode(sandboxProcess: SandboxProcess) {
-    log.rawDebug("3-pipe Sandbox started", this._logMeta);
+    log.rawInfo("3-pipe Sandbox started", this._logMeta);
     if (!this.childProc) {
       throw new Error("child process required");
     }
@@ -321,7 +321,7 @@ export class NSandbox implements ISandbox {
    * to have a clean, separate data channel, when supported.
    */
   private _initializeFivePipeMode(sandboxProcess: SandboxProcess) {
-    log.rawDebug("5-pipe Sandbox started", this._logMeta);
+    log.rawInfo("5-pipe Sandbox started", this._logMeta);
     if (!this.childProc) {
       throw new Error("child process required");
     }
@@ -401,7 +401,7 @@ export class NSandbox implements ISandbox {
     const expected = this._isWriteClosed;
     this._close();
     if (expected) {
-      log.rawDebug(`Sandbox exited with code ${code} signal ${signal}`, this._logMeta);
+      log.rawInfo(`Sandbox exited with code ${code} signal ${signal}`, this._logMeta);
     } else {
       log.rawWarn(`Sandbox unexpectedly exited with code ${code} signal ${signal}`, this._logMeta);
     }
@@ -499,7 +499,7 @@ export class NSandbox implements ISandbox {
             this._sendData(sandboxUtil.EXC, err.toString());
           })
           .catch((err) => {
-            log.rawDebug(`Sandbox sending response failed: ${err}`, this._logMeta);
+            log.rawWarn(`Sandbox sending response failed: ${err}`, this._logMeta);
           });
       }
     } else {
@@ -877,14 +877,14 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
       ...(options.comment ? [options.comment] : []),
       ...(options.appendArgs ?? []),
     ];
-    log.rawDebug("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
+    log.rawInfo("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
     child = spawn(
       command,
       args,
       { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
     );
   } else {
-    log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
+    log.rawInfo("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
       { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
@@ -1080,7 +1080,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   };
   const command = findPython(options.command);
   const realPath = realpathSync(command);
-  log.rawDebug("macSandboxExec found a python", { ...options.logMeta, command: realPath });
+  log.rawInfo("macSandboxExec found a python", { ...options.logMeta, command: realPath });
 
   // Prepare sandbox profile
   const profile: string[] = [];

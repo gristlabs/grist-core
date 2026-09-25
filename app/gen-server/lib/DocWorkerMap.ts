@@ -389,7 +389,7 @@ export class DocWorkerMap implements IDocWorkerMap {
    * Note: This method should only be called by the worker.
    */
   public async setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void> {
-    log.rawInfo("DocWorkerMap.setWorkerLoad", {
+    log.rawDebug("DocWorkerMap.setWorkerLoad", {
       workerId: workerInfo.id,
       load,
     });

@@ -237,8 +237,9 @@ export function logError(error: unknown) {
   fetchFromHome("/api/log", {
     method: "POST",
     body: JSON.stringify({
-      // Errors don't stringify, so pick out properties explicitly for errors.
-      event: (error instanceof Error) ? pick(error, Object.getOwnPropertyNames(error)) : error,
+      // Errors don't stringify, so pick out properties explicitly. Keep the shape fixed: the
+      // server logs it as JSON, and log indexing needs each field to have a single type.
+      event: (error instanceof Error) ? pick(error, ["message", "stack", "status", "details"]) : { message: error },
       docId,
       page: G.window.location.href,
       browser: pick(G.window.navigator, ["language", "platform", "userAgent"]),

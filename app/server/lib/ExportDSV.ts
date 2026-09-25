@@ -30,7 +30,7 @@ export async function downloadDSV(
 ) {
   const { filename, tableId, viewSectionId, filters, sortOrder, linkingFilter, delimiter, header } = options;
   const extension = getDSVFileExtension(delimiter);
-  log.info(`Generating ${extension} file...`);
+  log.debug(`Generating ${extension} file...`);
   let data;
   if (viewSectionId) {
     data = await makeDSVFromViewSection({

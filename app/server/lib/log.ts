@@ -6,6 +6,7 @@
  *    log.info(...);
  */
 
+import { isAffirmative } from "app/common/gutil";
 import { timeFormat } from "app/common/timeFormat";
 import { appSettings } from "app/server/lib/AppSettings";
 
@@ -15,6 +16,15 @@ const logAsJson = appSettings.section("log").flag("json").readBool({
   envVar: ["GRIST_LOG_AS_JSON", "GRIST_HOSTED_VERSION"],
   preferredEnvVar: "GRIST_LOG_AS_JSON",
   defaultValue: false,
+});
+
+// GRIST_LOG_LEVEL sets the level. Without it, default to info, or to debug when running with
+// DEBUG or VERBOSE set (a developer convenience).
+const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
+const logLevel = appSettings.section("log").flag("level").requireString({
+  envVar: "GRIST_LOG_LEVEL",
+  defaultValue: debugging ? "debug" : "info",
+  acceptedValues: ["debug", "info", "warn", "error"],
 });
 
 interface LogWithTimestamp extends winston.LoggerInstance {
@@ -74,7 +84,7 @@ function timestamp() {
 
 const fileTransportOptions = {
   stream: process.stderr,
-  level: process.env.GRIST_LOG_LEVEL || "debug",
+  level: logLevel,
   timestamp: log.timestamp,
   colorize: true,
   json: logAsJson,
@@ -95,5 +105,16 @@ declare namespace log {
 }
 export type ILogMeta = log.ILogMeta;
 
-export { logAsJson };
+/**
+ * Coercions for untrusted values (request bodies, client messages) that go into log meta.
+ * Each JSON log field must keep a single type for log indexing to work; these keep it that way.
+ * A value of the wrong type is dropped (undefined), except that anything can be described as a string.
+ */
+export const metaField = {
+  string: (value: unknown): string | undefined => (value === undefined ? undefined : String(value)),
+  number: (value: unknown): number | undefined => (typeof value === "number" ? value : undefined),
+  object: (value: unknown): object | undefined => (value && typeof value === "object" ? value : undefined),
+};
+
+export { logAsJson, logLevel };
 export default log;

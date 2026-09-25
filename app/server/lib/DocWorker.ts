@@ -33,6 +33,9 @@ export interface AttachOptions {
   tracker?: DocApiUsageTracker;           // Shared API usage tracker for rate-limiting
 }
 
+// If a doc method takes longer than this, log a message, and raise level from debug to info.
+const logIfLongerThanMs: number = 2000;
+
 export class DocWorker {
   private _comm: Comm;
   private _tracker?: DocApiUsageTracker;
@@ -221,23 +224,41 @@ function activeDocMethod(tracker: DocApiUsageTracker | undefined,
     const docSession = client.getDocSession(docFD);
     const activeDoc = docSession.activeDoc;
     if (role) { await docSession.authorizer.assertAccess(role, { writes: options.writes }); }
-    // Include a basic log record for each ActiveDoc method call.
-    log.rawDebug("activeDocMethod", activeDoc.getLogMeta(docSession, methodName));
 
-    if (tracker && client.authSession.isApiKeyAuth) {
-      // assertAccess was only called above when a role is required, and getCachedAuth()
-      // is unavailable without it, so methods with no role skip the usage limits.
-      const cachedDoc = role ? docSession.authorizer.getCachedAuth().cachedDoc : undefined;
-      // acquire + method call are in the same try so release runs even if acquire throws
-      // (acquire increments the parallel counter before checking limits).
-      try {
-        tracker.acquire(activeDoc.docName, getDailyMax(cachedDoc), getOrgUsageLimit(cachedDoc));
-        return await (activeDoc as any)[methodName](docSession, ...args);
-      } finally {
-        tracker.release(activeDoc.docName);
+    // Log a basic record for each ActiveDoc method call, with its duration and outcome.
+    const startTime = Date.now();
+    const logMeta = activeDoc.getLogMeta(docSession, methodName);
+
+    // If a method is slow, log an extra message (to make sure it's visible in logs even if stuck
+    // for a while), and raise the level so that it's visible even without debugging on.
+    let logLevel = (role === "viewers" ? "debug" : "info");
+    const timer = setTimeout(() => {
+      logLevel = "info";
+      log.rawInfo(`activeDocMethod running`, logMeta);
+    }, logIfLongerThanMs);
+
+    try {
+      if (tracker && client.authSession.isApiKeyAuth) {
+        // assertAccess was only called above when a role is required, and getCachedAuth()
+        // is unavailable without it, so methods with no role skip the usage limits.
+        const cachedDoc = role ? docSession.authorizer.getCachedAuth().cachedDoc : undefined;
+        // acquire + method call are in the same try so release runs even if acquire throws
+        // (acquire increments the parallel counter before checking limits).
+        try {
+          tracker.acquire(activeDoc.docName, getDailyMax(cachedDoc), getOrgUsageLimit(cachedDoc));
+          return await (activeDoc as any)[methodName](docSession, ...args);
+        } finally {
+          tracker.release(activeDoc.docName);
+        }
       }
+      return await (activeDoc as any)[methodName](docSession, ...args);
+    } catch (e) {
+      logMeta.error = String(e);
+      throw e;
+    } finally {
+      clearTimeout(timer);
+      logMeta.durationMs = Date.now() - startTime;
+      log.origLog(logLevel, "activeDocMethod", logMeta);
     }
-
-    return (activeDoc as any)[methodName](docSession, ...args);
   };
 }

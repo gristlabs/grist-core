@@ -32,7 +32,7 @@ cleanup() {
 
 GRIST_LOG_LEVEL="error"
 if [[ "${DEBUG:-}" == 1 ]]; then
-  GRIST_LOG_LEVEL=""
+  GRIST_LOG_LEVEL="debug"
   GRIST_LOG_HTTP="true"
   GRIST_LOG_HTTP_BODY="true"
 fi

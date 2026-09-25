@@ -8,7 +8,6 @@ import "app/server/lib/lockdown";
 
 import { normalizeEmail } from "app/common/emails";
 import { commonUrls } from "app/common/gristUrls";
-import { isAffirmative } from "app/common/gutil";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
@@ -17,18 +16,10 @@ import { updateDb } from "app/server/lib/dbUtils";
 import { getAdminEmail, getHomeUrl, invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
 import { getDefaultEmail } from "app/server/lib/InstallAdmin";
-import log from "app/server/lib/log";
+import log, { logLevel } from "app/server/lib/log";
 import { runPrometheusExporter } from "app/server/prometheus-exporter";
 
 import * as fse from "fs-extra";
-
-const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
-
-// Set log levels before importing anything.
-if (!debugging) {
-  // Be a lot less noisy by default.
-  setDefaultEnv("GRIST_LOG_LEVEL", "error");
-}
 
 // Use a distinct cookie.  Bump version to 2.
 setDefaultEnv("GRIST_SESSION_COOKIE", "grist_core2");
@@ -190,9 +181,7 @@ export async function main() {
   // Under a RestartShell, this prints in the worker, so that it repeats after
   // every restart and is not duplicated by the shell process.
   console.log("Welcome to Grist.");
-  if (!debugging) {
-    console.log("In quiet mode. For full logs, re-run with DEBUG=1");
-  }
+  console.log(`Logging at level "${logLevel}" (set GRIST_LOG_LEVEL to change)`);
 
   if (process.env.GRIST_PROMCLIENT_PORT) {
     runPrometheusExporter(parseInt(process.env.GRIST_PROMCLIENT_PORT, 10));

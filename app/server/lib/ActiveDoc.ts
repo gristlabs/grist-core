@@ -352,7 +352,7 @@ export class ActiveDoc extends EventEmitter {
 
   // Timer for shutting down the ActiveDoc a bit after all clients are gone.
   private _inactivityTimer = new InactivityTimer(() => {
-    this._log.debug(null, "inactivity timeout");
+    this._log.info(null, "inactivity timeout");
     return this._onInactive();
   }, Deps.ACTIVEDOC_TIMEOUT * 1000);
 
@@ -437,7 +437,7 @@ export class ActiveDoc extends EventEmitter {
           .subscribe(`billingAccount-${billingAccount.id}-product-changed`, async () => {
             // A product change has just happened in Billing.
             // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
-            this._log.debug(null, "reload after product change");
+            this._log.info(null, "reload after product change");
             await this.reloadDoc();
           })
           .unsubscribeCB;
@@ -692,7 +692,7 @@ export class ActiveDoc extends EventEmitter {
 
     // If we had a shutdown scheduled, unschedule it.
     if (this._inactivityTimer.isEnabled()) {
-      this._log.info(docSession, "will stay open");
+      this._log.debug(docSession, "will stay open");
       this._inactivityTimer.disable();
     }
     return docSession;
@@ -786,7 +786,7 @@ export class ActiveDoc extends EventEmitter {
    */
   @ActiveDoc.keepDocOpen
   public async createEmptyDocWithDataEngine(docSession: OptDocSession): Promise<ActiveDoc> {
-    this._log.debug(docSession, "createEmptyDocWithDataEngine");
+    this._log.info(docSession, "createEmptyDocWithDataEngine");
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile();
     this._registerSQLiteDB();
@@ -839,7 +839,7 @@ export class ActiveDoc extends EventEmitter {
     // an existing sqlite file.
   }): Promise<ActiveDoc> {
     const startTime = Date.now();
-    this._log.debug(docSession, "loadDoc");
+    this._log.info(docSession, "loadDoc");
     try {
       const isNew: boolean = options?.forceNew || await this._docManager.storageManager.prepareLocalDoc(this.docName);
       if (isNew) {
@@ -899,7 +899,7 @@ export class ActiveDoc extends EventEmitter {
       throw new ApiError("Only owners can replace a document.", 403);
     }
     this._assertNotHeldReadOnly(docSession);
-    this._log.debug(docSession, "ActiveDoc.replace starting shutdown");
+    this._log.info(docSession, "ActiveDoc.replace starting shutdown");
 
     // During replacement, it is important for all hands to be off the document. So we
     // ask the shutdown method to do the replacement when the ActiveDoc is shutdown but
@@ -1188,7 +1188,7 @@ export class ActiveDoc extends EventEmitter {
     await this._assertCanGetAttachment(docSession, attId, options);
     const data = await this._attachmentFileManager.getFileData(fileIdent);
     if (!data) { throw new ApiError("Invalid attachment identifier", 404); }
-    this._log.info(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
+    this._log.debug(docSession, "getAttachment: %s -> %s bytes", fileIdent, data.length);
     return data;
   }
 
@@ -1344,7 +1344,6 @@ export class ActiveDoc extends EventEmitter {
    * Fetches the meta tables to return to the client when first opening a document.
    */
   public async fetchMetaTables(docSession: OptDocSession) {
-    this._log.info(docSession, "fetchMetaTables");
     if (!this.docData) { throw new Error("No doc data"); }
     // Get metadata from local cache rather than data engine, so that we can
     // still get it even if data engine is busy calculating.
@@ -1444,7 +1443,7 @@ export class ActiveDoc extends EventEmitter {
     const wantFull = waitForFormulas || query.tableId.startsWith("_grist_") ||
       this._granularAccess.getReadPermission(tableAccess) === "mixed";
     const onDemand = this._onDemandActions.isOnDemand(query.tableId);
-    this._log.info(docSession, "fetchQuery %s %s", JSON.stringify(query),
+    this._log.debug(docSession, "fetchQuery %s %s", JSON.stringify(query),
       onDemand ? "(onDemand)" : "(regular)");
     let data: TableDataAction;
     if (onDemand || this._isSnapshot) {
@@ -1482,7 +1481,7 @@ export class ActiveDoc extends EventEmitter {
       }
     }
 
-    this._log.info(docSession, "fetchQuery -> %d rows, cols: %s",
+    this._log.debug(docSession, "fetchQuery -> %d rows, cols: %s",
       data![2].length, Object.keys(data![3]).join(", "));
     return { tableData: data!, ...(attachments && { attachments }) };
   }
@@ -1492,7 +1491,6 @@ export class ActiveDoc extends EventEmitter {
    * @returns {Promise} Promise for a string representing the generated Python code.
    */
   public async fetchPythonCode(docSession: OptDocSession): Promise<string> {
-    this._log.info(docSession, "fetchPythonCode(%s)", docSession);
     // Permit code view if user can read everything, or can download/copy (perhaps
     // via an exceptional permission for sample documents)
     if (!(await this._granularAccess.canReadEverything(docSession) ||
@@ -1508,7 +1506,6 @@ export class ActiveDoc extends EventEmitter {
    * docActions that affect this query's results.
    */
   public async useQuerySet(docSession: OptDocSession, query: ServerQuery): Promise<QueryResult> {
-    this._log.info(docSession, "useQuerySet(%s, %s)", docSession, query);
     // TODO implement subscribing to the query.
     // - Convert tableId+colIds to TableData/ColData references
     // - Return a unique identifier for unsubscribing
@@ -1525,7 +1522,6 @@ export class ActiveDoc extends EventEmitter {
    * docActions relevant only to this query.
    */
   public async disposeQuerySet(docSession: DocSession, querySubId: number): Promise<void> {
-    this._log.info(docSession, "disposeQuerySet(%s, %s)", docSession, querySubId);
     // TODO To-be-implemented
   }
 
@@ -1542,7 +1538,7 @@ export class ActiveDoc extends EventEmitter {
     optTableId?: string): Promise<number[]> {
     // This could leak information about private tables, so check for permission.
     if (!await this._granularAccess.canScanData(docSession)) { return []; }
-    this._log.info(docSession, "findColFromValues(%s, %s, %s)", docSession, values, n);
+    this._log.debug(docSession, "findColFromValues(%s, %s)", values, n);
     await this.waitForInitialization();
     return this._pyCall("find_col_from_values", values, n, optTableId);
   }
@@ -1613,8 +1609,7 @@ export class ActiveDoc extends EventEmitter {
     // Throw an error if the user doesn't have access to read this cell.
     await this._granularAccess.getCellValue(docSession, { tableId, colId, rowId });
 
-    this._log.info(docSession, "getFormulaError(%s, %s, %s, %s)",
-      docSession, tableId, colId, rowId);
+    this._log.debug(docSession, "getFormulaError(%s, %s, %s)", tableId, colId, rowId);
     await this.waitForInitialization();
     const onDemand = this._onDemandActions.isOnDemand(tableId);
     if (onDemand) {
@@ -1866,7 +1861,7 @@ export class ActiveDoc extends EventEmitter {
    * browser clients to reopen it.
    */
   public async reloadDoc(docSession?: DocSession) {
-    this._log.debug(docSession || null, "ActiveDoc.reloadDoc starting shutdown");
+    this._log.info(docSession || null, "ActiveDoc.reloadDoc starting shutdown");
     this._docManager.restoreTimingOn(this.docName, this.isTimingOn);
     return this.shutdown();
   }
@@ -2622,7 +2617,7 @@ export class ActiveDoc extends EventEmitter {
     options: { beforeShutdown?: () => Promise<void>, compact?: boolean },
   ): Promise<void> {
     const docSession = makeExceptionalDocSession("system");
-    this._log.debug(docSession, "shutdown starting");
+    this._log.info(docSession, "shutdown starting");
 
     const safeCallAndWait = async (funcDesc: string, func: () => Promise<unknown>) => {
       try {
@@ -2730,7 +2725,7 @@ export class ActiveDoc extends EventEmitter {
       this._docManager.removeActiveDoc(this);
     }
     await safeCallAndWait("_granularAccess.close", () => this._granularAccess.close());
-    this._log.debug(docSession, "shutdown complete");
+    this._log.info(docSession, "shutdown complete");
   }
 
   @ActiveDoc.keepDocOpen
@@ -2765,7 +2760,7 @@ export class ActiveDoc extends EventEmitter {
     useExisting?: boolean,       // If set, an existing sqlite db is permitted.
     // Useful for "gristifying" an existing db.
   }): Promise<void> {
-    this._log.debug(docSession, "createDoc");
+    this._log.info(docSession, "createDoc");
     await this._docManager.storageManager.prepareToCreateDoc(this.docName);
     await this.docStorage.createFile(options);
     const sql = options?.skipInitialTable ? GRIST_DOC_SQL : GRIST_DOC_WITH_TABLE1_SQL;
@@ -2901,7 +2896,7 @@ export class ActiveDoc extends EventEmitter {
     }
     const dataSizeBytes = await this._updateDataSize();
     const timeToMeasure = Date.now() - start;
-    log.rawInfo("Data size from dbstat...", {
+    log.rawDebug("Data size from dbstat...", {
       ...this.getLogMeta(docSession),
       dataSizeBytes,
       timeToMeasure,
@@ -3047,7 +3042,7 @@ export class ActiveDoc extends EventEmitter {
     this._log.info(docSession, "_migrate: applying %d migration actions (processed %s schema, %s user tables)",
       docActions.length, numSchema, numUser);
 
-    docActions.forEach((action, i) => this._log.info(docSession, "_migrate: docAction %s: %s", i, shortDesc(action)));
+    docActions.forEach((action, i) => this._log.debug(docSession, "_migrate: docAction %s: %s", i, shortDesc(action)));
     await this.docStorage.execTransaction(() => this.docStorage.applyStoredActions(docActions));
   }
 
@@ -3171,7 +3166,7 @@ export class ActiveDoc extends EventEmitter {
       snapshotProgress.lastWindowDoneAt : Date.now();
     const delay = snapshotProgress.lastWindowStartedAt ?
       lastWindowTime - snapshotProgress.lastWindowStartedAt : null;
-    log.rawInfo("snapshot status", {
+    log.rawDebug("snapshot status", {
       ...this.getLogMeta(docSession),
       ...snapshotProgress,
       lastChangeAt: normalizedDateTimeString(snapshotProgress.lastChangeAt),

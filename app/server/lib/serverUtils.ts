@@ -156,7 +156,7 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
     const integrityCheckResults = await db.all("PRAGMA integrity_check");
     if (integrityCheckResults.length !== 1 || integrityCheckResults[0].integrity_check !== "ok") {
       const uuid = uuidv4();
-      log.info("Integrity check failure on import", {
+      log.warn("Integrity check failure on import", {
         uuid,
         integrityCheckResults,
         ...getLogMeta(docSession),

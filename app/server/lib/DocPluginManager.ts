@@ -123,7 +123,7 @@ export class DocPluginManager {
     for (const { plugin, parseFileStub } of matchingFileParsers) {
       const name = plugin.definition.id;
       try {
-        log.info(`DocPluginManager.parseFile: calling to ${name} with ${filePath}`);
+        log.debug(`DocPluginManager.parseFile: calling to ${name} with ${filePath}`);
         const pathFlavor = process.platform === "win32" ? "windows" : "posix";
         const result = await parseFileStub.parseFile({ path: filePath, origName: fileName, pathFlavor }, parseOptions);
         checkers.ParseFileResult.check(result);
@@ -218,7 +218,7 @@ export class DocPluginManager {
         }
         this._pluginInstances.push(pluginInstance);
       } catch (err) {
-        log.info(`DocPluginInstance: failed to create instance ${plugin.id}: ${err.message}`);
+        log.warn(`DocPluginInstance: failed to create instance ${plugin.id}: ${err.message}`);
       }
     }
     for (const instance of this._pluginInstances) {

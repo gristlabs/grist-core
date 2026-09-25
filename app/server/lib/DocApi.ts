@@ -1889,7 +1889,7 @@ export class DocWorkerApi {
         // Delete all remote document attachments before the doc itself.
         // This way we can re-attempt deletion if an error is thrown.
         const attachmentStores = await this._attachmentStoreProvider.getAllStores();
-        log.debug(`Deleting all attachments for ${docId} from ${attachmentStores.length} stores`);
+        log.info(`Deleting all attachments for ${docId} from ${attachmentStores.length} stores`);
         const poolDeletions = attachmentStores.map(
           store => store.removePool(getDocPoolIdFromDocInfo({ id: docId, trunkId: null })),
         );

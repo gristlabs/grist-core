@@ -678,7 +678,7 @@ export function redirectToLogin(
       // In all other cases (including unknown org), redirect user to login or sign up.
       return redirectUnconditionally(req, resp, next);
     } catch (err) {
-      log.info("Authorizer failed to redirect", err.message);
+      log.warn("Authorizer failed to redirect", err.message);
       return resp.status(401).send(err.message);
     }
   });

@@ -877,9 +877,9 @@ class Engine(object):
           is_first = node not in self._is_node_exception_reported
           if is_first:
             self._is_node_exception_reported.add(node)
-            log.info("Formula error in %s: %s", node, value.details)
-            # strip out details after logging
-            value = objtypes.RaisedException(value.error, user_input=value.user_input)
+            # Only the error class: the traceback may contain document data, and is available
+            # on demand via get_formula_error().
+            log.info("Formula error in %s: %s", node, type(value.error).__name__)
 
         # TODO: validation columns should be wrapped to always return True/False (catching
         # exceptions), so that we don't need special handling here.
@@ -1023,7 +1023,8 @@ class Engine(object):
 
         self.formula_tracer(col, record)
 
-        include_details = (node not in self._is_node_exception_reported) if node else True
+        # Include traceback only for on-demand evaluation of one cell, as in get_formula_error().
+        include_details = node is None
         if not col.is_formula():
           return objtypes.RaisedException(regular_error, include_details, user_input=value)
         else:

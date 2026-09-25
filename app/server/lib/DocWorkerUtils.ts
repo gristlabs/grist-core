@@ -4,7 +4,7 @@ import { removeTrailingSlash } from "app/common/gutil";
 import { isSingleUserMode } from "app/server/lib/Authorizer";
 import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { getAssignmentId } from "app/server/lib/idUtils";
-import log from "app/server/lib/log";
+import log, { metaField } from "app/server/lib/log";
 import { adaptServerUrl } from "app/server/lib/requestUtils";
 
 import * as express from "express";
@@ -137,8 +137,8 @@ export async function getWorker(
       log.rawDebug(`AppEndpoint.getWorker failure`, {
         url: fullUrl,
         docId: assignmentId,
-        status: e.status,
-        message: String(e),
+        status: metaField.number(e.status),
+        error: String(e),
         workerId: docStatus.docWorker.id,
       });
       // If workers are managed, no errors merit continuing except a 404.

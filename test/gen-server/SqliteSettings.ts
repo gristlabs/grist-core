@@ -15,8 +15,8 @@ describe("SqliteSettings", function() {
   let oldEnv: EnvironmentSnapshot;
 
   for (const externalStorage of [true, false] as const) {
-    for (const mode of ["", "sync", "wal"] as const) {
-      describe(`mode ${mode || "default"}, externalStorage ${externalStorage}`, function() {
+    for (const mode of ["nosync", "sync", "wal"] as const) {
+      describe(`mode ${mode}, externalStorage ${externalStorage}`, function() {
         before(async function() {
           this.timeout(60000);
           oldEnv = new EnvironmentSnapshot();
