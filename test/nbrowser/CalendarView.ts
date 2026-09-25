@@ -300,13 +300,15 @@ describe("CalendarView", function() {
         .pause(120)
         .release());
       await gu.waitForServer();
+      // The drop's UpdateRecord can be sent after waitForServer() returns.
+      await driver.wait(async () => (await getEventByTitle("DragMe"))?.startMs !== before!.startMs, 3000);
       // The drag moved the event to a later time (write path: TUI drag -> UpdateRecord)...
       const moved = await getEventByTitle("DragMe");
       assert.isNotNull(moved);
       assert.isAbove(moved!.startMs!, before!.startMs!);
       // ...preserving its duration (a move, not a resize).
       assert.equal(moved!.endMs! - moved!.startMs!, before!.endMs! - before!.startMs!);
-    }, 6000);
+    }, 10000);
   });
 
   it("opens the Record Card on double-click of an event", async function() {
