@@ -7,8 +7,8 @@ import { GristLoadConfig } from "app/common/gristUrls";
 import * as roles from "app/common/roles";
 import { ShareAnnotations, ShareAnnotator } from "app/common/ShareAnnotator";
 import { getGristConfig } from "app/common/urlUtils";
-import { ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
-  PermissionData, PermissionDelta, UserAPI, Workspace } from "app/common/UserAPI";
+import { ANONYMOUS_USER_EMAIL, compareUsersForDisplay, Document, EVERYONE_EMAIL, FullUser, getRealAccess,
+  Organization, PermissionData, PermissionDelta, UserAPI, Workspace } from "app/common/UserAPI";
 
 import { computed, Computed, Disposable, obsArray, ObsArray, observable, Observable } from "grainjs";
 import some from "lodash/some";
@@ -327,6 +327,9 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     if (publicMember) {
       users = users.filter(m => m.email !== publicMember.email);
     }
+    // Sort once here rather than on every change, so that rows don't move around while editing.
+    // Members added afterwards are appended at the end.
+    users = [...users].sort(compareUsersForDisplay);
     return users.map(m =>
       this._buildEditableMember({
         id: m.id,
