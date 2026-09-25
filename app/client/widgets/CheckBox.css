@@ -6,6 +6,13 @@
   height: 16px;
 }
 
+.widget_checkbox-unchecked {
+  box-sizing: border-box;
+  background-color: var(--grist-theme-toggle-checkbox-unchecked-bg, #f0f8ff);
+  border: 1px solid var(--grist-theme-toggle-checkbox-unchecked-border, #d9d9d9);
+  border-radius: 3px;
+}
+
 :not(.formula_field)>.field_clip.has_cursor>.widget_checkbox {
   cursor: pointer;
   box-shadow: inset 0 0 0 1px #606060;
