@@ -11,7 +11,7 @@ import { IGristUrlState, userOverrideParams } from "app/common/gristUrls";
 import { waitGrainObs } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";
 import { ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL } from "app/common/UserAPI";
-import { getRealAccess, UserAccessData } from "app/common/UserAPI";
+import { compareUsersForDisplay, getRealAccess, UserAccessData } from "app/common/UserAPI";
 import { getUserRoleText } from "app/common/UserAPI";
 
 import { Disposable, dom, Observable, styled } from "grainjs";
@@ -60,8 +60,10 @@ export class ACLUsersPopup extends Disposable {
         access: getRealAccess(user, permissionData),
       }))
         .filter(user => user.access && !isSpecialEmail(user.email))
-        .filter(user => this._currentUser?.id !== user.id);
-      this._attributeTableUsers = permissionData.attributeTableUsers;
+        .filter(user => this._currentUser?.id !== user.id)
+        .sort(compareUsersForDisplay);
+      this._attributeTableUsers = [...permissionData.attributeTableUsers].sort(compareUsersForDisplay);
+      // Example users are kept in their original order (owner, editor, viewer).
       this._exampleUsers = permissionData.exampleUsers;
       this.allUsers.set(this.getUsers());
       this.isInitialized.set(true);
