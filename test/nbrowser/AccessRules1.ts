@@ -3,7 +3,7 @@
  */
 import {
   enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet, findRuleSetColumnWait,
-  findTable, findTableWait, startEditingAccessRules, triggerAutoComplete,
+  findTable, findTableWait, saveRules, startEditingAccessRules, triggerAutoComplete,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
@@ -155,8 +155,7 @@ describe("AccessRules1", function() {
     await enterRulePart(ruleSet, 3, `user.Email == rec.Agent_Email`, { R: "allow" });
     await enterRulePart(ruleSet, 4, null, "Deny all");
 
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
 
     // Check that user1 can see FinancialsTable, RumorsColumn, and all rows of ClientsTable.
     await checkFullView("user1");
@@ -206,8 +205,7 @@ describe("AccessRules1", function() {
     const ruleSet = findDefaultRuleSet(/FinancialsTable/);
     await gu.scrollIntoView(ruleSet);
     await enterRulePart(ruleSet, 1, `rec.id == 1`, "Allow all");
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
     await gu.openPage("FinancialsTable");
     await gu.waitForServer();
     assert.deepEqual(
@@ -228,8 +226,7 @@ describe("AccessRules1", function() {
     // Change the catch-all rule on ClientsTable to read-only permission, and give it a memo.
     const ruleSet = findDefaultRuleSet(/ClientsTable/);
     await enterRulePart(ruleSet, 4, null, "Read only", "Sorry, this table is read-only.");
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
 
     // Check that user2 sees the memo when trying to update ClientsTable.
     await checkLimitedUpdateMemo("user2", "Sorry, this table is read-only");
@@ -243,8 +240,7 @@ describe("AccessRules1", function() {
     // Delete the memo for the ClientsTable catch-all rule.
     const ruleSet = findDefaultRuleSet(/ClientsTable/);
     await ruleSet.find(".test-rule-part-and-memo:nth-child(4) .test-rule-memo-remove").click();
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
 
     // Check that user2 no longer sees the memo.
     await checkLimitedUpdateMemo("user2");
@@ -258,8 +254,7 @@ describe("AccessRules1", function() {
     // Revert a rule that was modified in an earlier test.
     let ruleSet = findDefaultRuleSet(/ClientsTable/);
     await enterRulePart(ruleSet, 4, null, "Deny all");
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
     assert.equal(await driver.find(".test-rules-save").isDisplayed(), false);
 
     // Add/remove a rule; unchanged AccessRules should still show as Saved.
@@ -279,8 +274,7 @@ describe("AccessRules1", function() {
     // Check that the Save button is enabled, and save.
     assert.equal(await driver.find(".test-rules-save").isDisplayed(), true);
     await gu.userActionsCollect();
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
 
     await gu.userActionsVerify([
       ["BulkRemoveRecord", "_grist_ACLRules", [6]],
@@ -377,8 +371,7 @@ describe("AccessRules1", function() {
     await gu.findOpenMenuItem("li", "Year").click();
     await enterRulePart(ruleSet, 1, 'rec.Year == "yore"', { U: "deny" });
     await gu.waitForServer();
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
 
     // Attempting to set read bit should no longer result in a notification.
     await driver.findWait(".test-rule-set", 2000);
@@ -388,8 +381,7 @@ describe("AccessRules1", function() {
 
     // Remove rule.
     await ruleSet.find(".test-rule-part:nth-child(1) .test-rule-remove").click();
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
   });
 
   it("should report possible order-dependencies", async function() {
@@ -425,8 +417,7 @@ describe("AccessRules1", function() {
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: "allow" });
 
     // Check that trying to save throws an error.
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules(false);
     await driver.findContentWait(".test-notifier-toast-wrapper",
       /Column Year appears .* table FinancialsTable .* might be order-dependent/, 200);
     await gu.wipeToasts();
@@ -487,8 +478,7 @@ describe("AccessRules1", function() {
     // Remove second rule that hides table for everyone.
     await ruleSet.find(".test-rule-part-and-memo:nth-child(2) .test-rule-remove").click();
 
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
     // Test that this rule works.
     await gu.openPage("FinancialsTable");
     assert.deepEqual(await gu.getVisibleGridCells(

@@ -1,5 +1,5 @@
 import { UserAPI } from "app/common/UserAPI";
-import { startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import { saveRules, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -43,8 +43,7 @@ describe("DropdownConditionEditor", function() {
     await gu.findOpenMenuItem("li", "Roles").click();
     await userAttrRule.find(".test-rule-userattr-col").click();
     await driver.sendKeys("Email", Key.ENTER);
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
   }
 
   const waitForConditionEditor = async () => {
