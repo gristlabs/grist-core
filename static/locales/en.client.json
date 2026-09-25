@@ -1293,7 +1293,16 @@
         "HEADER STYLE": "HEADER STYLE"
     },
     "ChoiceTextBox": {
-        "CHOICES": "CHOICES"
+        "CHOICES": "CHOICES",
+        "SOURCE LIST": "SOURCE LIST",
+        "Custom (Column-specific)": "Custom (Column-specific)",
+        "Create new shared list...": "Create new shared list...",
+        "Create shared choice list": "Create shared choice list",
+        "Create": "Create",
+        "Cancel": "Cancel",
+        "Delete shared choice list": "Delete shared choice list",
+        "Delete shared list": "Delete shared list",
+        "Delete": "Delete"
     },
     "ColumnEditor": {
         "COLUMN DESCRIPTION": "COLUMN DESCRIPTION",

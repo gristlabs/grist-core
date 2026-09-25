@@ -45,13 +45,10 @@ export class ChoiceListEditor extends NewBaseEditor {
   private _inputSizer!: HTMLElement;     // Part of _contentSizer to size the text input
   private _alignment: string;
 
-  private _widgetOptionsJson = this.options.field.widgetOptionsJson.peek();
-  private _choices: string[] = this._widgetOptionsJson.choices || [];
-  private _choicesSet = new Set<string>(this._choices);
-  private _choiceOptionsByName: ChoiceOptions = this._widgetOptionsJson.choiceOptions || {};
+  private _choices: string[];
+  private _choicesSet: Set<string>;
+  private _choiceOptionsByName: ChoiceOptions;
 
-  // Whether to include a button to show a new choice.
-  // TODO: Disable when the user cannot change column configuration.
   private _enableAddNew: boolean;
   private _showAddNew: boolean = false;
 
@@ -60,6 +57,38 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   constructor(protected options: FieldOptions) {
     super(options);
+
+    let widgetOptions = options.field.widgetOptionsJson?.peek ?
+      options.field.widgetOptionsJson.peek() : options.field.widgetOptionsJson;
+    if (typeof widgetOptions === "string") {
+      try { widgetOptions = JSON.parse(widgetOptions); } catch (e) {
+        // Ignore or handle silently
+      }
+    }
+    widgetOptions = widgetOptions || {};
+
+    const sharedId = widgetOptions.sharedChoiceListId;
+
+    const rawDocSettings = (options.field as any).documentSettings;
+    let docSettings = typeof rawDocSettings?.peek === "function" ?
+      rawDocSettings.peek() :
+      (typeof rawDocSettings?.get === "function" ? rawDocSettings.get() : rawDocSettings);
+
+    if (typeof docSettings === "string") {
+      try { docSettings = JSON.parse(docSettings); } catch (e) {
+        // Ignore error
+      }
+    }
+    docSettings = docSettings || {};
+
+    const sharedLists = docSettings.sharedChoiceLists || {};
+    const sharedDef = sharedId ? sharedLists[sharedId] : null;
+
+    this._choices = sharedDef ? (sharedDef.choices || []) : (widgetOptions.choices || []);
+    this._choicesSet = new Set<string>(this._choices);
+    this._choiceOptionsByName = sharedDef ?
+      (sharedDef.choiceColors || {}) :
+      (widgetOptions.choiceOptions || {}) as ChoiceOptions;
 
     let acItems = this._choices.map(c => new ChoiceItem(c, false, false));
     if (this._hasDropdownCondition) {
@@ -82,7 +111,7 @@ export class ChoiceListEditor extends NewBaseEditor {
     };
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
-    this._alignment = options.field.widgetOptionsJson.peek().alignment || "left";
+    this._alignment = widgetOptions.alignment || "left";
 
     // If starting to edit by typing in a string, ignore previous tokens.
     const cellValue = decodeObject(options.cellValue);
@@ -129,7 +158,6 @@ export class ChoiceListEditor extends NewBaseEditor {
       this.commandGroup.attach(),
     );
     dom.update(this._textInput,
-      // Resize the editor whenever user types into the textbox.
       dom.on("input", () => this.resizeInput(true)),
       dom.prop("value", options.editValue || ""),
       this.commandGroup.attach(),
@@ -139,24 +167,20 @@ export class ChoiceListEditor extends NewBaseEditor {
       dom.on("click", () => this._textInput.focus()),
     );
 
-    this._enableAddNew = !this._hasDropdownCondition;
+    // Disable inline addition when using a shared choice list or a condition
+    this._enableAddNew = !this._hasDropdownCondition && !sharedId;
   }
 
   public attach(cellElem: Element): void {
-    // Attach the editor dom to page DOM.
     this._editorPlacement = EditorPlacement.create(this, this._dom, cellElem, { margins: getButtonMargins() });
 
-    // Reposition the editor if needed for external reasons (in practice, window resize).
     this.autoDispose(this._editorPlacement.onReposition.addListener(() => this.resizeInput()));
 
-    // Update the sizing whenever the tokens change. Delay it till next tick to give a chance for
-    // DOM updates that happen around tokenObs changes, to complete.
     this.autoDispose(this._tokenField.tokensObs.addListener(() =>
       Promise.resolve().then(() => this.resizeInput())));
 
     this.setSizerLimits();
 
-    // Once the editor is attached to DOM, resize it to content, focus, and set cursor.
     this.resizeInput();
     this._textInput.focus();
     const pos = Math.min(this.options.cursorPos, this._textInput.value.length);
@@ -180,10 +204,6 @@ export class ChoiceListEditor extends NewBaseEditor {
     return this._textInput.selectionStart || 0;
   }
 
-  /**
-   * Updates list of valid choices with any new ones that may have been
-   * added from directly inside the editor (via the "add new" item in autocomplete).
-   */
   public async prepForSave() {
     const tokens = this._tokenField.tokensObs.get();
     const newChoices = tokens.filter(({ isNew }) => isNew).map(({ label }) => label);
@@ -194,25 +214,17 @@ export class ChoiceListEditor extends NewBaseEditor {
   }
 
   public setSizerLimits() {
-    // Set the max width of the sizer to the max we could possibly grow to, so that it knows to wrap
-    // once we reach it.
     const rootElem = this._tokenField.getRootElem();
     const maxSize = this._editorPlacement.calcSizeWithPadding(rootElem,
       { width: Infinity, height: Infinity }, { calcOnly: true });
     this._contentSizer.style.maxWidth = Math.ceil(maxSize.width) + "px";
   }
 
-  /**
-   * Helper which resizes the token-field to match its content.
-   */
   protected resizeInput(onlyTextInput: boolean = false) {
     if (this.isDisposed()) { return; }
 
     const rootElem = this._tokenField.getRootElem();
 
-    // To size the content, we need both the tokens and the text typed into _textInput. We
-    // re-create the tokens using cloneNode(true) copies all styles and properties, but not event
-    // handlers. We can skip this step when we know that only _textInput changed.
     if (!onlyTextInput || !this._inputSizer) {
       this._contentSizer.innerHTML = "";
 
@@ -221,16 +233,11 @@ export class ChoiceListEditor extends NewBaseEditor {
           dom.style("width", ""),
           dom.style("height", ""),
           this._inputSizer = cssInputSizer(),
-
-          // Remove the testId('tokenfield') from the cloned element, to simplify tests (so that
-          // selecting .test-tokenfield only returns the actual visible tokenfield container).
           dom.cls("test-tokenfield", false),
         ),
       );
     }
 
-    // Use a separate sizer to size _textInput to the text inside it.
-    // \u200B is a zero-width space; so the sizer will have height even when empty.
     this._inputSizer.textContent = this._textInput.value + "\u200B";
     const rect = this._contentSizer.getBoundingClientRect();
 
@@ -264,11 +271,6 @@ export class ChoiceListEditor extends NewBaseEditor {
     }
   }
 
-  /**
-   * If the search text does not match anything exactly, adds 'new' item to it.
-   *
-   * Also see: prepForSave.
-   */
   private _maybeShowAddNew(result: ACResults<ChoiceItem>, text: string): ACResults<ChoiceItem> {
     this._showAddNew = false;
     if (!this._enableAddNew) {
@@ -408,7 +410,6 @@ const cssInputSizer = styled("div", `
   margin: 3px 2px;
 `);
 
-// Set z-index to be higher than the 1000 set for .cell_editor.
 export const cssChoiceList = styled("div", `
   z-index: 1001;
   box-shadow: 0 0px 8px 0 ${theme.menuShadow};
