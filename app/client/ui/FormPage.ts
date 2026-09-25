@@ -11,6 +11,7 @@ import { colors } from "app/client/ui2018/cssVars";
 import { ApiError } from "app/common/ApiError";
 import { getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
+import { ANONYMOUS_USER_EMAIL } from "app/common/UserAPI";
 
 import { Disposable, dom, makeTestId, Observable, styled, subscribe } from "grainjs";
 
@@ -63,6 +64,23 @@ export class FormPage extends Disposable {
     );
   }
 
+  private _buildResponderInfoDom() {
+    return cssResponderInfo(
+      dom.domComputed((use) => {
+        const form = use(this._model.form);
+        const user = use(this._model.currentUser);
+
+        const isForcedAnonymous = Boolean(form?.forceAnonymous);
+        const isAnonymousUser = !user || user.anonymous || user.email === ANONYMOUS_USER_EMAIL;
+
+        return (isForcedAnonymous || isAnonymousUser) ?
+          t("Your response will be anonymous") :
+          t("Responding as {{name}}", { name: user.name });
+      }),
+      testId("responder-info"),
+    );
+  }
+
   private _buildFormPageDom() {
     return dom.domComputed((use) => {
       const form = use(this._model.form);
@@ -89,6 +107,7 @@ export class FormPage extends Disposable {
               { iconDomArgs: [cssFormBorderHelpButton.cls("")] },
             )),
           cssForm(
+            this._buildResponderInfoDom(),
             cssFormBody(
               cssFormContent(
                 dom.autoDispose(formRenderer),
@@ -208,6 +227,15 @@ const cssForm = styled("div", `
 
 const cssFormBody = styled("main", `
   width: 100%;
+`);
+
+const cssResponderInfo = styled("div", `
+  width: 100%;
+  padding: 12px 16px;
+  border-bottom: 1px solid ${colors.mediumGreyOpaque};
+  background-color: ${colors.lightGrey};
+  color: ${colors.slate};
+  font-size: 13px;
 `);
 
 // TODO: break up and move to `FormRendererCss.ts`.
