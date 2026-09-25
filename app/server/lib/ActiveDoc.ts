@@ -1006,9 +1006,12 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Apply a proposal to the document. The proposal is applied as a set of linked action groups
-   * for ease of undo, meaning each action group has a linkId refering to the previous one, and
-   * a otherId set to the first (or root) action group.
+   * Apply a proposal to the document. The proposal lands as a single action bundle, so it
+   * either applies in full or leaves the document untouched, and undoing it is one step.
+   *
+   * Note that the engine write and the proposal's status change are two separate writes with
+   * no transaction spanning them: a crash in between leaves the document patched and the
+   * proposal still open, and accepting it again would duplicate any rows it added.
    */
   public async applyProposal(docSession: OptDocSession, proposalId: number, options?: {
     dismiss?: boolean,
@@ -1033,24 +1036,27 @@ export class ActiveDoc extends EventEmitter {
     // recompute the changes since the branch point and now.
     const states = await this.getRecentStates(docSession);
     const hash = proposal.comparison.comparison?.parent?.h;
-
-    if (hash) {
-      const changes = await getChanges(docSession, this, {
-        states,
-        rightHash: states[0].h,
-        leftHash: hash,
-      });
-      const rightChanges = changes.details?.rightChanges;
-      if (rightChanges) {
-        rebaseSummary(rightChanges, origDetails.leftChanges);
-      }
+    if (!hash) {
+      // Details are only computed when there is a branch point.
+      throw new ApiError("Proposal branch point not found", 500);
     }
+    // Throws if the branch point has dropped out of recent history.
+    // Uncapped, like the proposal's own changes, since Patch reads cells
+    // from these too.
+    const changes = await getChanges(docSession, this, {
+      states,
+      rightHash: states[0].h,
+      leftHash: hash,
+      maxRows: null,
+    });
+    const trunkChanges = changes.details!.rightChanges;
+    rebaseSummary(trunkChanges, origDetails.leftChanges);
 
     let result: PatchLog = { changes: [], applied: false };
     if (options?.dismiss === undefined) {
       const patch = new Patch(this, docSession);
       const { details } = removeMetadataChangesFromDetails(origDetails);
-      result = await patch.applyChanges(details);
+      result = await patch.applyChanges(details, trunkChanges);
       if (result.applied) {
         await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
           status: "applied",
