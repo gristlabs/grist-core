@@ -11,7 +11,7 @@ import { DocStateComparison, DocStates } from "app/common/DocState";
 import { ApiCallsUsage, OrgUsageSummary } from "app/common/DocUsage";
 import { Features, Product } from "app/common/Features";
 import { isClient } from "app/common/gristUrls";
-import { encodeQueryParams } from "app/common/gutil";
+import { encodeQueryParams, localeCompare } from "app/common/gutil";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { OrgPrefs, UserOrgPrefs, UserPrefs } from "app/common/Prefs";
 import * as roles from "app/common/roles";
@@ -380,6 +380,14 @@ const roleNames: { [role: string]: string } = {
 
 export function getUserRoleText(user: UserAccessData) {
   return roleNames[user.access!] || user.access || "no access";
+}
+
+/**
+ * Compares users for display in lists: by name, or by email for users without a name (as that's
+ * what gets shown instead), then by email to break ties.
+ */
+export function compareUsersForDisplay(a: { name: string, email: string }, b: { name: string, email: string }) {
+  return localeCompare(a.name || a.email, b.name || b.email) || localeCompare(a.email, b.email);
 }
 
 export interface ExtendedUser extends FullUser {

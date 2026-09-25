@@ -39,23 +39,23 @@ describe("UserManager", () => {
   it("should render all emails and roles initially", async function() {
     await gu.waitToPass(async () => {
       assert.deepEqual(await getRenderedMembers(), [
-        ["foo@example.com", "Owner"],
         ["bar@example.com", "Editor"],
-        ["team@example.com", "Viewer"],
+        ["foo@example.com", "Owner"],
         ["guest@example.com", "Viewer"],
+        ["team@example.com", "Viewer"],
       ]);
     }, 5000);
     assert.deepEqual(JSON.parse(await driver.find(".test-result").getText()), {});
   });
 
   it("should reflect role changes", async function() {
-    await driver.findWait(".test-um-member .test-um-member-role", 100).doClick();
+    await driver.findContentWait(".test-um-member", /foo@example\.com/, 100).find(".test-um-member-role").doClick();
     await driver.findContentWait(".test-um-role-option", /Editor/, 100).doClick();
     assert.deepEqual(await getRenderedMembers(), [
-      ["foo@example.com", "Editor"],
       ["bar@example.com", "Editor"],
-      ["team@example.com", "Viewer"],
+      ["foo@example.com", "Editor"],
       ["guest@example.com", "Viewer"],
+      ["team@example.com", "Viewer"],
     ]);
 
     // Save and check output.
@@ -77,10 +77,10 @@ describe("UserManager", () => {
     await driver.findContentWait(".test-um-role-option", /Editor/, 100).doClick();
 
     assert.deepEqual(await getRenderedMembers(), [
-      ["foo@example.com", "Owner"],
       ["bar@example.com", "Editor"],
-      ["team@example.com", "Viewer"],
+      ["foo@example.com", "Owner"],
       ["guest@example.com", "Viewer"],
+      ["team@example.com", "Viewer"],
       ["bob@bob.tail", "Editor"],
       ["alice@a.com", "Viewer"],
       ["eve@a.com", "Editor"],
@@ -118,10 +118,10 @@ describe("UserManager", () => {
     await driver.findContent(".test-um-member", /bob@bob\.tail/).find(".test-um-member-delete").doClick();
 
     assert.deepEqual(await getRenderedMembers(), [
-      ["foo@example.com", "Owner"],
       ["bar@example.com", null],
-      ["team@example.com", "Viewer"],
+      ["foo@example.com", "Owner"],
       ["guest@example.com", "Viewer"],
+      ["team@example.com", "Viewer"],
     ]);
 
     // Save and check output.
@@ -141,10 +141,10 @@ describe("UserManager", () => {
     await driver.findContentWait(".test-um-role-option", /Owner/, 100).doClick();
 
     assert.deepEqual(await getRenderedMembers(), [
-      ["foo@example.com", null],
       ["bar@example.com", "Owner"],
-      ["team@example.com", "Viewer"],
+      ["foo@example.com", null],
       ["guest@example.com", "Viewer"],
+      ["team@example.com", "Viewer"],
       ["alice@bobtail.com", "Owner"],
     ]);
 
@@ -156,10 +156,10 @@ describe("UserManager", () => {
 
     // Check that everything is as at the start now.
     assert.deepEqual(await getRenderedMembers(), [
-      ["foo@example.com", "Owner"],
       ["bar@example.com", "Editor"],
-      ["team@example.com", "Viewer"],
+      ["foo@example.com", "Owner"],
       ["guest@example.com", "Viewer"],
+      ["team@example.com", "Viewer"],
     ]);
     assert.deepEqual(JSON.parse(await driver.find(".test-result").getText()), {});
   });
@@ -176,10 +176,10 @@ describe("UserManager", () => {
     await driver.find(".test-um-member-new input").doClear().sendKeys("foo2@example.com", Key.ENTER);
     assert.equal(await driver.find(".test-um-member-new input").getAttribute("validationMessage"), "");
     assert.deepEqual(await getRenderedMembers(), [
-      ["foo@example.com", "Owner"],
       ["bar@example.com", "Editor"],
-      ["team@example.com", "Viewer"],
+      ["foo@example.com", "Owner"],
       ["guest@example.com", "Viewer"],
+      ["team@example.com", "Viewer"],
       ["foo2@example.com", "Viewer"],
     ]);
 
@@ -193,10 +193,10 @@ describe("UserManager", () => {
     await driver.find(".test-um-member-new input").doClick().sendKeys(Key.ENTER);
     assert.equal(await driver.find(".test-um-member-new input").getAttribute("validationMessage"), "");
     assert.deepEqual(await getRenderedMembers(), [
-      ["foo@example.com", "Owner"],
       ["bar@example.com", "Editor"],
-      ["team@example.com", "Viewer"],
+      ["foo@example.com", "Owner"],
       ["guest@example.com", "Viewer"],
+      ["team@example.com", "Viewer"],
       ["foo2@example.com", "Viewer"],
     ]);
   });
