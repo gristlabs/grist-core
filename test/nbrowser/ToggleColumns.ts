@@ -37,6 +37,30 @@ describe("ToggleColumns", function() {
     await gu.addNewSection("Table", "Items", { selectBy: /Src/i });
   });
 
+  it("should show a visible style for unchecked checkboxes", async function() {
+    await gu.getCell({ section: "Src", col: "A", rowNum: 1 }).click();
+    const cell = gu.getCell({ section: "Items", col: "Chk", rowNum: 1 });
+    const checkbox = cell.find(".widget_checkbox");
+    assert.equal(await gu.isChecked(cell), false);
+    assert.equal(await checkbox.matches(".widget_checkbox-unchecked"), true);
+    assert.equal(await checkbox.getCssValue("border-top-width"), "1px");
+    const uncheckedRect = await checkbox.getRect();
+
+    // Checking the box removes the unchecked style, without changing the checkbox size.
+    await cell.click();
+    await gu.waitForServer();
+    assert.equal(await gu.isChecked(cell), true);
+    assert.equal(await checkbox.matches(".widget_checkbox-unchecked"), false);
+    assert.equal(await checkbox.getCssValue("border-top-width"), "0px");
+    const checkedRect = await checkbox.getRect();
+    assert.deepEqual([checkedRect.width, checkedRect.height], [uncheckedRect.width, uncheckedRect.height]);
+
+    // Unchecking it again restores the style.
+    await gu.undo();
+    assert.equal(await gu.isChecked(cell), false);
+    assert.equal(await checkbox.matches(".widget_checkbox-unchecked"), true);
+  });
+
   it("should fill in values determined by linking when checkbox is clicked", async function() {
     // Test the behavior with a checkbox.
     await verifyToggleBehavior();
