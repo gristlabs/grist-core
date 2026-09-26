@@ -44,7 +44,8 @@
         "Workspaces": "Spazi di lavoro",
         "Tutorial": "Tutorial",
         "Terms of service": "Condizioni di servizio",
-        "Grist Resources": "Risorse Grist"
+        "Grist Resources": "Risorse Grist",
+        "context menu - {{- workspaceName }}": "menu contestuale - {{- workspaceName }}"
     },
     "MakeCopyMenu": {
         "However, it appears to be already identical.": "Tuttavia, sembra essere già identico.",
@@ -74,7 +75,17 @@
         "Download document without history (can significantly reduce file size)": "Rimuovi la storia del documento (può ridurre molto le dimensioni del file)",
         "Download document and history": "Scarica tutto il documento e la storia",
         "Download": "Scarica",
-        "Download document": "Scarica documento"
+        "Download document": "Scarica documento",
+        ".tar (recommended)": ".tar (consigliato)",
+        ".zip": ".zip",
+        "Download an archive of all the attachments present in this document.": "Scarica un archivio di tutti gli allegati presenti in questo documento.",
+        "Download attachments": "Scarica allegati",
+        "Download full document and history": "Scarica il documento completo e la cronologia",
+        "Format:": "Formato:",
+        "Learn more": "Per saperne di più",
+        "download attachments": "scarica allegati",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Gli allegati sono esterni e non inclusi in questo download. Se carichi il documento su un'installazione Grist separata, dovrai anche {{downloadLink}} separatamente. ",
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "Se hai intenzione di caricare questo documento su un'installazione di Grist, avrai bisogno dell'archivio in formato \".tar\" per ripristinare gli allegati. "
     },
     "Importer": {
         "Update existing records": "Aggiorna i record esistenti",
@@ -94,7 +105,10 @@
         "{{count}} unmatched field_other": "{{count}} campi senza equivalente",
         "Skip Import": "Salta l'importazione",
         "Skip Table on Import": "Salta la tabella nell'importazione",
-        "Source column": "Colonna di origine"
+        "Source column": "Colonna di origine",
+        "Import options": "Opzioni di importazione",
+        "Cancel": "Annulla",
+        "Import": "Importa"
     },
     "NotifyUI": {
         "Cannot find personal site, sorry!": "Spiacente, impossibile trovare il sito personale!",
@@ -106,13 +120,18 @@
         "Renew": "Rinnova",
         "Report a problem": "Segnala un problema",
         "Upgrade Plan": "Aggiorna il tuo piano",
-        "Manage billing": "Gestisci modalità di addebito"
+        "Manage billing": "Gestisci modalità di addebito",
+        "How you could gain access": "Come ottenere l'accesso",
+        "What's blocking you": "Cosa ti blocca"
     },
     "Pages": {
         "Delete data and this page.": "Elimina i dati e questa pagina.",
         "The following tables will no longer be visible_one": "La tabella seguente non sarà più visibile",
         "The following tables will no longer be visible_other": "Le tabelle seguenti non saranno più visibili",
-        "Delete": "Elimina"
+        "Delete": "Elimina",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Mantieni i dati ed elimina la pagina. La tabella rimarrà disponibile in {{rawDataLink}}",
+        "raw data page": "pagina dati raw",
+        "Document pages": "Pagine del documento"
     },
     "RecordLayoutEditor": {
         "Save layout": "Salva layout",
@@ -410,14 +429,19 @@
         "Billing account": "Conto di addebito",
         "Support Grist": "Sostieni Grist",
         "Use This Template": "Usa questo template",
-        "Sign up": "Registrati"
+        "Sign up": "Registrati",
+        "Site settings": "Impostazioni sito",
+        "Account settings": "Impostazioni account"
     },
     "ActionLog": {
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonna {{colId}} è stata successivamente rimossa nell'azione #{{action.actionNum}}",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "La tabella {{tableId}} è stata successivamente rimossa nell'azione #{{actionNum}}",
         "Action Log failed to load": "Impossibile caricare il log delle azioni",
         "This row was subsequently removed in action {{action.actionNum}}": "Questa riga è stata successivamente rimossa nell'azione {{action.actionNum}}",
-        "All tables": "Tutte le tabelle"
+        "All tables": "Tutte le tabelle",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "La colonna {{colId}} è stata rimossa dall'azione #{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Questa riga è stata rimossa dall'azione #{{actionNum}}",
+        "History blocked because of access rules.": "Lo storico è stato bloccato per causa delle regole d'accesso."
     },
     "App": {
         "Memory Error": "Errore di memoria",
@@ -482,7 +506,10 @@
         "No usage data to show.": "Nessun dato d'utilizzo disponibile.",
         "Personal site": "Sito personale",
         "Usage summary": "Sommario d'utilizzo",
-        "You have **{{left}} of {{limit}}** monthly **API** calls left": "Sono rimanenti **{{left}} di {{limit}}** chiamate api mensili"
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "Hai **{{left}} di {{limit}}** chiamate **API** mensili rimanenti",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "Hai **{{left}} di {{limit}}** crediti **Assistente AI** monouso rimanenti",
+        "You have **{{limit}}** monthly **API** calls": "Hai **{{limit}}** chiamate **API** mensili",
+        "You have **{{limit}}** one time **AI Assistant** credits": "Hai **{{limit}}** crediti **Assistente AI** monouso"
     },
     "AccessRules": {
         "Permission to edit document structure": "Permesso di modificare la struttura del documento",
@@ -587,7 +614,8 @@
         "Team Site": "Sito del team",
         "Grist Templates": "Template di Grist",
         "Billing account": "Dati di fatturazione",
-        "Manage team": "Gestisci il team"
+        "Manage team": "Gestisci il team",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Alla pagina iniziale"
     },
     "ChartView": {
         "Create separate series for each value of the selected column.": "Creare serie separate per ciascun valore delle colonne selezionate.",
@@ -595,12 +623,41 @@
         "Toggle chart aggregation": "Grafici aggregati",
         "selected new group data columns": "Selezionato un nuovo gruppo-colonne dati",
         "Each Y series is followed by a series for the length of error bars.": "Ciascuna serie Y è seguita da una serie per la lunghezza della barra di errore.",
-        "Each Y series is followed by two series, for top and bottom error bars.": "Ciascuna serie Y è seguita da due serie, per le barre di errore alta e bassa."
+        "Each Y series is followed by two series, for top and bottom error bars.": "Ciascuna serie Y è seguita da due serie, per le barre di errore alta e bassa.",
+        "LABEL": "ETICHETTA",
+        "Bar chart": "Grafico a barre",
+        "Pie chart": "Grafico a torta",
+        "Donut chart": "Grafico a ciambella",
+        "Area chart": "Grafico ad area",
+        "Line chart": "Grafico a linee",
+        "Scatter plot": "Diagramma a dispersione",
+        "Kaplan-Meier plot": "Grafico di Kaplan-Meier",
+        "Invert Y-axis": "Inverti asse Y",
+        "Orientation": "Orientamento",
+        "Vertical": "Verticale",
+        "Horizontal": "Orizzontale",
+        "Log scale Y-axis": "Asse Y in scala logaritmica",
+        "Show total": "Mostra totale",
+        "Text size": "Dimensione del testo",
+        "Show markers": "Mostra indicatori",
+        "Above+Below": "Sopra+Sotto",
+        "X-AXIS": "ASSE X",
+        "Aggregate values": "Valori aggregati",
+        "SERIES": "SERIE",
+        "Add series": "Aggiungi serie",
+        "non-numeric columns are not shown": "le colonne non numeriche non vengono visualizzate",
+        "non-numeric column is not shown": "la colonna non numerica non viene visualizzata",
+        "selected new x-axis": "nuovo asse x selezionato",
+        "Remove": "Rimuovi"
     },
     "ColorSelect": {
         "Apply": "Applica",
         "Cancel": "Annulla",
-        "Default cell style": "Stile cella di default"
+        "Default cell style": "Stile cella di default",
+        "default": "default",
+        "fill": "riempimento",
+        "none": "nessuno",
+        "text": "testo"
     },
     "ColumnFilterMenu": {
         "All": "Tutto",
@@ -619,7 +676,11 @@
         "Others": "Altro",
         "Search": "Cerca",
         "Search values": "Cerca valori",
-        "Min": "Min"
+        "Min": "Min",
+        "Clear search": "Cancella ricerca",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Ordina in ordine alfabetico (attualmente: ordinato per numero di occorrenze)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Ordina per numero di occorrenze (attualmente: in ordine alfabetico)",
+        "Unpin filter": "Rimuovi filtro fissato"
     },
     "CustomSectionConfig": {
         " (optional)": " (opzionale)",
@@ -647,7 +708,8 @@
         "Last updated:": "Ultimo aggiornamento:",
         "Missing description and author information.": "Mancano descrizione e info sull'autore.",
         "Reject": "Rifiuta",
-        "Widget": "Widget"
+        "Widget": "Widget",
+        "Change custom widget": "Modifica widget personalizzato"
     },
     "DataTables": {
         "Click to copy": "Clicca per copiare",
@@ -716,7 +778,9 @@
         "Any documents created in this site will appear here.": "Qualsiasi documento creato in questo sito compare qui.",
         "Create my first document": "Creare il mio primo documento",
         "You have read-only access to this site. Currently there are no documents.": "Hai solo accesso in lettura a questo sito. Non ci sono documenti da vedere.",
-        "personal site": "sito personale"
+        "personal site": "sito personale",
+        "Grid view": "Visualizzazione a griglia",
+        "List view": "Visualizzazione a elenco"
     },
     "DocPageModel": {
         "Add empty table": "Aggiungi tabella vuota",
@@ -728,7 +792,8 @@
         "You do not have edit access to this document": "Non hai accesso in scrittura a questo documento",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Puoi provare a ricaricare il documento, o usare la modalità di ricovero. In modalità di ricovero il documento è pienamente accessibile al proprietario e inaccessibile a tutti gli altri. Inoltre le formule sono disabilitate. [{{error}}]",
         "Document owners can attempt to recover the document. [{{error}}]": "Il proprietario del documento può tentare di ripristinarlo. [{{error}}]",
-        "Error accessing document": "Errore nell'accedere al documento"
+        "Error accessing document": "Errore nell'accedere al documento",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Si prega di ricaricare il documento; se l'errore persiste, contattare il proprietario del documento per tentare un ripristino. [{{error}}]"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Non è possibile costruire un tour del documento dai dati contenuti. Verificare che esista una tabella GristDocTour con le colonne Title, Body, Placement e Location.",
@@ -819,7 +884,18 @@
         "Newly uploaded attachments will be placed in Internal storage.": "Gli allegati nuovi verranno caricati nello storage interno.",
         "No external stores available": "Nessuno storage esterno disponibile",
         "Preferred storage for this document": "Storage preferito per questo documento",
-        "Start transfer": "Inizia il trasferimento"
+        "Start transfer": "Inizia il trasferimento",
+        "Upload": "Carica",
+        "Upload missing attachments": "Carica gli allegati mancanti",
+        "Uploading...": "Caricamento in corso...",
+        "Default": "Predefiniti",
+        "Default, template, or tutorial": "Predefinito, modello, o tutorial",
+        "Document type": "Tipo di documento",
+        "Allow others to suggest changes": "Consenti ad altri di suggerire modifiche",
+        "Enable suggestions": "Abilita i suggerimenti",
+        "Suggestions": "Suggerimenti",
+        "experiment": "esperimento",
+        "For number formats": "Per i formati numerici"
     },
     "DocumentUsage": {
         "Data size": "Dimensione dei dati",
@@ -885,7 +961,10 @@
         "Using separate settings": "Sto usando impostazioni separate"
     },
     "FilterConfig": {
-        "Add column": "Aggiungi colonna"
+        "Add column": "Aggiungi colonna",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Fissa filtro - colonna {{- columnName}} (attualmente: non fissato)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Rimuovi filtro - colonna {{- columnName}} (attuale: fissato)",
+        "remove filter - {{- columnName}} column": "rimuovi filtro - colonna {{- columnName}}"
     },
     "FilterBar": {
         "SearchColumns": "Cerca nelle colonne",
@@ -895,7 +974,10 @@
         "Grid Options": "Opzioni della griglia",
         "Horizontal gridlines": "Linee orizzontali della griglia",
         "Zebra stripes": "Strisce alternate",
-        "Vertical gridlines": "Linee verticali della griglia"
+        "Vertical gridlines": "Linee verticali della griglia",
+        "Show": "Mostra",
+        "row IDs": "ID di riga",
+        "row numbers": "numeri di riga"
     },
     "GridViewMenus": {
         "Add column": "Aggiungi colonna",
@@ -966,16 +1048,23 @@
         "Choice List": "Lista di scelte",
         "Reference": "Riferimento",
         "Reference List": "Lista di riferimenti",
-        "Attachment": "Allegato"
+        "Attachment": "Allegato",
+        "Row numbers": "Numeri di riga",
+        "Numbers": "Numeri",
+        "Row IDs": "ID di riga",
+        "Hidden": "Nascosto"
     },
     "GristDoc": {
         "Import from file": "Importa da file",
         "Saved linked section {{title}} in view {{name}}": "Salvata la sezione collegata {{title}} nella vista {{name}}",
         "Added new linked section to view {{viewName}}": "Aggiunta nuova sezione collegata alla vista {{viewName}}",
-        "go to webhook settings": "vai alle impostazioni dei webhook"
+        "go to webhook settings": "vai alle impostazioni dei webhook",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "L'applicazione di nuove modifiche è temporaneamente sospesa. La coda dei webhook è satura. Si prega di verificare le impostazioni dei webhook, rimuovere quelli non validi e svuotare la coda.",
+        "{{title}} widget": "widget {{title}}"
     },
     "LeftPanelCommon": {
-        "Help Center": "Centro assistenza"
+        "Help Center": "Centro assistenza",
+        "Accessibility": "Accessibilità"
     },
     "OnBoardingPopups": {
         "Finish": "Termina",
@@ -992,7 +1081,11 @@
         "Building {{- label}} widget": "Costruisco il widget {{- label}}",
         "Group by": "Raggruppa",
         "Select data": "Seleziona dati",
-        "Select widget": "Seleziona widget"
+        "Select widget": "Seleziona widget",
+        "New Table": "Nuova tabella",
+        "{{table}} grouped by… (press to select fields)": "{{table}} raggruppata per... (premi per selezionare i campi)",
+        "Press Space to add fields": "Premi Spazio per aggiungere campi",
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Utilizza i tasti freccia su e giù per spostarti tra le opzioni. Premi Invio ed Esc per passare da una fase all'altra."
     },
     "PermissionsWidget": {
         "Allow all": "Autorizza tutto",
@@ -1892,5 +1985,45 @@
         "Record already assigned_one": "Record già assegnato",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "Il record {{targetName}} di {{targetTable}} è già assegnato al record          {{oldSourceName}} di {{sourceTable}}.",
         "Record already assigned_other": "Record già assegnato"
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Aggiungi calendario",
+        "Create new column": "Crea nuova colonna",
+        "Date + time": "Data + ora",
+        "Date only": "Solo data",
+        "Dates": "Date",
+        "End": "Fine",
+        "End (optional)": "Fine (opzionale)",
+        "None": "Nessuna",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Scegliere le colonne che contengono date e titoli degli eventi, o crearne delle nuove.",
+        "Select a column": "Scegli una colonna",
+        "Set up calendar": "Configura il calendario",
+        "Start": "Inizio",
+        "Start and end must be the same date type.": "L'inizio e la fine devono essere dello stesso tipo di data.",
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "Questa tabella sommario non ha una colonna per le date. Aggiungi prima una colonna con formula, come ad esempio MIN($group.Date).",
+        "This summary table has no text column. Events will show without labels.": "Questa tabella sommario non contiene colonne di testo. Gli eventi verranno visualizzati senza etichette.",
+        "Title": "Titolo",
+        "Title (optional)": "Titolo (opzionale)"
+    },
+    "CalendarView": {
+        "Day": "Giorno",
+        "Month": "Mese",
+        "New Event": "Nuovo evento",
+        "Today": "Oggi",
+        "Week": "Settimana"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "+{{count}} in più",
+        "+{{count}} more_other": "+{{count}} in più",
+        "End Date": "Data di fine",
+        "Groups events by category. Each choice uses its own color and style.": "Raggruppa gli eventi per categoria. Ogni opzione utilizza un colore e uno stile propri.",
+        "Is All Day": "Giornaliero",
+        "Start Date": "Data di inizio",
+        "The label shown on the event.": "L'etichetta mostrata sull'evento.",
+        "Title": "Titolo",
+        "Type": "Tipo",
+        "When the event ends. If empty, the event lasts as long as its start.": "Quando termina l'evento. Se vuoto, l'evento dura quanto il suo inizio.",
+        "When the event starts.": "Quando inizia l'evento.",
+        "Whether the event lasts all day.": "Se l'evento dura tutto il giorno."
     }
 }
