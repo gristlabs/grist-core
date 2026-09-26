@@ -6,20 +6,20 @@ import { icon } from "app/client/ui2018/icons";
 import { menu, menuItem } from "app/client/ui2018/menus";
 import { cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
   IModalControl, modal } from "app/client/ui2018/modals";
+import { isEmail } from "app/common/gutil";
 import { BasicRole, isBasicRole, NonGuestRole, VIEWER } from "app/common/roles";
 
 import { computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
 
-function parseEmailList(emailListRaw: string): string[] {
+/**
+ * Splits the text entered into the "Invite multiple" dialog into a list of emails. Emails are
+ * normally entered one per line, but may also be separated by commas, semicolons, or spaces.
+ */
+export function parseEmailList(emailListRaw: string): string[] {
   return emailListRaw
-    .split("\n")
-    .map(email => email.trim().toLowerCase())
+    .split(/[\s,;]+/)
+    .map(email => email.toLowerCase())
     .filter(email => email !== "");
-}
-
-function validateEmail(email: string): boolean {
-  const mailformat = /\S+@\S+\.\S+/;
-  return mailformat.test(email);
 }
 
 export function buildMultiUserManagerModal(
@@ -38,7 +38,7 @@ export function buildMultiUserManagerModal(
   const save = (ctl: IModalControl) => {
     const emailList = parseEmailList(emailListObs.get());
     const role = rolesObs.get();
-    if (emailList.some(email => !validateEmail(email))) {
+    if (emailList.some(email => !isEmail(email))) {
       isValidObs.set(false);
     } else {
       emailList.forEach(email => onAdd(email, role));
@@ -110,7 +110,7 @@ function buildEmailsTextarea(
 ) {
   return cssTextarea(emailListObs,
     { onInput: true, isValid: isValidObs },
-    { placeholder: "Enter one email address per line" },
+    { placeholder: "Enter email addresses, one per line or separated by commas" },
     dom.on("change", _ev => isValidObs.set(true)),
     ...args,
   );
