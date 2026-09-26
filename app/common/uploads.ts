@@ -55,4 +55,4 @@ export interface FetchUrlOptions {
 // This list coincides with the extensions defined in core/plugins/manifest.yml
 export const EXTENSIONS_IMPORTABLE_WITHIN_DOC = [".xlsx", ".json", ".csv", ".tsv", ".dsv"];
 
-export const EXTENSIONS_IMPORTABLE_AS_DOC = [".grist", ".csv", ".tsv", ".dsv", ".txt", ".xlsx", ".xlsm"];
+export const EXTENSIONS_IMPORTABLE_AS_DOC = [".grist", ".csv", ".tsv", ".dsv", ".txt", ".xlsx", ".xlsm", ".json"];
