@@ -1,0 +1,252 @@
+# SPDX-FileCopyrightText: 2025 Maurice Debray <maurice.debray@dgnum.eu>
+#
+# SPDX-License-Identifier: MIT
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  inherit (lib)
+    types
+    mkOption
+    mkPackageOption
+    mkEnableOption
+    mkIf
+    ;
+
+  cfg = config.services.grist;
+in
+{
+  options.services.grist = {
+    enable = mkEnableOption "Grist core";
+
+    package = mkPackageOption pkgs "grist-core" { };
+
+    enableRedis = mkEnableOption "Grist redis data store.";
+
+    user = mkOption {
+      type = types.str;
+      default = "grist-core";
+      description = "User account under which grist-core runs.";
+    };
+
+    group = mkOption {
+      type = types.str;
+      default = "grist-core";
+      description = "Group under which grist-core runs.";
+    };
+
+    environment = mkOption {
+      type = types.submodule {
+        freeformType = types.attrsOf (types.nullOr types.str);
+
+        options = {
+          GRIST_DATA_DIR = mkOption {
+            type = types.path;
+            default = "/var/lib/grist-core/docs";
+            description = ''
+              Directory in which to store documents.
+            '';
+          };
+
+          GRIST_INST_DIR = mkOption {
+            type = types.path;
+            default = "/var/lib/grist-core";
+            description = ''
+              Path to Grist instance configuration files, for Grist server.
+            '';
+          };
+
+          GRIST_USER_ROOT = mkOption {
+            type = types.path;
+            default = "/var/lib/grist-core";
+            description = ''
+              An extra path to look for plugins in - Grist will scan for plugins in $GRIST_USER_ROOT/plugins.
+            '';
+          };
+
+          GRIST_HOST = mkOption {
+            type = types.str;
+            default = "127.0.0.1";
+            description = ''
+              Address to listen on
+            '';
+          };
+          GRIST_SERVERS = mkOption {
+            type = types.str;
+            default = "home,docs,static,app";
+            description = ''
+              Comma-separated list of Grist server components to run.
+            '';
+          };
+          GRIST_PORT = mkOption {
+            type = types.port;
+            default = 8484;
+            apply = toString;
+            description = ''
+              Port on which Grist listens.
+            '';
+          };
+
+          GVISOR_FLAGS = mkOption {
+            type = types.listOf types.str;
+            default = [
+              "-rootless"
+              "-debug"
+            ];
+            apply = lib.concatStringsSep " ";
+            description = ''
+              The flags that are passed on to gVisor when creating a sandbox.
+            '';
+          };
+
+          GRIST_SANDBOX_FLAVOR = mkOption {
+            type = types.nullOr types.str;
+            default = "gvisor";
+            description = ''
+              Sandbox to use for grist documents. Only "gvisor" is supported.
+            '';
+          };
+
+          GVISOR_AVAILABLE = mkOption {
+            type = types.str;
+            default = "1";
+            readOnly = true;
+            description = ''
+              Whether gvisor is available for Grist.
+            '';
+          };
+
+          TYPEORM_DATABASE = mkOption {
+            type = types.str;
+            default = "/var/lib/grist-core/db.sqlite";
+            description = ''
+              Database filename for sqlite or database name for other db types.
+            '';
+          };
+
+          TYPEORM_TYPE = mkOption {
+            type = types.enum [
+              "sqlite"
+              "postgres"
+            ];
+            default = "sqlite";
+            description = ''
+              Which database type to use for storage.
+            '';
+          };
+          GRIST_DEFAULT_EMAIL = mkOption {
+            type = types.str;
+            description = ''
+              The user who logs in with the email defined by
+              GRIST_DEFAULT_EMAIL is the administrator of this Grist
+              installation. When Grist runs for the first time, it will create
+              an account set to the value of GRIST_DEFAULT_EMAIL.
+            '';
+          };
+        };
+      };
+      default = { };
+      example = {
+        GRIST_DEFAULT_EMAIL = "example@example.com";
+      };
+      description = ''
+        Environment variables used for Grist.
+        See [](https://github.com/gristlabs/grist-core/tree/v1.3.2?tab=readme-ov-file#environment-variables)
+        for available environment variables.
+      '';
+    };
+
+    environmentFiles = mkOption {
+      type = types.listOf types.path;
+      default = [ ];
+      description = ''
+        Environment files for secrets.
+      '';
+    };
+  };
+
+  config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.environment.GRIST_SANDBOX_FLAVOR == "gvisor";
+        message = "grist only supports gvisor sandboxing";
+      }
+    ];
+
+    services.grist = {
+      environment = {
+        REDIS_URL = lib.mkIf cfg.enableRedis "redis://localhost:${toString config.services.redis.servers.grist.port}";
+      };
+    };
+
+    users.users.${cfg.user} = {
+      isSystemUser = true;
+      inherit (cfg) group;
+      home = cfg.environment.GRIST_USER_ROOT;
+    };
+    users.groups.${cfg.group} = { };
+
+    systemd.services.grist-core = {
+      description = "Grist Core";
+
+      after = [
+        "network.target"
+      ]
+      ++ lib.optional (cfg.environment.TYPEORM_TYPE == "postgres") "postgresql.service";
+
+      wants = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+
+      path = [
+        pkgs.procps
+        pkgs.glibc.bin
+      ];
+
+      inherit (cfg) environment;
+
+      serviceConfig = {
+        ExecStartPre = "${cfg.package}/bin/grist-companion db migrate";
+        ExecStart = lib.getExe cfg.package;
+
+        User = cfg.user;
+        Group = cfg.group;
+
+        Restart = "always";
+
+        StateDirectory = "grist-core";
+        WorkingDirectory = "/var/lib/grist-core";
+
+        Delegate = "yes";
+
+        # TODO: re-enable everything here.
+        # DynamicUser = true;
+        # ProtectHome = true;
+        # ProtectSystem = "strict";
+        # PrivateTmp = true;
+        # PrivateDevices = true;
+        # ProtectHostname = true;
+        # ProtectClock = true;
+        # ProtectKernelTunables = true;
+        # ProtectKernelModules = true;
+        # ProtectKernelLogs = true;
+        # ProtectControlGroups = true;
+        # NoNewPrivileges = true;
+        # RestrictRealtime = true;
+        # RestrictSUIDSGID = true;
+        # RemoveIPC = true;
+        # PrivateMounts = true;
+
+        EnvironmentFile = cfg.environmentFiles;
+      };
+    };
+    services.redis.servers = lib.mkIf cfg.enableRedis {
+      "grist" = {
+        enable = true;
+        port = 6380;
+      };
+    };
+  };
+}
