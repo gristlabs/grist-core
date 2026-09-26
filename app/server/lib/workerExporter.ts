@@ -2,7 +2,7 @@ import "app/server/lib/lockdown";
 import { FilterColValues } from "app/common/ActiveDocAPI";
 import { createExcelFormatter } from "app/server/lib/ExcelFormatter";
 import { ActiveDocSource, doExportDoc, doExportSection, doExportTable,
-  ExportData, ExportHeader, ExportParameters, Filter } from "app/server/lib/Export";
+  ExportData, ExportHeader, ExportParameters, Filter, getExportHeader } from "app/server/lib/Export";
 import log from "app/server/lib/log";
 
 import { Stream } from "stream";
@@ -226,8 +226,10 @@ function convertToExcel(stream: Stream | undefined, testDates: boolean, options:
     const formatters = columns.map(col => createExcelFormatter(col.formatter.type, col.formatter.widgetOpts));
     // Generate headers for all columns with correct styles for whole column.
     // Actual header style for a first row will be overwritten later.
-    const colHeader = options.header ?? "label";
-    ws.columns = columns.map((col, c) => ({ header: col[colHeader], style: formatters[c].style() }));
+    ws.columns = columns.map((col, c) => ({
+      header: getExportHeader(col, options.header),
+      style: formatters[c].style(),
+    }));
     // style up the header row
     for (let i = 1; i <= columns.length; i++) {
       // apply to all rows (including header)

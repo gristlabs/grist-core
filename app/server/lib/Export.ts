@@ -53,7 +53,15 @@ export class ActiveDocSourceDirect implements ActiveDocSource {
 // Helper interface with information about the column
 export interface ExportColumn {
   id: number;
+  /**
+   * The colId used to look up cell values. For Reference and similar columns, this is the colId of
+   * a helper display column (e.g. "gristHelper_Display"), not of the column the user sees.
+   */
   colId: string;
+  /**
+   * The colId of the column the user sees. Used as the header when exporting with `header=colId`.
+   */
+  rawColId: string;
   label: string;
   type: string;
   formatter: BaseFormatter;
@@ -92,6 +100,14 @@ export interface ExportData {
 }
 
 export type ExportHeader = "colId" | "label";
+
+/**
+ * Returns the header to use for an exported column: its label by default, or its colId with
+ * `header=colId`.
+ */
+export function getExportHeader(col: ExportColumn, header?: ExportHeader): string {
+  return header === "colId" ? col.rawColId : col.label;
+}
 
 /**
  * Export parameters that identifies a section, filters, sort order.
@@ -233,6 +249,7 @@ export async function doExportTable(
       return {
         id: displayCol.id,
         colId: displayCol.colId,
+        rawColId: tc.colId,
         label: tc.label,
         type: tc.type,
         formatter: createFullFormatterFromDocData(docData, tc.id),
@@ -321,6 +338,7 @@ export async function doExportSection(
     return {
       id: displayCol.id,
       colId: displayCol.colId,
+      rawColId: col.colId,
       label: col.label,
       type: col.type,
       formatter: createFullFormatterFromDocData(docData, col.id, field?.id),
