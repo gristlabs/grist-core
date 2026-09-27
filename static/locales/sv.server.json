@@ -9,7 +9,9 @@
     },
     "access": {
         "docDisabled": "Dokumentet är inaktiverat.",
-        "docNoAccess": "Du har inte behörighet att komma åt detta dokument."
+        "docNoAccess": "Du har inte behörighet att komma åt detta dokument.",
+        "userDisabledReasonMissing": "Ingen anledning angiven",
+        "userDisabled": "Användaren är avstängd (Anledning: {{- reason }})"
     },
     "admin": {
         "emptyOrg": "Inga ägare hittades i administratörsorgranisationen som styrs av `GRIST_INSTALL_ADMIN_ORG={{org}}`",
