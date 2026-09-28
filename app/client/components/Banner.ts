@@ -132,15 +132,16 @@ const cssBanner = styled("div", `
   padding: 10px;
   gap: 16px;
   color: ${tokens.white};
+  background: #676767;
+  --icon-color: currentColor;
 
   & a {
-    color: ${tokens.white};
+    color: inherit;
     text-decoration: underline;
   }
 
   &-info {
     color: ${tokens.black};
-    --icon-color: ${tokens.black};
     background: #FFFACD;
   }
 
@@ -175,7 +176,6 @@ const cssButton = styled(icon, `
   width: 16px;
   height: 16px;
   cursor: pointer;
-  background-color: white;
 `);
 
 const cssExpandButton = styled(cssButton, `
@@ -202,5 +202,4 @@ const cssIcon = styled(icon, `
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-  background-color: white;
 `);
