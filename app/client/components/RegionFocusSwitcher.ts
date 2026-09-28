@@ -780,13 +780,24 @@ export const kbJumperClass = "kb_jumper_anchor";
 export const kbJumperAnchor = (): DomElementArg => ([
   dom.cls(kbJumperClass),
   (el) => {
-    if (!isProgrammaticallyFocusable(el, true) && el.getAttribute("tabindex") === null) {
-      el.setAttribute("tabindex", "-1");
-      // Make sure mouse clicks on anchors don't interfere with the Clipboard.
-      // Without this, clicking an anchor area, then pressing Ctrl+v to paste something inside a cell wouldn't
-      // work, as the focus wouldn't be on the hidden clipboard element but would be on the clicked anchor area)
-      el.classList.add("ignore_tabindex");
-    }
+    // Wait for any potential observables to be applied before checking if the element is focusable,
+    // for example to wait for an [href] attribute.
+    setTimeout(() => {
+      // Make the element programmatically focusable if necessary, ignoring the disabled elements.
+      // That means, we automatically add a tabindex="-1" on non-interactive elements that are jump anchors, like
+      // <nav[aria-label]>, <[role="group"][aria-label]>, etc. But we don't interfer with already [disabled] inputs.
+      if (
+        !(el as HTMLInputElement).disabled &&
+        !isProgrammaticallyFocusable(el, true) &&
+        el.getAttribute("tabindex") === null
+      ) {
+        el.setAttribute("tabindex", "-1");
+        // Make sure mouse clicks on anchors don't interfere with the Clipboard.
+        // Without this, clicking an anchor area, then pressing Ctrl+v to paste something inside a cell wouldn't
+        // work, as the focus wouldn't be on the hidden clipboard element but would be on the clicked anchor area)
+        el.classList.add("ignore_tabindex");
+      }
+    }, 0);
   },
 ]);
 
