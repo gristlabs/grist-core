@@ -145,6 +145,7 @@ const cssBanner = styled("div", `
   }
 
   &-warning {
+    color: #4c2e00;
     background: #E6A117;
   }
 
