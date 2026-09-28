@@ -422,7 +422,8 @@
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
         "Create my first document": "Create my first document",
         "You have read-only access to this site. Currently there are no documents.": "You have read-only access to this site. Currently there are no documents.",
-        "personal site": "personal site"
+        "personal site": "personal site",
+        "Documents": "Documents"
     },
     "DocPageModel": {
         "Add empty table": "Add empty table",
@@ -435,7 +436,9 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Sorry, access to this document has been denied. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]",
         "You do not have edit access to this document": "You do not have edit access to this document",
-        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]"
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]",
+        "Import from {{importSource}}": "Import from {{importSource}}",
+        "Import from...": "Import from..."
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.",
@@ -704,7 +707,9 @@
         "go to webhook settings": "go to webhook settings",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.",
         "Import from Airtable": "Import from Airtable",
-        "{{title}} widget": "{{title}} widget"
+        "{{title}} widget": "{{title}} widget",
+        "Airtable": "Airtable",
+        "File": "File"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -733,7 +738,8 @@
         "To use Grist, please either sign up or sign in.": "To use Grist, please either sign up or sign in.",
         "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist.",
         "Learn more in our {{helpCenterLink}}.": "Learn more in our {{helpCenterLink}}.",
-        "Only show documents": "Only show documents"
+        "Only show documents": "Only show documents",
+        "Create a document": "Create a document"
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
@@ -753,7 +759,10 @@
         "Terms of service": "Terms of service",
         "Grist Resources": "Grist Resources",
         "context menu - {{- workspaceName }}": "context menu - {{- workspaceName }}",
-        "Import from Airtable": "Import from Airtable"
+        "Import from Airtable": "Import from Airtable",
+        "Airtable": "Airtable",
+        "Import from {{importSource}}": "Import from {{importSource}}",
+        "Import from...": "Import from..."
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -1217,7 +1226,8 @@
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
         "Select fields": "Select fields",
-        "Upgrade now": "Upgrade now"
+        "Upgrade now": "Upgrade now",
+        "Loading...": "Loading..."
     },
     "modals": {
         "Cancel": "Cancel",
@@ -3464,5 +3474,117 @@
         "You've asked for this.": "You've asked for this.",
         "{{count}} people have asked for this._one": "{{count}} people have asked for this.",
         "{{count}} people have asked for this._other": "{{count}} people have asked for this."
+    },
+    "AdminServersSection": {
+        "1 document": "1 document",
+        "1 other server has stopped reporting that it is running.": "1 other server has stopped reporting that it is running.",
+        "1 other server is registered but not accepting new documents.": "1 other server is registered but not accepting new documents.",
+        "1 server": "1 server",
+        "Another server has the same address, so requests meant for one may reach the other.": "Another server has the same address, so requests meant for one may reach the other.",
+        "Could not reach the server": "Could not reach the server",
+        "Each document is held by one of these servers. Fleet-style routing.": "Each document is held by one of these servers. Fleet-style routing.",
+        "Each document is held by one of these servers. Worker-pool routing.": "Each document is held by one of these servers. Worker-pool routing.",
+        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.",
+        "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.": "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.",
+        "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.": "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.",
+        "Grist Fleet is not in your activation key": "Grist Fleet is not in your activation key",
+        "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.": "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.",
+        "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.": "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.",
+        "No servers are registered to hold documents": "No servers are registered to hold documents",
+        "Refresh": "Refresh",
+        "Refreshing…": "Refreshing…",
+        "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.": "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.",
+        "Said it is running within the last few seconds.": "Said it is running within the last few seconds.",
+        "Server pool found": "Server pool found",
+        "Servers": "Servers",
+        "Servers have stopped reporting that they are running": "Servers have stopped reporting that they are running",
+        "Set options through the environment rather than on this page, so that every server is configured the same way.": "Set options through the environment rather than on this page, so that every server is configured the same way.",
+        "Shares an address with {{list}}": "Shares an address with {{list}}",
+        "Some servers share an address": "Some servers share an address",
+        "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.": "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.",
+        "The list below is from the last successful check. Press Refresh to try again.": "The list below is from the last successful check. Press Refresh to try again.",
+        "The servers registered to hold documents": "The servers registered to hold documents",
+        "This build does not support Grist Fleet": "This build does not support Grist Fleet",
+        "checking": "checking",
+        "draining": "draining",
+        "group {{group}}": "group {{group}}",
+        "no proxy": "no proxy",
+        "no servers": "no servers",
+        "not reporting": "not reporting",
+        "running": "running",
+        "shared address": "shared address",
+        "this server": "this server",
+        "{{count}} documents_one": "{{count}} documents",
+        "{{count}} documents_other": "{{count}} documents",
+        "{{count}} of {{total}} not reporting_one": "{{count}} of {{total}} not reporting",
+        "{{count}} of {{total}} not reporting_other": "{{count}} of {{total}} not reporting",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} other servers are registered but not accepting new documents.",
+        "{{count}} other servers are registered but not accepting new documents._other": "{{count}} other servers are registered but not accepting new documents.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} other servers have stopped reporting that they are running.",
+        "{{count}} other servers have stopped reporting that they are running._other": "{{count}} other servers have stopped reporting that they are running.",
+        "{{count}} servers_one": "{{count}} servers",
+        "{{count}} servers_other": "{{count}} servers",
+        "{{percent}}% load": "{{percent}}% load"
+    },
+    "GristImportEntryPoints": {
+        "Copy data from another document": "Copy data from another document"
+    },
+    "GristImportUI": {
+        "1 warning": "1 warning",
+        "Cancel": "Cancel",
+        "Choose destination": "Choose destination",
+        "Continue": "Continue",
+        "Copy 1 table": "Copy 1 table",
+        "Copy from {{docName}} in progress. Do not navigate away from this page.": "Copy from {{docName}} in progress. Do not navigate away from this page.",
+        "Copy tables": "Copy tables",
+        "Copy {{count}} tables_one": "Copy {{count}} tables",
+        "Copy {{count}} tables_other": "Copy {{count}} tables",
+        "Copying data from another document is available in the full edition of Grist.": "Copying data from another document is available in the full edition of Grist.",
+        "Copying data from another document is available on Business plans and above.": "Copying data from another document is available on Business plans and above.",
+        "Copying tables...": "Copying tables...",
+        "Destination": "Destination",
+        "Document": "Document",
+        "Existing tables": "Existing tables",
+        "Failed to fetch document tables": "Failed to fetch document tables",
+        "New table": "New table",
+        "New table: structure only": "New table: structure only",
+        "No documents available in this workspace.": "No documents available in this workspace.",
+        "No workspaces available in this site.": "No workspaces available in this site.",
+        "Select tables to copy from {{docName}}": "Select tables to copy from {{docName}}",
+        "Select the Grist document to copy data from.": "Select the Grist document to copy data from.",
+        "Site": "Site",
+        "Skip": "Skip",
+        "Source tables": "Source tables",
+        "Structure only": "Structure only",
+        "Try for free": "Try for free",
+        "Try full Grist": "Try full Grist",
+        "Workspace": "Workspace",
+        "loading your tables...": "loading your tables...",
+        "{{count}} warnings_one": "{{count}} warnings",
+        "{{count}} warnings_other": "{{count}} warnings"
+    },
+    "HomeLearningResources": {
+        "A 3 minute tour of Grist": "A 3 minute tour of Grist",
+        "Grist Tutorial": "Grist Tutorial",
+        "Help Center": "Help Center",
+        "Learn Grist": "Learn Grist",
+        "Learn the basics, step by step": "Learn the basics, step by step",
+        "Learning resources": "Learning resources",
+        "Tutorials and live sessions": "Tutorials and live sessions",
+        "Tutorials, docs, guides and videos": "Tutorials, docs, guides and videos",
+        "Video Tour": "Video Tour",
+        "Webinars": "Webinars"
+    },
+    "HomeNewDocBlock": {
+        "Blank document": "Blank document",
+        "Import file": "Import file",
+        "Templates": "Templates"
+    },
+    "startDocGristImport": {
+        "Copy data from another document": "Copy data from another document"
+    },
+    "startHomeGristImport": {
+        "Copy data from another document": "Copy data from another document",
+        "Data can't be copied to the current workspace.": "Data can't be copied to the current workspace."
     }
 }
