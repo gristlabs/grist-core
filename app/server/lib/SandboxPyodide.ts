@@ -111,6 +111,7 @@ export function getPyodideSettings(options: ISandboxOptions): PyodideSettings {
     command,
     stdio: ["pipe", "pipe", "pipe"],
     args: [
+      "run",
       `--allow-read=${readDir}`,
       `--allow-read=${gristDir}`,
       `--allow-read=${reqFile}`,

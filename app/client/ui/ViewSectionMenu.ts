@@ -13,6 +13,7 @@ import { basicButton, primaryButton } from "app/client/ui2018/buttons";
 import { isNarrowScreenObs, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu } from "app/client/ui2018/menus";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 
 import { Computed, dom, IDisposableOwner, makeTestId, styled } from "grainjs";
 import { defaultMenuOptions } from "popweasel";
@@ -227,7 +228,7 @@ function makeCustomOptions(section: ViewSectionRec) {
 
 const clsOldUI = styled("div", ``);
 
-export const cssMenu = styled("div", `
+export const cssMenu = styled(unstyledButton, `
   display: flex;
   cursor: pointer;
   border-radius: 3px;
@@ -302,7 +303,7 @@ export const cssDotsIconWrapper = styled(cssIconWrapper, `
   }
 `);
 
-const cssExpandIconWrapper = styled("div", `
+const cssExpandIconWrapper = styled(unstyledButton, `
   display: flex;
   border-radius: 3px;
   align-items: center;

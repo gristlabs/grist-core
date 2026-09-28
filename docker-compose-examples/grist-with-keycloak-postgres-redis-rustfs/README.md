@@ -3,7 +3,8 @@ external services used by larger or more demanding deployments:
 
 - Postgres as a home database,
 - Redis as a state store,
-- MinIO for snapshot and attachment storage,
+- [RustFS](https://rustfs.com/) for snapshot and attachment storage (any
+  S3-compatible store with bucket versioning will do),
 - and [Keycloak](https://www.keycloak.org/) for managing and authenticating
   users, connected to Grist with
   [OpenID Connect](https://support.getgrist.com/install/oidc/).
@@ -82,7 +83,7 @@ GRIST_ADMIN_EMAIL=test@example.org \
 ACME_EMAIL=my_email@example.com \
 PERSIST_DIR=./persist \
 DATABASE_PASSWORD=grist-db-password \
-MINIO_PASSWORD=grist-minio-password \
+RUSTFS_PASSWORD=grist-rustfs-password \
 OIDC_CLIENT_SECRET=gristclientsecret \
 KEYCLOAK_DATABASE_PASSWORD=keycloak-db-password \
 KEYCLOAK_ADMIN_PASSWORD=admin \

@@ -1,6 +1,5 @@
-import { kbFocusHighlighterClass } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { enableTabTrap, lockFocusUntilRemoved } from "app/client/lib/focusUtils";
+import { enableTabTrap, kbFocusHighlighterClass, lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
 import { cssInput } from "app/client/ui/cssInput";

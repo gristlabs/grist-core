@@ -1,3 +1,5 @@
+import { fixOutlineOverflow } from "app/client/components/KeyboardFocusHighlighter";
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { loadUserManager } from "app/client/lib/imports";
 import { startHomeAirtableImport } from "app/client/lib/imports/airtable/startHomeAirtableImport";
 import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement";
@@ -87,6 +89,8 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       ),
       dom("nav",
         { "aria-labelledby": "grist-workspaces-heading" },
+        kbJumperAnchor,
+        fixOutlineOverflow,
         dom.forEach(home.workspaces, (ws) => {
           if (ws.isSupportWorkspace) { return null; }
           const info = getWorkspaceInfo(home.app, ws);
@@ -145,6 +149,8 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       )),
       cssHomeTools(
         { "aria-labelledby": "grist-resources-heading" },
+        kbJumperAnchor,
+        fixOutlineOverflow,
         cssSectionHeader(
           cssSectionHeaderText(t("Grist Resources"), { id: "grist-resources-heading" }),
         ),

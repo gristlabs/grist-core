@@ -7,6 +7,7 @@
  * This is done as a quick way to make sure focus rings are correctly visible when using a kb,
  * without impacting touch/mouse users, and without having to change the whole codebase.
  */
+import { kbFallbackClass, kbFocusHighlighterClass } from "app/client/lib/focusUtils";
 import { components } from "app/common/ThemePrefs";
 
 import { Disposable, dom, styled } from "grainjs";
@@ -31,17 +32,13 @@ export class KeyboardFocusHighlighter extends Disposable {
 }
 
 /**
- * Add this class to a container element to have keyboard-focused children items visually highlighted.
- */
-export const kbFocusHighlighterClass = "kb-focus-highlighter-group";
-
-/**
  * Add this class to an element to prevent {@link KeyboardFocusHighlighter} from highlighting it.
  */
 export const kbFocusHighlighterIgnoreClass = "kb-focus-highlighter-ignore";
 
 const focusableSelector =
-  `:is(a, input, textarea, select, button, [tabindex="0"]):focus-visible:not(.${kbFocusHighlighterIgnoreClass})`;
+  `:is(a, input, textarea, select, button, [tabindex="0"], .kb_jumper_anchor, .${kbFallbackClass})` +
+  `:focus-visible:not(.${kbFocusHighlighterIgnoreClass})`;
 
 const cssKeyboardUser = styled("div", `
   & .${kbFocusHighlighterClass} ${focusableSelector} {
@@ -67,3 +64,13 @@ export const cssWhenKeyboardUser = styled("div", `
     display: none;
   }
 `);
+
+const cssOutlineInside = styled("div", `
+  outline-offset: -3px !important;
+`);
+
+/**
+ * We often hide overflows in Grist and that makes our outlines hard to see.
+ * This helper allows to easily make the focus ring visible in those cases.
+ * */
+export const fixOutlineOverflow = () => dom.cls(cssOutlineInside.className);

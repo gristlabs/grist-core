@@ -4,10 +4,9 @@ import {
   cssWhenKeyboardUser,
   highlightKeyboardFocus,
   isKeyboardUser,
-  kbFocusHighlighterClass,
 } from "app/client/components/KeyboardFocusHighlighter";
 import { FocusLayer } from "app/client/lib/FocusLayer";
-import { focusAdjacentFocusable, trapTabKey } from "app/client/lib/focusUtils";
+import { focusAdjacentFocusable, kbFocusHighlighterClass, trapTabKey } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/AppModel";
 import { ColumnRec, TableRec, ViewSectionRec } from "app/client/models/DocModel";

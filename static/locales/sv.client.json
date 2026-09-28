@@ -104,7 +104,11 @@
         "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth appar låter dig ansluta externa integrationer till denna Gristserver på ett säkrare och bekvämare sätt än att använda API-nycklar.\n\nOAuth appar är tillgängliga i [fullversionen av Grist]({{fullGrist}}).",
         "Personal site": "Personlig sajt",
         "No usage data to show.": "Ingen användningsdata att visa.",
-        "Usage summary": "Användningsöversikt"
+        "Usage summary": "Användningsöversikt",
+        "You have **{{limit}}** monthly **API** calls": "Du får göra **{{limit}}** **API-anrop** per månad",
+        "You have **{{limit}}** one time **AI Assistant** credits": "Du har **{{limit}}** engångs **AI-assitent** krediter",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "Du har **{{left}} av {{limit}}** kvar av månadens **API** anrop",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "Du har **{{left}} av {{limit}}** engångs **AI-assistent krediter kvar"
     },
     "AccountWidget": {
         "Access Details": "Tillgångsdetaljer",
@@ -528,7 +532,7 @@
         "Unpin filter": "Lossa filter"
     },
     "CustomSectionConfig": {
-        " (optional)": " (valfri)",
+        " (optional)": " (ej obligatorisk)",
         "Add": "Lägg till",
         "Enter Custom URL": "Fyll i anpassad URL",
         "Full document access": "Full dokument åtkomst",
@@ -1037,7 +1041,9 @@
         "Renew": "Förnya",
         "Report a problem": "Rapportera ett problem",
         "Upgrade Plan": "Uppgradera abonnemang",
-        "Manage billing": "Hantera fakturering"
+        "Manage billing": "Hantera fakturering",
+        "What's blocking you": "Vad som hindrar dig",
+        "How you could gain access": "Hur du kan få åtkomst"
     },
     "OnBoardingPopups": {
         "Finish": "Avsluta",
@@ -1619,7 +1625,12 @@
     "WelcomeSitePicker": {
         "Welcome back": "Välkommen tillbaka",
         "You can always switch sites using the account menu.": "Du kan alltid växla mellan sajter genom kontomenyn.",
-        "You have access to the following Grist sites.": "Du har tillgång till följande Gristsajter."
+        "You have access to the following Grist sites.": "Du har tillgång till följande Gristsajter.",
+        "No sites available": "Inga sajter tillgängliga",
+        "Create a team site": "Skapa en arbetslagssajt",
+        "Sign in to see your sites": "Logga in för att se dina sajter",
+        "Sign in": "Logga in",
+        "Ask an administrator to add you to a team site.": "Be administratören att lägga till dig i en arbetslagssajt."
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "BESKRIVNING"
@@ -1671,7 +1682,10 @@
         "Access overview": "Behörighetsöversikt",
         "Share it publicly": "Dela den ofantligt",
         "Verify your sensitive data before sharing publicly": "Kontrollera din känsliga data innan du delar ofäntligt",
-        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Din {{resourceType}} kommer att vara tillgänglig för vem som helst med länken, oavsett om den delas direkt eller hittas via en sökmotor.\n Säkerställ att din {{resourceType}} inte innehåller någon känslig data innan du delar."
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Din {{resourceType}} kommer att vara tillgänglig för vem som helst med länken, oavsett om den delas direkt eller hittas via en sökmotor.\n Säkerställ att din {{resourceType}} inte innehåller någon känslig data innan du delar.",
+        "Configure notifications": "Ställa in notiser",
+        "Invitation emails are not enabled on this installation.": "Inbjudnings e-post är inte aktiverad i denna Gristinstallation.",
+        "Invitation emails are not sent on Grist Community edition.": "Inbjudningse-post skickas inte ut i öppen version av Grist."
     },
     "SearchModel": {
         "Search all pages": "Sök på alla sidor",
@@ -2824,7 +2838,25 @@
         "Skip authentication setup?": "Hoppa över inställning av autentisering?",
         "Choose how people sign in. You can change this anytime after setup.": "Välj hur användare loggar in. Du kan ändra detta när som helst efter uppstart.",
         "Anyone who can reach this server can access all data without signing in. You can configure authentication later from the admin panel.": "Vem som helst som kan nå denna server kan komma åt alla data utan att logga in. Du kan ställa in autentisering senare från administrationspanelen.",
-        "Activate": "Aktiv"
+        "Activate": "Aktiv",
+        "Activate: {{name}}": "Aktivera: {{name}}",
+        "Address this.": "Hantera detta.",
+        "Hide installation ID": "Dölj installationsID",
+        "I have a key": "Jag har en nyckel",
+        "Missing activation key": "Aktiveringsnyckel saknas",
+        "Other methods": "Andra metoder",
+        "Request activation key": "Ansök om aktiveringsnyckel",
+        "Requires activation key": "Kräver aktiveringsnyckel",
+        "Revert": "Ångra",
+        "Show installation ID": "Visa installationsID",
+        "Start your key request": "Påbörja din ansökan om aktiveringsnyckel",
+        "Switch to: {{name}}": "Växla till: {{name}}",
+        "Was: {{name}}": "Var tidigare: {{name}}",
+        "{{name}} requires an activation key": "{{name}} kräver en aktiveringsnyckel",
+        "Meanwhile, finish setting up": "Under tiden, slutför inställningar av",
+        "I understand this server will run with no authentication": "Jag förstår att denna server kommer köras utan aytentisering",
+        "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "Du kommer få svar per e-post, vanligtvis inom 5 arbetsdagar. Nyckeln kommer att vara knuten till denna installation.",
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} är aktiv men fungerar bara med komplett Grist med aktiveringsnyckel. "
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
@@ -3036,7 +3068,8 @@
         "Profile": "Profil",
         "Developer": "Utvecklare",
         "Account settings": "Kontoinställningar",
-        "Authorized apps": "Autentiserade appar"
+        "Authorized apps": "Autentiserade appar",
+        "Personal site": "Personlig sajt"
     },
     "QuickSetupServerStep": {
         "Server": "Server",
@@ -3094,7 +3127,8 @@
         "Upgrade to full Grist": "Uppgradera till komplett Grist",
         "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist.",
         "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "Funktioner som är den fel av komplett version av grist så som e-postnotiser, automatiserade flöden, MCPserver, AI assistent, OIDC och SAML stöd kommer att stängas av efter omstart. Du kan alltid uppgradera till komplett Grist igen.",
-        "Your server will restart automatically once finished.": "Din server kommer att starta om automatiskt när det är klart."
+        "Your server will restart automatically once finished.": "Din server kommer att starta om automatiskt när det är klart.",
+        "The Community edition is set via environment variable.": "Öppen version är vald genom miljövariabel."
     },
     "BaseUrlSection": {
         "set": "ställ in",
@@ -3142,7 +3176,8 @@
         "Sandboxing": "Sandboxing",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Använder macOS inbyggda sandbox. God isolation för lokalt användande på Mac.",
         "macOS sandbox": "maxOS snadbox",
-        "Sandbox": "Sandbox"
+        "Sandbox": "Sandbox",
+        "Revert": "Ångra"
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Starta underhållsläge",
@@ -3262,13 +3297,158 @@
         "Setup requests": "Ställ in anrop",
         "already done": "redan klart",
         "{{count}} requests_one": "{{count}} anrop",
-        "{{count}} requests_other": "{{count}} anrop"
+        "{{count}} requests_other": "{{count}} anrop",
+        "Setup steps users have asked for": "Inställningssteg som användare efterfrågat"
     },
     "NotificationsAndAutomationsNudge": {
         "Add a note": "Lägg till en notering",
         "Next step": "Nästa steg",
         "Note sent.": "Notering skickad.",
         "Notifications and Automations": "Notiser och automatiserade flöden",
-        "Waiting on": "Väntar på"
+        "Waiting on": "Väntar på",
+        "1 person has asked for this.": "1 person har efterfrågat detta.",
+        "Ask the admin for this": "Be administratören om detta",
+        "Everything below is waiting on": "Allt nedan väntar på",
+        "Next step for everything below": "Nästa steg för allt nedan",
+        "You and 1 other have asked for this.": "Du och 1 annan har efterfrågat detta.",
+        "You and {{count}} others have asked for this._one": "Du och {{count}} andra har efterfrågat detta.",
+        "You and {{count}} others have asked for this._other": "Du och {{count}} andra har efterfrågat detta.",
+        "You've asked for this.": "Du har efterfrågat detta.",
+        "{{count}} people have asked for this._one": "{{count}} personer har efterfrågat detta.",
+        "{{count}} people have asked for this._other": "{{count}} personer har efterfrågat detta.",
+        "{{done}} of {{total}} steps": "{{done}} av {{total}} steg",
+        "Ask questions and build formulas in plain language.": "Ställ frågor och skapa formler i naturligt språk.",
+        "Setting these up is done by whoever manages this Grist installation.": "Att ställa in dessa görs av den som hanterar denna Gristinstallation.",
+        "These features need additional setup on this install.": "Dessa funktioner kräver ytterligare inställningar av denna Gristinstallation.",
+        "When you share a document, new members get an email invite.": "När du delar ett dokument kommer nya medlemmar få en inbjudan per e-post.",
+        "Why do you want this? Press Enter to send.": "Varför behöver du detta? Tryck på Enter för att skicka."
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Lägg till kalender",
+        "Create new column": "Skapa ny kolumn",
+        "Date + time": "Datum + tid",
+        "Date only": "Enbart datum",
+        "Dates": "Datum",
+        "End": "Slut",
+        "End (optional)": "Slut (ej obligatorisk)",
+        "Title (optional)": "Titel (ej obligatorisk)",
+        "None": "Ingen",
+        "Select a column": "Välj en kolumn",
+        "Set up calendar": "Ställ in kalender",
+        "Start": "Start",
+        "Title": "Titel",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Välj de kolumner som innehåller dina händelsers datum och rubriker eller skapa nya.",
+        "Start and end must be the same date type.": "Start och slut måste vara av samma datumtyp.",
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "Denna summeringstabell har ingen datum kolumn. Lägg till en formelkolumn så som MIN($group.Datum) först.",
+        "This summary table has no text column. Events will show without labels.": "Denna summeringstabell har ingen textkolumn. Händelserna kommer att visas utan rubrik."
+    },
+    "HelpUsImproveSection": {
+        "A couple of quick questions — optional, and only our team sees this.": "Några få snabba frågor — ej obligatoriska, och synliga bara för ditt arbetslag.",
+        "Nonprofit": "Ideell",
+        "Individual or hobbyist": "Individ eller för hobby",
+        "Other": "Annat",
+        "Please enter a valid email address.": "Fyll i en giltig e-postadress.",
+        "Reddit": {
+            "forum": "Reddit/forum"
+        },
+        "Search engine": "Sökmotor",
+        "Select…": "Välj…",
+        "Send me product and security updates": "Skicka produkt och säkerhetsuppdateringar",
+        "Social media": "Sociala medier",
+        "What best describes you?": "Vas beskriver dig bäst?",
+        "A business or organization": "Ett förslag eller organisation",
+        "AI response": "AI svar",
+        "Conference": {
+            "event": "Konferens/event"
+        },
+        "Developer": {
+            "IT": "Utvecklare/IT"
+        },
+        "Education": {
+            "Research Institute": "Utbildning/Forskningsinstitut"
+        },
+        "Email is required when subscribing to updates.": "E-post är obligatoriskt för att prenumerera på uppdateringar.",
+        "Email:": "E-post:",
+        "Friend": {
+            "colleague": "Vänn/Kollega"
+        },
+        "GitHub": "GitHub",
+        "Help us improve Grist": "Hjälp oss förbättra Grist",
+        "How did you hear about Grist?": "Hur fick du kännedom om Grist?"
+    },
+    "CalendarView": {
+        "Day": "Dag",
+        "Month": "Månad",
+        "New Event": "Ny händelse",
+        "Today": "Idag",
+        "Week": "Vecka"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "+{{count}} fler",
+        "+{{count}} more_other": "+{{count}} fler",
+        "End Date": "Slutdatum",
+        "Is All Day": "Är hela dagen",
+        "Start Date": "Startdatum",
+        "Title": "Titel",
+        "Type": "Typ",
+        "When the event starts.": "När händelsen börjar.",
+        "Whether the event lasts all day.": "Om händelsen pågår hela dagen.",
+        "The label shown on the event.": "Namnet som visas på händelsen.",
+        "When the event ends. If empty, the event lasts as long as its start.": "När händelsen slutar. Om den är tom kommer händelsen pågå så länge som dess start.",
+        "Groups events by category. Each choice uses its own color and style.": "Grupperar händelser efter kategori. Varje alternativ använder sin egen färg och stil."
+    },
+    "SetupSteps": {
+        "AI Assistant": "AI-AIassistent",
+        "Automations": "Automatiserade flöden",
+        "Change & comment notifications": "Ändra & kommentera notiser",
+        "Choose full Grist edition": "Välj komplett variant av Grist",
+        "Connect a task queue (Redis)": "Anslut ett kösystem (Redis)",
+        "Connect an AI provider": "Anslut en AI tjänst",
+        "Connect email delivery": "Anslut en e-post-tjänst",
+        "Invite emails": "Injudnings e-post",
+        "Use a plan with automations": "Använd ett abonnemang med automatiserade flöden"
+    },
+    "VersionFooter": {
+        "Compare editions": "Jämför varianter",
+        "Grist Community edition": "Grist öppen version",
+        "No official support": "Ingen officiell support",
+        "Not the full edition": "Inte den kompletta versionen",
+        "Only community support": "Endast öppen version",
+        "Version {{- version}}": "Version {{- version}}",
+        "Release notes": "Versionsinformation"
+    },
+    "RowNumbersMenu": {
+        "Hidden": "Dold",
+        "Numbers": "Nummer",
+        "Row IDs": "Rad IDn",
+        "Row numbers": "Radnummer"
+    },
+    "AskTheAdmin": {
+        "{{count}} people have asked for this._other": "{{count}} personer har efterfrågat detta.",
+        "{{count}} people have asked for this._one": "{{count}} personer har efterfrågat detta.",
+        "You've asked for this.": "Du har efterfrågat detta.",
+        "You and {{count}} others have asked for this._other": "Du ochv{{count}} andra har efterfrågat detta.",
+        "You and {{count}} others have asked for this._one": "Du och {{count}} andra har efterfrågat detta.",
+        "You and 1 other have asked for this.": "Du och 1 annan har efterfrågat detta.",
+        "Why do you want this? Press Enter to send.": "Varför behöver du detta? Tryck Enter för att skicka.",
+        "Note sent.": "Notering skickad.",
+        "Add a note": "Lägg till en notering",
+        "Ask the admin for this": "Be administratören om detta",
+        "1 person has asked for this.": "1 person har efterfrågat detta."
+    },
+    "InstallationIdBlock": {
+        "Installation ID copied to clipboard": "InstallationsID kopierat till utklipp",
+        "Installation ID": "InstallationsID",
+        "Copy to clipboard": "Kopiera till utklipp",
+        "Copy": "Kopiera"
+    },
+    "QuickSetupApplyStep": {
+        "Setup completion": "Slutförandet av inställningarna",
+        "Retry submission": "Lämna in igen",
+        "Please try again.": "Var god försök igen.",
+        "Grist is live!": "Grist är live!",
+        "Back to installation": "Tillbaka till installation",
+        "Apply and go live!": "Applicera och gå live!",
+        "Applying settings and restarting…": "Aplicerar Inställningar och startar om…"
     }
 }

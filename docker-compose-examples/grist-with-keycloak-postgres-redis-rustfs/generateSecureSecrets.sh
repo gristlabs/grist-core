@@ -21,7 +21,7 @@ function generateSecureString {
 
 cat > "$SCRIPT_DIR/.env" <<EOF
 DATABASE_PASSWORD=$(generateSecureString 24)
-MINIO_PASSWORD=$(generateSecureString 24)
+RUSTFS_PASSWORD=$(generateSecureString 24)
 OIDC_CLIENT_SECRET=$(generateSecureString 24)
 KEYCLOAK_DATABASE_PASSWORD=$(generateSecureString 24)
 KEYCLOAK_ADMIN_PASSWORD=$(generateSecureString 12)

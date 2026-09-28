@@ -61,20 +61,10 @@ function isCommResponseError(msg: CommResponse | CommResponseError): msg is Comm
  */
 export class Comm extends DisposableWithEvents implements GristServerAPI, DocListAPI {
   // methods defined by GristServerAPI
-  public logout = this._wrapMethod("logout");
-  public updateProfile = this._wrapMethod("updateProfile");
-  public getDocList = this._wrapMethod("getDocList");
-  public createNewDoc = this._wrapMethod("createNewDoc");
-  public importSampleDoc = this._wrapMethod("importSampleDoc");
-  public importDoc = this._wrapMethod("importDoc");
-  public deleteDoc = this._wrapMethod("deleteDoc");
   // openDoc has special definition below
-  public renameDoc = this._wrapMethod("renameDoc");
   public getConfig = this._wrapMethod("getConfig");
   public updateConfig = this._wrapMethod("updateConfig");
   public showItemInFolder = this._wrapMethod("showItemInFolder");
-  public getBasketTables = this._wrapMethod("getBasketTables");
-  public embedTable = this._wrapMethod("embedTable");
   public reloadPlugins = this._wrapMethod("reloadPlugins");
 
   public pendingRequests: Map<number, CommRequestInFlight>;
