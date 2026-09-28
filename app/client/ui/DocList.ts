@@ -1,3 +1,4 @@
+import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { stopEvent } from "app/client/lib/domUtils";
 import { loadUserManager } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
@@ -163,7 +164,7 @@ export class DocList extends Disposable {
               cssOptionsColumn(),
             ),
             unstyledUl(
-              dom.forEach(docs, (doc) => {
+              dom.forEach(docs, (doc, index) => {
                 return cssDocRow(
                   cssDoc(
                     cssDoc.cls("-no-access", doc.disabledAt !== undefined || !roles.canView(doc.access)),
@@ -182,6 +183,7 @@ export class DocList extends Disposable {
                           urlState().setLinkUrl(docUrl(doc)),
                           stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
                           testId("doc-name"),
+                          index % 10 === 0 || index === docs.length - 1 ? kbJumperAnchor : null,
                         ),
                         cssDocBadges(
                           doc.isPinned ?
