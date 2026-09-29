@@ -1377,6 +1377,11 @@ export class ActiveDoc extends EventEmitter {
     return this._granularAccess.hasAccessRulesPermission(docSession);
   }
 
+  // True if nothing in this doc would be censored for this user.
+  public async canReadEverything(docSession: OptDocSession) {
+    return this._granularAccess.canReadEverything(docSession);
+  }
+
   // Check if it is appropriate for the user to be treated as an owner of
   // the document for granular access purposes when in "prefork" mode
   // (meaning a document has been opened with the intent to fork it, but

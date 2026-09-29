@@ -1,3 +1,4 @@
+import { DocData } from "app/common/DocData";
 import {
   buildLinkNodes,
   isValidLink,
@@ -7,9 +8,7 @@ import {
   LinkNodeTable,
 } from "app/common/LinkNode";
 import { MetaRowRecord } from "app/common/TableData";
-import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import {
-  getTableById,
   getTableColumnsByTableId,
   getWidgetById,
   getWidgetsByPageId,
@@ -24,13 +23,14 @@ export interface SelectByOption {
 }
 
 export function getSelectByOptions(
-  doc: ActiveDoc,
+  docData: DocData,
   widgetId: number,
 ): SelectByOption[] {
-  const targetWidget = getWidgetById(doc, widgetId);
-  const sourceWidgets = getWidgetsByPageId(doc, targetWidget.parentId);
-  const targetNodes = createNodes(doc, [targetWidget]);
-  const sourceNodes = createNodes(doc, sourceWidgets);
+  const targetWidget = getWidgetById(docData, widgetId);
+  // Widgets this session cannot see can neither link nor be linked to.
+  const sourceWidgets = getWidgetsByPageId(docData, targetWidget.parentId);
+  const targetNodes = createNodes(docData, [targetWidget]);
+  const sourceNodes = createNodes(docData, sourceWidgets);
 
   const options: SelectByOption[] = [];
   for (const sourceNode of sourceNodes) {
@@ -49,21 +49,26 @@ export function getSelectByOptions(
 }
 
 function createNodes(
-  doc: ActiveDoc,
+  docData: DocData,
   widgets: MetaRowRecord<"_grist_Views_section">[],
 ): LinkNode[] {
   const operations: LinkNodeOperations = {
-    getTableById: id => getLinkNodeTableById(doc, id),
-    getSectionById: id => getLinkNodeSection(doc, id),
+    getTableById: id => getLinkNodeTableById(docData, id),
+    getSectionById: id => getLinkNodeSection(docData, id),
   };
-  const sections = widgets.map(({ id }) => getLinkNodeSection(doc, id));
+  const sections = widgets.map(({ id }) => getLinkNodeSection(docData, id));
   return buildLinkNodes(sections, operations);
 }
 
-function getLinkNodeTableById(doc: ActiveDoc, id: number): LinkNodeTable {
-  const table = getTableById(doc, id);
+// A link chain can pass through a widget this session cannot see, whose table
+// is censored. Like the client's row models, a missing table reads as blank.
+function getLinkNodeTableById(docData: DocData, id: number): LinkNodeTable {
+  const tables = docData.getMetaTable("_grist_Tables");
+  const table = tables.getRecord(id);
+  if (!table?.tableId) { return { id, tableId: "", isSummaryTable: false, columns: [] }; }
+  // The source of a readable summary may itself be censored.
   const maybeSummaryTable = table.summarySourceTable ?
-    getTableById(doc, table.summarySourceTable) :
+    tables.getRecord(table.summarySourceTable) :
     undefined;
   return {
     id: table.id,
@@ -71,24 +76,23 @@ function getLinkNodeTableById(doc: ActiveDoc, id: number): LinkNodeTable {
     isSummaryTable: Boolean(
       maybeSummaryTable && maybeSummaryTable.tableId !== table.tableId,
     ),
-    columns: getTableColumnsByTableId(doc, id).map(c =>
+    columns: getTableColumnsByTableId(docData, id).map(c =>
       pick(c, "id", "colId", "label", "type", "summarySourceCol"),
     ),
   };
 }
 
 function getLinkNodeSection(
-  doc: ActiveDoc,
+  docData: DocData,
   idOrWidget: number | MetaRowRecord<"_grist_Views_section">,
 ): LinkNodeSection {
+  // Not getWidgetById(), which rejects the censored widgets a chain may include.
   const widget =
     typeof idOrWidget === "number" ?
-      getWidgetById(doc, idOrWidget) :
+      docData.getMetaTable("_grist_Views_section").getRecord(idOrWidget) :
       idOrWidget;
-  const table = getTableById(doc, widget.tableRef);
-  const maybeSummaryTable = table.summarySourceTable ?
-    getTableById(doc, table.summarySourceTable) :
-    undefined;
+  if (!widget) { throw new Error(`Widget ${idOrWidget} not found`); }
+  const table = getLinkNodeTableById(docData, widget.tableRef);
   return {
     ...pick(
       widget,
@@ -101,6 +105,6 @@ function getLinkNodeSection(
       "linkSrcColRef",
       "linkTargetColRef",
     ),
-    tableId: maybeSummaryTable?.tableId ?? table.tableId,
+    tableId: table.tableId,
   };
 }

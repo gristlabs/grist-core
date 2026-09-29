@@ -1,34 +1,96 @@
 import { ApplyUAOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
 import { UserAction } from "app/common/DocActions";
+import { DocData } from "app/common/DocData";
 import { isHiddenCol } from "app/common/gristTypes";
 import { isNonNullish } from "app/common/gutil";
+import { isTableCensored } from "app/common/isHiddenTable";
 import { SchemaTypes } from "app/common/schema";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { OptDocSession } from "app/server/lib/DocSession";
 
-export function getTableById(doc: ActiveDoc, id: number) {
-  return getRecordById(doc, "_grist_Tables", id);
+/**
+ * The document's own metadata, not filtered by access rules. Suitable for
+ * resolving refs while applying actions, but not for building a response.
+ */
+export function getRawMeta(doc: ActiveDoc): DocData {
+  if (!doc.docData) {
+    throw new Error("Document not ready");
+  }
+
+  return doc.docData;
 }
 
-export function getTableColumnById(doc: ActiveDoc, id: number) {
-  return getRecordById(doc, "_grist_Tables_column", id);
+/**
+ * Metadata as `docSession` is allowed to see it, the same as the browser
+ * client receives. It may be a copy, so re-read it after applying actions.
+ */
+export async function getCensoredMeta(docSession: OptDocSession, doc: ActiveDoc): Promise<DocData> {
+  if (await doc.canReadEverything(docSession)) { return getRawMeta(doc); }
+  const metaTables = await doc.fetchMetaTables(docSession);
+  return new DocData(() => { throw new Error("Unexpected DocData fetch"); }, metaTables);
 }
 
-export function getTableColumnsByTableId(doc: ActiveDoc, tableId: number) {
-  const table = getTableById(doc, tableId);
-  return getDocDataOrThrow(doc)
-    .getMetaTable("_grist_Tables_column")
-    .filterRecords({
-      parentId: table.id,
-    });
+// Censoring blanks a widget's tableRef to 0.
+function isCensoredWidget(widget: { tableRef: number }) {
+  return widget.tableRef === 0;
 }
 
-export function getWidgetById(doc: ActiveDoc, id: number) {
-  return getRecordById(doc, "_grist_Views_section", id);
+export function getTableById(docData: DocData, id: number) {
+  return getRecordById(docData, "_grist_Tables", id);
 }
 
-export function getPageById(doc: ActiveDoc, id: number) {
-  return getRecordById(doc, "_grist_Views", id);
+export function getTableColumnById(docData: DocData, id: number) {
+  return getRecordById(docData, "_grist_Tables_column", id);
+}
+
+export function getTableColumnsByTableId(docData: DocData, tableId: number) {
+  const table = getTableById(docData, tableId);
+  return docData.getMetaTable("_grist_Tables_column").filterRecords({ parentId: table.id });
+}
+
+/**
+ * Whether the session can see a widget. The table's id is checked too, as
+ * censoring leaves the raw section of a denied table intact when a summary of
+ * it is readable.
+ */
+export function isVisibleWidget(docData: DocData, widget: { tableRef: number }) {
+  return !isCensoredWidget(widget) && !isTableCensored(docData.getMetaTable("_grist_Tables"), widget.tableRef);
+}
+
+/**
+ * Throws "not found" for a widget the session cannot see.
+ */
+export function getWidgetById(docData: DocData, id: number) {
+  const widget = docData.getMetaTable("_grist_Views_section").getRecord(id);
+  if (!widget || !isVisibleWidget(docData, widget)) {
+    throw new Error(`Widget ${id} not found`);
+  }
+
+  return widget;
+}
+
+/**
+ * Whether the session can see a page. Censoring blanks a page's name when any
+ * of its widgets is denied; a page with some visible widget still counts.
+ * The browser hides such a page, but tools keep it so its visible widgets
+ * stay reachable.
+ */
+export function isVisiblePage(docData: DocData, page: { id: number, name: string }) {
+  return Boolean(page.name) || docData.getMetaTable("_grist_Views_section")
+    .filterRecords({ parentId: page.id })
+    .some(widget => isVisibleWidget(docData, widget));
+}
+
+/**
+ * Throws "not found" for a page the session cannot see.
+ */
+export function getPageById(docData: DocData, id: number) {
+  const page = getRecordById(docData, "_grist_Views", id);
+  if (!isVisiblePage(docData, page)) {
+    throw new Error(`Page ${id} not found`);
+  }
+
+  return page;
 }
 
 export interface WidgetField {
@@ -41,10 +103,9 @@ export interface WidgetField {
 /**
  * The columns a widget shows, in display order, without helper columns.
  */
-export function getWidgetFields(doc: ActiveDoc, widgetId: number): WidgetField[] {
+export function getWidgetFields(docData: DocData, widgetId: number): WidgetField[] {
   // An unknown widget would otherwise read as one with no fields.
-  getWidgetById(doc, widgetId);
-  const docData = getDocDataOrThrow(doc);
+  getWidgetById(docData, widgetId);
   const cols = docData.getMetaTable("_grist_Tables_column");
   return docData.getMetaTable("_grist_Views_section_field")
     .filterRecords({ parentId: widgetId })
@@ -64,33 +125,36 @@ export function getWidgetFields(doc: ActiveDoc, widgetId: number): WidgetField[]
     }));
 }
 
-export function getWidgetsByPageId(doc: ActiveDoc, pageId: number) {
-  const page = getPageById(doc, pageId);
-  return getDocDataOrThrow(doc)
-    .getMetaTable("_grist_Views_section")
-    .filterRecords({ parentId: page.id });
-}
-
-export function getDocDataOrThrow(doc: ActiveDoc) {
-  const docData = doc.docData;
-  if (!docData) {
-    throw new Error("Document not ready");
-  }
-
-  return docData;
+/**
+ * The widgets on a page that the session can see.
+ */
+export function getWidgetsByPageId(docData: DocData, pageId: number) {
+  const page = getPageById(docData, pageId);
+  return docData.getMetaTable("_grist_Views_section").filterRecords({ parentId: page.id })
+    .filter(widget => isVisibleWidget(docData, widget));
 }
 
 function getRecordById<TableId extends keyof SchemaTypes>(
-  doc: ActiveDoc,
+  docData: DocData,
   tableId: TableId,
   id: number,
 ) {
-  const record = getDocDataOrThrow(doc).getMetaTable(tableId).getRecord(id);
-  if (!record) {
+  const record = docData.getMetaTable(tableId).getRecord(id);
+  if (!record || isCensoredRecord(tableId, record)) {
     throw new Error(`${getRecordName(tableId)} ${id} not found`);
   }
 
   return record;
+}
+
+// Censoring blanks a record rather than removing it, so a censored record
+// reads as missing. Pages and widgets have their own checks.
+function isCensoredRecord(tableId: keyof SchemaTypes, record: any): boolean {
+  switch (tableId) {
+    case "_grist_Tables": return !record.tableId;
+    case "_grist_Tables_column": return !record.parentId;
+    default: return false;
+  }
 }
 
 function getRecordName(tableId: keyof SchemaTypes) {
@@ -101,8 +165,8 @@ function getRecordName(tableId: keyof SchemaTypes) {
     case "_grist_Tables_column": {
       return "Column";
     }
-    case "_grist_Views_section": {
-      return "Widget";
+    case "_grist_Views": {
+      return "Page";
     }
     default: {
       return "Record";
