@@ -1630,7 +1630,8 @@
         "Create a team site": "Skapa en arbetslagssajt",
         "Sign in to see your sites": "Logga in för att se dina sajter",
         "Sign in": "Logga in",
-        "Ask an administrator to add you to a team site.": "Be administratören att lägga till dig i en arbetslagssajt."
+        "Ask an administrator to add you to a team site.": "Be administratören att lägga till dig i en arbetslagssajt.",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "Personliga sajter är avstängda på denna installation och du är inte medlem i någon arbetslagssajt ännu."
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "BESKRIVNING"
@@ -2856,7 +2857,13 @@
         "Meanwhile, finish setting up": "Under tiden, slutför inställningar av",
         "I understand this server will run with no authentication": "Jag förstår att denna server kommer köras utan aytentisering",
         "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "Du kommer få svar per e-post, vanligtvis inom 5 arbetsdagar. Nyckeln kommer att vara knuten till denna installation.",
-        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} är aktiv men fungerar bara med komplett Grist med aktiveringsnyckel. "
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} är aktiv men fungerar bara med komplett Grist med aktiveringsnyckel. ",
+        "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Vem som helst som kan nå denna server kam komma åt all data utan att logga in. Välj en inloggningsmetod nedan.",
+        "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Vem som helst kan komma åt all data utan att logga in. Detta lämpar sig bara för privata nätverk och tillfälliga installationer.",
+        "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.": "Enbart din omvända proxy ska kunna nå Gristmotorn direkt, annars kan användare komma runt inloggningen.",
+        "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "När du får din nyckel, fyll i den i **Variant** sektionen, växla sedan till **{{name}}** här.",
+        "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.": "Välj en tillgänglig inloggningsmetod som fungerar idag; Logga in med getgrist.com (enkelt och vår rekommendation), HTTP headers (tillsammans med omvänd proxy) eller fortsätt utan autentisering just nu.",
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Gemensam inloggning med **OIDC** eller **SAML** stöds till fullo i komplett Grist, som kräver en aktiveringsnyckel — se [priser]({{pricingLink}}). Individer och små organisationer kan ansöka om en [gratis Grist aktiveringsnyckel]({{faqLink}})."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
@@ -2880,7 +2887,8 @@
         "Recommended": "Rekommenderad",
         "Use getgrist.com sign-in": "Använd inloggning via getgrist.com",
         "You can switch to OIDC, SAML, or another method at any time.": "Du kan byta till OIDC, SAML, eller annan metod när som helst.",
-        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Perfekt för test och prototypbygge. Logga in med konto på getgrist.com, utan att ställa in en identitetsleverantör."
+        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Perfekt för test och prototypbygge. Logga in med konto på getgrist.com, utan att ställa in en identitetsleverantör.",
+        "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping.": "Användare loggar in med ett getgrist.com konto. Enklast att ställa in. Det är också idealiskt för testning och prototypbygge."
     },
     "AirtableImportUI": {
         "Back": "Tillbaka",
@@ -3128,7 +3136,11 @@
         "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist.",
         "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "Funktioner som är den fel av komplett version av grist så som e-postnotiser, automatiserade flöden, MCPserver, AI assistent, OIDC och SAML stöd kommer att stängas av efter omstart. Du kan alltid uppgradera till komplett Grist igen.",
         "Your server will restart automatically once finished.": "Din server kommer att starta om automatiskt när det är klart.",
-        "The Community edition is set via environment variable.": "Öppen version är vald genom miljövariabel."
+        "The Community edition is set via environment variable.": "Öppen version är vald genom miljövariabel.",
+        "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Du kan nedgradera när som helst till öppen version. Du förlorar inga data och behöver inte installeraom Grist.",
+        "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.": "Grist kommer växla till öppen version efter omstart. Det kommer stänga alla funktioner som ingår i komplett Grist. Du kommer inte att förlora några data, ingen ominstallation behövs.",
+        "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.": "När du växlar till komplett Grist laddas alla nödvändiga nya komponenter ner. Det kan ta några minuter, under tiden kommer servern vara otillgänglig.",
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} finns för individer och organisationer med mindre än 1M USD i total omsättning. För större organisationer besök {{pricingLink}}. Påbörja din 30-dagars gratis provapåperiod idag."
     },
     "BaseUrlSection": {
         "set": "ställ in",
@@ -3321,7 +3333,11 @@
         "Setting these up is done by whoever manages this Grist installation.": "Att ställa in dessa görs av den som hanterar denna Gristinstallation.",
         "These features need additional setup on this install.": "Dessa funktioner kräver ytterligare inställningar av denna Gristinstallation.",
         "When you share a document, new members get an email invite.": "När du delar ett dokument kommer nya medlemmar få en inbjudan per e-post.",
-        "Why do you want this? Press Enter to send.": "Varför behöver du detta? Tryck på Enter för att skicka."
+        "Why do you want this? Press Enter to send.": "Varför behöver du detta? Tryck på Enter för att skicka.",
+        "Get emailed when data changes, or when someone comments or mentions you.": "Få ett e-post när data ändras eller när någon kommenterar eller nämner dig.",
+        "React to changes in your data automatically with custom emails, webhook calls, and more.": "Reagerar på ändringar i din data automatiskt med anpassade e-post, webhook anrop, m.m.",
+        "Some of these features are ready; others need more setup on this install.": "Vissa av dessa funktioner är redo. Andra behöver mer inställningar i denna installation.",
+        "This document can run automations, send notifications, and use an AI assistant.": "Detta dokument kan köra automatiserade flöden, skicka notiser och använda AI assistenter."
     },
     "CalendarConfigModal": {
         "Add calendar": "Lägg till kalender",
@@ -3374,7 +3390,8 @@
         },
         "GitHub": "GitHub",
         "Help us improve Grist": "Hjälp oss förbättra Grist",
-        "How did you hear about Grist?": "Hur fick du kännedom om Grist?"
+        "How did you hear about Grist?": "Hur fick du kännedom om Grist?",
+        "Occasional email about new releases and important security notices.": "Enstaka e-post om nya versioner och viktig säkerhets information."
     },
     "CalendarView": {
         "Day": "Dag",
@@ -3449,6 +3466,12 @@
         "Grist is live!": "Grist är live!",
         "Back to installation": "Tillbaka till installation",
         "Apply and go live!": "Applicera och gå live!",
-        "Applying settings and restarting…": "Aplicerar Inställningar och startar om…"
+        "Applying settings and restarting…": "Aplicerar Inställningar och startar om…",
+        "Our servers may be experiencing issues. Please try again later.": "Våra servrar kan ha problem. Försök igen senare.",
+        "We couldn't save your details or subscribe you to updates.": "Vi kunde varken spara din kontaktuppgifter eller anmäla dig till uppdateringar.",
+        "We couldn't submit your details or your request to be kept up to date. Please try again.": "Vi kunde varken skicka in dina kontaktuppgifter eller din begäran om att hållas uppdaterad. Försök igen.",
+        "We saved your details, but couldn't subscribe you to updates.": "Vi spara din kontaktuppgifter, men kunde inte anmäla dig till uppdateringar.",
+        "We subscribed you for product updates, but couldn't save your other details.": "Vi har anmält dig till produkt uppdateringar, men kunde inte spara dina kontaktuppgifter.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställningsändringar har applicerats och servern har startats om. Grist är nu i drift och tillgänglig för anvädare."
     }
 }
