@@ -2,9 +2,11 @@ import { FREE_PLAN, STUB_PLAN, TEAM_PLAN } from "app/common/Features";
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { NEW_DOCUMENT_CODE } from "app/common/UserAPI";
+import { Document } from "app/gen-server/entity/Document";
 import { getAnonymousFeatures, Product } from "app/gen-server/entity/Product";
 import { Share } from "app/gen-server/entity/Share";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import { Resource, ResourceFilter } from "app/gen-server/lib/homedb/Interfaces";
 import { TestServer } from "test/gen-server/apiUtils";
 import * as testUtils from "test/server/testUtils";
 
@@ -257,6 +259,7 @@ describe("HomeDBManager", function() {
       "Primately",
       "TestAuditLogs",
       "TestDailyApiLimit",
+      "TestHighDailyApiLimit",
       "TestMaxNewUserInvites",
       "Charonland",
       "Chimpyland",
@@ -351,6 +354,34 @@ describe("HomeDBManager", function() {
     });
   });
 
+  it("getDoc respects scope.filter", async function() {
+    const urlId = "sampledocid_6";
+    const userId = await home.testGetId("Chimpy") as number;
+    const scope = { userId, urlId };
+
+    const keepAll: ResourceFilter = <T extends Resource>(entities: T[]): T[] => entities;
+    const dropAll: ResourceFilter = () => [];
+    const onlyDocs = (ids: string[]): ResourceFilter =>
+      <T extends Resource>(entities: T[]): T[] =>
+        entities.filter(entity => entity instanceof Document && ids.includes(entity.id));
+
+    const unfiltered = await home.getDoc(scope);
+    assert.equal(unfiltered.id, urlId);
+    assert.equal((await home.getDoc({ ...scope, filter: keepAll })).id, urlId);
+    assert.equal((await home.getDoc({ ...scope, filter: onlyDocs([urlId]) })).id, urlId);
+
+    await assert.isRejected(home.getDoc({ ...scope, filter: dropAll }), /document not found/);
+    await assert.isRejected(home.getDoc({ ...scope, filter: onlyDocs(["sampledocid_5"]) }),
+      /document not found/);
+
+    home.flushDocAuthCache();
+    await assert.isRejected(home.getDoc({ ...scope, filter: dropAll }), /document not found/);
+    const cached = await home.getDocAuthCached({ urlId, userId, org: undefined });
+    assert.equal(cached.docId, urlId);
+    assert.isUndefined(cached.error);
+    assert.equal(cached.access, unfiltered.access);
+  });
+
   it("reads proper features for a doc", async function() {
     // Add new product with a feature.
     const product = new Product();
@@ -418,6 +449,45 @@ describe("HomeDBManager", function() {
     // Reread the doc and check that it has the original features.
     const finalDoc = await home.getDoc({ userId, urlId: addedDoc.urlId! });
     assert.equal(finalDoc.workspace.org.billingAccount.getEffectiveFeatures().maxDocsPerOrg, 2);
+  });
+
+  it("isUserOnPaidPlan counts only non-guest members of paid orgs", async function() {
+    const newUser = (name: string) => home.getUserByLogin(`${name}@getgrist.com`,
+      { profile: { email: `${name}@getgrist.com`, name } });
+    const owner = await newUser("paidowner");
+    const other = await newUser("paidother");
+    const orgId = (await home.addOrg(owner, { name: "paidorg", domain: "paidorg" },
+      teamOptions)).data!.id;
+
+    // Owning a team org is not enough without an active subscription.
+    assert.equal(await home.isUserOnPaidPlan(owner.id), false, "unpaid org owner");
+    await home.updateBillingAccount({ userId: owner.id }, orgId, async (ba) => {
+      ba.stripeSubscriptionId = "sub_paidorg";
+    });
+    assert.equal(await home.isUserOnPaidPlan(owner.id), true, "paid org owner");
+
+    // A fresh user, with only a free personal org, is not on a paid plan.
+    assert.equal(await home.isUserOnPaidPlan(other.id), false, "fresh user");
+
+    // Being a guest of the paid org (guests are free to add in unlimited numbers -
+    // anyone shared on a single doc becomes one) must not confer the entitlement.
+    const ws = home.unwrapQueryResult(await home.getOrgWorkspaces({ userId: owner.id }, orgId))[0];
+    const doc = (await home.addDocument({ userId: owner.id }, ws.id, { name: "Doc" })).data!;
+    await home.updateDocPermissions({ userId: owner.id, urlId: doc.id },
+      { users: { "paidother@getgrist.com": "editors" } });
+    assert.equal(await home.isUserOnPaidPlan(other.id), false, "org guest");
+
+    // Nor must an org-level share with everyone@ (support-only to set up).
+    await home.updateOrgPermissions({ userId: owner.id }, orgId,
+      { users: { "support@getgrist.com": "owners" } });
+    await home.updateOrgPermissions({ userId: home.getSupportUserId() }, orgId,
+      { users: { "everyone@getgrist.com": "viewers" } });
+    assert.equal(await home.isUserOnPaidPlan(other.id), false, "everyone-share");
+
+    // Org membership in any non-guest role, even viewer, does qualify.
+    await home.updateOrgPermissions({ userId: owner.id }, orgId,
+      { users: { "paidother@getgrist.com": "viewers" } });
+    assert.equal(await home.isUserOnPaidPlan(other.id), true, "org viewer");
   });
 
   it("can fork docs", async function() {

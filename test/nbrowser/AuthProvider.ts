@@ -62,21 +62,28 @@ describe("AuthProvider", function() {
     const providerRows = await driver.findAll(".test-admin-auth-provider-row");
     assert.isAtLeast(providerRows.length, 1);
 
-    // Check that none of the providers have any badges
+    // No provider carries a status badge yet. getgrist.com carries its
+    // "Recommended" chip while nothing is configured, and the SSO providers
+    // carry the "Requires activation key" chip.
     for (const row of providerRows) {
-      const badges = await row.findAll(".test-admin-auth-badge");
-      assert.lengthOf(badges, 0);
+      const badges = await row.findAll(".test-setup-card-badge", e => e.getText());
+      const text = await row.getText();
+      if (text.includes("getgrist")) {
+        assert.deepEqual(badges, ["Recommended"]);
+      } else if (/OIDC|SAML/.test(text)) {
+        assert.deepEqual(badges, ["Requires activation key"]);
+      } else {
+        assert.lengthOf(badges, 0);
+      }
     }
   });
 
-  it("all providers should have `configure` buttons`", async function() {
-    const providerRows = await driver.findAll(".test-admin-auth-provider-row");
-
-    for (const row of providerRows) {
-      const configureButtons = await row.findAll(".test-admin-auth-configure-button");
-      assert.lengthOf(configureButtons, 1);
-
-      await configureButtons[0].click();
+  it("unconfigured providers should open their configure modal on click", async function() {
+    // OIDC and SAML require an activation key (their click opens the
+    // key-request modal instead), so exercise the configure modal on the others.
+    for (const name of [/Sign in with getgrist/, /Forwarded headers/]) {
+      const row = await driver.findContent(".test-admin-auth-provider-row", name);
+      await row.click();
 
       const modalHeader = await driver.findWait(".test-admin-auth-modal-header", 2000);
       assert.isTrue(await modalHeader.isDisplayed());
@@ -93,6 +100,17 @@ describe("AuthProvider", function() {
     }
   });
 
+  it("OIDC and SAML should open the activation-key modal on click", async function() {
+    const oidcRow = await driver.findContent(".test-admin-auth-provider-row", /OIDC/);
+    await oidcRow.click();
+    await driver.findWait(".test-admin-auth-key-modal", 2000);
+    // "I have a key" is a plain link to where the key is entered (Admin Panel > Edition).
+    const goEdition = await driver.find(".test-admin-auth-key-modal-go-edition");
+    assert.match(await goEdition.getAttribute("href") ?? "", /\/admin#edition$/);
+    await driver.find(".test-admin-auth-key-modal-close").click();
+    await gu.checkForErrors();
+  });
+
   async function restartAdmin() {
     await server.restart();
     await server.simulateLogin(user.name, user.email, "docs");
@@ -107,25 +125,20 @@ describe("AuthProvider", function() {
     // Now after restarting, Grist should noticed that we attempted to configure OIDC, but failed.
     await restartAdmin();
 
-    // Now check the badge of the OIDC provider, it should be misconfigured.
+    // OIDC is the active method, so it is the hero card; it should be flagged
+    // as misconfigured there, with a message about the required env vars.
     await gu.waitToPass(async () => {
-      assert.deepEqual(await badges("OIDC"), ["ACTIVE", "ERROR"]);
-      // And a warning message should be present in the first row about one of the required env vars.
-      assert.include(await errorMessage("OIDC").getText(), "GRIST_OIDC_");
+      assert.match(await heroCard().getText(), /OIDC/);
+      assert.includeMembers(await heroBadges(), ["Error"]);
+      assert.include(await heroError().getText(), "GRIST_OIDC_");
     }, 1000);
 
     // The label says "auth error" now (as no valid login is possible).
     assert.equal(await itemValue("authentication"), "auth error");
 
-    // There should be no 'Set as active method' button.
-    assert.isFalse(await activeButton("OIDC").isPresent());
-
     // Also check other 2 providers we know about.
-    assert.deepEqual(await badges("SAML"), []);
-    assert.isFalse(await activeButton("SAML").isPresent());
-
+    assert.deepEqual(await badges("SAML"), ["Requires activation key"]);
     assert.deepEqual(await badges("Forwarded headers"), []);
-    assert.isFalse(await activeButton("Forwarded headers").isPresent());
   });
 
   it("should detect properly configured oidc provider", async function() {
@@ -146,17 +159,12 @@ describe("AuthProvider", function() {
       assert.equal(await itemValue("authentication"), "auth error");
     });
 
-    assert.deepEqual(await badges("OIDC"), ["ACTIVE", "ERROR"]);
-
-    // The 'Set as active method' button is not present, as it is already active.
-    assert.isFalse(await activeButton("OIDC").isPresent(), "Set as active method button should not be present");
+    assert.match(await heroCard().getText(), /OIDC/);
+    assert.includeMembers(await heroBadges(), ["Error"]);
 
     // Other providers should remain unchanged.
-    assert.deepEqual(await badges("SAML"), []);
-    assert.isFalse(await activeButton("SAML").isPresent());
-
+    assert.deepEqual(await badges("SAML"), ["Requires activation key"]);
     assert.deepEqual(await badges("Forwarded headers"), []);
-    assert.isFalse(await activeButton("Forwarded headers").isPresent());
   });
 
   it("should offer to switch to other configured providers", async function() {
@@ -167,44 +175,39 @@ describe("AuthProvider", function() {
     // Restart to pick up the new configuration
     await restartAdmin();
 
-    // OIDC should still be active (but with error)
-    assert.deepEqual(await badges("OIDC"), ["ACTIVE", "ERROR"]);
+    // OIDC should still be active (but with error), as the hero.
+    assert.match(await heroCard().getText(), /OIDC/);
+    assert.includeMembers(await heroBadges(), ["Error"]);
 
-    // ForwardAuth should now be configured and offer to switch
+    // ForwardAuth should now be configured; clicking its card (next test)
+    // stages it as the new active method.
     await gu.waitToPass(async () => {
-      assert.deepEqual(await badges("Forwarded headers"), []);
+      assert.deepEqual(await badges("Forwarded headers"), ["Configured"]);
     }, 1000);
 
-    // ForwardAuth should have "Set as active method" button since it's configured but not active
-    assert.isTrue(await activeButton("Forwarded headers").isPresent());
-
     // SAML should still be unconfigured
-    assert.deepEqual(await badges("SAML"), []);
-    assert.isFalse(await activeButton("SAML").isPresent());
+    assert.deepEqual(await badges("SAML"), ["Requires activation key"]);
   });
 
   it("should switch to ForwardAuth provider", async function() {
-    const setActiveButton = await activeButton("Forwarded headers");
-    await setActiveButton.click();
+    // Clicking a configured provider's card stages it as the active method.
+    await (await providerRow("Forwarded headers")).click();
 
-    // Confirm in the modal
+    // Confirm the "Set as active method?" modal.
     const confirmButton = await driver.findWait(".test-modal-confirm", 2000);
     await confirmButton.click();
     await gu.waitForServer();
 
-    // The "Set as active method" button should disappear
-    assert.isFalse(await activeButton("Forwarded headers").isPresent());
-
-    // We should see "Active on restart" badge
-    const forwardAuthBadges = await badges("Forwarded headers");
-    assert.includeMembers(forwardAuthBadges, ["ACTIVE ON RESTART"]);
+    // ForwardAuth is now the staged hero (dropped from the list while pending).
+    assert.match(await heroCard().getText(), /Forwarded headers/);
+    assert.includeMembers(await heroBadges(), ["Active on restart"]);
 
     // OIDC should still be configured, and disabled on restart
     const oidcBadges = await badges("OIDC");
-    assert.includeMembers(oidcBadges, ["DISABLED ON RESTART", "ERROR"]);
+    assert.includeMembers(oidcBadges, ["Disabled on restart"]);
 
-    // But there should be a button to set it active again
-    assert.isTrue(await activeButton("OIDC").isPresent());
+    // The staged transition can be reverted from the hero card.
+    assert.isTrue(await driver.find(".test-admin-auth-hero-revert").isPresent());
   });
 });
 
@@ -213,8 +216,10 @@ const providerRow = (text: string) => new WebElementPromise(driver,
     driver.findContentWait(".test-admin-auth-provider-row", text, 1000),
   ));
 
-const badges = (text: string) => providerRow(text).findAll(".test-admin-auth-badge", e => e.getText());
+const badges = (text: string) => providerRow(text).findAll(".test-setup-card-badge", e => e.getText());
 
-const errorMessage = (text: string) => providerRow(text).find(".test-admin-auth-error-message");
+const heroCard = () => driver.findWait(".test-admin-auth-hero-card", 2000);
 
-const activeButton = (text: string) => providerRow(text).find(".test-admin-auth-set-active-button");
+const heroBadges = () => driver.findAll(".test-admin-auth-hero-card .test-setup-card-badge", e => e.getText());
+
+const heroError = () => driver.find(".test-admin-auth-hero-error");

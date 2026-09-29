@@ -334,6 +334,20 @@ describe("parseDate", function() {
     }
   });
 
+  it("should parse long whitespace runs in linear rather than quadratic time", function() {
+    const time = (n: number) => {
+      // Interior whitespace once took time quadratic in its length (see TIME_REGEX).
+      const input = "x" + " ".repeat(n) + "x";
+      const start = performance.now();
+      assert.isUndefined(parseDateTime(input, { dateFormat: "YYYY-MM-DD", timezone: "UTC" }));
+      return performance.now() - start;
+    };
+    // Best of a few runs keeps GC pauses and JIT warmup out of the ratio.
+    const best = (n: number) => Math.min(time(n), time(n), time(n));
+    // Observed for 8x the input: ~1.5x (fixed per-call costs dominate) vs ~60x with the quadratic regex.
+    assert.isBelow(best(40_000) / best(5_000), 10);
+  });
+
   it("should handle datetimes as formatted by moment", function() {
     this.timeout(10000);  // there may be a LOT of timezone names.
     for (const date of ["2020-02-03", "2020-06-07", "2020-10-11"]) {  // different months for daylight savings

@@ -34,6 +34,15 @@ export interface OrgUsageSummary {
   }
 }
 
+// Api calls a site made in one month, against the limit its plan sets.
+export interface ApiCallsUsage {
+  used: number;
+  limit: number;
+  // The month being counted, as YYYY-MM in UTC. The client cannot work it out itself,
+  // since the count resets in UTC and a browser may be in another time zone.
+  month: string;
+}
+
 export interface UsageRecommendations {
   recommendExternal?: boolean;
 }

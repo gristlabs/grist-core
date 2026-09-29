@@ -415,7 +415,7 @@ export class DocTriggers {
         } else if (deltaBefore === "?") {
           // The ActionSummary shouldn't contain this kind of delta at all
           // since it comes from a single action bundle, not a combination of summaries.
-          this._log('Unexpected deltaBefore === "?"', { level: "warn", trigger });
+          this._log('Unexpected deltaBefore === "?"', { level: "warn", triggerId: trigger.id });
           readyBefore = true;
         } else {
           // Only remaining case is that deltaBefore is a single-element array containing the previous value.
@@ -468,7 +468,7 @@ export class DocTriggers {
           return compiledCondition.compiled.matchesTrigger(ctx.rec, ctx.oldRec);
         }
       } catch (e) {
-        this._log(`Error evaluating trigger expression: ${e}`, { level: "warn", trigger: trigger.id });
+        this._log(`Error evaluating trigger expression: ${e}`, { level: "warn", triggerId: trigger.id });
         return false;
       }
     }
@@ -493,7 +493,7 @@ export class DocTriggers {
         );
         return { mode: "config", compiled };
       } catch (e) {
-        this._log(`Error compiling trigger config: ${e}`, { level: "warn", trigger: trigger.id });
+        this._log(`Error compiling trigger config: ${e}`, { level: "warn", triggerId: trigger.id });
         return null;
       }
     }
@@ -509,7 +509,7 @@ export class DocTriggers {
           );
           return { mode: "text", formula };
         } catch (e) {
-          this._log(`Error compiling trigger expression: ${e}`, { level: "warn", trigger: trigger.id });
+          this._log(`Error compiling trigger expression: ${e}`, { level: "warn", triggerId: trigger.id });
           return null;
         }
       });

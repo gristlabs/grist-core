@@ -1,0 +1,115 @@
+secrets:
+  # Random secrets for Authelia, created by generateSecureSecrets.sh.
+  JWT_SECRET:
+    file: ./secrets/JWT_SECRET
+  SESSION_SECRET:
+    file: ./secrets/SESSION_SECRET
+  STORAGE_ENCRYPTION_KEY:
+    file: ./secrets/STORAGE_ENCRYPTION_KEY
+
+services:
+  grist:
+    image: ${GRIST_IMAGE:-gristlabs/grist:latest}
+    environment:
+      # Set DEBUG=1 for verbose logs.
+      DEBUG: ${DEBUG:-}
+      # The header, set by Authelia via Traefik, that contains the signed-in
+      # user's email.
+      GRIST_FORWARD_AUTH_HEADER: Remote-Email
+      # Signing out of Grist continues to this path, which Traefik redirects
+      # to Authelia's sign-out (see the grist-logout router below).
+      GRIST_FORWARD_AUTH_LOGOUT_PATH: /auth/logout
+      # Forces Grist to only use a single team called 'my-grist-team'
+      GRIST_SINGLE_ORG: my-grist-team   # alternatively, GRIST_ORG_IN_PATH: "true" for multi-team operation
+      # Force users to login (disable anonymous access)
+      GRIST_FORCE_LOGIN: true
+      # Base URL Grist redirects to when navigating. Change GRIST_DOMAIN to your domain.
+      APP_HOME_URL: https://${GRIST_DOMAIN:-grist.localhost}
+      # Email of the administrator account. Must match a user in
+      # ./configs/authelia/users_database.yml.
+      GRIST_ADMIN_EMAIL: ${GRIST_ADMIN_EMAIL:-test@example.org}
+    volumes:
+      # Where to store persistent data, such as documents.
+      - ${PERSIST_DIR:-./persist}/grist:/persist
+    labels:
+      - "traefik.http.services.grist.loadbalancer.server.port=8484"
+      - "traefik.http.routers.grist.rule=Host(`${GRIST_DOMAIN:-grist.localhost}`)"
+      - "traefik.http.routers.grist.tls.certresolver=letsencrypt"
+      # Authelia authenticates the sign-in path; everywhere else, Grist
+      # relies on its own session.
+      - "traefik.http.routers.grist-login.rule=Host(`${GRIST_DOMAIN:-grist.localhost}`) && PathPrefix(`/auth/login`)"
+      - "traefik.http.routers.grist-login.middlewares=authelia-forward-auth"
+      - "traefik.http.routers.grist-login.tls.certresolver=letsencrypt"
+      # Signing out of Grist redirects to Authelia's sign-out, which returns
+      # the user to Grist's signed-out page.
+      - "traefik.http.routers.grist-logout.rule=Host(`${GRIST_DOMAIN:-grist.localhost}`) && Path(`/auth/logout`)"
+      - "traefik.http.routers.grist-logout.middlewares=authelia-logout"
+      - "traefik.http.routers.grist-logout.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.authelia-logout.redirectregex.regex=.*"
+      - "traefik.http.middlewares.authelia-logout.redirectregex.replacement=https://auth.${GRIST_DOMAIN:-grist.localhost}/logout?rd=https://${GRIST_DOMAIN:-grist.localhost}/signed-out"
+
+  authelia:
+    image: authelia/authelia:4
+    secrets:
+      - JWT_SECRET
+      - SESSION_SECRET
+      - STORAGE_ENCRYPTION_KEY
+    environment:
+      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE: '/run/secrets/JWT_SECRET'
+      AUTHELIA_SESSION_SECRET_FILE: '/run/secrets/SESSION_SECRET'
+      AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE: '/run/secrets/STORAGE_ENCRYPTION_KEY'
+      # Domain Grist is hosted at. Custom variable that's interpolated into
+      # the Authelia config; the sign-in portal lives on its auth. subdomain.
+      APP_DOMAIN: ${GRIST_DOMAIN:-grist.localhost}
+    volumes:
+      - ./configs/authelia:/config
+      - ${PERSIST_DIR:-./persist}/authelia:/persist
+    command:
+      - 'authelia'
+      - '--config=/config/configuration.yml'
+      # Enables templating in the config file
+      - '--config.experimental.filters=template'
+    labels:
+      # The Authelia sign-in portal.
+      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
+      - "traefik.http.routers.authelia.rule=Host(`auth.${GRIST_DOMAIN:-grist.localhost}`)"
+      - "traefik.http.routers.authelia.tls.certresolver=letsencrypt"
+      # Middleware that asks Authelia whether the user is signed in
+      # (redirecting to the portal if not), and passes the user's identity
+      # along in the Remote-* headers.
+      - "traefik.http.middlewares.authelia-forward-auth.forwardauth.address=http://authelia:9091/api/authz/forward-auth"
+      - "traefik.http.middlewares.authelia-forward-auth.forwardauth.authResponseHeaders=Remote-User,Remote-Email,Remote-Name"
+
+  traefik:
+    image: traefik:latest
+    # Command-line based configuration, in the style of Traefik's own
+    # examples, e.g. https://doc.traefik.io/traefik/getting-started/docker/
+    command:
+      # Read routing config from docker labels.
+      - "--providers.docker"
+      # A secure entrypoint using TLS encryption.
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+      # An insecure entrypoint that redirects to the secure one.
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # Automatic certificates. Let's Encrypt requires a real email
+      # (it refuses the placeholder), and uses it for expiry notices.
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-my_email@example.com}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+    ports:
+      # HTTP Ports
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Certificate storage.
+      - ${PERSIST_DIR:-./persist}/acme:/acme
+      # Traefik reads routing labels via this socket. If you run Docker as root, that grants
+      # this container root access; consider rootless Docker, a socket proxy, or a config file:
+      # https://doc.traefik.io/traefik/providers/docker/#docker-api-access
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - grist
+      - authelia

@@ -1,7 +1,7 @@
 {
     "ACUserManager": {
-        "We'll email an invite to {{email}}": "Küldünk egy meghívó e-mailt ide: {{email}}",
-        "Enter email address": "Adja meg az e-mail címet",
+        "We'll email an invite to {{email}}": "Küldünk egy meghívót e-mailt ide: {{email}}",
+        "Enter email address": "Adja meg az e-mail címét",
         "Invite new member": "Új tag meghívása"
     },
     "AccessRules": {
@@ -22,7 +22,7 @@
         "Everyone Else": "Mindenki más",
         "Lookup Column": "Keresési oszlop",
         "Lookup Table": "Keresési táblázat",
-        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Mindenki számára lehetővé teszi az egész dokumentum másolását vagy a teljes megtekintését játszótér-módban.\nEz minta-dokumentumoknál vagy sablonoknál hasznos, éles adatoknál ne használd.",
+        "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Mindenki számára lehetővé teszi az egész dokumentum másolását vagy a teljes megtekintését játszótér-módban.\nEz minta-dokumentumoknál vagy sablonoknál hasznos, de éles adatoknál ne használja!",
         "Permission to access the document in full when needed": "Engedély a teljes dokumentumhoz hozzáféréshez, ha szükséges",
         "Permission to view Access Rules": "Engedély a hozzáférési szabályok megtekintésére",
         "Permissions": "Engedélyek",
@@ -43,7 +43,7 @@
         "This default should be changed if editors' access is to be limited. ": "Ezt az alapértelmezett értéket meg kell változtatni, ha a szerkesztők hozzáférése korlátozott. ",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Engedélyezzük a szerkesztők számára a struktúra módosítását (pl. táblák, oszlopok és elrendezések módosítását és törlését), valamint képletek használatát. A tábla- vagy oszlopszintű engedélyektől függetlenül módosíthatja a képleteket és hozzáférhet minden adathoz.",
         "Add table-wide rule": "Tábla-szintű szabály hozzáadása",
-        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "A hozzáférési szabályok megváltoztak. Kattints a Visszaállítás gombra, ha szeretnéd visszavonni a változtatásaidat és újratölteni a szabályokat!",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "A hozzáférési szabályok megváltoztak. Kattintson a Visszaállítás gombra, ha szeretnéd visszavonni a változtatásaidat és újratölteni a szabályokat!",
         "All": "Mind",
         "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "A(z) {{tableId}} tábla szabályai között a(z) {{colId}} oszlop több szabályban is megjelenik, amelyek érvényessége függhet a sorrendtől. Megpróbáljuk másképpen felosztani a szabályokat?",
         "Columns": "Oszlopok",
@@ -92,7 +92,7 @@
         "Password & security": "Jelszó és biztonság",
         "Theme": "Téma",
         "Two-factor authentication": "Kétfaktoros bejelentkezés",
-        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "A kétfaktoros bejelentkezés egy plusz biztonsági réteg a Grist fiókodban, ami biztosítja, hogy valóban te legyél az egyetlen ember, aki hozzáfér a fiókodhoz, még abban az esetben is, ha valaki más megszerzi a jelszavadat.",
+        "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "A kétfaktoros bejelentkezés egy plusz biztonsági réteg a Grist fiókjában, ami biztosítja, hogy valóban Ön legyen az egyetlen ember, aki hozzáfér a fiókjához, még abban az esetben is, ha valaki más megszerzi az Ön jelszavát.",
         "Language": "Nyelv",
         "Basic info": "Alapvető információk",
         "Developer": "Fejlesztő",
@@ -101,7 +101,14 @@
         "Enterprise": "Vállalati",
         "OAuth apps": "OAuth-alkalmazások",
         "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Az OAuth-alkalmazások lehetővé teszik, hogy külső rendszereket (integrációkat) csatlakoztasson ehhez a Grist-kiszolgálóhoz nagyobb biztonsággal és kényelemmel, mint API-kulcsok használata esetén.\n\nAz OAuth-alkalmazások a [Grist teljes verziójával] ( {{fullGrist}} ) érhetők el.",
-        "Accessibility": "Kisegítő lehetőségek"
+        "Accessibility": "Kisegítő lehetőségek",
+        "Usage summary": "Használati áttekintés",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "A havi ** {{limit}} ** API hívásból calls **{{left}}**maradt",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "A (z) **{{limit}}** egyszerhasználatos **AI Asszisztens** kreditekből **{{left}}** maradt",
+        "You have **{{limit}}** monthly **API** calls": "**{{limit}}** API hívás áll rendelkezésre",
+        "You have **{{limit}}** one time **AI Assistant** credits": "Az egyszerhasználatos AI Asszisztens kreditekből**{{limit}}** áll rendelkezésre",
+        "No usage data to show.": "Használtai adatok nem állnak rendelekzésre.",
+        "Personal site": "Személyes oldal"
     },
     "AccountWidget": {
         "Pricing": "Árak",
@@ -144,13 +151,13 @@
     },
     "ApiKey": {
         "By generating an API key, you will be able to make API calls for your own account.": "API kulcs generálásával API hívásokat indíthatsz.",
-        "Click to show": "Kattints a megjelenítéshez",
+        "Click to show": "Kattintson ide a megjelenítéshez",
         "Create": "Létrehoz",
         "Remove": "Eltávolít",
         "Remove API Key": "API kulcs törlése",
-        "This API key can be used to access this account anonymously via the API.": "Ez az API kulcs arra használható, hogy anonim módon is hozzáférj ehhez a fiókhoz.",
-        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Ez az API kulcs hozzáférést biztosít a fiókodhoz az API-n keresztül. Ne oszd meg senkivel az API-kulcsot.",
-        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Törölni akarsz egy API kulcsot. Ennek következtében minden további, ezen API-kulccsal történő hozzáférést megtagad majd a rendszer. Biztosan törölni szeretnéd?"
+        "This API key can be used to access this account anonymously via the API.": "Ez az API kulcs arra használható, hogy anonim módon is hozzáférjen ehhez a fiókhoz.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Ez az API kulcs hozzáférést biztosít a fiókjához az API-n keresztül. Ne ossza meg senkivel az API-kulcsot.",
+        "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Egy API kulcsot fog törölni. Ennek következtében minden további, ezen API-kulccsal történő hozzáférést megtagad majd a rendszer. Biztosan törölni szeretné?"
     },
     "App": {
         "Description": "Leírás",
@@ -787,7 +794,9 @@
         "Renew": "Megújítás",
         "Report a problem": "Hiba jelzése",
         "Upgrade Plan": "Előfizetés",
-        "Manage billing": "Számlázás kezelése"
+        "Manage billing": "Számlázás kezelése",
+        "How you could gain access": "Hogyan kapható hozzáférés",
+        "What's blocking you": "Akadály"
     },
     "OnBoardingPopups": {
         "Finish": "Befejezés",
@@ -1162,7 +1171,7 @@
         "You will no longer receive email notifications about {{suggestions}} in {{docName}} at {{email}}.": "Nem kapsz többé email értesítéseket a(z) {{email}} címre {{docName}} dokumentum {{suggestions}} javaslatairól.",
         "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Nem kapsz a továbbiakban email értesítést {{email}} emailcímre {{docName}} dokumentum kapcsán {{automations}} témában.",
         "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Leiratkoztál az automatizmusok értesítéseiről {{docName}} dokumentumban. Bármikor frissítheted a beállításaidat a dokumentum beállításai között.",
-        "automations": "automatizmusok",
+        "automations": "automatizált műveletek",
         "suggestions": "javaslatok"
     },
     "menus": {
@@ -1363,25 +1372,25 @@
     },
     "WelcomeTour": {
         "Add new": "Új hozzáadása",
-        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Fedezd fel a {{templateLibrary}}, hogy inspirálódj és meglásd, mennyi minden lehetséges!",
+        "Browse our {{templateLibrary}} to discover what's possible and get inspired.": "Fedezze fel a {{templateLibrary}}, hogy meglássa, mennyi minden lehetséges!",
         "Building up": "Összeállítás",
         "Configuring your document": "A dokumentumod beállítása",
         "Customizing columns": "Oszlopok testreszabása",
-        "Double-click or hit {{enter}} on a cell to edit it. ": "Kattints duplán vagy nyomd meg az {{enter}} billentyűt egy cellán a szerkesztéshez! ",
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Kattintson duplán vagy nyomja meg az {{enter}} billentyűt egy cellán a szerkesztéshez! ",
         "Editing Data": "Adat szerkesztése",
         "Enter": "Enter",
         "Flying higher": "Szállj feljebb",
         "Help Center": "Súgóközpont",
-        "Make it relational! Use the {{ref}} type to link tables. ": "Hozz létre kapcsolatokat! Használd a {{ref}} típust táblázatok összekapcsolására. ",
+        "Make it relational! Use the {{ref}} type to link tables. ": "Hozzon létre kapcsolatokat! Használja a {{ref}} típust táblázatok összekapcsolására. ",
         "Reference": "Hivatkozás",
-        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Állíts be formázást, képleteket vagy oszloptípusokat, például dátumokat, választási lehetőségeket, vagy csatolmányokat. ",
+        "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Állítson be formázást, képleteket vagy oszloptípusokat, például dátumokat, választási lehetőségeket, vagy csatolmányokat. ",
         "Share": "Megosztás",
         "Sharing": "Megosztás",
-        "Start with {{equal}} to enter a formula.": "Kezdd {{equal}} jellel a képlet beírását.",
-        "Toggle the {{creatorPanel}} to format columns, ": "Kapcsold ki-be a {{creatorPanel}}-t az oszlopok formázásához, ",
-        "Use the Share button ({{share}}) to share the document or export data.": "Használd a Megosztás gombot ({{share}}) a dokumentumok megosztásához vagy az adatok exportálásához.",
-        "Use {{addNew}} to add widgets, pages, or import more data. ": "Használd az {{addNew}} gombot widgetek vagy oldalak hozzáadásához, vagy további adatok importálásához. ",
-        "Use {{helpCenter}} for documentation or questions.": "A {{helpCenter}}ban találod a dokumentációt és kérdéseket.",
+        "Start with {{equal}} to enter a formula.": "Kezdje {{equal}} jellel a képlet beírását.",
+        "Toggle the {{creatorPanel}} to format columns, ": "Kapcsolja ki-be a {{creatorPanel}}-t az oszlopok formázásához, ",
+        "Use the Share button ({{share}}) to share the document or export data.": "Használja a Megosztás gombot ({{share}}) a dokumentumok megosztásához vagy az adatok exportálásához.",
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Használja az {{addNew}} gombot widgetek vagy oldalak hozzáadásához, vagy további adatok importálásához. ",
+        "Use {{helpCenter}} for documentation or questions.": "A {{helpCenter}}ban találja a dokumentációt és kérdéseket.",
         "Welcome to Grist!": "Üdvözöl a Grist!",
         "convert to card view, select data, and more.": "kártya nézetre alakításhoz, adatok kiválasztásához és hasonlókhoz.",
         "creator panel": "alkotó panel",
@@ -1395,27 +1404,27 @@
         "Apply conditional formatting to cells in this column when formula conditions are met.": "Feltételes formázás alkalmazása az ebben az oszlopban lévő olyan cellákra, amelyeknél a képletben leírt feltételek fennállnak.",
         "Apply conditional formatting to rows based on formulas.": "Feltételes formázás alkalmazása sorokra képletek alapján.",
         "Updates every 5 minutes.": "Ötpercenként frissül.",
-        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Használd a \\u{1D6BA} ikont, hogy összegző (összefoglaló) táblázatot hozz létre összegekhez és részösszegekhez.",
+        "Use the \\u{1D6BA} icon to create summary (or pivot) tables, for totals or subtotals.": "Használja a \\u{1D6BA} ikont, hogy összegző (összefoglaló) táblázatot hozzon létre összegekhez és részösszegekhez.",
         "Raw Data page": "Nyersadat oldal",
-        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "A hivatkozási oszlop cellái mindig egy {{entire}} rekordot azonosítanak az adott táblázatban, de kiválaszthatod, hogy a rekord melyik oszlopát jelenítse meg.",
-        "Click on “Open row styles” to apply conditional formatting to rows.": "Kattints a \"Sor stílusok megnyitása\" gombra a sorok feltételes formázásához.",
-        "Click the Add new button to create new documents or workspaces, or import data.": "Kattints az Új hozzáadása gombra új dokumentum vagy munkaterület létrehozásához, vagy adatok importálásához.",
+        "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "A hivatkozási oszlop cellái mindig egy {{entire}} rekordot azonosítanak az adott táblázatban, de kiválaszthatja, hogy a rekord melyik oszlopát jelenítse meg.",
+        "Click on “Open row styles” to apply conditional formatting to rows.": "Kattintson a \"Sor stílusok megnyitása\" gombra a sorok feltételes formázásához!",
+        "Click the Add new button to create new documents or workspaces, or import data.": "Kattintson az Új hozzáadása gombra új dokumentum vagy munkaterület létrehozásához, vagy adatok importálásához!",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Minden cellában az {{EyeHideIcon}} ikonra kattintva elrejti a mezőt ebből a nézetből anélkül, hogy törölné.",
         "Editing Card Layout": "Kártya elrendezése módosítása",
         "Formulas that trigger in certain cases, and store the calculated value as data.": "Képletek, amelyek bizonyos esetekben aktiválódnak, és a kiszámított értéket adatként tárolják.",
         "Learn more.": "További információk.",
-        "Link your new widget to an existing widget on this page.": "Kapcsold az új widgetedet egy már létező widgethez ezen az oldalon.",
+        "Link your new widget to an existing widget on this page.": "Az új widget összekapcsolása egy már létező widgethez ezen az oldalon.",
         "Linking Widgets": "Widgetek összekapcsolása",
         "Nested Filtering": "Beágyazott szűrés",
         "Only those rows will appear which match all of the filters.": "Csak azok a sorok jelennek meg, amelyek minden szűrőfeltételnek megfelelnek.",
         "Pinned filters are displayed as buttons above the widget.": "A rögzített szűrők gombokként jelennek meg a widget felett.",
         "Pinning Filters": "Rögzített szűrők",
-        "Rearrange the fields in your card by dragging and resizing cells.": "Rendezd újra a mezőket a kártyán húzással és a cellák átméretezésével.",
+        "Rearrange the fields in your card by dragging and resizing cells.": "Átrendezheti a mezőket a kártyán húzással és a cellák átméretezésével.",
         "Reference Columns": "Referencia oszlop",
         "Reference columns are the key to {{relational}} data in Grist.": "A referencia oszlopok a {{relational}} adatok kulcsai a Grist-ben.",
-        "Select the table containing the data to show.": "Válasszd ki az adatokat tartalmazó táblázatot.",
-        "Select the table to link to.": "Válaszd ki a táblázatot, amire hivatkozni szeretnél.",
-        "Selecting Data": "Válassz adatot",
+        "Select the table containing the data to show.": "Válassza ki az adatokat tartalmazó táblázatot.",
+        "Select the table to link to.": "Válasza ki a táblázatot, amire hivatkozni szeretnél.",
+        "Selecting Data": "Adatok kiválasztása",
         "relational": "relációs",
         "Access Rules": "Hozzáférési szabályok",
         "Add new": "Új hozzáadása",
@@ -1434,7 +1443,7 @@
         "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Hasznos új rekord időbélyegének vagy szerzőjének tárolására, adattisztításra és egyebekre.",
         "You can filter by more than one column.": "Egynél több oszlop alapján is szűrhetsz.",
         "entire": "az egész",
-        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "A hozzáférési szabályok lehetővé teszik, hogy árnyalt szabályokat hozz létre annak meghatározására, hogy ki láthatja vagy szerkesztheti a dokumentum egyes részeit.",
+        "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "A hozzáférési szabályok lehetővé teszik, hogy árnyalt szabályokat hozzon létre annak meghatározására, hogy ki láthatja vagy szerkesztheti a dokumentum egyes részeit.",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Használd a 𝚺 ikont összesítő (vagy pivot) táblázatok létrehozásához az összegekhez vagy részösszegekhez.",
         "Anchor Links": "Horgony linkek",
         "Custom Widgets": "Egyéni widgetek",
@@ -1600,7 +1609,7 @@
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Csak képletekben tudok segíteni. Nem tudok táblákat, oszlopokat és nézeteket készíteni, illetve hozzáférési szabályokat írni.",
         "Learn more": "További információk",
         "Press Enter to apply suggested formula.": "Nyomd meg az Enter billentyűt a javasolt képlet alkalmazásához.",
-        "Sign Up for Free": "Regisztrálj ingyen",
+        "Sign Up for Free": "Regisztráljon ingyen",
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Regisztrálj egy ingyenes Grist-fiókot az AI képlet-segéd használatához.",
         "There are some things you should know when working with me:": "Van néhány dolog, amit tudnod kell, amikor velem dolgozol:",
         "What do you need help with?": "Miben van szükséged segítségre?",
@@ -1616,7 +1625,7 @@
         "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Úgy beszélj velem, mint egy emberrel. Nincs szükség táblák és oszlopnevek megadására. Például megkérhetsz, hogy \"Számítsd ki a teljes számlaösszeget.\""
     },
     "GridView": {
-        "Click to insert": "Kattints a beszúráshoz",
+        "Click to insert": "Kattintson a beszúráshoz",
         "row {{rowNum}} {{colName}}": "{{rowNum}} {{colName}} sor",
         "row {{rowNum}} {{colName}} (new row)": "{{rowNum}} {{colName}} sor (új sor)",
         "ID": "ID"
@@ -1624,13 +1633,19 @@
     "WelcomeSitePicker": {
         "Welcome back": "Üdvözlünk újra",
         "You can always switch sites using the account menu.": "A fiókmenü segítségével bármikor webhelyet válthatsz.",
-        "You have access to the following Grist sites.": "A következő Grist webhelyekhez férhetsz hozzá."
+        "You have access to the following Grist sites.": "A következő Grist webhelyekhez férhetsz hozzá.",
+        "No sites available": "Oldalak nem találhatóak",
+        "Sign in": "Bejelentkezés",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "A személyes oldalak ki vannak kapcsolva ezen a telepítésen és Ön még nem tagja a csapat oldalának.",
+        "Create a team site": "Csapatoldal létrehozása",
+        "Ask an administrator to add you to a team site.": "Kérje meg az adminisztrátor, hogy adja Önt hozzá a csapa oldalához!",
+        "Sign in to see your sites": "Bejelentkezés az oldal megtekintéséhez"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "LEÍRÁS"
     },
     "UserManager": {
-        "Add {{member}} to your team": "{{member}} hozzáadása a csapatodhoz",
+        "Add {{member}} to your team": "{{member}} hozzáadása a csapathoz",
         "Allow anyone with the link to open.": "A link birtokában bárki megnyithatja.",
         "Anyone with link ": "Bárki, akinek van linkje ",
         "Cancel": "Mégse",
@@ -2859,13 +2874,38 @@
         "Choose how people sign in. You can change this anytime after setup.": "Válaszd ki, hogyan jelentkezzenek be az emberek. A beállítási folyamat után is bármikor megváltoztathatod.",
         "Continue without authentication": "Folytatás azonosítás nélkül",
         "Or connect your own identity provider": "Vagy csatlakoztasd a saját azonosítási szolgáltatódat",
-        "Skip authentication setup?": "Kihagyjuk az azonosítás beállítását?"
+        "Skip authentication setup?": "Kihagyjuk az azonosítás beállítását?",
+        "Activate": "Aktiválás",
+        "Activate: {{name}}": "{{name}} aktiválása",
+        "Address this.": "Elintézendő:",
+        "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Bárki elérheti az adatokat bejelentkezés nélkül. Kizárólag privát hálózatok és ideiglenes beállításokra alkalmas.",
+        "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Bárki, aki eléri ezt a szervert hozzáférhet az adatokhoz bejelentkezés nélkül. Válasszon az alábbi bejelentkezési módokból!",
+        "Hide installation ID": "Telepítési ID elrejtése",
+        "I have a key": "Rendelkezem aktiválási kulccsal",
+        "I understand this server will run with no authentication": "Tudomásul veszem, hogy ez a szerver hitelesítés nélkül fog futni",
+        "Meanwhile, finish setting up": "A beállítások véglegesítése",
+        "Missing activation key": "Hiányzó aktiválási kulcs",
+        "Other methods": "Más lehetőségek",
+        "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.": "Kizárólag az Ön fordított proxyja legyen képes a Grist backendjét közvetlen elérni, vagy a felhasználók bejelentkezést kikerülhetik.",
+        "Request activation key": "Aktiválási kulcs igénylése",
+        "Requires activation key": "Aktiválási kulcsot igényel",
+        "Revert": "Visszaállítás",
+        "Show installation ID": "Telepítési ID mutatása",
+        "Start your key request": "Kulcs megigénylése",
+        "Switch to: {{name}}": "Váltás erre: {{name}}",
+        "Was: {{name}}": "Korábban: {{name}",
+        "{{name}} requires an activation key": "{{name}} aktiválási kulcsot igényel",
+        "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.": "Válasszon egy is támogatott bejelentkezési módot: Bejelentkezés a getgrist.com segítségével (egyszerű és ajánlott), továbbított fejlécek (reverse proxy használata esetén), vagy egyelőre folytatás hitelesítés nélkül.",
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Az OIDC vagy SAML alapú egyszeri bejelentkezést (Single Sign-On, SSO) a teljes Grist kiadás hivatalosan támogatja, és ehhez aktiválási kulcs szükséges – lásd az [árképzést]({{pricingLink}}). Magánszemélyek és kisebb szervezetek [ingyenes Grist aktiválási kulcsot]({{faqLink}}) is igényelhetnek.",
+        "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "Amikor megkapja a kulcsot, írd be az **Edition** szakaszba, majd itt váltson át a **{{name}}** menüpontra.",
+        "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "Általában 5 munkanapon belül várható e-mailben egy válasz. A kulcs ehhez a telepítéshez lesz hozzárendelve.",
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} aktív, de támogatás nélkül, mivel nincs „Full Grist” aktiválási kulcsa. "
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Ez a sor nem elérhető vagy nem létezik"
     },
     "GetGristComProvider": {
-        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Jelentkezz be a getgrist.com webhelyen** lehetővé teszi a Grist-szerver felhasználói számára, hogy bejelentkezzenek a getgrist.com webhelyen, a Grist felhőalapú verzióján, a Grist Labs által kezelt fiókjukkal.",
+        "**Sign in with getgrist.com** allows users on your Grist server to sign in using their account on getgrist.com, the cloud version of Grist managed by Grist Labs.": "**Bejelntkezés a getgrist.com segítségével** lehetővé teszi a Grist-szerver felhasználói számára, hogy bejelentkezzenek a getgrist.com webhelyen, a Grist felhőalapú verzióján, a Grist Labs által kezelt fiókjukkal.",
         "Cancel": "Mégse",
         "Configure": "Beállít",
         "Configure Sign in with getgrist.com": "A getgrist.com webhelyen történi bejelentkezés beállítása",
@@ -2883,7 +2923,8 @@
         "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Ideális tesztelésre és protípus-építésre. Jelentkezz be a getgrist.com fiókoddal, így nem kell azonosítási szolgáltatót beállítanod.",
         "Recommended": "Javasolt",
         "Use getgrist.com sign-in": "Használd a getgrist.com bejelentkezését",
-        "You can switch to OIDC, SAML, or another method at any time.": "Bármikor átválthatsz OIDC, SAML, vagy más módszerre."
+        "You can switch to OIDC, SAML, or another method at any time.": "Bármikor átválthatsz OIDC, SAML, vagy más módszerre.",
+        "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping.": "A felhasználók a getgrist.com-fiókjukkal jelentkeznek be. A legegyszerűbben beállítható. Tesztelésre és prototípus-készítésre is ideális."
     },
     "AirtableImportUI": {
         "Back": "Vissza",
@@ -3107,7 +3148,8 @@
         "Skip and Continue": "Kihagyás és folytatás",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "A beépített macOS sandboxot használja. Mac-en helyi használatra jó elszigetelést biztosít.",
         "macOS sandbox": "macOS sandbox",
-        "Sandbox": "Sandbox"
+        "Sandbox": "Sandbox",
+        "Revert": "Visszaállítás"
     },
     "AdminPanelCss": {
         "Confirmed": "Megerősítve",
@@ -3187,7 +3229,8 @@
         "Upgrade to full Grist": "Előfizetés teljes Grist-re",
         "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Bármikor visszaléphetsz a közösségi kiadásra. Nem veszítesz adatokat, és nem kell újratelepítened a Grist-et.",
         "Your server will restart automatically once finished.": "A szerver automatikusan újraindul, amint befejeződött.",
-        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} elérhetőek magánszemélyek és 1m USD éves finanszírozás alatti szervezetk számára. Nagyobb szervezetek esetén lásd {{pricingLink}}. Kezdd el a 30 napos próbaidőszakot ma!"
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} elérhetőek magánszemélyek és 1m USD éves finanszírozás alatti szervezetk számára. Nagyobb szervezetek esetén lásd {{pricingLink}}. Kezdd el a 30 napos próbaidőszakot ma!",
+        "The Community edition is set via environment variable.": "A Community edition környezeti változóként állítható be."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Alkalmazás és folytatás",
@@ -3204,7 +3247,8 @@
         "Account settings": "Fiókbeállítások",
         "Developer": "Fejlesztő",
         "Profile": "Profil",
-        "Authorized apps": "Engedélyezett alkalmazások"
+        "Authorized apps": "Engedélyezett alkalmazások",
+        "Personal site": "Személyes oldal"
     },
     "SettingsLayout": {
         "Authentication": "Hitelesítés",
@@ -3236,13 +3280,13 @@
         "For example, checking for updates or talking to your single sign-on provider.": "Például frissítések ellenőrzése vagy az SSO-szerverrel történő kommunikáció.",
         "Grist connects directly. No HTTPS proxy is in place.": "A Grist közvetlenül csatlakozik. HTTPS proxy nincs használatban.",
         "Grist routes those requests through the URL filter you've set up.": "Ezeket a kéréseket a Grist az általad megadott URL-szűrőn keresztül indítja.",
-        "Grist sends them straight out. You've opted out of URL filtering.": "A Grist közvetlenül kiküldi a kéréseket, nem használsz URL-szűrőt.",
+        "Grist sends them straight out. You've opted out of URL filtering.": "A Grist közvetlenül kiküldi a kéréseket. Úgy döntött nem használ URL-szűrőt.",
         "No URL filter is set up. Features that need one stay switched off.": "URL-szűrő nincs beállítva. A szűrőt igénylő funkciók kikapcsolva maradnak.",
         "Not filtered.": "Nincs szűrés.",
         "Open to any host. The URL proxy is what keeps this safe.": "Minden szerver felé nyitott. Az URL proxy őrzi a biztonságot.",
         "Search docs for: {{envVar}}": "Dokumentumok keresése: {{envVar}}",
         "These requests go through your HTTPS proxy.": "Ezek a kérések a HTTPS proxydon keresztül mennek.",
-        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Három funkció teszi lehetővé, hogy a Grist HTTP-kéréseket küldjön a felhasználóid nevében. Ez most így vannak beállítva.",
+        "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Három funkció teszi lehetővé, hogy a Grist HTTP-kéréseket küldjön a felhasználói nevében. Most így vannak beállítva.",
         "When Grist itself reaches out…": "Ha maga a Grist indít kérést…",
         "When your users reach out…": "Ha a felhasználói indítanak kérést…",
         "bypassed": "megkerülve",
@@ -3253,10 +3297,165 @@
         "unfiltered": "nincs szűrve"
     },
     "McpConnectBanner": {
-        "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Újdonság!** Kösd össze a Grist-et a Claude-dal vagy a ChatGPT-vel. [Próbáld ki most!]({{mcp}})"
+        "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Újdonság!** Kösse össze a Grist-et a Claude-dal vagy a ChatGPT-vel. [Próbálja ki most!]({{mcp}})"
     },
     "AdminSetupRequests": {
         "1 request": "1 kérés",
-        "Clear": "Töröl"
+        "Clear": "Töröl",
+        "For": "Neki:",
+        "Setup requests": "Telepítési kérelem",
+        "already done": "már kész",
+        "{{count}} requests_one": "{{count}} kérelem",
+        "{{count}} requests_other": "{{count}} kérelem",
+        "Setup steps users have asked for": "A felhasználók által kért beállítási lépések"
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Naptár hozzáadása",
+        "Create new column": "Új oszlop létrehozása",
+        "Date + time": "Dátum + idő",
+        "Date only": "Kizárólag dátum",
+        "Dates": "Dátumok",
+        "End": "Vége",
+        "End (optional)": "Vége (nem kötelező)",
+        "None": "Egyik sem",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Események dátumát és címét tartalmazó oszlopok kiválasztása vagy újak létrehozása.",
+        "Select a column": "Oszlop kiválasztása",
+        "Set up calendar": "Naptár beállítása",
+        "Start": "Kezdete",
+        "Start and end must be the same date type.": "A kezdő- és a végdátumnak azonos típusúnak kell lennie.",
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "Az áttekintőben nincs dátumoszlop. Szükséges függvény oszlop hozzáadása. Például: MIN($group.Date)",
+        "This summary table has no text column. Events will show without labels.": "Az áttekintőben nincs szövegoszlop. Az események címkék nélkül fognak megjelenni.",
+        "Title": "Cím",
+        "Title (optional)": "Cím (nem kötelező)"
+    },
+    "CalendarView": {
+        "Day": "Nap",
+        "Month": "Hónap",
+        "New Event": "Új esemény",
+        "Today": "Ma",
+        "Week": "Hét"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "Még {{count}}",
+        "+{{count}} more_other": "Még {{count}}",
+        "End Date": "Eddig",
+        "Groups events by category. Each choice uses its own color and style.": "Kategória szerinti csoportosítás. Mindegyik választásnak saját színs és stílusa van.",
+        "Is All Day": "Egésznapos",
+        "Start Date": "Ettől",
+        "The label shown on the event.": "Az eseményhez tartozó címke.",
+        "Title": "Cím",
+        "Type": "Típus",
+        "When the event ends. If empty, the event lasts as long as its start.": "Amikor véget ér az esemény. Ha üres, akkor az esemény a kezdetéig tart.",
+        "When the event starts.": "Amikor elkezdődik az esemény.",
+        "Whether the event lasts all day.": "Egésznapos-e az esemény vagy sem."
+    },
+    "NotificationsAndAutomationsNudge": {
+        "Add a note": "Megjegyzés hozzáadása",
+        "1 person has asked for this.": "1 személy igényelte ezt.",
+        "Next step": "Következő lépés",
+        "Waiting on": "Erre vár:",
+        "Ask questions and build formulas in plain language.": "Tegyen fel kérdéseket, és állítson össze képleteket közérthető nyelven.",
+        "Ask the admin for this": "Kérdezze meg erről az adminisztrátort!",
+        "Everything below is waiting on": "Az alábbiak a következőre várnak:",
+        "Get emailed when data changes, or when someone comments or mentions you.": "E-mail értesítés küldése, ha az adatok megváltoznak, vagy ha valaki hozzászól, illetve megemlíti Önt.",
+        "Next step for everything below": "A következő lépés az alábbiak esetében",
+        "Note sent.": "Az üzenet elküldve.",
+        "Notifications and Automations": "Értesítések és automatizált műveletek",
+        "You and 1 other have asked for this.": "Ön és még 1 személy kérte ezt.",
+        "You and {{count}} others have asked for this._one": "Ön és még {{count}} személy kérte ezt.",
+        "You and {{count}} others have asked for this._other": "Ön és még {{count}} személy kérte ezt.",
+        "You've asked for this.": "Ön kérte ezt.",
+        "{{count}} people have asked for this._one": "{{count}} személy kérte ezt.",
+        "{{count}} people have asked for this._other": "{{count}} személy kérte ezt.",
+        "{{done}} of {{total}} steps": "{{total}} lépésből {{done}} kész",
+        "React to changes in your data automatically with custom emails, webhook calls, and more.": "Az adatok változásaira automatikusan reagálhat egyedi e-mailekkel, webhook-hívásokkal és egyéb eszközökkel.",
+        "Setting these up is done by whoever manages this Grist installation.": "Ezeket a beállításokat bárki megtehetei, aki ezt a Grist telepítést kezeli.",
+        "Some of these features are ready; others need more setup on this install.": "Néhány funkció már használatra kész; másokhoz viszont további beállításokra van szükség ebben a telepítésben.",
+        "These features need additional setup on this install.": "Ezek a funkciók további beállítást igényelnek ebben a telepítésben.",
+        "This document can run automations, send notifications, and use an AI assistant.": "Ez a dokumentum képes automatizált műveleteket végrehajtani, értesítéseket küldeni és mesterséges intelligencia-asszisztenst használni.",
+        "When you share a document, new members get an email invite.": "Ha megoszt egy dokumentumot, az új tagok kapnak egy e-mailt.",
+        "Why do you want this? Press Enter to send.": "Miért szeretné ezt? Az Enter gomb megnyomásával küldheti el."
+    },
+    "InstallationIdBlock": {
+        "Copy": "Másolás",
+        "Copy to clipboard": "Másolás a vágólapra",
+        "Installation ID": "Telepítési ID",
+        "Installation ID copied to clipboard": "A telepítési ID a vágólapra másolva"
+    },
+    "QuickSetupApplyStep": {
+        "Back to installation": "Vissza a telepítéshez",
+        "Grist is live!": "A Grist működésbe lépett!",
+        "Our servers may be experiencing issues. Please try again later.": "A szervereink problémákba ütközhettek. Kérjük, próbálja meg később!",
+        "Please try again.": "Kérjük, próbálkozzon újra!",
+        "Retry submission": "Küldés megismétlése",
+        "Setup completion": "Beállítás befejezése",
+        "Apply and go live!": "Alkalmazás és aktiválás!",
+        "Applying settings and restarting…": "Beállítások alkalmazása és újraindítás…",
+        "We couldn't save your details or subscribe you to updates.": "Nem sikerült elmentenünk az adatait vagy feliratkoztatni a hírlevelekre.",
+        "We couldn't submit your details or your request to be kept up to date. Please try again.": "Nem sikerült elküldeni az adatait, illetve a frissítésekre vonatkozó kérését. Kérjük, próbálja meg újra!",
+        "We saved your details, but couldn't subscribe you to updates.": "Sikerült elmentenünk az adatait, de nem sikerült feliratkoztatnunk Önt a hírlevelekre.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "A beállítások módosításai alkalmazásra kerültek, és a szerver újraindult. A Grist már működésben van, és elérhető a felhasználók számára.",
+        "We subscribed you for product updates, but couldn't save your other details.": "Feliratkoztattuk Önt a hírlevelekre, de az egyéb adatait nem sikerült elmentenünk."
+    },
+    "HelpUsImproveSection": {
+        "Select…": "Válasszon…",
+        "GitHub": "GitHub",
+        "Help us improve Grist": "Segítsen a Grist fejlesztésében!",
+        "Developer": {
+            "IT": "Fejlesztő/IT"
+        },
+        "A business or organization": "Cég vagy szervezet",
+        "AI response": "AI válasz",
+        "Conference": {
+            "event": "Konferencia/esemény"
+        },
+        "Education": {
+            "Research Institute": "Oktatás/Kutatási intézmény"
+        },
+        "Email is required when subscribing to updates.": "E-mail szükséges a hírlevélre való feliratkozáshoz!",
+        "Email:": "E-mail:",
+        "Friend": {
+            "colleague": "Barát/kolléga"
+        },
+        "Other": "Egyéb",
+        "Please enter a valid email address.": "Kérjük, adjon meg egy érvényes e-mail címet!",
+        "Reddit": {
+            "forum": "Reddit/fórum"
+        },
+        "Search engine": "Keresőmotor",
+        "Individual or hobbyist": "Magánszemély",
+        "Nonprofit": "Non-profit",
+        "Social media": "Közösségi média",
+        "What best describes you?": "Mi illik Önre a legjobban?",
+        "Send me product and security updates": "Kérek termék és biztonsági hírleveleket!",
+        "How did you hear about Grist?": "Honnan hallott a Grist-ről?",
+        "A couple of quick questions — optional, and only our team sees this.": "Pár gyors kérdés - nem kötelezők, és csak a mi csapatunk látja ezt.",
+        "Occasional email about new releases and important security notices.": "Időnkénti e-mailek az új kiadásokról és a fontos biztonsági értesítésekről."
+    },
+    "RowNumbersMenu": {
+        "Hidden": "Elrejtve",
+        "Numbers": "Számok",
+        "Row IDs": "Sorazonosítók",
+        "Row numbers": "Sorszámok"
+    },
+    "VersionFooter": {
+        "Compare editions": "Kiadások összehasonlítása!",
+        "Grist Community edition": "Grist Közösségi kiadás",
+        "No official support": "Nincs hivatalos támogatás",
+        "Not the full edition": "Nem a teljes kiadás",
+        "Only community support": "Csak közösségi támogatás",
+        "Release notes": "Újdonságok",
+        "Version {{- version}}": "Verzió: {{- version}}"
+    },
+    "SetupSteps": {
+        "Choose full Grist edition": "A Grist teljes kiadásának választása",
+        "Connect a task queue (Redis)": "Feladatsor hozzáadása (Redis)",
+        "Connect an AI provider": "AI szolgáltató hozzáadása",
+        "Connect email delivery": "E-mail szolgáltatás hozzáadása",
+        "Invite emails": "E-mail meghívók",
+        "Use a plan with automations": "Automatizáláshoz használjon egy csomagot!",
+        "AI Assistant": "MI segéd",
+        "Automations": "Automatizált műveletek",
+        "Change & comment notifications": "Értesítések megváltoztatása"
     }
 }

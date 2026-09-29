@@ -13,6 +13,7 @@ import { SelectionSummary } from "app/client/components/SelectionSummary";
 import viewCommon from "app/client/components/viewCommon";
 import { onDblClickMatchElem } from "app/client/lib/dblclick";
 import { testId as oldTestId } from "app/client/lib/dom";
+import { isEventOnLink } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { KoArray } from "app/client/lib/koArray";
 import * as kd from "app/client/lib/koDom";
@@ -152,7 +153,6 @@ export default class GridView extends BaseView {
   protected frozenMap: KoArray<ko.Computed<boolean>>;
   protected hoverColumn: ko.Observable<number>;
   private _insertColumnIndex: ko.Observable<number | null>;
-  protected editingFormula: ko.Computed<boolean>;
   protected changeHover: (index: number) => void;
   protected isColSelected: KoArray<ko.Computed<boolean>>;
   protected header: HTMLElement;
@@ -347,13 +347,6 @@ export default class GridView extends BaseView {
 
     this._insertColumnIndex = ko.observable<number | null>(null);
 
-    // Checks if there is active formula editor for a column in this table.
-    this.editingFormula = ko.pureComputed(() => {
-      const isEditing = this.gristDoc.docModel.editingFormula();
-      if (!isEditing) { return false; }
-      return this.viewSection.viewFields().all().some(field => field.editingFormula());
-    });
-
     // Debounced method to change current hover column, this is needed
     // as mouse when moved from field to field will switch the hover-column
     // observable from current index to -1 and then immediately back to current index.
@@ -361,7 +354,7 @@ export default class GridView extends BaseView {
     // will be discarded.
     this.changeHover = debounce((index) => {
       if (this.isDisposed()) { return; }
-      if (this.editingFormula()) {
+      if (this.gristDoc.docModel.editingFormula.peek()) {
         this.hoverColumn(index);
       }
     }, 0);
@@ -380,6 +373,9 @@ export default class GridView extends BaseView {
     // --------------------------------------------------
     // Set up DOM event handling.
     onDblClickMatchElem(this.scrollPane, ".field:not(.column_name)", (event) => {
+      // A cell click followed by a click on its link icon can arrive here as a double click.
+      if (isEventOnLink(event)) { return; }
+
       if (this.gridOptions?.onCellDblClick) {
         this.gridOptions.onCellDblClick(this.cursor.getCursorPos());
       } else {
@@ -1510,7 +1506,7 @@ export default class GridView extends BaseView {
 
                   let filterTriggerCtl: PopupControl;
                   const isTooltip = ko.pureComputed(() =>
-                    this.editingFormula() && !this.isReadonly &&
+                    this.gristDoc.docModel.editingFormula() && !this.isReadonly &&
                     ko.unwrap(this.hoverColumn) === field._index(),
                   );
 
@@ -1535,7 +1531,7 @@ export default class GridView extends BaseView {
                         dom.autoDispose(tooltip),
                         dom.autoDispose(isTooltip.subscribe((show) => {
                           if (show) {
-                            tooltip.show(t(`Click to insert`) + ` $${field.origCol.peek().colId.peek()}`);
+                            tooltip.show(t(`Click to insert`) + ` ${field.displayLabel.peek()}`);
                           } else {
                             tooltip.hide();
                           }
@@ -1784,7 +1780,7 @@ export default class GridView extends BaseView {
             });
 
             const isTooltip = ko.pureComputed(() =>
-              this.editingFormula() && !this.isReadonly &&
+              this.gristDoc.docModel.editingFormula() && !this.isReadonly &&
               ko.unwrap(this.hoverColumn) === field._index(),
             );
 
@@ -1889,7 +1885,7 @@ export default class GridView extends BaseView {
   protected cellMouseDown(elem: HTMLElement, event: MouseEvent) {
     const col = this.domToColModel(elem, selector.CELL);
     if (this.hoverColumn() === col._index()) {
-      return this._tooltipMouseDown(elem, selector.CELL);
+      return this._tooltipMouseDown(elem, selector.CELL, event);
     }
 
     if (event.shiftKey) {
@@ -1906,7 +1902,7 @@ export default class GridView extends BaseView {
   protected colMouseDown(elem: HTMLElement, event: MouseEvent) {
     const col = this.domToColModel(elem, selector.COL);
     if (this.hoverColumn() === col._index()) {
-      return this._tooltipMouseDown(elem, selector.COL);
+      return this._tooltipMouseDown(elem, selector.COL, event);
     }
 
     this._colClickTime = Date.now();
@@ -1915,11 +1911,12 @@ export default class GridView extends BaseView {
     this.cellSelector.row.end(this.getLastDataRowIndex());
   }
 
-  protected _tooltipMouseDown(elem: HTMLElement, elemType: ElemType) {
+  protected _tooltipMouseDown(elem: HTMLElement, elemType: ElemType, event: MouseEvent) {
     const row = this.domToRowModel(elem, elemType);
     const col = this.domToColModel(elem, elemType);
-    // FormulaEditor.ts overrides this command to insert the column id of the clicked column.
-    commands.allCommands.setCursor.run(row, col);
+    // FormulaEditor.ts overrides this command to insert the column id of the clicked column, and
+    // needs the event to keep the click from reaching the section.
+    commands.allCommands.setCursor.run(row, col, event);
   }
 
   protected rowMouseDown(elem: HTMLElement, event: MouseEvent) {
@@ -1936,7 +1933,7 @@ export default class GridView extends BaseView {
   }
 
   protected colMouseMove(event: MouseEvent) {
-    if (this.editingFormula()) { return; }
+    if (this.gristDoc.docModel.editingFormula.peek()) { return; }
 
     const currentCol = Math.min(this.getMousePosCol(event.pageX),
       this.viewSection.viewFields().peekLength - 1);
@@ -1944,7 +1941,7 @@ export default class GridView extends BaseView {
   }
 
   protected cellMouseMove(event: MouseEvent) {
-    if (this.editingFormula()) { return; }
+    if (this.gristDoc.docModel.editingFormula.peek()) { return; }
 
     this.colMouseMove(event);
     this.rowMouseMove(event);

@@ -1,5 +1,7 @@
+import { hooks } from "app/client/Hooks";
 import { urlState } from "app/client/models/gristUrlState";
 import { GristLoadConfig } from "app/common/gristUrls";
+import { UserAPIImpl } from "app/common/UserAPI";
 
 /**
  * If we don't know what the home URL is, the top level of the site
@@ -53,4 +55,10 @@ export function getPreferredHomeUrl(): string | undefined {
 
 export function getHomeUrl(): string {
   return getPreferredHomeUrl() || getConfiguredHomeUrl();
+}
+
+export function newUserAPIImpl(): UserAPIImpl {
+  return new UserAPIImpl(getHomeUrl(), {
+    fetch: hooks.fetch,
+  });
 }

@@ -48,10 +48,6 @@ describe("DocWorkerMap", function() {
       });
 
       describe("assigment", function() {
-        beforeEach(async function() {
-          if (cli) { await cli.delAsync("groups"); }
-        });
-
         afterEach(async function() {
           if (cli) { await cli.flushdbAsync(); }
         });
@@ -239,113 +235,9 @@ describe("DocWorkerMap", function() {
           });
         }
 
-        it("can elect workers to groups", async function() {
-          this.timeout(5000);
-
-          // Say we want one worker reserved for "blizzard" and two for "funkytown"
-          await cli.hmsetAsync("groups", {
-            blizzard: 1,
-            funkytown: 2,
-          });
-          for (let i = 0; i < 20; i++) {
-            await cli.setAsync(`doc-blizzard${i}-group`, "blizzard");
-            await cli.setAsync(`doc-funkytown${i}-group`, "funkytown");
-          }
-          let workers = new DocWorkerMap([cli], "ver1");
-          for (let i = 0; i < 5; i++) {
-            await workers.addWorker({ id: `worker${i}`, internalUrl: "internal", publicUrl: "public" });
-            await workers.setWorkerAvailability(`worker${i}`, true);
-          }
-          let elections = await cli.hgetallAsync("elections-ver1");
-          assert.deepEqual(elections, { blizzard: '["worker0"]', funkytown: '["worker1","worker2"]' });
-          assert.sameMembers(await cli.smembersAsync("workers-available-blizzard"), ["worker0"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available-funkytown"), ["worker1", "worker2"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available-default"), ["worker3", "worker4"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available"),
-            ["worker0", "worker1", "worker2", "worker3", "worker4"]);
-          for (let i = 0; i < 20; i++) {
-            const assignment = await workers.assignDocWorker(`blizzard${i}`);
-            assert.equal(assignment.docWorker.id, "worker0");
-          }
-          for (let i = 0; i < 20; i++) {
-            const assignment = await workers.assignDocWorker(`funkytown${i}`);
-            assert.include(["worker1", "worker2"], assignment.docWorker.id);
-          }
-          for (let i = 0; i < 20; i++) {
-            const assignment = await workers.assignDocWorker(`random${i}`);
-            assert.include(["worker3", "worker4"], assignment.docWorker.id);
-          }
-
-          // suppose worker0 dies, and worker5 is added to replace it
-          await workers.removeWorker("worker0");
-          await workers.addWorker({ id: `worker5`, internalUrl: "internal", publicUrl: "public" });
-          await workers.setWorkerAvailability("worker5", true);
-          for (let i = 0; i < 20; i++) {
-            const assignment = await workers.assignDocWorker(`blizzard${i}`);
-            assert.equal(assignment.docWorker.id, "worker5");
-          }
-
-          // suppose worker1 dies, and worker6 is added to replace it
-          await workers.removeWorker("worker1");
-          await workers.addWorker({ id: `worker6`, internalUrl: "internal", publicUrl: "public" });
-          await workers.setWorkerAvailability("worker6", true);
-          for (let i = 0; i < 20; i++) {
-            const assignment = await workers.assignDocWorker(`funkytown${i}`);
-            assert.include(["worker2", "worker6"], assignment.docWorker.id);
-          }
-
-          // suppose we add a new deployment...
-          workers = new DocWorkerMap([cli], "ver2");
-          for (let i = 0; i < 5; i++) {
-            await workers.addWorker({ id: `worker${i}_v2`, internalUrl: "internal", publicUrl: "public" });
-            await workers.setWorkerAvailability(`worker${i}_v2`, true);
-          }
-          assert.sameMembers(await cli.smembersAsync("workers-available-blizzard"),
-            ["worker5", "worker0_v2"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available-funkytown"),
-            ["worker2", "worker6", "worker1_v2", "worker2_v2"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available-default"),
-            ["worker3", "worker4", "worker3_v2", "worker4_v2"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available"),
-            ["worker2", "worker3", "worker4", "worker5", "worker6",
-              "worker0_v2", "worker1_v2", "worker2_v2", "worker3_v2", "worker4_v2"]);
-
-          // ...and then remove the old one
-          workers = new DocWorkerMap([cli], "ver1");
-          for (let i = 0; i < 7; i++) {
-            await workers.removeWorker(`worker${i}`);
-          }
-
-          // check everything looks as expected
-          workers = new DocWorkerMap([cli], "ver2");
-          elections = await cli.hgetallAsync("elections-ver2");
-          assert.deepEqual(elections, { blizzard: '["worker0_v2"]',
-            funkytown: '["worker1_v2","worker2_v2"]' });
-          assert.sameMembers(await cli.smembersAsync("workers-available-blizzard"), ["worker0_v2"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available-funkytown"), ["worker1_v2", "worker2_v2"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available-default"), ["worker3_v2", "worker4_v2"]);
-          assert.sameMembers(await cli.smembersAsync("workers-available"),
-            ["worker0_v2", "worker1_v2", "worker2_v2", "worker3_v2", "worker4_v2"]);
-          for (let i = 0; i < 20; i++) {
-            const assignment = await workers.assignDocWorker(`blizzard${i}`);
-            assert.equal(assignment.docWorker.id, "worker0_v2");
-          }
-          for (let i = 0; i < 20; i++) {
-            const assignment = await workers.assignDocWorker(`funkytown${i}`);
-            assert.include(["worker1_v2", "worker2_v2"], assignment.docWorker.id);
-          }
-          for (let i = 0; i < 20; i++) {
-            const assignment = await workers.assignDocWorker(`random${i}`);
-            assert.include(["worker3_v2", "worker4_v2"], assignment.docWorker.id);
-          }
-
-          // check everything about previous deployment got cleaned up
-          assert.equal(await cli.hgetallAsync("elections-ver1"), null);
-        });
-
         it("can assign workers to groups", async function() {
           this.timeout(5000);
-          const workers = new DocWorkerMap([cli], "ver1");
+          const workers = new DocWorkerMap([cli]);
 
           // Register a few regular workers.
           for (let i = 0; i < 3; i++) {
@@ -381,6 +273,30 @@ describe("DocWorkerMap", function() {
             assert.match((await workers.assignDocWorker(`normaldoc${i}`)).docWorker.id,
               /^worker\d$/);
           }
+        });
+
+        it("takes a worker in a group off the lists when it goes", async function() {
+          const workers = new DocWorkerMap([cli]);
+          await workers.addWorker({ id: "worker_secondary", internalUrl: "internal",
+            publicUrl: "public", group: "secondary" });
+          await workers.setWorkerAvailability("worker_secondary", true);
+
+          // Check that the worker is present before removing it, so the
+          // emptiness checks below are meaningful.
+          assert.sameMembers(await cli.smembersAsync("workers"), ["worker_secondary"]);
+          assert.sameMembers(await cli.smembersAsync("workers-available-secondary"), ["worker_secondary"]);
+          assert.sameMembers(await cli.zrangeAsync("workers-available-by-load-secondary", 0, -1),
+            ["worker_secondary"]);
+          assert.isNotEmpty(await cli.hgetallAsync("worker-worker_secondary"));
+          assert.equal(await cli.getAsync("worker-worker_secondary-group"), "secondary");
+
+          await workers.removeWorker("worker_secondary");
+          assert.isEmpty(await cli.smembersAsync("workers"));
+          assert.isEmpty(await cli.smembersAsync("workers-available"));
+          assert.isEmpty(await cli.smembersAsync("workers-available-secondary"));
+          assert.isEmpty(await cli.zrangeAsync("workers-available-by-load-secondary", 0, -1));
+          assert.isEmpty(await cli.hgetallAsync("worker-worker_secondary") || {});
+          assert.equal(await cli.getAsync("worker-worker_secondary-group"), null);
         });
       });
 
@@ -418,7 +334,7 @@ describe("DocWorkerMap", function() {
         });
 
         it("can manage permits", async function() {
-          const store = new DocWorkerMap([cli], undefined, { permitMsec: 1000 }).getPermitStore("1");
+          const store = new DocWorkerMap([cli], { permitMsec: 1000 }).getPermitStore("1");
 
           // Make a doc permit and a workspace permit
           const permit1: Permit = { docId: "docId1" };
@@ -447,7 +363,7 @@ describe("DocWorkerMap", function() {
           assert.equal(await store.getPermit(key2), null);
 
           // make sure permit stores are distinct
-          const store2 = new DocWorkerMap([cli], undefined, { permitMsec: 1000 }).getPermitStore("2");
+          const store2 = new DocWorkerMap([cli], { permitMsec: 1000 }).getPermitStore("2");
           const key3 = await store2.setPermit(permit1);
           assert(key3.startsWith("permit-2-"));
           const fakeKey3 = key3.replace("permit-2-", "permit-1-");
@@ -791,4 +707,148 @@ describe("DocWorkerMap", function() {
       }
     });
   }
+
+  describe("worker liveness", function() {
+    let workers: DocWorkerMap;
+    let oldEnv: testUtils.EnvironmentSnapshot;
+
+    const workerA: DocWorkerInfo = {
+      id: "aliveTestWorkerA",
+      publicUrl: "http://a.example.com",
+      internalUrl: "http://10.0.0.1:8484",
+    };
+
+    before(function() {
+      oldEnv = new testUtils.EnvironmentSnapshot();
+      // The claim lasts a few turns of the timer that reports it, so its lifetime follows this.
+      process.env.GRIST_DOC_WORKER_UPDATE_LOAD_INTERVAL_MS = "5000";
+      workers = new DocWorkerMap([cli]);
+    });
+
+    after(function() {
+      oldEnv.restore();
+    });
+
+    afterEach(async function() {
+      if (cli) { await cli.flushdbAsync(); }
+    });
+
+    it("says nothing was heard from a registration nothing is behind", async function() {
+      // What a worker killed without deregistering leaves, an entry that looks like any other.
+      await cli.hmsetAsync(`worker-${workerA.id}`, { ...workerA });
+      await cli.saddAsync("workers", workerA.id);
+      assert.isFalse(await workers.isWorkerAlive(workerA.id));
+    });
+
+    it("says nothing was heard once a worker stops saying", async function() {
+      await workers.addWorker(workerA);
+      await workers.recordWorkerAlive(workerA.id);
+      assert.isTrue(await workers.isWorkerAlive(workerA.id));
+      // Left to expire, rather than kept until something clears it. Five turns of the timer that
+      // reports it, which is 25 seconds where the interval is left at its default.
+      assert.equal(await cli.ttlAsync(`worker-${workerA.id}-alive`), 25);
+
+      await cli.delAsync(`worker-${workerA.id}-alive`);
+      assert.isFalse(await workers.isWorkerAlive(workerA.id));
+    });
+
+    it("forgets what a worker said when it goes", async function() {
+      await workers.addWorker(workerA);
+      await workers.recordWorkerAlive(workerA.id);
+
+      await workers.removeWorker(workerA.id);
+      assert.equal(await cli.existsAsync(`worker-${workerA.id}-alive`), 0);
+      assert.isFalse(await workers.isWorkerAlive(workerA.id));
+    });
+
+    it("records the load and the claim in one call", async function() {
+      // The load half is an update of an entry already there, which does nothing at all where the
+      // worker is not in that set, so it is asserted on the key rather than on the call.
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+
+      await workers.setWorkerLoad(workerA, 0.25);
+      assert.isTrue(await workers.isWorkerAlive(workerA.id));
+      assert.equal(await cli.ttlAsync(`worker-${workerA.id}-alive`), 25);
+      assert.equal(
+        Number(await cli.zscoreAsync("workers-available-by-load-default", workerA.id)), 0.25);
+    });
+  });
+
+  describe("worker registrations", function() {
+    let workers: DocWorkerMap;
+
+    const workerA: DocWorkerInfo = {
+      id: "registeredWorkerA",
+      publicUrl: "http://a.example.com",
+      internalUrl: "http://10.0.0.1:8484",
+    };
+
+    before(function() {
+      workers = new DocWorkerMap([cli]);
+    });
+
+    afterEach(async function() {
+      await cli.flushdbAsync();
+    });
+
+    it("reports nothing when no worker is registered", async function() {
+      assert.deepEqual(await workers.getRegisteredWorkers(), []);
+    });
+
+    it("describes every registered worker", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+      await workers.assignDocWorker("registrationTestDoc");
+
+      const registered = await workers.getRegisteredWorkers();
+      assert.lengthOf(registered, 1);
+      assert.equal(registered[0].info.id, workerA.id);
+      assert.equal(registered[0].info.internalUrl, workerA.internalUrl);
+      assert.isTrue(registered[0].available);
+      assert.equal(registered[0].assignmentCount, 1);
+    });
+
+    it("reports a worker that is registered but not taking documents", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, false);
+
+      const registered = await workers.getRegisteredWorkers();
+      assert.lengthOf(registered, 1);
+      assert.isFalse(registered[0].available);
+      assert.equal(registered[0].assignmentCount, 0);
+      // No place in the by-load set means no load to report, as against a load of zero.
+      assert.isUndefined(registered[0].load);
+    });
+
+    it("reports the load the assignment algorithm weighs a worker by", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+      assert.equal((await workers.getRegisteredWorkers())[0].load, 0);
+
+      await workers.setWorkerLoad(workerA, 0.25);
+      // Redis hands scores back as strings, so this catches the parse as much as the plumbing.
+      assert.strictEqual((await workers.getRegisteredWorkers())[0].load, 0.25);
+    });
+
+    it("says whether each worker is still saying it is running", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+      await workers.recordWorkerAlive(workerA.id);
+      assert.isTrue((await workers.getRegisteredWorkers())[0].alive);
+
+      await cli.delAsync(`worker-${workerA.id}-alive`);
+      assert.isFalse((await workers.getRegisteredWorkers())[0].alive);
+    });
+
+    it("reports a worker in the group its availability sits in", async function() {
+      await workers.addWorker({ ...workerA, group: "chosen" });
+      await workers.setWorkerAvailability(workerA.id, true);
+      await workers.setWorkerLoad({ ...workerA, group: "chosen" }, 0.5);
+
+      const registered = await workers.getRegisteredWorkers();
+      assert.equal(registered[0].info.group, "chosen");
+      assert.equal(registered[0].load, 0.5);
+    });
+  });
 });

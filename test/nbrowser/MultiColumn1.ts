@@ -370,8 +370,7 @@ describe("MultiColumn1", function() {
       await selectColumns("Test1");
       await gu.openCellColorPicker();
       await gu.setFillColor(red);
-      await driver.sendKeys(Key.ENTER);
-      await gu.waitForServer();
+      await gu.applyStyleWithEnter();
       await gu.assertFillColor(await gu.getCell("Test1", 1).find(".field_clip"), red);
       await gu.assertFillColor(await gu.getCell("Test2", 1).find(".field_clip"), transparent);
 
@@ -391,8 +390,7 @@ describe("MultiColumn1", function() {
       // Change both colors.
       await gu.openCellColorPicker();
       await gu.setFillColor(blue);
-      await driver.sendKeys(Key.ENTER);
-      await gu.waitForServer();
+      await gu.applyStyleWithEnter();
       assert.equal(await cellColorLabel(), "Default cell style");
       await gu.assertFillColor(await gu.getCell("Test1", 1).find(".field_clip"), blue);
       await gu.assertFillColor(await gu.getCell("Test2", 1).find(".field_clip"), blue);
@@ -422,8 +420,7 @@ describe("MultiColumn1", function() {
       await selectColumns("Test1");
       await gu.openHeaderColorPicker();
       await gu.setFillColor(red);
-      await driver.sendKeys(Key.ENTER);
-      await gu.waitForServer();
+      await gu.applyStyleWithEnter();
       await gu.assertHeaderFillColor("Test1", red);
       await gu.assertHeaderFillColor("Test2", defaultHeaderFillColor);
 
@@ -443,8 +440,7 @@ describe("MultiColumn1", function() {
       // Change both colors.
       await gu.openHeaderColorPicker();
       await gu.setFillColor(blue);
-      await driver.sendKeys(Key.ENTER);
-      await gu.waitForServer();
+      await gu.applyStyleWithEnter();
       assert.equal(await headerColorLabel(), "Default header style");
       await gu.assertHeaderFillColor("Test1", blue);
       await gu.assertHeaderFillColor("Test2", blue);

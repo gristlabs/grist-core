@@ -70,18 +70,29 @@ def make_formula_body(formula, default_value, assoc_value=None, indent=''):
     unindent_patches.append(textbuilder.Patch(0, len(dummy_def), dummy_def, ''))
 
     atok = asttokens.ASTText(builder.get_text())
-    for node in ast.walk(atok.tree):
-      if isinstance(node, (ast.Constant, ast.JoinedStr)) and "\n" in atok.get_text(node):
-        # We have a constant or f-string that spans multiple lines. If so, revert its indentation.
-        start, end = atok.get_text_range(node)
-        indented_text = atok.get_text(node)
-        unindented_text = indented_text.replace('\n' + indent, '\n')
-        unindent_patches.append(textbuilder.Patch(start, end, indented_text, unindented_text))
+    for node in _multiline_string_nodes(atok, atok.tree):
+      # We have a constant or f-string that spans multiple lines. If so, revert its indentation.
+      start, end = atok.get_text_range(node)
+      indented_text = atok.get_text(node)
+      unindented_text = indented_text.replace('\n' + indent, '\n')
+      unindent_patches.append(textbuilder.Patch(start, end, indented_text, unindented_text))
 
     return textbuilder.Replacer(builder, unindent_patches)
   else:
     return indented_formula_body
 
+
+def _multiline_string_nodes(atok, node):
+  """
+  Yields the outermost string constants and f-strings under `node` whose text spans several lines.
+  Outermost only: since Python 3.12 (PEP 701) the pieces nested inside an f-string have positions
+  of their own, and patching a node together with its descendants would duplicate their text.
+  """
+  if isinstance(node, (ast.Constant, ast.JoinedStr)) and "\n" in atok.get_text(node):
+    yield node
+  else:
+    for child in ast.iter_child_nodes(node):
+      yield from _multiline_string_nodes(atok, child)
 
 
 def _do_make_formula_body(formula, default_value, assoc_value=None):

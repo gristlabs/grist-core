@@ -99,7 +99,15 @@ function buildAllDocumentsPage(home: HomeModel) {
     buildHomeIntro(home),
     home.app.isPersonal && !home.app.currentValidUser ?
       null :
-      dom.maybe(home.available, () => dom.create(DocList, { home })),
+      dom.maybe(home.available, () => [
+        css.stickyHeader(
+          css.workspaceHeaderWrap(
+            css.workspaceHeader(t("Documents")),
+            testId("doc-header"),
+          ),
+        ),
+        dom.create(DocList, { home }),
+      ]),
   ];
 }
 
@@ -348,7 +356,7 @@ export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, worksp
   function hardDeleteDoc() {
     confirmModal(t("Permanently Delete \"{{name}}\"?", { name: doc.name }), t("Delete Forever"),
       () => home.deleteDoc(doc.id, true).catch(reportError),
-      { explanation: t("Document will be permanently deleted.") },
+      { explanation: t("Document will be permanently deleted."), defaultCancel: true },
     );
   }
 

@@ -1,7 +1,7 @@
 import { GristDoc } from "app/client/components/GristDoc";
 import { makeT } from "app/client/lib/localization";
 import { urlState } from "app/client/models/gristUrlState";
-import { getAutomationsStatus } from "app/client/ui/AutomationStatus";
+import { getAutomationsStatus } from "app/client/ui/FeatureStatus";
 import {
   cssLinkText,
   cssPageEntry,

@@ -1,5 +1,7 @@
 import { ApplyUAOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
 import { UserAction } from "app/common/DocActions";
+import { isHiddenCol } from "app/common/gristTypes";
+import { isNonNullish } from "app/common/gutil";
 import { SchemaTypes } from "app/common/schema";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { OptDocSession } from "app/server/lib/DocSession";
@@ -25,8 +27,45 @@ export function getWidgetById(doc: ActiveDoc, id: number) {
   return getRecordById(doc, "_grist_Views_section", id);
 }
 
+export function getPageById(doc: ActiveDoc, id: number) {
+  return getRecordById(doc, "_grist_Views", id);
+}
+
+export interface WidgetField {
+  field_id: number;
+  column_id: string;
+  label: string;
+  width: number | null;
+}
+
+/**
+ * The columns a widget shows, in display order, without helper columns.
+ */
+export function getWidgetFields(doc: ActiveDoc, widgetId: number): WidgetField[] {
+  // An unknown widget would otherwise read as one with no fields.
+  getWidgetById(doc, widgetId);
+  const docData = getDocDataOrThrow(doc);
+  const cols = docData.getMetaTable("_grist_Tables_column");
+  return docData.getMetaTable("_grist_Views_section_field")
+    .filterRecords({ parentId: widgetId })
+    .map((field) => {
+      const col = cols.getRecord(field.colRef);
+      return col ? { field, col } : null;
+    })
+    .filter(isNonNullish)
+    .filter(({ col }) => !isHiddenCol(col.colId))
+    .sort((a, b) => a.field.parentPos - b.field.parentPos)
+    .map(({ field, col }) => ({
+      field_id: field.id,
+      column_id: col.colId,
+      label: col.label || col.colId,
+      // Grist stores 0 (or nothing) for a column that takes the widget's default width.
+      width: typeof field.width === "number" && field.width > 0 ? field.width : null,
+    }));
+}
+
 export function getWidgetsByPageId(doc: ActiveDoc, pageId: number) {
-  const page = getRecordById(doc, "_grist_Views", pageId);
+  const page = getPageById(doc, pageId);
   return getDocDataOrThrow(doc)
     .getMetaTable("_grist_Views_section")
     .filterRecords({ parentId: page.id });

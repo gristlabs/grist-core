@@ -1,5 +1,6 @@
 import { delay } from "app/common/delay";
 import log from "app/server/lib/log";
+import { cleanEnv } from "app/server/lib/serverUtils";
 import { Throttle } from "app/server/lib/Throttle";
 
 import * as childProcess from "child_process";
@@ -261,8 +262,8 @@ export class SubprocessControl implements ISandboxControl {
     // but process naming is slightly different. But this class is currently only useful
     // for gvisor's runsc, which runs on Linux only.
     const cmd =
-      execFile("pgrep", ["--list-full", "--parent", String(pid)])
-        .catch(() => execFile("pgrep", ["-l", "-P", String(pid)]))   // mac version of pgrep
+      execFile("pgrep", ["--list-full", "--parent", String(pid)], { env: cleanEnv() })
+        .catch(() => execFile("pgrep", ["-l", "-P", String(pid)], { env: cleanEnv() }))   // mac pgrep
         .catch(() => ({ stdout: "" }));
     const result = (await cmd).stdout;
     const parts = result

@@ -1,0 +1,39 @@
+{
+  "realm": "grist",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "gristclient",
+      "name": "Grist",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${OIDC_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "https://${GRIST_DOMAIN}/oauth2/callback"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "https://${GRIST_DOMAIN}/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "test",
+      "enabled": true,
+      "email": "test@example.org",
+      "emailVerified": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

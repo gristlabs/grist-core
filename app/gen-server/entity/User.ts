@@ -39,6 +39,9 @@ export class User extends BaseEntity {
   @Column({ name: "disabled_at", type: nativeValues.dateTimeType, nullable: true })
   public disabledAt: Date | null;
 
+  @Column({ name: "disabled_reason", type: String, nullable: true })
+  public disabledReason: string | null;
+
   @OneToOne(type => Organization, organization => organization.owner)
   public personalOrg: Organization;
 

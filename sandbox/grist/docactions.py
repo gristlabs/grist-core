@@ -7,6 +7,22 @@ from objtypes import strict_equal
 log = logging.getLogger(__name__)
 
 class DocActions(object):
+  # Each method here appends to out_actions.undo the inverse action(s) of the
+  # doc action it applies (e.g. RemoveColumn restores the column's data with a
+  # BulkUpdateRecord, then re-adds it with an AddColumn). The server's action
+  # summarizer relies on the exact shape of those inverses: app/common/
+  # ActionLayout.ts `expectedInverses` is a hand-kept catalogue of what each
+  # action emits here, used to split a bundle into summarizable chunks. If you
+  # change which inverse actions a method emits, or their order, update
+  # expectedInverses to match -- test/server/lib/ActionSummaryFuzz.ts checks the
+  # two stay in agreement.
+  #
+  # For freshly-applied bundles the engine also records which stored action
+  # produced each undo (out_actions.undo_owner, populated in useractions and
+  # action_summary), and the summarizer prefers that exact correspondence
+  # (chunkByOwners) over inferring it. The expectedInverses catalogue remains the
+  # fallback for any bundle without that record: all history from before undo_owner
+  # was added (a common case, not a relic), plus engine-less bundles.
   def __init__(self, engine):
     self._engine = engine
 
@@ -28,6 +44,7 @@ class DocActions(object):
     self._engine.out_actions.summary.add_records(table_id, row_ids)
 
     self._engine.add_records(table_id, row_ids, column_values)
+    table._hooks_after_add.run(row_ids)
 
   def RemoveRecord(self, table_id, row_id):
     return self.BulkRemoveRecord(table_id, [row_id])
@@ -40,7 +57,7 @@ class DocActions(object):
     if not row_ids:
       return
 
-    # Collect the undo values, and unset all values in the column (i.e. set to defaults), just to
+    # Collect the undo values, then unset all values in the column (i.e. set to defaults), just to
     # make sure we don't have stale values hanging around.
     undo_values = {}
     for column in table.all_columns.values():
@@ -50,8 +67,8 @@ class DocActions(object):
         # If this column had all default values, don't include it into the undo BulkAddRecord.
         if not all(strict_equal(val, default) for val in col_values):
           undo_values[column.col_id] = col_values
-      for row_id in row_ids:
-        column.unset(row_id)
+
+    self._remove_row_state(table, row_ids)
 
     # Generate the undo action.
     self._engine.out_actions.undo.append(
@@ -60,6 +77,15 @@ class DocActions(object):
 
     # Invalidate the deleted rows, so that anything that depends on them gets recomputed.
     self._engine.invalidate_records(table_id, row_ids)
+
+  def _remove_row_state(self, table, row_ids):
+    # Run the before-remove hooks and unset all values (i.e. set to defaults): stateful columns
+    # (reference reverse maps, lookup maps, summary memberships) drop the rows and invalidate
+    # their dependents, and no stale values hang around.
+    table._hooks_before_remove.run(row_ids)
+    for column in table.all_columns.values():
+      for row_id in row_ids:
+        column.unset(row_id)
 
   def UpdateRecord(self, table_id, row_id, columns):
     self.BulkUpdateRecord(
@@ -101,7 +127,9 @@ class DocActions(object):
   def ReplaceTableData(self, table_id, row_ids, column_values):
     old_data = self._engine.fetch_table(table_id, formulas=False)
     self._engine.out_actions.undo.append(actions.ReplaceTableData(*old_data))
-    self._engine.out_actions.summary.remove_records(table_id, old_data[1])
+    self._engine.out_actions.summary.remove_records(table_id, old_data.row_ids)
+    # Tear down the existing rows as removal does, to ensure stateful columns don't keep them.
+    self._remove_row_state(self._engine.tables[table_id], old_data.row_ids)
     self._engine.out_actions.summary.add_records(table_id, row_ids)
     self._engine.load_table(actions.TableData(table_id, row_ids, column_values))
 

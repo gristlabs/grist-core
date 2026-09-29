@@ -10,6 +10,7 @@ Relations can be determined by a foreign key or another form of lookup, and they
 
 """
 import depend
+from lookupset import LookupSet
 
 class Relation(object):
   """
@@ -109,10 +110,22 @@ class ReferenceRelation(Relation):
   """
   Base class for Relations between records in two tables.
   """
-  def __init__(self, referring_table, target_table, ref_col_id):
-    super(ReferenceRelation, self).__init__(referring_table, target_table)
-    self.inverse_map = {}     # maps target rows to sets of referring rows
+  def __init__(self, referring_table, target_table, ref_col_id, build_index):
+    super().__init__(referring_table, target_table)
     self._ref_col_id = ref_col_id
+    # The inverse map (target rows -> sets of referring rows) is derived state, built from the
+    # reference column's data on first use, using the build_index callback. While unbuilt,
+    # add/remove_reference are no-ops, so we get the extra benefit of saving the memory of the
+    # index when the reference column isn't used in formulas.
+    self._build_index = build_index
+    self._inverse_map = None
+
+  @property
+  def inverse_map(self):
+    if self._inverse_map is None:
+      self._inverse_map = {}
+      self._build_index()
+    return self._inverse_map
 
   def __str__(self):
     return "ReferenceRelation(%s.%s)" % (self.referring_table, self._ref_col_id)
@@ -123,15 +136,22 @@ class ReferenceRelation(Relation):
     if input_rows == depend.ALL_ROWS:
       return depend.ALL_ROWS
     affected_rows = set()
+    inverse_map = self.inverse_map
     for target_row_id in input_rows:
-      affected_rows.update(self.inverse_map.get(target_row_id, ()))
+      affected_rows.update(inverse_map.get(target_row_id, ()))
     return affected_rows
 
   def add_reference(self, referring_row_id, target_row_id):
-    self.inverse_map.setdefault(target_row_id, set()).add(referring_row_id)
+    # The inverse map is also used for lookups via this reference column (of the form
+    # T.lookupRecords(refCol=$id)), so use a LookupSet, which we rely on for caching multiple
+    # sorted forms. The caching is lazy, so the extra cost is low when unused.
+    if self._inverse_map is not None:
+      self._inverse_map.setdefault(target_row_id, LookupSet()).add(referring_row_id)
 
   def remove_reference(self, referring_row_id, target_row_id):
-    self.inverse_map[target_row_id].discard(referring_row_id)
+    if self._inverse_map is not None:
+      self._inverse_map.get(target_row_id, set()).discard(referring_row_id)
 
   def clear(self):
-    self.inverse_map.clear()
+    # Reset to unbuilt; the index gets rebuilt from column data on next use.
+    self._inverse_map = None

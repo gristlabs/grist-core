@@ -10,6 +10,7 @@ import {
 import { IAttachmentStore } from "app/server/lib/AttachmentStore";
 import { getCoreLoginSystem } from "app/server/lib/coreLogins";
 import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
+import { DocWorkerEndpointOptions } from "app/server/lib/DocApiUtils";
 import { DocStorageManager } from "app/server/lib/DocStorageManager";
 import { ExternalStorage, ExternalStorageCreator, UnsupportedPurposeError } from "app/server/lib/ExternalStorage";
 import { createDummyTelemetry, GristLoginSystem, GristServer } from "app/server/lib/GristServer";
@@ -109,6 +110,11 @@ export interface ICreate {
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
   addExtraDocEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker): void;
+  /**
+   * Register extra `/api/docs/:docId/...` endpoints on the doc worker, where an ActiveDoc is
+   * reachable. Called from DocWorkerApi.addEndpoints, which supplies its access middleware.
+   */
+  addExtraDocWorkerEndpoints?(gristServer: GristServer, options: DocWorkerEndpointOptions): void;
   getSiteMetricsSource(): SiteMetricsSource | undefined;
   areAdminControlsAvailable(): boolean;
   areOAuthAppsEnabled(): boolean;
@@ -272,6 +278,7 @@ export class BaseCreate implements ICreate {
 
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
   public addExtraDocEndpoints(gristServer: GristServer, app: Express, tracker?: DocApiUsageTracker) {}
+  public addExtraDocWorkerEndpoints(gristServer: GristServer, options: DocWorkerEndpointOptions) {}
   public getSiteMetricsSource(): SiteMetricsSource | undefined { return undefined; }
   public areAdminControlsAvailable(): boolean { return false; }
   public areOAuthAppsEnabled(): boolean { return false; }

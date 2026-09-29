@@ -207,6 +207,10 @@ describe("ActionLog", function() {
     // We are at Raw Data view now (since we deleted a table).
     assert.match(await driver.getCurrentUrl(), /p\/data$/);
     await gu.getPageItem("Table2").click();
+    // Until the url changes, the page still shows Raw Data, and a cell found there has been
+    // thrown away by the time it is clicked.
+    await gu.waitForUrl(/\/p\/\d+$/);
+    await gu.waitForDocToLoad();
     await gu.enterGridRows({ rowNum: 1, col: 0 }, [["2"]]);
     await gu.addNewTable();  // Table1
     await gu.enterGridRows({ rowNum: 1, col: 0 }, [["1"]]);

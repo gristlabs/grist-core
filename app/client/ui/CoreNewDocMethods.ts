@@ -1,4 +1,4 @@
-import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/AppModel";
 import { docUrl, urlState } from "app/client/models/gristUrlState";

@@ -103,7 +103,7 @@ return 0
                               r"""
                                 File "usercode", line 5
                                   return: 0
-                                        \^
+                                        \^+
                               SyntaxError: invalid syntax
                               """
                             ))
@@ -134,7 +134,7 @@ return 0
                               r"""
                                 File "usercode", line \d+, in other_err
                                   if sum\(3, 5\) > 6:
-                              TypeError: 'int' object is not iterable
+                              ( +[~^]+\n)?TypeError: 'int' object is not iterable
                               """
                             ))
 

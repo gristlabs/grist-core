@@ -1,7 +1,7 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { cleanupExtraWindows, server, setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("DetailView", function() {
   this.timeout(20000);
@@ -31,6 +31,11 @@ describe("DetailView", function() {
     await fieldA.click(); // second is to edit it
     assert.equal(await driver.find(".test-widget-text-editor").isPresent(), true);
     await gu.checkTextEditor("some text");
+
+    // The tests below assert that no editor is open. One left behind here is still on its way
+    // out while they look, which on a quick machine is what they find.
+    await gu.sendKeys(Key.ESCAPE);
+    await driver.wait(async () => !(await driver.find(".test-widget-text-editor").isPresent()), 1000);
   });
 
   it("does not opens cell for editing when clicked on link", async () => {
@@ -43,6 +48,24 @@ describe("DetailView", function() {
 
     assert.equal(await fieldB.getText(), server.getHost());
     await driver.sleep(100); // This click is ignored, so wait for a bit.
+    assert.equal(await driver.find(".test-widget-text-editor").isPresent(), false);
+  });
+
+  it("does not open cell for editing when the link is double-clicked", async () => {
+    // A double click made of two clicks on different elements lands on the ancestor they share:
+    // here the cell, not the link. Raised directly, since two driver clicks may not be doubled.
+    const fieldB = await gu.getDetailCell("B", 1);
+    await driver.executeScript((cell: HTMLElement, link: HTMLElement) => {
+      const box = link.getBoundingClientRect();
+      cell.dispatchEvent(new MouseEvent("dblclick", {
+        bubbles: true,
+        clientX: box.left + box.width / 2,
+        clientY: box.top + box.height / 2,
+      }));
+    }, fieldB, await fieldB.find(".test-tb-link-icon"));
+
+    assert.equal(await fieldB.getText(), server.getHost());
+    await driver.sleep(100); // The double click is ignored, so wait for a bit.
     assert.equal(await driver.find(".test-widget-text-editor").isPresent(), false);
   });
 });

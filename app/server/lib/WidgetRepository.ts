@@ -65,7 +65,7 @@ export class DiskWidgetRepository implements IWidgetRepository {
  * until the first call to getWidgets().
  *
  */
-export class DelayedWidgetRepository implements IWidgetRepository {
+class DelayedWidgetRepository implements IWidgetRepository {
   private _repo: AsyncCreate<IWidgetRepository | undefined>;
 
   constructor(_makeRepo: () => Promise<IWidgetRepository | undefined>) {
@@ -85,7 +85,7 @@ export class DelayedWidgetRepository implements IWidgetRepository {
  * their results.
  *
  */
-export class CombinedWidgetRepository implements IWidgetRepository {
+class CombinedWidgetRepository implements IWidgetRepository {
   constructor(private _repos: IWidgetRepository[]) {}
 
   public async getWidgets(): Promise<ICustomWidget[]> {
@@ -100,7 +100,7 @@ export class CombinedWidgetRepository implements IWidgetRepository {
 /**
  * Repository that gets a list of widgets from a URL.
  */
-export class UrlWidgetRepository implements IWidgetRepository {
+class UrlWidgetRepository implements IWidgetRepository {
   constructor(private _staticUrl = Deps.STATIC_URL,
     private _required: boolean = true) {}
 

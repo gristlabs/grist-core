@@ -1,11 +1,13 @@
 import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { UserAction } from "app/common/DocActions";
-import { ExistingDocSchema, ExistingTableSchema } from "app/common/DocSchemaImportTypes";
-import { RecalcWhen } from "app/common/gristTypes";
-import { TableMetadata } from "app/plugin/DocApiTypes";
+import { isHiddenCol, RecalcWhen } from "app/common/gristTypes";
+import { isHiddenTableId } from "app/common/isHiddenTable";
+import { ColumnMetadata, TableMetadata } from "app/plugin/DocApiTypes";
 import { GristType } from "app/plugin/GristData";
 
 import cloneDeep from "lodash/cloneDeep";
+import isUndefined from "lodash/isUndefined";
+import omitBy from "lodash/omitBy";
 
 /**
  * A self-contained schema for a Grist document, that can be declared, validated and then used
@@ -248,7 +250,8 @@ export class DocSchemaImportTool {
           "ModifyColumn",
           existingColRef.existingTableId,
           existingColRef.existingColId,
-          {
+          // Unless omitted, undefined is sent as null to the data engine.
+          omitBy({
             type,
             isFormula: columnSchema.isFormula ?? false,
             formula: preparedFormula?.formula,
@@ -256,11 +259,11 @@ export class DocSchemaImportTool {
             // Need to decouple it - otherwise our stored column ids may now be invalid.
             untieColIdFromLabel: columnSchema.label !== undefined,
             description: columnSchema.description,
-            widgetOptions: JSON.stringify(columnSchema.widgetOptions),
+            widgetOptions: columnSchema.widgetOptions ? JSON.stringify(columnSchema.widgetOptions) : "",
             visibleCol: resolvedSchemaRef?.existingColId,
             recalcDeps: columnSchema.recalcDeps,
             recalcWhen: columnSchema.recalcWhen,
-          },
+          }, isUndefined),
         ]);
       }
     }
@@ -285,16 +288,53 @@ export class DocSchemaImportTool {
   }
 }
 
-export function tablesToSchema(tables: TableMetadata[]): ExistingDocSchema {
-  const tableSchemas: ExistingTableSchema[] = [];
-  for (const { id: tableId, fields: { tableRef }, columns = [] } of tables) {
-    const tableSchema: ExistingTableSchema = { id: tableId, ref: tableRef, columns: [] };
-    for (const { id: colId, fields: { colRef, label, isFormula, type } } of columns) {
-      tableSchema.columns.push({ id: colId, ref: colRef, label, isFormula, type });
-    }
-    tableSchemas.push(tableSchema);
+export interface DocSchema {
+  tables: DocTableSchema[];
+}
+
+export interface DocTableSchema {
+  /**
+   * tableId, as it appears in this document.
+   */
+  id: string;
+  /**
+   * Display name of the table, when it is known.
+   *
+   * Only {@link docSchemaFromDocModel} can supply this: a table's name lives on its raw view
+   * section, which the table metadata endpoints do not return.
+   */
+  name?: string;
+  /**
+   * Visible columns, excluding manualSort and any gristHelper_* columns.
+   */
+  columns: ColumnMetadata[];
+  /**
+   * Hidden helper columns (e.g. gristHelper_Display*).
+   *
+   * Used to resolve display values for reference columns. Only populated when the metadata was
+   * fetched with hidden columns included (`hidden=true`).
+   */
+  hiddenColumns?: ColumnMetadata[];
+}
+
+export function buildDocSchema(tables: TableMetadata[]): DocSchema {
+  const docTables: DocTableSchema[] = [];
+  for (const table of tables) {
+    if (isInternalTableId(table.id)) { continue; }
+    if (table.fields.summarySourceTable) { continue; }
+
+    const allColumns = table.columns ?? [];
+    docTables.push({
+      id: table.id,
+      columns: allColumns.filter(column => !isHiddenCol(column.id)),
+      hiddenColumns: allColumns.filter(column => isHiddenCol(column.id)),
+    });
   }
-  return { tables: tableSchemas };
+  return { tables: docTables };
+}
+
+function isInternalTableId(tableId: string): boolean {
+  return isHiddenTableId(tableId) || tableId === "GristDocTour";
 }
 
 /**
@@ -347,7 +387,7 @@ class FormulaRefWarning implements DocSchemaImportWarning {
  * (original id references) are valid and that existing references point to a valid part of
  * the existing schema.
  */
-export function validateImportSchema(schema: ImportSchema, existingSchema?: ExistingDocSchema) {
+export function validateImportSchema(schema: ImportSchema, existingSchema?: DocSchema) {
   existingSchema = existingSchema ?? { tables: [] };
   const warnings: DocSchemaImportWarning[] = [];
 
@@ -424,14 +464,14 @@ export interface ImportSchemaTransformParams {
  *
  * @param {ImportSchema} schema Original schema to transform
  * @param {ImportSchemaTransformParams} params Transformations that should be applied.
- * @param {ExistingDocSchema} existingDocSchema Details of tables and columns in existing doc - used to map references
+ * @param {DocSchema} existingDocSchema Details of tables and columns in existing doc - used to map references
  * @returns {{schema: ImportSchema, warnings: DocSchemaImportWarning[]}} The transformed schema (a
  *  deep copy) and warnings for any issues with the transformed schema.
  */
 export function transformImportSchema(
   schema: ImportSchema,
   params: ImportSchemaTransformParams,
-  existingDocSchema: ExistingDocSchema = { tables: [] },
+  existingDocSchema: DocSchema = { tables: [] },
 ): { schema: ImportSchema, warnings: DocSchemaImportWarning[] } {
   const warnings: DocSchemaImportWarning[] = [];
   const newSchema = cloneDeep(schema);
@@ -474,7 +514,7 @@ export function transformImportSchema(
 // based on the requested transformations. May raise a warning if a problem is found.
 function transformSchemaMapRef(
   schema: ImportSchema, params: ImportSchemaTransformParams,
-  existingDocSchema: ExistingDocSchema, ref: TableRef | ColRef,
+  existingDocSchema: DocSchema, ref: TableRef | ColRef,
 ): { ref: TableRef | ColRef, warning?: DocSchemaImportWarning } {
   const { mapExistingTableIds } = params;
   const existingTableId = ref.originalTableId && mapExistingTableIds?.get(ref.originalTableId);
@@ -508,9 +548,9 @@ function transformSchemaMapRef(
 }
 
 // Given a column schema, attempts to find a corresponding column in an existing table.
-function findMatchingExistingColumn(colSchema: ColumnImportSchema, existingTable: ExistingTableSchema) {
+function findMatchingExistingColumn(colSchema: ColumnImportSchema, existingTable: DocTableSchema) {
   return existingTable.columns.find(existingCol =>
-    colSchema.label !== undefined && colSchema.label === existingCol.label ||
+    colSchema.label !== undefined && colSchema.label === existingCol.fields.label ||
     colSchema.desiredGristId === existingCol.id,
   );
 }

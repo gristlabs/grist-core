@@ -418,7 +418,7 @@ export class ActiveDocImport {
     intoNewTable: boolean, transformRule: TransformRule | null,
     mergeOptions: MergeOptions | null,
   ): Promise<string> {
-    log.info("ActiveDocImport._transformAndFinishImport(%s, %s, %s, %s, %s)",
+    log.debug("ActiveDocImport._transformAndFinishImport(%s, %s, %s, %s, %s)",
       hiddenTableId, destTableId, intoNewTable, transformRule, mergeOptions);
 
     const transformDestTableId = intoNewTable ? null : destTableId;

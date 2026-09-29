@@ -130,12 +130,15 @@ describe("DetailView.ntest", function () {
 
     // Should allow pasting into the add record row.
     await gu.getDetailCell("Actor", 1).click();
+    await gu.waitAppFocus();
     await clipboard.lockAndPerform(async (cb) => {
       await cb.copy();
       await $(".detail-add-btn").click();
       await gu.waitForServer();
       // Paste '100' into the last field of the row and check that it is added as its own row.
       await gu.getDetailCell("Character", 1).click();
+      // Clicking moves focus off the copy/paste textarea; it is restored asynchronously.
+      await gu.waitAppFocus();
       await cb.paste();
     });
     await gu.waitForServer();

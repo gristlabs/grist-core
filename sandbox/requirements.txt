@@ -14,8 +14,9 @@ chardet==5.1.0
     # via -r core/sandbox/requirements.in
 et-xmlfile==1.0.1
     # via openpyxl
-executing==1.1.1
+executing==2.2.1
     # via
+    #   -r core/sandbox/requirements.in
     #   friendly-traceback
     #   stack-data
 friendly-traceback==0.7.48

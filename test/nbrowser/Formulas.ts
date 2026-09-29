@@ -1,7 +1,30 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { setupTestSuite } from "test/nbrowser/testUtils";
+import { cleanupExtraWindows, setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key, WebElement } from "mocha-webdriver";
+
+// Checks that a click opened a new tab at the given URL, and closes it.
+//
+// Listing window handles waits for the new tab's response. After that, commands on the tab wait
+// for its page to finish loading, which the Help Center may never do (it pulls third-party
+// resources), so cap that wait at 1s.
+async function checkDocTab(url: string) {
+  const mainTab = await driver.getWindowHandle();
+  // Chrome opens the tab asynchronously, so wait for its handle.
+  await gu.waitToPass(async () => assert.lengthOf(await driver.getAllWindowHandles(), 2));
+  const docTab = (await driver.getAllWindowHandles()).find(h => h !== mainTab)!;
+  const timeouts = await driver.manage().getTimeouts();
+  await driver.manage().setTimeouts({ pageLoad: 1000 });
+  try {
+    await driver.switchTo().window(docTab);
+    // If the load times out, the driver stops it, and the next read returns the URL right away.
+    assert.equal(await driver.getCurrentUrl().catch(() => driver.getCurrentUrl()), url);
+  } finally {
+    await driver.close();
+    await driver.switchTo().window(mainTab);
+    await driver.manage().setTimeouts(timeouts);
+  }
+}
 
 async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
   assert.equal(await elem.getCssValue("text-decoration-line"), yesNo ? "underline" : "none");
@@ -9,6 +32,7 @@ async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
 
 describe("Formulas", function() {
   this.timeout(20000);
+  cleanupExtraWindows();
   const cleanup = setupTestSuite();
 
   let session: gu.Session;
@@ -157,9 +181,11 @@ describe("Formulas", function() {
     assert.deepEqual(await gu.getVisibleGridCells("C", [1, 2, 3]), ["true", "false", "true"]);
 
     // ISERR considers exceptions but not AltText values.
+    const revert = await gu.begin();
     await gu.addColumn("D");
     await gu.enterFormula("(ISERR($B)");
     assert.deepEqual(await gu.getVisibleGridCells("D", [1, 2, 3]), ["false", "false", "true"]);
+    await revert();
   });
 
   it("should support formulas returning unmarshallable or weird values", async function() {
@@ -347,13 +373,7 @@ return [
     await gu.waitToPass(async () => {
       await driver.findContent(".ace_autocomplete .ace_line span", /DIAN/).click();
     });
-    // Switch to the new tab, and wait for the page to load.
-    let handles = await driver.getAllWindowHandles();
-    await driver.switchTo().window(handles[1]);
-    await gu.waitForUrl("support.getgrist.com");
-    assert.equal(await driver.getCurrentUrl(), "https://support.getgrist.com/functions/#median");
-    await driver.close();
-    await driver.switchTo().window(handles[0]);
+    await checkDocTab("https://support.getgrist.com/functions/#median");
 
     // Click now a part of the completion that's not the link. It should insert the suggestion.
     await driver.findContent(".ace_autocomplete .ace_line span", /value/).click();
@@ -395,17 +415,91 @@ return [
     await gu.waitToPass(async () => {
       await driver.findContent(".ace_autocomplete .ace_line span", /lookupRecords/).click();
     });
-    handles = await driver.getAllWindowHandles();
-    await driver.switchTo().window(handles[1]);
-    await gu.waitForUrl("support.getgrist.com");
-    assert.equal(await driver.getCurrentUrl(), "https://support.getgrist.com/functions/#lookuprecords");
-    await driver.close();
-    await driver.switchTo().window(handles[0]);
+    await checkDocTab("https://support.getgrist.com/functions/#lookuprecords");
 
     // Now click the non-link part.
     await driver.findContent(".ace_autocomplete .ace_line", /lookupRecords/).findContent("span", /Friends/).click();
     await driver.findContentWait(".ace_content", /^Friends\.lookupRecords\($/, 1000);
     await driver.sendKeys(Key.ESCAPE, Key.ESCAPE);
     await gu.waitAppFocus();
+  });
+
+  it("should insert column id when clicking a cell in another table", async function() {
+    const revert = await gu.begin();
+    await gu.addNewSection("Table", "New Table");
+    const otherSection = await gu.getActiveSectionTitle();
+
+    await gu.getSection("Films").click();
+    await gu.addColumn("D");
+    await gu.getCell({ col: "D", rowNum: 1, section: "Films" }).click();
+    await gu.waitAppFocus();
+    await driver.sendKeys("=");
+    await gu.waitAppFocus(false);
+
+    // Another table has no "$" prefix, since it would not be a same-row reference.
+    const otherCell = gu.getCell({ col: "A", rowNum: 1, section: otherSection });
+    await driver.withActions(actions => actions.move({ origin: otherCell }));
+    assert.equal(await driver.find(".test-column-formula-tooltip").getText(), "Click to insert A");
+    await otherCell.click();
+
+    await driver.findContentWait(".ace_content", /^A$/, 1000);
+    assert.equal(await gu.getActiveSectionTitle(), "FILMS");
+
+    await driver.sendKeys(Key.ESCAPE);
+    await revert();
+  });
+
+  it("should insert $colId when clicking another section of the same table", async function() {
+    const revert = await gu.begin();
+    await gu.addNewSection("Table", "Films");
+    const otherSection = "Films copy";
+    await gu.renameActiveSection(otherSection);
+
+    await gu.getSection("FILMS").click();
+    await gu.addColumn("D");
+    await gu.getCell({ col: "D", rowNum: 1, section: "FILMS" }).click();
+    await gu.waitAppFocus();
+    await driver.sendKeys("=");
+    await gu.waitAppFocus(false);
+
+    const otherCell = gu.getCell({ col: "$Title", rowNum: 1, section: otherSection });
+    await driver.withActions(actions => actions.move({ origin: otherCell }));
+    assert.equal(await driver.find(".test-column-formula-tooltip").getText(), "Click to insert $Title");
+    await otherCell.click();
+
+    await driver.findContentWait(".ace_content", /^\$Title$/, 1000);
+
+    await driver.sendKeys(Key.ESCAPE);
+    await revert();
+  });
+
+  it("should save the formula on Enter after clicking a cell in another table", async function() {
+    const revert = await gu.begin();
+    await gu.addNewSection("Table", "New Table");
+    const otherSection = await gu.getActiveSectionTitle();
+
+    await gu.getSection("Films").click();
+    await gu.addColumn("E");
+    await gu.getCell({ col: "E", rowNum: 1, section: "Films" }).click();
+    await gu.waitAppFocus();
+    await driver.sendKeys("=");
+    await gu.waitAppFocus(false);
+
+    const otherCell = gu.getCell({ col: "A", rowNum: 1, section: otherSection });
+    await driver.withActions(actions => actions.move({ origin: otherCell }));
+    await otherCell.click();
+    await driver.findContentWait(".ace_content", /^A$/, 1000);
+
+    await driver.sendKeys(Key.ENTER);
+    await gu.waitForServer();
+
+    assert.equal(await driver.find(".ace_content").isPresent(), false);
+    const api = session.createHomeApi().getDocAPI(docId);
+    const columns = await api.getRecords("_grist_Tables_column");
+    const colE = columns.find(col => col.fields.colId === "E");
+    assert.equal(colE?.fields.isFormula, true);
+    assert.equal(colE?.fields.formula, "A");
+
+    await revert();
   });
 });

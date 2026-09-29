@@ -7,6 +7,8 @@ import { OpOptions, TableOperations, UpsertOptions } from "app/plugin/TableOpera
 import { sortBy } from "lodash";
 import flatMap from "lodash/flatMap";
 import isEqual from "lodash/isEqual";
+import isUndefined from "lodash/isUndefined";
+import omitBy from "lodash/omitBy";
 import pick from "lodash/pick";
 
 /**
@@ -55,12 +57,13 @@ export class TableOperationsImpl implements TableOperations {
     upsertOptions?: UpsertOptions): Promise<BulkAddOrUpdateRecordResult> {
     const records = Array.isArray(recordOrRecords) ? recordOrRecords : [recordOrRecords];
     const tableId = await this._platform.getTableId();
-    const options = {
+    // Omit unset options so data engine defaults apply instead of treating `undefined` as `null`.
+    const options = omitBy({
       add: upsertOptions?.add,
       update: upsertOptions?.update,
       on_many: upsertOptions?.onMany,
       allow_empty_require: upsertOptions?.allowEmptyRequire,
-    };
+    }, isUndefined);
     const recordOptions: OpOptions = pick(upsertOptions, "parseStrings");
 
     // Records with different 'col_values' keys need to be sent in separate BulkUpdateRecord

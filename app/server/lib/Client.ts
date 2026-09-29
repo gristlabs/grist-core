@@ -490,7 +490,7 @@ export class Client {
     const request = JSON.parse(message);
     if (request.beat) {
       // this is a heart beat, to keep the websocket alive.  No need to reply.
-      log.rawInfo("heartbeat", {
+      log.rawDebug("heartbeat", {
         ...this.getLogMeta(),
         url: request.url,
         docId: request.docId,  // caution: trusting client for docId for this purpose.

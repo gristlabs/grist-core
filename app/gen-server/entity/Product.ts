@@ -50,18 +50,23 @@ export const teamFeatures: Features = {
 
 /**
  * A summary of features available in free team sites.
+ *
+ * What a plan offers is also written out for people to read on the plan card, and may need
+ * updating alongside changes here. The copy shown is the Stripe product's marketing features;
+ * FEATURES in app/client/ui/PlanCard is only the fallback for products that have none.
  */
 export const teamFreeFeatures: Features = {
   workspaces: true,
   vanityDomain: true,
   maxSharesPerWorkspace: 0,   // all workspace shares need to be org members.
   maxSharesPerDoc: 2,
+  maxUsersPerOrg: 10,
   snapshotWindow: { count: 30, unit: "days" },
   baseMaxRowsPerDocument: 5000,
-  baseMaxApiUnitsPerDocumentPerDay: 5000,
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
   baseMaxAttachmentsBytesPerDocument: 1 * 1024 * 1024 * 1024,  // 1GB
   maxAttachmentsBytesPerOrg: 50 * 1024 * 1024 * 1024,  // 50GB
+  maxApiCallsPerOrgMonth: 3000,
   gracePeriodDays: 14,
   /**
    * One time limit of 100 requests.
@@ -78,12 +83,22 @@ export const personalFreeFeatures: Features = {
   maxSharesPerDoc: 2,
   snapshotWindow: { count: 30, unit: "days" },
   baseMaxRowsPerDocument: 5000,
-  baseMaxApiUnitsPerDocumentPerDay: 5000,
   baseMaxDataSizePerDocument: 5000 * 2 * 1024,  // 2KB per row
   baseMaxAttachmentsBytesPerDocument: 1 * 1024 * 1024 * 1024,  // 1GB
   maxAttachmentsBytesPerOrg: 50 * 1024 * 1024 * 1024,  // 50GB
+  maxApiCallsPerOrgMonth: 3000,
   gracePeriodDays: 14,
   baseMaxAssistantCalls: 100,
+};
+
+/**
+ * For unsaved documents, which have no site of their own and borrow the support user's
+ * example workspace, so a per site count would land on the support user's account.
+ */
+export const anonymousFeatures: Features = {
+  ...personalFreeFeatures,
+  baseMaxApiUnitsPerDocumentPerDay: 1000,
+  maxApiCallsPerOrgMonth: 0,  // no org, so no org limit
 };
 
 /**
@@ -170,7 +185,7 @@ export function getAnonymousFeatures(): Features {
   if (!process.env.GRIST_DEFAULT_PRODUCT) {
     // If GRIST_DEFAULT_PRODUCT is not set, we assume that anonymous users
     // should have access to the free personal product.
-    return personalFreeFeatures;
+    return anonymousFeatures;
   } else {
     // If GRIST_DEFAULT_PRODUCT is set, we assume that anonymous users
     // should have access to the product specified by it.

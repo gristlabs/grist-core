@@ -37,6 +37,8 @@ export interface UserPrefs extends Prefs {
   locale?: string;
   // If only documents should be shown on the All Documents page.
   onlyShowDocuments?: boolean;
+  // How many times the user has seen or interacted with something.
+  impressions?: Impressions;
 }
 
 // A collection of preferences related to a combination of user and org.
@@ -56,6 +58,12 @@ export interface UserOrgPrefs extends Prefs {
 
   // List of document IDs where the user has seen and dismissed the document tour.
   seenDocTours?: string[];
+
+  // Whether the user has dismissed the banner saying this site is at its team member limit.
+  // Cleared when the site is next seen below the limit, so that reaching it again is said.
+  // Here rather than in UserPrefs.dismissedPopups, which is global: an owner of two sites at
+  // the limit should have to dismiss it on each.
+  dismissedUserLimitBanner?: boolean;
 }
 
 export interface OrgPrefs extends Prefs {
@@ -162,3 +170,12 @@ export interface DismissedReminder {
   /**  The number of times this popup has been dismissed. */
   timesDismissed: number;
 }
+
+/**
+ * How many times the user has seen or interacted with something.
+ */
+export interface Impressions {
+  /** Version of assistant that cycles through sample prompts like a typewriter. */
+  assistantIntro?: number;
+}
+export type Impression = keyof Impressions;

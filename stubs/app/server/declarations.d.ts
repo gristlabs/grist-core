@@ -29,6 +29,9 @@ declare module "redis" {
 
   class RedisClient {
     public readonly connected: boolean;
+    // The underlying socket, for the address we reach Redis from. Optional because the code that
+    // reads it treats it as such: it is an internal, and nothing promises it is there.
+    public readonly stream?: { localAddress?: string };
     public eval(args: any[], callback?: (err: Error | null, res: any) => void): any;
     public evalAsync(...args: any[]): Promise<any>;
 
@@ -48,6 +51,7 @@ declare module "redis" {
     public multi(): Multi;
     public quitAsync(): Promise<void>;
     public saddAsync(key: string, val: string): Promise<"OK">;
+    public scardAsync(key: string): Promise<number>;
     public selectAsync(db: number): Promise<void>;
     public setAsync(key: string, val: string): Promise<"OK">;
     public setexAsync(key: string, ttl: number, val: string): Promise<"OK">;
@@ -55,6 +59,7 @@ declare module "redis" {
     public smembersAsync(key: string): Promise<string[]>;
     public srandmemberAsync(key: string): Promise<string | null>;
     public sremAsync(key: string, val: string): Promise<"OK">;
+    public existsAsync(key: string): Promise<0 | 1>;
     public ttlAsync(key: string): Promise<number | null>;
     public unwatchAsync(): Promise<"OK">;
     public watchAsync(key: string): Promise<void>;
@@ -75,12 +80,17 @@ declare module "redis" {
     public hmset(key: string, val: { [field: string]: any }): Multi;
     public hset(key: string, field: string, val: string): Multi;
     public sadd(key: string, val: string): Multi;
+    public exists(key: string): Multi;
+    public scard(key: string): Multi;
     public set(key: string, val: string): Multi;
     public setex(key: string, ttl: number, val: string): Multi;
     public ttl(key: string): Multi;
+    public zadd(key: string, ...args: any[]): Multi;
     public smembers(key: string): Multi;
     public srandmember(key: string): Multi;
     public srem(key: string, val: string): Multi;
+    // Resolves to the score as a string, or null if the member is absent.
+    public zscore(key: string, val: string): Multi;
     public rpush(key: string, ...vals: string[]): Multi;
     public ltrim(key: string, start: number, end: number): Multi;
     public incr(key: string): Multi;

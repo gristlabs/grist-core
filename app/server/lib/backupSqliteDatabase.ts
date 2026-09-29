@@ -61,7 +61,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
     if (mainDb) {
       // We'll we working from an already configured SqliteDB interface,
       // don't need to do anything special.
-      _log.info(null, `copying ${src} (${label}) using source connection`);
+      _log.debug(null, `copying ${src} (${label}) using source connection`);
     } else {
       // We need to open an interface to SQLite.
       await fromCallback((cb) => { db = new sqlite3.Database(dest, cb) as sqlite3.DatabaseWithBackup; });
@@ -95,7 +95,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
       numSteps++;
       const stepStart = Date.now();
       if (remaining >= 0 && backup.remaining > remaining && stepStart - restartMsgTime > 1000) {
-        _log.info(null, `copy of ${src} (${label}) restarted`);
+        _log.debug(null, `copy of ${src} (${label}) restarted`);
         restartMsgTime = stepStart;
         testProgress?.({ action: "restart" });
       }
@@ -110,12 +110,12 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
         if (String(err).match(/SQLITE_BUSY/)) {
           busyCount++;
           if (busyCount === 10 && mainDb) {
-            _log.info(null, `pausing (${src} ${label}): serializing backup`);
+            _log.debug(null, `pausing (${src} ${label}): serializing backup`);
             mainDb?.pause();
           }
         }
         if (String(err) !== String(prevError) || Date.now() - errorMsgTime > 1000) {
-          _log.info(null, `error (${src} ${label}): ${err}`);
+          _log.warn(null, `error (${src} ${label}): ${err}`);
           errorMsgTime = Date.now();
         }
         prevError = err;

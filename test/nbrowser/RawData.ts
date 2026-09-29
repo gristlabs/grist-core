@@ -919,12 +919,14 @@ async function editRecordCard(tableId: string, wait = true) {
 async function disableRecordCard(tableId: string) {
   await openMenu(tableId);
   await driver.find(".test-raw-data-menu-disable-record-card").click();
+  await gu.waitForMenuAction();
   await gu.waitForServer();
 }
 
 async function enableRecordCard(tableId: string) {
   await openMenu(tableId);
   await driver.find(".test-raw-data-menu-enable-record-card").click();
+  await gu.waitForMenuAction();
   await gu.waitForServer();
 }
 

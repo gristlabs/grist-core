@@ -1,4 +1,5 @@
 import { makeT } from "app/client/lib/localization";
+import { cssMarkdownSpan } from "app/client/lib/markdown";
 import { cssInput } from "app/client/ui/cssInput";
 import { cssField, cssLabel } from "app/client/ui/MakeCopyMenu";
 import { cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
@@ -62,22 +63,20 @@ export class ChangeAdminModal extends Disposable {
         ),
       ),
       cssRadioCheckboxOptions(
-        radioCheckboxOption(this._replace, true, [
-          t("Replace {{email}} with the new email throughout. \
+        radioCheckboxOption(this._replace, true, cssMarkdownSpan(
+          t("Replace **{{email}}** with the new email throughout. \
 The new email will become the installation admin, as well as \
-the owner of all materials previously owned by you@example.com.",
-          { email: dom("strong", this._currentUserEmail) },
-          ),
+the owner of all materials previously owned by **{{email}}**.",
+          { email: this._currentUserEmail }),
           testId("option"),
-        ]),
-        radioCheckboxOption(this._replace, false, [
+        )),
+        radioCheckboxOption(this._replace, false, cssMarkdownSpan(
           t("Make the new email the installation admin. \
-Orgs, workspaces, and documents will remain owned by {{email}}. \
+Orgs, workspaces, and documents will remain owned by **{{email}}**. \
 These changes will take effect after you restart this Grist server.",
-          { email: dom("strong", this._currentUserEmail) },
-          ),
+          { email: this._currentUserEmail }),
           testId("option"),
-        ]),
+        )),
         testId("options"),
       ),
     ];

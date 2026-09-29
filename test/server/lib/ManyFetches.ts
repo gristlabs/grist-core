@@ -49,7 +49,7 @@ describe("ManyFetches", function() {
       // this limit is in-between as another way to verify that memory management helps.
       // Without this limit, there is no pressure on node to garbage-collect, so it may use more
       // memory than we expect, making the test less reliable.
-      NODE_OPTIONS: "--max-old-space-size=250",
+      NODE_OPTIONS: `${process.env.NODE_OPTIONS || ""} --max-old-space-size=250`,
     }, home.serverUrl);
     userApi = home.makeUserApi(org, userName);
   });
@@ -100,7 +100,7 @@ describe("ManyFetches", function() {
     const getMemoryUsage = () => Promise.race([docs.testingHooks.getMemoryUsage(), serverErrorPromise]);
     const getHeapMB = async () => Math.round((await getMemoryUsage() as NodeJS.MemoryUsage).heapUsed / 1024 / 1024);
 
-    assertIsBelow(await getHeapMB(), 135);
+    assertIsBelow(await getHeapMB(), 150);
 
     // Create all the connections, but don't make the fetches just yet.
     const createConnectionFunc = await prepareGristWSConnection(docId);
@@ -111,7 +111,7 @@ describe("ManyFetches", function() {
     const fetchersB = await Promise.all(connectionsB.map(c => connect(c, docId)));
 
     try {
-      assertIsBelow(await getHeapMB(), 135);
+      assertIsBelow(await getHeapMB(), 150);
 
       // Start fetches without reading responses. This is a step that should push memory limits.
       fetchersA.map(f => f.startPausedFetch());

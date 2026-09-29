@@ -464,6 +464,7 @@ describe("UsersManager", function() {
           prefs: prefWithoutOrg.prefs,
           firstLoginAt: null,
           disabledAt: null,
+          disabledReason: null,
         });
       });
 
@@ -666,6 +667,51 @@ describe("UsersManager", function() {
         const updatedUser = await getOrCreateUser(localPart);
         assertExists(updatedUser.options);
         assert.deepEqual(updatedUser.options, options);
+      });
+    });
+
+    describe("updateUserEmail()", function() {
+      it("should update the login email and clear the name", async function() {
+        const localPart = "updateuseremail-original";
+        const user = await createUniqueUser(localPart, {
+          profile: { email: makeEmail(localPart), name: "Original Name" },
+        });
+        assert.equal(user.name, "Original Name");
+        const newEmail = makeEmail(ensureUnique("updateuseremail-renamed"));
+
+        await db.updateUserEmail(makeEmail(localPart), newEmail);
+
+        const renamedUser = await db.getExistingUserByLogin(newEmail);
+        assertExists(renamedUser);
+        assert.equal(renamedUser.id, user.id);
+        assert.equal(renamedUser.name, "");
+        assert.equal(renamedUser.logins[0].displayEmail, newEmail);
+        assert.isUndefined(await db.getExistingUserByLogin(makeEmail(localPart)));
+      });
+
+      it("should reject when no user has the given email", async function() {
+        const newEmail = makeEmail(ensureUnique("updateuseremail-unused"));
+
+        const promise = db.updateUserEmail("i-dont-exist@getgrist.com", newEmail);
+
+        await assert.isRejected(promise, "not found");
+        assert.isUndefined(await db.getExistingUserByLogin(newEmail));
+      });
+
+      it("should reject when a user with the new email already exists", async function() {
+        const sourcePart = "updateuseremail-conflict-source";
+        const targetPart = "updateuseremail-conflict-target";
+        const sourceUser = await createUniqueUser(sourcePart);
+        const targetUser = await createUniqueUser(targetPart);
+
+        const promise = db.updateUserEmail(makeEmail(sourcePart), makeEmail(targetPart));
+
+        await assert.isRejected(promise, "already exists");
+        const unchangedSource = await db.getExistingUserByLogin(makeEmail(sourcePart));
+        assert.equal(unchangedSource?.id, sourceUser.id);
+        const unchangedTarget = await db.getExistingUserByLogin(makeEmail(targetPart));
+        assert.equal(unchangedTarget?.id, targetUser.id);
+        assert.equal(unchangedTarget?.logins[0].displayEmail, makeEmail(targetPart));
       });
     });
 

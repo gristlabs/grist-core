@@ -5,7 +5,7 @@ import { GristAPI, RPC_GRISTAPI_INTERFACE } from "app/plugin/GristAPI";
 import log from "app/server/lib/log";
 import { getAppPathTo } from "app/server/lib/places";
 import { makeLinePrefixer } from "app/server/lib/sandboxUtil";
-import { exitPromise, timeoutReached } from "app/server/lib/serverUtils";
+import { cleanEnv, exitPromise, timeoutReached } from "app/server/lib/serverUtils";
 
 import { ChildProcess, fork, ForkOptions } from "child_process";
 import * as path from "path";
@@ -112,7 +112,7 @@ export class UnsafeNodeComponent extends BaseComponent {
       env.ELECTRON_VERSION = electronVersion;
     }
     const child = this._child = fork(script, [], {
-      env,
+      env: cleanEnv(env),
       stdio: ["ignore", "pipe", "pipe", "ipc"],
     } as ForkOptions);  // Explicit cast only because node-6 typings mistakenly omit stdio property
 

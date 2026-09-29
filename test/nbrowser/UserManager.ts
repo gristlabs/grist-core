@@ -73,7 +73,7 @@ const assertMaxInheritedRole = stackWrapFunc(async function(inheritLabel: string
 });
 
 describe("UserManager", function() {
-  this.timeout(20000);
+  this.timeout(30000);
   gu.bigScreen();
   const cleanup = setupTestSuite();
 

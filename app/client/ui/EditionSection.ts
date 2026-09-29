@@ -171,7 +171,12 @@ export class EditionSection extends Disposable implements ConfigSection {
   // Admin panel dom
   public buildDom(): DomContents {
     if (this.editionForced) {
-      return cssSectionContainer(this._buildForcedNote(), testId("section"));
+      return cssSectionContainer(
+        this._buildForcedNote(),
+        this._buildForcedActivation(),
+        this._buildForcedUpgradeInfo(),
+        testId("section"),
+      );
     }
     return cssSectionContainer(
       dom.domComputed(this._viewMode, mode => this._buildView(mode, "admin")),
@@ -266,6 +271,22 @@ export class EditionSection extends Disposable implements ConfigSection {
     );
   }
 
+  private _buildForcedActivation(): DomContents {
+    if (!this._options.inAdminPanel) { return null; }
+
+    // Only show when forcing full edition, so an admin can still enter a key, etc.
+    if (this._serverEdition.get() !== FULL_EDITION) { return null; }
+
+    const section = this._toggleEnterprise?.buildEnterpriseSection();
+    return section ? [cssDivider(), section] : null;
+  }
+
+  private _buildForcedUpgradeInfo(): DomContents {
+    if (this._serverEdition.get() === FULL_EDITION) { return null; }
+
+    return this.canSwitchToFull ? this._buildUpgradeWell() : this._buildManualSwitchNote();
+  }
+
   private _buildFullGristRunningView(): DomContents {
     return [
       cssEditionName(t("Full Grist")),
@@ -295,7 +316,7 @@ to individuals and small orgs with less than US $1 million in total annual fundi
             { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
             t("Learn more."),
           ),
-          pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
+          pricingLink: cssLink({ href: commonUrls.plansSelfManaged, target: "_blank" }, t("pricing")),
         }),
         testId("trial-note"),
       ) : null,
@@ -358,7 +379,7 @@ annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free tria
               { href: commonUrls.helpEnterpriseOptIn, target: "_blank" },
               t("Free activation keys"),
             ),
-            pricingLink: cssLink({ href: commonUrls.plans, target: "_blank" }, t("pricing")),
+            pricingLink: cssLink({ href: commonUrls.plansSelfManaged, target: "_blank" }, t("pricing")),
           })),
           dom("p", t("You may downgrade at any time to the Community edition. You will not lose your \
 data or need to reinstall Grist.")),

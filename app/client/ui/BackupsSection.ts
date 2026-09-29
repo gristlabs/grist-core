@@ -2,9 +2,9 @@ import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
 import { cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
-import { cssCardSurface, cssValueLabel } from "app/client/ui/SettingsLayout";
-import { buildHeroCard } from "app/client/ui/SetupCard";
-import { colors, testId } from "app/client/ui2018/cssVars";
+import { cssValueLabel } from "app/client/ui/SettingsLayout";
+import { buildBadge, buildHeroCard, buildItemCard, cssItemsContainer } from "app/client/ui/SetupCard";
+import { testId } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { BackupsBootProbeDetails } from "app/common/BootProbe";
@@ -21,15 +21,15 @@ const BackendName = StringUnion(...StorageBackendName.values, "none");
 type BackendName = typeof BackendName.type;
 
 interface BackendInfo {
-  label: () => DomContents;
-  description: () => DomContents;
-  disabledTag?: () => DomContents;
+  label: () => string;
+  description: () => string;
+  disabledTag?: () => string;
 }
 
 const STORAGE_BACKENDS: Record<BackendName, BackendInfo> = {
   minio: {
-    label: () => t("S3 (MinIO client)"),
-    description: () => t("AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others."),
+    label: () => t("S3-compatible"),
+    description: () => t("Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself."),
   },
   s3: {
     label: () => t("S3 (AWS client)"),
@@ -135,7 +135,7 @@ export class BackupsSection extends Disposable {
           indicator: "warning",
           header: t("Your data may not survive a container restart."),
           text: t("To preserve it, mount a volume at /persist."),
-          badges: [{ label: t("Action needed"), variant: "warning" }],
+          badges: buildBadge(t("Action needed"), "warning"),
           args: [dom.attr("title", result.verdict), testId("backups-persist-warning")],
         }) :
         null,
@@ -155,7 +155,7 @@ export class BackupsSection extends Disposable {
       const enabledBackends = StorageBackendName.values.filter(name => availableBackends.includes(name));
       const disabledBackends = StorageBackendName.values.filter(name => !availableBackends.includes(name));
       return [
-        cssBackendCards(
+        cssItemsContainer(
           enabledBackends.map(name => this._buildBackendCard(name)),
           disabledBackends.map(name => this._buildBackendCard(name, true)),
           this._buildBackendCard("none"),
@@ -165,30 +165,22 @@ export class BackupsSection extends Disposable {
     });
   }
 
-  private _buildBackendCard(name: BackendName, disabled = false) {
-    return cssBackendCard(
-      cssBackendCard.cls("-selected", use => use(this._selectedBackend) === name),
-      cssBackendCard.cls("-disabled", disabled),
-      disabled ? null : dom.on("click", () => this._selectedBackend.set(name)),
-      cssRadio(
-        dom.attr("type", "radio"),
-        dom.attr("name", "backend"),
-        dom.attr("value", name),
-        dom.prop("disabled", disabled),
-        dom.prop("checked", use => use(this._selectedBackend) === name),
-        disabled ? null : dom.on("change", () => this._selectedBackend.set(name)),
-      ),
-      cssBackendBody(
-        cssBackendNameRow(
-          cssBackendName(STORAGE_BACKENDS[name].label),
-          dom.maybe(use => (use(this._activeBackend) ?? "none") === name, () =>
-            cssBackendTag(cssBackendTag.cls("-active"), t("Active")),
-          ),
-          disabled ? cssBackendTag(cssBackendTag.cls("-disabled"), STORAGE_BACKENDS[name].disabledTag?.()) : null,
-        ),
-        cssBackendDescription(STORAGE_BACKENDS[name].description),
-      ),
-    );
+  private _buildBackendCard(name: BackendName, disabled = false): DomContents {
+    const disabledTag = disabled ? STORAGE_BACKENDS[name].disabledTag : undefined;
+    return buildItemCard({
+      radio: {
+        checked: use => use(this._selectedBackend) === name,
+        onSelect: () => this._selectedBackend.set(name),
+        disabled,
+      },
+      header: STORAGE_BACKENDS[name].label,
+      badges: [
+        dom.maybe(use => ((use(this._activeBackend) ?? "none") === name), () =>
+          buildBadge(t("Active"), "primary")),
+        disabledTag ? buildBadge(disabledTag(), "warning") : null,
+      ],
+      text: STORAGE_BACKENDS[name].description,
+    });
   }
 
   private _buildBackendInstructions() {
@@ -199,12 +191,12 @@ export class BackupsSection extends Disposable {
       switch (selected) {
         case "minio": {
           return cssInstructions(
-            dom("div", t("Set these environment variables and restart Grist to enable MinIO storage:")),
+            dom("div", t("Set these environment variables and restart Grist to enable S3-compatible storage:")),
             cssCodeBlock(
-              "GRIST_DOCS_MINIO_BUCKET=my-grist-docs\n" +
-              "GRIST_DOCS_MINIO_ENDPOINT=s3.amazonaws.com\n" +
-              "GRIST_DOCS_MINIO_ACCESS_KEY=...\n" +
-              "GRIST_DOCS_MINIO_SECRET_KEY=...",
+              "GRIST_DOCS_S3_BUCKET=my-grist-docs\n" +
+              "GRIST_DOCS_S3_ENDPOINT=s3.example.com\n" +
+              "GRIST_DOCS_S3_ACCESS_KEY=...\n" +
+              "GRIST_DOCS_S3_SECRET_KEY=...",
             ),
             dom("div",
               cssLink(
@@ -277,90 +269,6 @@ const cssLoading = styled("div", `
   gap: 12px;
   justify-content: center;
   padding: 48px 32px;
-`);
-
-const cssBackendCards = styled("div", `
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`);
-
-const cssBackendCard = styled(cssCardSurface, `
-  align-items: flex-start;
-  cursor: pointer;
-  display: flex;
-  gap: 12px;
-  padding: 14px 18px;
-  transition: border-color 0.2s, background-color 0.2s;
-
-  &:hover {
-    border-color: ${tokens.primary};
-  }
-  &-selected {
-    background-color: ${components.lightHover};
-    border-color: ${tokens.primary};
-  }
-  &-disabled {
-    border-color: ${tokens.decorationSecondary};
-    cursor: not-allowed;
-  }
-  &-disabled:hover {
-    border-color: ${tokens.decorationSecondary};
-    box-shadow: none;
-  }
-`);
-
-const cssRadio = styled("input", `
-  cursor: pointer;
-  flex-shrink: 0;
-
-  &:disabled {
-    cursor: not-allowed;
-  }
-`);
-
-const cssBackendBody = styled("div", `
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-`);
-
-const cssBackendNameRow = styled("div", `
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-`);
-
-const cssBackendName = styled("span", `
-  font-weight: 600;
-
-  .${cssBackendCard.className}-disabled & {
-    color: ${tokens.secondary};
-  }
-`);
-
-const cssBackendTag = styled("span", `
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: ${tokens.smallFontSize};
-  font-weight: 600;
-  letter-spacing: 0.2px;
-
-  &-active {
-    background-color: ${tokens.primary};
-    color: ${tokens.white};
-  }
-  &-disabled {
-    background-color: ${colors.orange};
-    color: white;
-  }
-`);
-
-const cssBackendDescription = styled("div", `
-  font-size: ${tokens.smallFontSize};
 `);
 
 const cssInstructions = styled("div", `

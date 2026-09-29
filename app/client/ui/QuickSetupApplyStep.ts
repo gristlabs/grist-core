@@ -133,7 +133,13 @@ export class QuickSetupApplyStep extends Disposable {
         { label: t("Setup completion"), value: "" },
       ]),
       apply: async () => {
-        await this._installAPI.updateInstallPrefs({ envVars: { GRIST_IN_SERVICE: "true" } });
+        // Going live ends the setup, so the boot-key session that carried the operator
+        // through it is dropped along with any other session. From now on the configured
+        // login provider is the way in, and the operator finds out right away if it works.
+        await this._installAPI.updateInstallPrefs({
+          envVars: { GRIST_IN_SERVICE: "true" },
+          onRestartClearSessions: true,
+        });
       },
     };
   }
@@ -142,6 +148,11 @@ export class QuickSetupApplyStep extends Disposable {
     if (this._drafts.isApplying.get()) { return; }
     this._error.set("");
     let restartErrored = false;
+    // Cache the survey payload before applying. Going live clears sessions, so the
+    // admin-only lookups the payload needs stop working once the server restarts.
+    // Retry re-uses this cached payload.
+    await this._captureSurveyPayload();
+    if (this.isDisposed()) { return; }
     try {
       // Applies all sections and restarts the server
       await this._drafts.applyAll();
@@ -159,10 +170,6 @@ export class QuickSetupApplyStep extends Disposable {
     }
     if (this.isDisposed()) { return; }
     this._restartStatus.set(restartErrored ? "errored" : "restarted");
-    // Cache the survey payload while the form is still mounted, then switch
-    // to the success page. Retry re-uses this cached payload.
-    await this._captureSurveyPayload();
-    if (this.isDisposed()) { return; }
     this._submitSurvey();
   }
 

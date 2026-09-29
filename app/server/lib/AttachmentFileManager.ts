@@ -440,10 +440,6 @@ export class AttachmentFileManager extends EventEmitter {
     fileIdent: string,
     fileData: Buffer,
   ): Promise<AddFileResult> {
-    this._log.info({
-      fileIdent,
-    }, `adding file to document storage`);
-
     const fileInfoNoData = await this._docStorage.getFileInfoNoData(fileIdent);
     const fileExists = fileInfoNoData !== null;
 
@@ -478,11 +474,6 @@ export class AttachmentFileManager extends EventEmitter {
     fileIdent: string,
     fileData: stream.Readable,
   ): Promise<AddFileResult> {
-    this._log.info({
-      fileIdent,
-      storeId: destStoreId,
-    }, `adding file to external storage`);
-
     const destStore = await this._getStore(destStoreId);
 
     if (!destStore) {

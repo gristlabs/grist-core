@@ -10,7 +10,7 @@ import { Client } from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
 import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import { DocSession, docSessionFromRequest } from "app/server/lib/DocSession";
-import { filterDocumentInPlace } from "app/server/lib/filterUtils";
+import { filterDocumentInPlace, makeFilterOptions } from "app/server/lib/filterUtils";
 import { GristServer } from "app/server/lib/GristServer";
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import log from "app/server/lib/log";
@@ -18,6 +18,7 @@ import {
   getDocId, getExtraAttachmentOptions, integerParam,
   optStringParam, stringParam,
 } from "app/server/lib/requestUtils";
+import { getDailyMax, getOrgUsageLimit } from "app/server/lib/usageKeys";
 
 import * as path from "path";
 
@@ -31,6 +32,9 @@ export interface AttachOptions {
   gristServer: GristServer;
   tracker?: DocApiUsageTracker;           // Shared API usage tracker for rate-limiting
 }
+
+// If a doc method takes longer than this, log a message, and raise level from debug to info.
+const logIfLongerThanMs: number = 2000;
 
 export class DocWorker {
   private _comm: Comm;
@@ -91,13 +95,8 @@ export class DocWorker {
       removeHistory = true;
     }
 
-    await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath, {
-      removeData,
-      removeHistory,
-      removeFullCopiesSpecialRight: true,
-      markAction: true,
-      disableTriggers: true,
-    });
+    await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath,
+      makeFilterOptions({ removeData, removeHistory }));
     // NOTE: We may want to reconsider the mimeType used for Grist files.
     return res.type("application/x-sqlite3")
       .download(
@@ -141,7 +140,8 @@ export class DocWorker {
       autocomplete: method("viewers", "autocomplete"),
       fetchURL: method("viewers", "fetchURL"),
       getActionSummaries: method("viewers", "getActionSummaries"),
-      reloadDoc: method("editors", "reloadDoc"),
+      // Reloading changes nothing in the document, so it works while it is held read-only.
+      reloadDoc: method("editors", "reloadDoc", { writes: false }),
       fork: method("viewers", "fork"),
       checkAclFormula: method("viewers", "checkAclFormula"),
       getAclResources: method("viewers", "getAclResources"),
@@ -153,7 +153,7 @@ export class DocWorker {
       stopTiming: method("owners", "stopTiming"),
       getAssistantState: method("owners", "getAssistantState"),
       listActiveUserProfiles: method(null, "listActiveUserProfiles"),
-      applyProposal: method("owners", "applyProposal"),
+      applyProposal: method("owners", "applyProposal", { writes: true }),
       getAssistance: method("viewers", "getAssistance"),
     });
   }
@@ -218,32 +218,47 @@ export class DocWorker {
  * enforces the same parallel and daily usage limits as the REST API.
  */
 function activeDocMethod(tracker: DocApiUsageTracker | undefined,
-  role: "viewers" | "editors" | "owners" | null, methodName: string) {
+  role: "viewers" | "editors" | "owners" | null, methodName: string,
+  options: { writes?: boolean } = {}) {
   return async (client: Client, docFD: number, ...args: any[]): Promise<any> => {
     const docSession = client.getDocSession(docFD);
     const activeDoc = docSession.activeDoc;
-    if (role) { await docSession.authorizer.assertAccess(role); }
-    // Include a basic log record for each ActiveDoc method call.
-    log.rawDebug("activeDocMethod", activeDoc.getLogMeta(docSession, methodName));
+    if (role) { await docSession.authorizer.assertAccess(role, { writes: options.writes }); }
 
-    if (tracker && client.authSession.isApiKeyAuth) {
-      let dailyMax: number | undefined;
-      if (role) {
-        // assertAccess was already called above, so getCachedAuth() is available.
-        const cachedDoc = docSession.authorizer.getCachedAuth().cachedDoc;
-        dailyMax = cachedDoc?.workspace?.org?.billingAccount
-          ?.getEffectiveFeatures()?.baseMaxApiUnitsPerDocumentPerDay;
+    // Log a basic record for each ActiveDoc method call, with its duration and outcome.
+    const startTime = Date.now();
+    const logMeta = activeDoc.getLogMeta(docSession, methodName);
+
+    // If a method is slow, log an extra message (to make sure it's visible in logs even if stuck
+    // for a while), and raise the level so that it's visible even without debugging on.
+    let logLevel = (role === "viewers" ? "debug" : "info");
+    const timer = setTimeout(() => {
+      logLevel = "info";
+      log.rawInfo(`activeDocMethod running`, logMeta);
+    }, logIfLongerThanMs);
+
+    try {
+      if (tracker && client.authSession.isApiKeyAuth) {
+        // assertAccess was only called above when a role is required, and getCachedAuth()
+        // is unavailable without it, so methods with no role skip the usage limits.
+        const cachedDoc = role ? docSession.authorizer.getCachedAuth().cachedDoc : undefined;
+        // acquire + method call are in the same try so release runs even if acquire throws
+        // (acquire increments the parallel counter before checking limits).
+        try {
+          tracker.acquire(activeDoc.docName, getDailyMax(cachedDoc), getOrgUsageLimit(cachedDoc));
+          return await (activeDoc as any)[methodName](docSession, ...args);
+        } finally {
+          tracker.release(activeDoc.docName);
+        }
       }
-      // acquire + method call are in the same try so release runs even if acquire throws
-      // (acquire increments the parallel counter before checking limits).
-      try {
-        tracker.acquire(activeDoc.docName, dailyMax);
-        return await (activeDoc as any)[methodName](docSession, ...args);
-      } finally {
-        tracker.release(activeDoc.docName);
-      }
+      return await (activeDoc as any)[methodName](docSession, ...args);
+    } catch (e) {
+      logMeta.error = String(e);
+      throw e;
+    } finally {
+      clearTimeout(timer);
+      logMeta.durationMs = Date.now() - startTime;
+      log.origLog(logLevel, "activeDocMethod", logMeta);
     }
-
-    return (activeDoc as any)[methodName](docSession, ...args);
   };
 }

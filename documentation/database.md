@@ -343,6 +343,7 @@ Stores `users` information.
 | first_login_at | The date of the first login |
 | last_connection_at | The date of the last time the user has signed in to Grist |
 | disabled_at | If not null, the date at which the user was disabled |
+| disabled_reason | If not null, the message giving the user the reason why they have been disabled. |
 | is_first_time_user | Whether the user discovers Grist (used to trigger the Welcome Tour) |
 | options | Serialized options as described in [UserOptions](https://github.com/gristlabs/grist-core/blob/3ff629082974bb49c4aaafa0a59b87a071a9eeeb/app/common/UserAPI.ts#L258-L271) interface |
 | connect_id | Used by [GristConnect](https://support.getgrist.com/install/grist-connect/) in the full edition of Grist to identify user in external provider |

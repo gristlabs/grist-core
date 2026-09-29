@@ -712,6 +712,13 @@ namespace gristUtils {
     if (![Key.ENTER, Key.TAB].includes(lastKey!) && validate) {
       keys.push(Key.ENTER);
     }
+    // The input command below does nothing while a cell editor is in the DOM, and a closing one
+    // stays there a while. An editor holding the focus is live, and callers do type into those.
+    const noEditorIsClosing = () => driver.executeScript<boolean>(() => {
+      const editors = Array.from(document.querySelectorAll(".cell_editor"));
+      return editors.length === 0 || editors.some(e => e.contains(document.activeElement));
+    }).catch(() => false);
+    await driver.wait(noEditorIsClosing, 2000, "an editor was closing and did not go");
     await driver.executeScript((...args: any[]) => {
       (window as any).gristApp.allCommands.input.run(...args);
     }, ...(clear ? [""] : []));
@@ -1032,28 +1039,58 @@ namespace gristUtils {
   }
 
   /**
- * From a document page, start import from a file, and wait for the import dialog to open.
- */
+   * From a document page, open the "Add new" menu.
+   */
+  export async function openDocAddNewMenu(): Promise<void> {
+    await driver.wait(() => driver.find(".test-dp-add-new").isDisplayed(), 3000);
+    // Sometimes the button won't click straight off, I'm not sure why.
+    await waitToPass(async () => {
+      await driver.findWait(".test-dp-add-new", 1000).doClick();
+    }, 5000);
+    await driver.findWait(".test-dp-add-new-menu", 1000);
+  }
+
+  /**
+   * From a document page, open "Add new" and expand the "Import from..." submenu, if present.
+   */
+  export async function openDocImportMenu(): Promise<void> {
+    await openDocAddNewMenu();
+    if (await driver.find(".test-dp-import-menu").isPresent()) {
+      await driver.find(".test-dp-import-menu").mouseMove();
+      await driver.findWait(".test-dp-import-menu-items", 1000);
+    }
+  }
+
+  /**
+   * From the doc menu, open "Add new" and expand its "Import from..." submenu, if present.
+   */
+  export async function openHomeImportMenu(): Promise<void> {
+    await driver.findWait(".test-dm-add-new", 1000).doClick();
+    await driver.findWait(".grist-floating-menu", 1000);
+    if (await driver.find(".test-dm-import-menu").isPresent()) {
+      await driver.find(".test-dm-import-menu").mouseMove();
+      await driver.findWait(".test-dm-import-menu-items", 1000);
+    }
+  }
+
+  /**
+   * From a document page, start import from a file, and wait for the import dialog to open.
+   */
   export async function importFileDialog(filePath: string): Promise<void> {
     await fileDialogUpload(filePath, async () => {
-      await driver.wait(() => driver.find(".test-dp-add-new").isDisplayed(), 3000);
-      // Sometimes the button won't click straight off, I'm not sure why.
-      await waitToPass(async () => {
-        await driver.findWait(".test-dp-add-new", 1000).doClick();
-      }, 5000);
-      await findOpenMenuItem(".test-dp-import-option", /Import from file/i).doClick();
+      await openDocImportMenu();
+      await findOpenMenuItem(".test-dp-import-option", /^(Import from )?File$/).doClick();
     });
     await driver.findWait(".test-importer-dialog", 5000);
     await waitForServer(15_000);
   }
 
   /**
- * From a document page, start an import from a URL.
- */
+   * From a document page, start an import from a URL.
+   */
   export async function importUrlDialog(url: string): Promise<void> {
-    await driver.wait(() => driver.find(".test-dp-add-new").isDisplayed(), 3000);
-    await driver.findWait(".test-dp-add-new", 1000).doClick();
-    await driver.findContentWait(".test-dp-import-option", /Import from URL/i, 2000).doClick();
+    await openDocImportMenu();
+    await driver.findContentWait(".test-dp-import-option", /^(Import from )?URL$/, 2000).doClick();
     await driver.findWait(".test-importer-dialog", 5000);
     await waitForServer();
     const iframe = driver.find(".test-importer-dialog").find("iframe");
@@ -1152,7 +1189,7 @@ namespace gristUtils {
   export async function docMenuImport(filePath: string) {
     await fileDialogUpload(filePath, async () => {
       await driver.findWait(".test-dm-add-new", 1000).doClick();
-      await driver.findWait(".test-dm-import", 100).doClick();
+      await driver.findWait(".test-dm-import", 1000).doClick();
     });
   }
 
@@ -1166,7 +1203,7 @@ namespace gristUtils {
  * `false` to wait for the focus to leave the main application.
  */
   export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
-    await driver.wait(async () => (await driver.find(".copypaste").hasFocus()) === yesNo, 5000);
+    await webdriverUtils.waitAppFocus(yesNo);
   }
 
   /**
@@ -1339,10 +1376,14 @@ namespace gristUtils {
     await findOpenMenu();
     await driver.find(".test-dp-empty-table").click();
     if (name) {
-      const prompt = await driver.find(".test-modal-prompt");
+      // The app's clipboard element can take the focus back while the document settles, and keys
+      // that land there go missing from the name: the dialog saves an observable that only
+      // advances on the field's own input events.
+      await waitAppFocus(false);
+      const prompt = await driver.findWait(".test-modal-prompt", 1000);
       await prompt.doClear();
       await prompt.click();
-      await driver.sendKeys(name);
+      await prompt.sendKeys(name);
     }
     await driver.find(".test-modal-confirm").click();
     await waitForServer();
@@ -1489,14 +1530,16 @@ namespace gristUtils {
   export async function removeTable(tableId: string, options: { dismissTips?: boolean } = {}) {
     await driver.find(".test-tools-raw").click();
     if (options.dismissTips) { await dismissBehavioralPrompts(); }
+    // The list is built after the page switches, so the read below can find no tables at all.
+    await driver.findContentWait(".test-raw-data-table-id", exactMatch(tableId), 2000);
     const tableIdList = await driver.findAll(".test-raw-data-table-id", e => e.getText());
     const tableIndex = tableIdList.indexOf(tableId);
     assert.isTrue(tableIndex >= 0, `No raw table with id ${tableId}`);
     const menus = await driver.findAll(".test-raw-data-table .test-raw-data-table-menu");
     assert.equal(menus.length, tableIdList.length);
     await menus[tableIndex].click();
-    await driver.findWait(".test-raw-data-menu-remove-table", 100).click();
-    await driver.findWait(".test-modal-confirm", 100).click();
+    await findOpenMenuItem(".test-raw-data-menu-remove-table").click();
+    await driver.findWait(".test-modal-confirm", 1000).click();
     await waitForServer();
   }
 
@@ -1812,17 +1855,19 @@ namespace gristUtils {
       .find(".test-raw-data-table-menu")
       .click();
     await findOpenMenuItem("li", "Rename table").click();
+    // Keys sent before the focus has left the app are lost. See addNewTable.
+    await waitAppFocus(false);
     if (newName !== undefined) {
-      const input = await driver.findWait(".test-widget-title-table-name-input", 100);
+      const input = await driver.findWait(".test-widget-title-table-name-input", 1000);
       await input.doClear();
       await input.click();
-      await driver.sendKeys(newName);
+      await input.sendKeys(newName);
     }
     if (newDescription !== undefined) {
-      const input = await driver.findWait(".test-widget-title-section-description-input", 100);
+      const input = await driver.findWait(".test-widget-title-section-description-input", 1000);
       await input.doClear();
       await input.click();
-      await driver.sendKeys(newDescription);
+      await input.sendKeys(newDescription);
     }
     await driver.find(".test-widget-title-save").click();
     await waitForServer();
@@ -1855,7 +1900,7 @@ namespace gristUtils {
   export async function closeSectionMenu(which: "sortAndFilter" | "viewLayout", section?: string | WebElement) {
     const sectionElem = section ? await getSection(section) : await driver.findWait(".active_section", 4000);
     await sectionElem.find(`.test-section-menu-${which}`).click();
-    return notPresent(`.grist-floating-menu`);
+    return waitForNotPresent(`.grist-floating-menu`);
   }
 
   /**
@@ -2182,13 +2227,19 @@ namespace gristUtils {
     return await findOpenMenu(1000);
   }
 
+  /** Waits for the Save Copy dialog, which is built once a fetch of the orgs it offers returns. */
+  export async function waitForCopyDialog() {
+    await waitForServer();
+    await driver.findWait(".test-modal-dialog", 1000);
+  }
+
   /**
  * A helper to complete saving a copy of the document. Namely it is useful to call after clicking
  * either the `Copy As Template` or `Save Copy` (when on a forked document) button. Accept optional
  * `destName` and `destWorkspace` to change the default destination.
  */
   export async function completeCopy(options: { destName?: string, destWorkspace?: string, destOrg?: string } = {}) {
-    await driver.findWait(".test-modal-dialog", 1000);
+    await waitForCopyDialog();
     if (options.destName !== undefined) {
       const nameElem = await driver.find(".test-copy-dest-name").doClick();
       await setValue(nameElem, "");
@@ -2695,8 +2746,20 @@ namespace gristUtils {
     return setColor(driver.findWait(".test-fill-input", 1000), color);
   }
 
+  /**
+   * The picker saves as it closes, so wait for it to go before waiting for the request. It is
+   * slower to go than a plain menu, hence the budget above the 100ms default.
+   */
   export async function applyStyle() {
     await driver.find(".test-colors-save").click();
+    await waitForMenuToClose(2000);
+    await waitForServer();
+  }
+
+  /** As applyStyle, for the tests that dismiss the picker with the keyboard. */
+  export async function applyStyleWithEnter() {
+    await driver.sendKeys(Key.ENTER);
+    await waitForMenuToClose(2000);
     await waitForServer();
   }
 
@@ -3593,12 +3656,15 @@ namespace gristUtils {
   }
 
   async function doRenameSection(name: string) {
-    await driver.findWait(".test-widget-title-popup", 100);
-    await driver.find(".test-widget-title-section-name-input").click();
+    await driver.findWait(".test-widget-title-popup", 1000);
+    // Keys sent before the focus has left the app are lost. See addNewTable.
+    await waitAppFocus(false);
+    const input = driver.find(".test-widget-title-section-name-input");
+    await input.click();
     await selectAll();
-    await driver.sendKeys(name || Key.DELETE, Key.ENTER);
+    await input.sendKeys(name || Key.DELETE, Key.ENTER);
     await waitForServer();
-    await notPresent(".test-widget-title-section-name-input");
+    await waitForNotPresent(".test-widget-title-section-name-input");
   }
 
   /**
@@ -3606,10 +3672,13 @@ namespace gristUtils {
  */
   export async function renameActiveTable(name: string) {
     await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
-    await driver.findWait(".test-widget-title-popup", 100);
-    await driver.find(".test-widget-title-table-name-input").click();
+    await driver.findWait(".test-widget-title-popup", 1000);
+    // Keys sent before the focus has left the app are lost. See addNewTable.
+    await waitAppFocus(false);
+    const input = driver.find(".test-widget-title-table-name-input");
+    await input.click();
     await selectAll();
-    await driver.sendKeys(name, Key.ENTER);
+    await input.sendKeys(name, Key.ENTER);
     await waitAppFocus(true); // Wait for the editor to close so that waitForServer sees our request.
     await waitForServer();
   }
@@ -4186,6 +4255,48 @@ namespace gristUtils {
     },
   };
 
+  /**
+   * Helper for the autocomplete dropdown offered by the Choice, Choice List, Reference and Reference
+   * List editors.
+   *
+   * Its items are rebuilt asynchronously, and a list that has caught up with what the user typed
+   * looks exactly like one that has not, so the editor tags the menu with the search text its items
+   * were built for (see data-ac-search-text in app/client/lib/autocomplete.ts). Waiting for
+   * ".test-autocomplete" alone is not enough: the menu is in the DOM before its first results are,
+   * and one on its way out is still there for the next read, so both read as an empty or a wrong
+   * list with nothing to say so.
+   */
+  function autocompleteMenu(text?: string) {
+    // Selector for the dropdown once it is showing results; with `text`, only the dropdown showing
+    // the results for that search text (the whole content of the editor's textbox).
+    return text === undefined ?
+      ".test-autocomplete[data-ac-search-text]" :
+      `.test-autocomplete[data-ac-search-text=${JSON.stringify(text)}]`;
+  }
+
+  export const autocomplete = {
+    /**
+     * Waits for the dropdown to be showing results. Pass `text` when known: it is what tells the
+     * latest keystroke's list from the one before it.
+     */
+    async wait(text?: string) {
+      await driver.findWait(autocompleteMenu(text), 1000);
+    },
+
+    /** Returns the first `limit` options offered, once the dropdown is showing them. */
+    async getOptions(text?: string, limit?: number, itemSelector: string = "li"): Promise<string[]> {
+      await this.wait(text);
+      return (await driver.findAll(`${autocompleteMenu(text)} ${itemSelector}`, el => el.getText())).slice(0, limit);
+    },
+
+    /** Dismisses the dropdown with Escape, and waits for it to be gone. */
+    async close() {
+      await sendKeys(Key.ESCAPE);
+      await driver.wait(async () => !await driver.find(".test-autocomplete").isPresent(), 1000,
+        "autocomplete did not close");
+    },
+  };
+
   export async function switchUser(email: string) {
     await driver.findWait(".test-user-icon", 1000).click();
     await driver.findContentWait(".test-usermenu-other-email", exactMatch(email), 1000).click();
@@ -4300,6 +4411,34 @@ namespace gristUtils {
     await waitForPendingOps("testNumPendingPastes", "paste to complete", optTimeout);
   }
 
+  /**
+   * Waits for an open menu to hold the focus, which is when it starts handling keys. A menu takes
+   * the focus a tick after it is shown, so an Escape sent before then leaves it open.
+   */
+  export async function waitForMenuFocus(optTimeout: number = 1000) {
+    const menuHasFocus = () => driver.executeScript<boolean>(() => {
+      const active = document.activeElement;
+      return Array.from(document.querySelectorAll(".grist-floating-menu")).some(m => m.contains(active));
+    }).catch(() => false);
+    await driver.wait(menuHasFocus, optTimeout, "the open menu did not take the focus");
+  }
+
+  /**
+   * Waits for every view to have the data it asked for. Moving the cursor in one widget makes the
+   * widgets linked to it re-query, and the page has no other signal for when those queries finish.
+   */
+  export async function waitForViewLoads(optTimeout: number = 5000) {
+    await waitForPendingOps("testNumPendingViewLoads", "views to load their data", optTimeout);
+  }
+
+  /**
+   * Waits for a menu item's action to run. Items that let the menu close first defer their action
+   * to the next tick, and waitForServer is not a substitute, as no request is in flight by then.
+   */
+  export async function waitForMenuAction(optTimeout: number = 2000) {
+    await waitForPendingOps("testNumPendingMenuActions", "a menu action to run", optTimeout);
+  }
+
   /** Gets the value from the select component */
   export async function getSelectValue(selector: string) {
     return await driver.find(`${selector} .test-select-row`).getText();
@@ -4354,9 +4493,7 @@ namespace gristUtils {
      * Waits for the select component to be displayed.
      */
       async waitForDisplay() {
-        await waitToPass(async () => {
-          assert.isTrue(await driver.findWait(this.selector, 1000).isDisplayed());
-        });
+        await waitForDisplay(this.selector);
       },
       /**
      * Waits until the select component is umonuted from dom.
@@ -4395,10 +4532,10 @@ namespace gristUtils {
   }
 
   /** Waits for the element to be not present in the dom */
-  export async function notPresent(selector: string) {
+  export async function waitForNotPresent(selector: string, timeMs: number = 100) {
     await waitToPass(async () => {
       assert.isFalse(await driver.find(selector).isPresent());
-    }, 100);
+    }, timeMs);
   }
 
   export async function waitForContent(selector: string, text: string | RegExp) {
@@ -4407,14 +4544,23 @@ namespace gristUtils {
     });
   }
 
-  export async function waitForDisplay(selector: string) {
-    await waitToPass(async () => {
-      assert.isTrue(await driver.find(selector).isDisplayed());
-    });
+  /**
+   * Waits for the element matching selector to be displayed, not merely present, re-finding on
+   * each poll so that re-renders don't leave a stale reference. Returns it.
+   */
+  export function waitForDisplay(selector: string, timeMs?: number): WebElementPromise {
+    return new WebElementPromise(driver, (async () => {
+      let elem!: WebElement;
+      await waitToPass(async () => {
+        elem = driver.find(selector);
+        assert.isTrue(await elem.isDisplayed(), `${selector} is not displayed`);
+      }, timeMs);
+      return elem;
+    })());
   }
 
-  export async function waitForMenuToClose() {
-    await notPresent(".grist-floating-menu");
+  export async function waitForMenuToClose(optTimeout?: number) {
+    await waitForNotPresent(".grist-floating-menu", optTimeout);
   }
 
   /** Finds a tab by its name and clicks it */

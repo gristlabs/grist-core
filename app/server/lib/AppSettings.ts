@@ -81,7 +81,7 @@ export class AppSettings {
   public read(query: AppSettingQuery) {
     this._value = undefined;
     this._info = undefined;
-    let value = undefined;
+    let value: string | undefined = undefined;
     let found = false;
     let source: "env" | "db" | undefined = undefined;
 
@@ -95,11 +95,16 @@ export class AppSettings {
       sources.push({ name: "db", vars: this._root._envVars });
     }
 
+    // With a predefined list of acceptedValues, treat "" as unset rather than as an error.
+    const isUnset = (v: string | undefined) =>
+      (v === undefined || (query.acceptedValues && v === "" && !query.acceptedValues.includes(v)));
+
     let envVar = envVars[0];
     for (const { name, vars } of sources) {
       for (const synonym of envVars) {
-        value = vars[synonym];
-        if (value !== undefined) {
+        const candidate = vars[synonym];
+        if (!isUnset(candidate)) {
+          value = candidate;
           envVar = synonym;
           found = true;
           source = name as any;
@@ -120,10 +125,8 @@ export class AppSettings {
     } else if (query.defaultValue !== undefined) {
       this._value = query.defaultValue;
     }
-    if (query.acceptedValues && this._value) {
-      if (query.acceptedValues.every(v => v !== this._value)) {
-        throw new Error(`value is not accepted: ${this._value}`);
-      }
+    if (query.acceptedValues && this._value !== undefined && !query.acceptedValues.includes(this._value)) {
+      throw new Error(`Invalid ${envVar} "${this._value}"; must be one of ${query.acceptedValues.join(", ")}`);
     }
     return this;
   }

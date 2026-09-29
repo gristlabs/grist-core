@@ -62,8 +62,17 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   /**
    * Restart the server.  If reset is set, the database is cleared.  If reset is not set,
    * the database is preserved, and the temporary directory is unchanged.
+   *
+   * `useCoreCmd` runs the production entry point (stubs/app/server/server) instead of
+   * devServerMain. It also puts every port on a single one. Defaults to whether that
+   * build exists on disk.
+   *
+   * `restartShell` runs it under RestartShell, so that /api/admin/restart really restarts
+   * the server instead of answering 409. Needs `useCoreCmd`, since devServerMain has no
+   * shell at all.
    */
-  public async restart(reset: boolean = false, quiet = false, options?: { useCoreCmd?: boolean }) {
+  public async restart(reset: boolean = false, quiet = false,
+    options?: { useCoreCmd?: boolean, restartShell?: boolean }) {
     if (this.isExternalServer()) { return; }
     if (this._starts > 0) {
       this.resume();
@@ -156,6 +165,12 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       TS_NODE_TRANSPILE_ONLY: "true",
       ...process.env,
       TEST_CLEAN_DATABASE: reset ? "true" : "",
+      ...(options?.restartShell ? {
+        GRIST_RESTART_SHELL: "true",
+        PORT: process.env.HOME_PORT || corePort,
+        STATIC_PORT: process.env.HOME_PORT || corePort,
+        DOC_PORT: process.env.HOME_PORT || corePort,
+      } : undefined),
     };
     if (!process.env.REDIS_URL) {
       // Multiple doc workers only possible when redis is available.

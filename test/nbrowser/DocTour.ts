@@ -253,6 +253,36 @@ describe("DocTour", function() {
     await checkDocTourPresent();
   });
 
+  it("should finish the tour when the last step points to a missing row", async () => {
+    const session = await gu.session().user("user1").personalSite.login();
+    const docId = await session.tempNewDoc(cleanup, "DocTourMissingRow", { load: false });
+    const docApi = session.createHomeApi();
+    await docApi.applyUserActions(docId, [
+      ["AddTable", "GristDocTour", [{ id: "Title" }, { id: "Body" }, { id: "Location" }, { id: "Placement" }]],
+    ]);
+    await session.loadDoc(`/doc/${docId}`);
+    const docUrl = await driver.getCurrentUrl();
+    await docApi.applyUserActions(docId, [
+      ["BulkAddRecord", "GristDocTour", [null, null], {
+        Title: ["First", "Missing row"],
+        Body: ["First body", "Points to a row that does not exist"],
+        Location: ["", `${docUrl}#a1.s1.r999.c2`],
+        Placement: ["auto", "auto"],
+        manualSort: [1, 2],
+      }],
+    ]);
+
+    await session.loadDoc(`/doc/${docId}#repeat-doc-tour`);
+    await gu.waitForDocToLoad();
+    assert.match(await driver.findWait(".test-onboarding-popup", 1000).getText(), /First/);
+    await driver.find(".test-onboarding-next").click();
+
+    // The missing step is skipped and, being last, the tour ends and the page is usable again.
+    await gu.waitForNotPresent(".test-onboarding-popup", 2000);
+    await gu.getCell({ rowNum: 1, col: 0 }).click();
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: 0 });
+  });
+
   it("should not render a link for an unsafe Link_URL", async () => {
     // Build the GristDocTour table via the API rather than a binary fixture so the dangerous
     // payloads are visible in the test source. Each row exercises a different Link_URL scheme.

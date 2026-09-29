@@ -219,6 +219,13 @@ export class ScopedSession {
     return (await this.getScopedSession(prev)).profile || null;
   }
 
+  /**
+   * Get all user entries from the current session.
+   */
+  public async getSessionUsers(): Promise<SessionUserObj[]> {
+    return (await this._getSession()).users || [];
+  }
+
   // Updates a user profile. The session may have multiple profiles associated with different
   // email addresses. This will update the one with a matching email address, or add a new one.
   // This is mainly used to know which emails are logged in in this session; fields like name and

@@ -3,19 +3,65 @@ import { ColValues, TableColValues, TableRecordValue } from "app/common/DocActio
 import { extractInfoFromColType, reencodeAsTypedCellValue } from "app/common/gristTypes";
 import { SortFunc } from "app/common/SortFunc";
 import { Sort } from "app/common/SortSpec";
+import { makeDocAuthResult } from "app/gen-server/lib/homedb/HomeDBManager";
 import { CellFormatType } from "app/plugin/GristAPI";
 import { handleSandboxErrorOnPlatform, TableOperationsPlatform } from "app/plugin/TableOperationsImpl";
 import { type ActiveDoc } from "app/server/lib/ActiveDoc";
-import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { assertAccess, RequestWithLogin } from "app/server/lib/Authorizer";
 import { docSessionFromRequest } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";
-import { optStringParam } from "app/server/lib/requestUtils";
+import { getScope, optStringParam } from "app/server/lib/requestUtils";
 import { ServerColumnGetters } from "app/server/lib/ServerColumnGetters";
 
-import { Request, RequestHandler, Response } from "express";
+import { Application, Request, RequestHandler, Response } from "express";
 import { Checker } from "ts-interface-checker";
 
+import type { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
+import type { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+
 export type WithDocHandler = (activeDoc: ActiveDoc, req: RequestWithLogin, resp: Response) => Promise<void>;
+
+/**
+ * What a doc worker hands to code registering extra `/api/docs/:docId/...` endpoints from
+ * outside DocApi (see {@link ICreate.addExtraDocWorkerEndpoints}).
+ *
+ * Endpoints that need an ActiveDoc can only be registered from the doc worker, and the access
+ * middleware they need is built inside DocWorkerApi.addEndpoints, so it is passed along here
+ * rather than rebuilt by each caller.
+ */
+export interface DocWorkerEndpointOptions {
+  app: Application;
+  dbManager: HomeDBManager;
+  docWorkerMap: IDocWorkerMap;
+  /** Rejects unless the document exists and the user may edit it. */
+  canEdit: RequestHandler;
+  /** Wraps a handler so it runs against the request's loaded ActiveDoc, with throttling. */
+  withDoc(callback: WithDocHandler): RequestHandler;
+}
+
+/**
+ * Check for read access to the given document, and return its
+ * canonical docId.  Throws error if read access not available.
+ * This method is used for documents that are not the main document
+ * associated with the request, but are rather an extra source to be
+ * read from, so the access information is not cached in the
+ * request.
+ *
+ * By default the document is looked up in the org the request was made to. Pass an `org` to
+ * look elsewhere - importing from another site does this, since the source document is
+ * chosen independently of the site the user happens to be on.
+ */
+export async function confirmDocIdForRead(
+  dbManager: HomeDBManager, req: Request, urlId: string, options: { org?: string } = {},
+): Promise<string> {
+  const scope = getScope(req);
+  const docAuth = await makeDocAuthResult(
+    dbManager.getDoc({ ...scope, org: options.org ?? scope.org, urlId }));
+  if (docAuth.error) { throw docAuth.error; }
+  assertAccess("viewers", docAuth);
+  if (!docAuth.docId) { throw new ApiError("document not found", 404); }
+  return docAuth.docId;
+}
 
 /**
  * Middleware for validating request's body with a Checker instance.

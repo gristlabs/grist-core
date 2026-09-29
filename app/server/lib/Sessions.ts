@@ -98,10 +98,18 @@ export class Sessions {
   /**
    * Clear all sessions from the session store.
    * This will remove all session data from Redis/SQLite and clear the in-memory cache.
+   *
+   * `keepSessionId` names a single session to survive. The store can only be cleared as
+   * a whole (it exposes no way to delete or list entries selectively), so that session
+   * is read first and written back afterwards.
    */
-  public async clearAllSessions(): Promise<void> {
+  public async clearAllSessions(keepSessionId?: string): Promise<void> {
+    const kept = keepSessionId ? await this._sessionStore.getAsync(keepSessionId) : null;
     this._sessions.clear();
     await this._sessionStore.clearAsync();
+    if (kept) {
+      await this._sessionStore.setAsync(keepSessionId!, kept);
+    }
   }
 
   /**

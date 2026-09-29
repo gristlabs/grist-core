@@ -2,14 +2,16 @@ import { ApiError } from "app/common/ApiError";
 import { isAffirmative } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";
 import { checkSubdomainValidity } from "app/common/orgNameUtils";
-import { BasicRole } from "app/common/roles";
+import { BasicRole, OWNER } from "app/common/roles";
 import * as SATypes from "app/common/ServiceAccountTypes";
 import ServiceAccountTI from "app/common/ServiceAccountTypes-ti";
-import { DOCTYPE_NORMAL,
+import { AccountInfo,
+  DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
   OrganizationProperties,
-  PermissionDelta } from "app/common/UserAPI";
+  PermissionDelta,
+  PersonalSiteUsage } from "app/common/UserAPI";
 import { Document } from "app/gen-server/entity/Document";
 import { Organization } from "app/gen-server/entity/Organization";
 import { User } from "app/gen-server/entity/User";
@@ -29,6 +31,7 @@ import { getCanAnyoneCreateOrgs, getPersonalOrgsEnabled, getTemplateOrg } from "
 import log from "app/server/lib/log";
 import { clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
   isParameterOn, optStringParam, sendOkReply, sendReply, stringParam } from "app/server/lib/requestUtils";
+import { billingMonthlyApiUsageKey } from "app/server/lib/usageKeys";
 
 import * as crypto from "crypto";
 
@@ -36,6 +39,7 @@ import * as cookie from "cookie";
 import { Request } from "express";
 import * as express from "express";
 import pick from "lodash/pick";
+import * as moment from "moment";
 import * as t from "ts-interface-checker";
 
 const ALLOW_DEPRECATED_BARE_ORG_DELETE = appSettings.section("api").flag("allowBareOrgDelete").readBool({
@@ -461,9 +465,10 @@ export class ApiServer {
     this._app.get("/api/profile/user", expressWrap(async (req, res) => {
       const fullUser = await this._getFullUser(req);
       // Limit credentials to mostly public info.
-      const result = (req as RequestWithLogin).authSession?.credential ?
-        pick(fullUser, "email", "name", "picture", "ref", "locale") :
-        fullUser;
+      if ((req as RequestWithLogin).authSession?.credential) {
+        return sendOkReply(req, res, pick(fullUser, "email", "name", "picture", "ref", "locale"));
+      }
+      const result: AccountInfo = { ...fullUser, personalSite: await this._getPersonalSiteUsage(req) };
       return sendOkReply(req, res, result, { allowedFields: new Set(["allowGoogleLogin"]) });
     }));
 
@@ -536,12 +541,13 @@ export class ApiServer {
     }));
 
     this._app.post("/api/users/:userId/disable", requireInstallAdmin, expressWrap(async (req, res) => {
-      await this._changeUserDisabledDate(req, new Date());
+      const reason = optStringParam(req.body.reason, "reason");
+      await this._changeUserDisablement(req, new Date(), reason);
       await sendOkReply(req, res);
     }));
 
     this._app.post("/api/users/:userId/enable", requireInstallAdmin, expressWrap(async (req, res) => {
-      await this._changeUserDisabledDate(req, null);
+      await this._changeUserDisablement(req, null);
       await sendOkReply(req, res);
     }));
 
@@ -595,6 +601,19 @@ export class ApiServer {
       if (org?.data?.billingAccount) {
       // Flatten features into single object for client side code that is using BillingAccount client side model.
         org.data.billingAccount.features = org.data.billingAccount.getEffectiveFeatures();
+        // Report the member count when the plan caps it, so the client can warn as the site
+        // approaches the cap rather than only failing when someone is added.
+        const userLimit = await this._dbManager.getUserLimitStatus(org.data);
+        if (org.data.access === OWNER || org.data.billingAccount.isManager) {
+          // The number itself is billing detail, and goes only to those who can act on it.
+          org.data.billableMemberCount = userLimit?.count;
+          // Report the api calls made this month, so a banner on any page can warn before a
+          // script stops working.
+          org.data.apiUsage = (await this._getApiCallsUsage(org.data)).apiCalls;
+        }
+        // Why the site's documents are held read-only, if they are. Handing over the count
+        // keeps this to the one lookup made above.
+        org.data.readOnlyReason = await this._dbManager.getSiteReadOnlyReason(org.data, { userLimit });
       }
       return sendOkReply(req, res, {
         user: { ...fullUser,
@@ -886,14 +905,22 @@ export class ApiServer {
     return result;
   }
 
-  private async _changeUserDisabledDate(req: express.Request, disabledAt: Date | null) {
+  private async _changeUserDisablement(req: express.Request, disabledAt: Date, disabledReason?: string): Promise<void>;
+  // Enforce the type of disabledReason to be undefined when the disabledAt date is null.
+  private async _changeUserDisablement(req: express.Request, disabledAt: null): Promise<void>;
+  private async _changeUserDisablement(
+    req: express.Request, disabledAt: Date | null, disabledReason?: string,
+  ): Promise<void> {
     const mreq = req as RequestWithLogin;
     const userId = mreq.userId;
     const targetUserId = integerParam(req.params.userId, "userId");
     if (targetUserId === userId) {
       throw new ApiError("you cannot disable yourself", 400);
     }
-    await this._dbManager.updateUser(targetUserId, { disabledAt });
+    await this._dbManager.updateUser(targetUserId, {
+      disabledAt,
+      disabledReason: disabledReason || null,
+    });
   }
 
   private async _hardDeleteWorkspace(req: Request, wsId: number) {
@@ -1208,6 +1235,38 @@ export class ApiServer {
         },
       },
     });
+  }
+
+  /**
+   * Reads what the account page shows about the signed in user's personal site. Undefined
+   * when there is no personal site, or the user may not read its usage.
+   */
+  private async _getPersonalSiteUsage(req: Request): Promise<PersonalSiteUsage | undefined> {
+    const org = await this._dbManager.getOrg(getScope(req), this._dbManager.mergedOrgDomain());
+    if (org.status !== 200 || org.data?.access !== OWNER) { return undefined; }
+    const usage: PersonalSiteUsage = await this._getApiCallsUsage(org.data);
+    // A personal site has no subscription to raise the assistant limit, so the plan is the
+    // only source for it. Only the usage is read from the db, and peek does not write there.
+    const limit = org.data.billingAccount?.getEffectiveFeatures().baseMaxAssistantCalls;
+    if (limit && limit > 0) {
+      const used = (await this._dbManager.peekLimit(org.data.billingAccountId, "assistant"))?.usage ?? 0;
+      usage.assistant = { used, limit };
+    }
+    // Left out when the plan limits neither, so the response does not carry an empty object.
+    return Object.keys(usage).length > 0 ? usage : undefined;
+  }
+
+  /**
+   * Reads the api calls a site made this month. Nothing is returned when the plan sets no
+   * limit, or when there is no redis to keep the count in.
+   */
+  private async _getApiCallsUsage(org: Organization): Promise<PersonalSiteUsage> {
+    const limit = org.billingAccount?.getEffectiveFeatures().maxApiCallsPerOrgMonth;
+    const cli = this._gristServer.getDocWorkerMap()?.getRedisClient();
+    if (!limit || !cli) { return {}; }
+    const now = moment.utc();
+    const used = Number(await cli.getAsync(billingMonthlyApiUsageKey(org.billingAccountId, now))) || 0;
+    return { apiCalls: { used, limit, month: now.format("YYYY-MM") } };
   }
 
   private _logCreateSiteEvents(req: Request, org: Organization) {

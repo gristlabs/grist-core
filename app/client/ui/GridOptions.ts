@@ -1,13 +1,13 @@
 import { makeT } from "app/client/lib/localization";
 import { obsPropWithSaveOnWrite } from "app/client/lib/obsPropWithSaveOnWrite";
 import { ViewSectionRec } from "app/client/models/DocModel";
-import { RowNumbersMode } from "app/client/models/entities/ViewSectionRec";
 import { cssGroupLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { rowNumbersMenu } from "app/client/ui/RowNumbersMenu";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu } from "app/client/ui2018/menus";
+import { RowNumbersMode } from "app/common/widgetTypes";
 
 import { Computed, Disposable, dom, Observable, styled } from "grainjs";
 

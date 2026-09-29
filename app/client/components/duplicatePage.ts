@@ -1,5 +1,6 @@
 import { duplicateWidgets } from "app/client/components/duplicateWidget";
 import { GristDoc } from "app/client/components/GristDoc";
+import { onceAttached } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { cssInput } from "app/client/ui/cssInput";
@@ -14,14 +15,15 @@ const t = makeT("duplicatePage");
 export async function buildDuplicatePageDialog(gristDoc: GristDoc, pageId: number) {
   const pagesTable = gristDoc.docModel.pages;
   const pageName = pagesTable.rowModels[pageId].view.peek().name.peek();
-  let inputEl: HTMLInputElement;
-  setTimeout(() => { inputEl.focus(); inputEl.select(); }, 100);
+  const inputEl = cssInput({ value: pageName + " (copy)" });
+  // The suggested name is meant to be typed over, so it has to arrive selected.
+  onceAttached(inputEl, () => { inputEl.focus(); inputEl.select(); });
 
   confirmModal("Duplicate page", "Save", () => duplicatePage(gristDoc, pageId, inputEl.value), {
     explanation: dom("div", [
       cssField(
         cssLabel("Name"),
-        inputEl = cssInput({ value: pageName + " (copy)" }),
+        inputEl,
       ),
       t("Note that this does not copy data, but creates another view of the same data."),
     ]),

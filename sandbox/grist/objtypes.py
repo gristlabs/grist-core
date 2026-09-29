@@ -384,6 +384,9 @@ class RecordList(list):
     numbers = repr_str.split('[')[1].split(']')[0].split(',')
     return RecordList([int(v) for v in numbers])
 
+  # Slots are an optimization to avoid the need for a per-object __dict__.
+  __slots__ = ('_group_by', '_sort_by', '_sort_key')
+
   """
   Just like list but allows setting custom attributes, which we use for remembering _group_by and
   _sort_by attributes when storing RecordSet as usertypes.ReferenceList type.

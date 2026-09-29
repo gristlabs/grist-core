@@ -36,6 +36,7 @@ export function getPageName(page: AccountPage): DomContents {
     case "account": return t("Profile");
     case "authorized-apps": return t("Authorized apps");
     case "developer": return t("Developer");
+    case "personal-site": return t("Personal site");
   }
 }
 
@@ -61,6 +62,7 @@ export function buildAccountLeftPanel(owner: MultiHolder, appModel: AppModel): P
       buildPageEntry("account", "Settings"),
       areOAuthAppsAvailable() === true ? buildPageEntry("authorized-apps", "Widget") : null,
       buildPageEntry("developer", "Code"),
+      getGristConfig().enablePersonalOrgs ? buildPageEntry("personal-site", "Home") : null,
     ),
   );
 

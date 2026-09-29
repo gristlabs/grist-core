@@ -162,9 +162,10 @@ export class GristWebDriverUtils {
     const prompt = prompts[0];
     if (prompt) {
       if (tableName) {
+        await this.waitAppFocus(false);
         await prompt.doClear();
         await prompt.click();
-        await driver.sendKeys(tableName);
+        await prompt.sendKeys(tableName);
       }
       await driver.find(".test-modal-confirm").click();
     }
@@ -405,18 +406,10 @@ export class GristWebDriverUtils {
   public async getVisibleGridCells<T>(
     colOrOptions: number | string | IColSelect<T> | IColsSelect<T>, _rowNums?: number[], _section?: string,
   ): Promise<T[]> {
-    if (typeof colOrOptions === "object" && "cols" in colOrOptions) {
-      const { rowNums, section, mapper } = colOrOptions;
-      const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
-        this.getVisibleGridCells({ col: oneCol, rowNums, section, mapper })));
-      // This zips column-wise data into a flat row-wise array of values.
-      return ([] as T[]).concat(...rowNums.map((_r, i) => columns.map(c => c[i])));
-    }
-
-    const { col, rowNums, section, mapper = el => el.getText() }: IColSelect<any> = (
-      typeof colOrOptions === "object" ? colOrOptions :
-        { col: colOrOptions, rowNums: _rowNums!, section: _section }
-    );
+    const { cols, rowNums, section, mapper }: IColsSelect<any> =
+      typeof colOrOptions !== "object" ? { cols: [colOrOptions], rowNums: _rowNums!, section: _section } :
+        "cols" in colOrOptions ? colOrOptions :
+          { ...colOrOptions, cols: [colOrOptions.col] };
 
     if (rowNums.includes(0)) {
       // Row-numbers should be what the users sees: 0 is a mistake, so fail with a helpful message.
@@ -424,15 +417,23 @@ export class GristWebDriverUtils {
     }
 
     const sectionElem = section ? await this.getSection(section) : await this.driver.findWait(".active_section", 4000);
-    const colIndex = (typeof col === "number" ? col :
-      await sectionElem.findContentWait(".column_name", this.exactMatch(col), 1000).index());
+    const colIndexes = await Promise.all(cols.map(async col => typeof col === "number" ? col :
+      await sectionElem.findContentWait(".column_name", this.exactMatch(col), 1000).index()));
 
-    const visibleRowNums: number[] = await sectionElem.findAll(".gridview_data_row_num",
-      async el => parseInt(await el.getText(), 10));
+    // Take each cell from the row that shows its number. Reading the row numbers and the cells in
+    // separate passes, and lining the two up by position, gives a cell from a layout that is gone
+    // when the section is rebuilt in between.
+    const cells = await this.driver.executeScript<(WebElement | null)[]>(
+      (elem: HTMLElement, wanted: number[], nthChildren: number[]) => wanted.flatMap((rowNum) => {
+        const row = Array.from(elem.querySelectorAll(".gridview_row")).find(r =>
+          parseInt(r.querySelector<HTMLElement>(".gridview_data_row_num")?.innerText ?? "", 10) === rowNum);
+        return nthChildren.map(nth =>
+          row?.querySelector(`.record:not(.column_names) .field:nth-child(${nth})`) ?? null);
+      }), sectionElem, rowNums, colIndexes.map(i => i + 1));
 
-    const selector = `.gridview_data_scroll .record:not(.column_names) .field:nth-child(${colIndex + 1})`;
-    const fields = mapper ? await sectionElem.findAll(selector, mapper) : await sectionElem.findAll(selector);
-    return rowNums.map(n => fields[visibleRowNums.indexOf(n)]);
+    // A row number that is not on screen has no cell, and read as undefined before this too.
+    const read = mapper ?? ((el: WebElement) => el.getText());
+    return Promise.all(cells.map(async cell => cell === null ? undefined : await read(cell))) as Promise<T[]>;
   }
 
   /**
@@ -449,6 +450,11 @@ export class GristWebDriverUtils {
       { col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper } :
       { col: colOrOptions, rowNums: [rowNum!], section, mapper });
     return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then(elems => elems[0]));
+  }
+
+  /** Waits for the app's hidden clipboard element to hold the focus, or to have given it up. */
+  public async waitAppFocus(yesNo: boolean = true): Promise<void> {
+    await this.driver.wait(async () => (await this.driver.find(".copypaste").hasFocus()) === yesNo, 5000);
   }
 
   public waitCellFocus(cell: WebElement | WebElementPromise, timeout: number = 1000) {

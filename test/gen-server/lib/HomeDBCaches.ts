@@ -50,6 +50,7 @@ describe("HomeDBCaches", function() {
     // For this test, set cache TTL to a low value, just high enough not to trigger unexpectedly.
     sandboxAll.stub(CachesDeps, "DocAccessCacheTTL").value(1000);
     sandboxAll.stub(CachesDeps, "DocPrefsCacheTTL").value(1000);
+    sandboxAll.stub(CachesDeps, "OrgBillableMemberCountCacheTTL").value(1000);
 
     const pubSubManager = createPubSubManager(process.env.TEST_REDIS_URL);
     cleanup.addAfterAll(() => pubSubManager.close());
@@ -313,6 +314,58 @@ describe("HomeDBCaches", function() {
     await homeDb.setDocPrefs({ userId: bob.id, urlId: entities.docDesignSpec.id },
       { currentUser: { foo: undefined } as any });
     assert.deepEqual(Array.from(await caches.getDocPrefs(entities.docDesignSpec.id)), [[bob.id, {}]]);
+  });
+
+  it("should cache the billable member count and invalidate on membership change", async function() {
+    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, "getOrgBillableMemberCount");
+    const alice = entities.users.Alice;
+
+    // Alice, Bob and Carol are members of the org; Dave is not.
+    assert.equal(await caches.getOrgBillableMemberCount(entities.org.id), 3);
+    assert.equal(rawCallSpy.callCount, 1);
+
+    // The value stays cached.
+    assert.equal(await caches.getOrgBillableMemberCount(entities.org.id), 3);
+    assert.equal(rawCallSpy.callCount, 1);
+
+    // Adding a member is noticed immediately.
+    await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { "dave@example.com": VIEWER } });
+    cleanup.addAfterEach(async () => {
+      await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { "dave@example.com": null } });
+    });
+
+    assert.equal(await caches.getOrgBillableMemberCount(entities.org.id), 4);
+    assert.equal(rawCallSpy.callCount, 2);
+
+    // Removing them again is noticed immediately too.
+    await homeDb.updateOrgPermissions({ userId: alice.id }, entities.org.id, { users: { "dave@example.com": null } });
+    assert.equal(await caches.getOrgBillableMemberCount(entities.org.id), 3);
+    assert.equal(rawCallSpy.callCount, 3);
+  });
+
+  it("relies on expiry to notice a member becoming a consultant", async function() {
+    // Consultants are not billable, but flagging one does not go through updateOrgPermissions,
+    // so there is no invalidation hook. The count is stale until the entry expires, which is
+    // the tradeoff that lets us avoid a stored count that could drift indefinitely.
+    const rawCallSpy = sandbox.spy(HomeDBManager.prototype, "getOrgBillableMemberCount");
+    const carol = entities.users.Carol;
+
+    assert.equal(await caches.getOrgBillableMemberCount(entities.org.id), 3);
+    assert.equal(rawCallSpy.callCount, 1);
+
+    await homeDb.updateUserOptions(carol.id, { isConsultant: true });
+    cleanup.addAfterEach(async () => {
+      await homeDb.updateUserOptions(carol.id, { isConsultant: false });
+    });
+
+    // Not noticed yet.
+    assert.equal(await caches.getOrgBillableMemberCount(entities.org.id), 3);
+    assert.equal(rawCallSpy.callCount, 1);
+
+    // Noticed after expiration.
+    await delay(CachesDeps.OrgBillableMemberCountCacheTTL);
+    assert.equal(await caches.getOrgBillableMemberCount(entities.org.id), 2);
+    assert.equal(rawCallSpy.callCount, 2);
   });
 
   it("should invalidate across servers", async function() {

@@ -77,6 +77,9 @@ def acl_read_split(action_group):
   bundle.direct.extend((0, flag) for flag in action_group.direct)
   bundle.calc.extend((0, da) for da in action_group.calc)
   bundle.undo.extend((0, da) for da in action_group.undo)
+  # Resolve the per-undo owner map (keyed by object identity) to a list parallel to the undo
+  # actions, now that their final order is fixed. Enveloped to match bundle.undo (same envelope).
+  bundle.undo_owner.extend((0, action_group.undo_owner.get(id(da))) for da in action_group.undo)
   bundle.retValues = action_group.retValues
   return bundle
 

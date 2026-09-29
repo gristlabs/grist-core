@@ -1,5 +1,4 @@
 import { concatenateSummaries, summarizeAction } from "app/common/ActionSummarizer";
-import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { QueryFilters } from "app/common/ActiveDocAPI";
 import { ApiError } from "app/common/ApiError";
 import { BrowserSettings } from "app/common/BrowserSettings";
@@ -22,7 +21,7 @@ import {
   isRaisedException,
 } from "app/common/gristTypes";
 import { buildUrlId, parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
-import { isAffirmative, safeJsonParse } from "app/common/gutil";
+import { isAffirmative, isNonNullish, safeJsonParse } from "app/common/gutil";
 import { schema, SchemaTypes } from "app/common/schema";
 import { MetaRowRecord, MetaTableData } from "app/common/TableData";
 import {
@@ -36,7 +35,7 @@ import { WidgetType } from "app/common/widgetTypes";
 import { Document } from "app/gen-server/entity/Document";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { forwardDocApiRequest, getDocWorkerInternalUrl } from "app/gen-server/lib/DocApiProxy";
-import { HomeDBManager, makeDocAuthResult } from "app/gen-server/lib/homedb/HomeDBManager";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { QueryResult } from "app/gen-server/lib/homedb/Interfaces";
 import * as Types from "app/plugin/DocApiTypes";
 import DocApiTypesTI from "app/plugin/DocApiTypes-ti";
@@ -63,6 +62,7 @@ import { DocApiTriggers } from "app/server/lib/DocApiTriggers";
 import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
 import {
   applyQueryParameters,
+  confirmDocIdForRead,
   getCellFormatParameter,
   getErrorPlatform,
   getQueryParameters,
@@ -81,7 +81,7 @@ import { downloadDSV } from "app/server/lib/ExportDSV";
 import { collectTableSchemaInFrictionlessFormat } from "app/server/lib/ExportTableSchema";
 import { streamXLSX } from "app/server/lib/ExportXLSX";
 import { expressWrap } from "app/server/lib/expressWrap";
-import { filterDocumentInPlace } from "app/server/lib/filterUtils";
+import { filterDocumentInPlace, makeFilterOptions } from "app/server/lib/filterUtils";
 import { googleAuthTokenMiddleware } from "app/server/lib/GoogleAuth";
 import { exportToDrive } from "app/server/lib/GoogleExport";
 import { GristServer } from "app/server/lib/GristServer";
@@ -174,19 +174,36 @@ export class DocWorkerApi {
     const requireInstallAdmin = this._grist.getInstallAdmin().getMiddlewareRequireAdmin();
 
     // check document exists (not soft deleted) and user can view it
-    const canView = expressWrap(this._assertAccess.bind(this, "viewers", false));
+    const canView = expressWrap(this._assertAccess.bind(this, "viewers", {}));
     // check document exists (not soft deleted) and user can edit it
-    const canEdit = expressWrap(this._assertAccess.bind(this, "editors", false));
+    const canEdit = expressWrap(this._assertAccess.bind(this, "editors", {}));
+    // as canEdit, for operations that leave the document unchanged, such as reloading it.
+    // These stay available while the document is held read-only.
+    const canEditNotWriting = expressWrap(this._assertAccess.bind(this, "editors", { writes: false }));
     const checkAnonymousCreation = expressWrap(this._checkAnonymousCreation.bind(this));
-    const isOwner = expressWrap(this._assertAccess.bind(this, "owners", false));
+    // Owner access says nothing about whether an endpoint writes, so owner-only endpoints
+    // say which they are. Reads stay available while the document is held read-only.
+    const isOwnerRead = expressWrap(this._assertAccess.bind(this, "owners", {}));
+    const isOwnerWrite = expressWrap(this._assertAccess.bind(this, "owners", { writes: true }));
     // check user can edit document, with soft-deleted and disabled documents being acceptable
-    const canEditMaybeRemovedOrDisabled = expressWrap(this._assertAccess.bind(this, "editors", true));
+    const canEditMaybeRemovedOrDisabled =
+      expressWrap(this._assertAccess.bind(this, "editors", { allowRemovedOrDisabled: true }));
     // converts google code to access token and adds it to request object
     const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
 
     const throttled = this._tracker.throttle.bind(this._tracker);
 
     const withDoc = (callback: WithDocHandler) => throttled(this._requireActiveDoc(callback));
+
+    // Endpoints that aren't part of grist-core, but still need an ActiveDoc, are registered
+    // here so that they get the same access middleware as the ones below.
+    this._grist.create.addExtraDocWorkerEndpoints?.(this._grist, {
+      app: this._app,
+      dbManager: this._dbManager,
+      docWorkerMap: this._docWorkerMap,
+      canEdit,
+      withDoc,
+    });
     // Apply user actions to a document.
     this._app.post("/api/docs/:docId/apply", canEdit, withDoc(async (activeDoc, req, res) => {
       const parseStrings = !isAffirmative(req.query.noparse);
@@ -315,8 +332,9 @@ export class DocWorkerApi {
       withDoc(async (activeDoc, req, res) => {
         const expand = optStringParam(req.query.expand, "expand")?.split(",") ?? [];
         const expandOptions = ExpandTableOption.checkAll(expand);
+        const includeHidden = isAffirmative(req.query.hidden);
         const tables = await handleSandboxError("", [],
-          activeDoc.getTables(docSessionFromRequest(req), expandOptions));
+          activeDoc.getTables(docSessionFromRequest(req), expandOptions, includeHidden));
         res.json({ tables });
       }),
     );
@@ -354,11 +372,12 @@ export class DocWorkerApi {
     }));
 
     // Starts transferring all attachments to the named store, if it exists.
-    this._app.post("/api/docs/:docId/attachments/transferAll", isOwner, withDoc(async (activeDoc, req, res) => {
-      await activeDoc.startTransferringAllAttachmentsToDefaultStore();
-      // Respond with the current status to allow for immediate UI updates.
-      res.json(await activeDoc.attachmentTransferStatus());
-    }));
+    this._app.post("/api/docs/:docId/attachments/transferAll", isOwnerWrite,
+      withDoc(async (activeDoc, req, res) => {
+        await activeDoc.startTransferringAllAttachmentsToDefaultStore();
+        // Respond with the current status to allow for immediate UI updates.
+        res.json(await activeDoc.attachmentTransferStatus());
+      }));
 
     // Returns the status of any current / pending attachment transfers
     this._app.get("/api/docs/:docId/attachments/transferStatus", canView, withDoc(async (activeDoc, req, res) => {
@@ -374,7 +393,7 @@ export class DocWorkerApi {
       }),
     );
 
-    this._app.post("/api/docs/:docId/attachments/store", isOwner, validate(SetAttachmentStorePost),
+    this._app.post("/api/docs/:docId/attachments/store", isOwnerWrite, validate(SetAttachmentStorePost),
       withDoc(async (activeDoc, req, res) => {
         const body = req.body as Types.SetAttachmentStorePost;
         if (body.type === "internal") {
@@ -396,7 +415,7 @@ export class DocWorkerApi {
       }),
     );
 
-    this._app.get("/api/docs/:docId/attachments/stores", isOwner,
+    this._app.get("/api/docs/:docId/attachments/stores", isOwnerRead,
       withDoc(async (activeDoc, req, res) => {
         const configs = this._attachmentStoreProvider.listAllConfigs();
         const labels: Types.AttachmentStoreDesc[] = configs.map(c => ({ label: c.label }));
@@ -447,7 +466,7 @@ export class DocWorkerApi {
       res.end();
     }));
 
-    this._app.post("/api/docs/:docId/attachments/archive", isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.post("/api/docs/:docId/attachments/archive", isOwnerWrite, withDoc(async (activeDoc, req, res) => {
       let archivePromise: Promise<ArchiveUploadResult> | undefined;
 
       await parseMultipartFormRequest(
@@ -527,16 +546,17 @@ export class DocWorkerApi {
       await activeDoc.updateUsedAttachmentsIfNeeded();
       res.json(null);
     }));
-    this._app.post("/api/docs/:docId/attachments/removeUnused", isOwner, withDoc(async (activeDoc, req, res) => {
-      const expiredOnly = isAffirmative(req.query.expiredonly);
-      const verifyFiles = isAffirmative(req.query.verifyfiles);
-      await activeDoc.removeUnusedAttachments(expiredOnly);
-      if (verifyFiles) {
-        await verifyAttachmentFiles(activeDoc);
-      }
-      res.json(null);
-    }));
-    this._app.post("/api/docs/:docId/attachments/verifyFiles", isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.post("/api/docs/:docId/attachments/removeUnused", isOwnerWrite,
+      withDoc(async (activeDoc, req, res) => {
+        const expiredOnly = isAffirmative(req.query.expiredonly);
+        const verifyFiles = isAffirmative(req.query.verifyfiles);
+        await activeDoc.removeUnusedAttachments(expiredOnly);
+        if (verifyFiles) {
+          await verifyAttachmentFiles(activeDoc);
+        }
+        res.json(null);
+      }));
+    this._app.post("/api/docs/:docId/attachments/verifyFiles", isOwnerRead, withDoc(async (activeDoc, req, res) => {
       await verifyAttachmentFiles(activeDoc);
       res.json(null);
     }));
@@ -709,13 +729,7 @@ export class DocWorkerApi {
       const srcDocId = stringParam(req.body.srcDocId, "srcDocId");
       if (srcDocId !== req.specialPermit?.otherDocId) { throw new Error("access denied"); }
       const fname = await this._docManager.storageManager.prepareFork(srcDocId, docId);
-      await filterDocumentInPlace(docSessionFromRequest(req), fname, {
-        removeData: false,
-        removeHistory: false,
-        removeFullCopiesSpecialRight: true,
-        markAction: true,
-        disableTriggers: true,
-      });
+      await filterDocumentInPlace(docSessionFromRequest(req), fname, makeFilterOptions());
       res.json({ srcDocId, docId });
     }));
 
@@ -874,7 +888,7 @@ export class DocWorkerApi {
 
     // Reload a document forcibly (in fact this closes the doc, it will be automatically
     // reopened on use).
-    this._app.post("/api/docs/:docId/force-reload", canEdit, async (req, res) => {
+    this._app.post("/api/docs/:docId/force-reload", canEditNotWriting, async (req, res) => {
       const mreq = req as RequestWithLogin;
       const activeDoc = await this._getActiveDoc(mreq);
       const document = activeDoc.doc || { id: activeDoc.docName };
@@ -934,12 +948,12 @@ export class DocWorkerApi {
       res.json({ snapshots });
     }));
 
-    this._app.get("/api/docs/:docId/usersForViewAs", isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.get("/api/docs/:docId/usersForViewAs", isOwnerRead, withDoc(async (activeDoc, req, res) => {
       const docSession = docSessionFromRequest(req);
       res.json(await activeDoc.getUsersForViewAs(docSession));
     }));
 
-    this._app.post("/api/docs/:docId/snapshots/remove", isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.post("/api/docs/:docId/snapshots/remove", isOwnerWrite, withDoc(async (activeDoc, req, res) => {
       const docSession = docSessionFromRequest(req);
       const snapshotIds = req.body.snapshotIds as string[];
       if (snapshotIds) {
@@ -969,7 +983,7 @@ export class DocWorkerApi {
       throw new Error("please specify snapshotIds to remove");
     }));
 
-    this._app.post("/api/docs/:docId/flush", canEdit, throttled(async (req, res) => {
+    this._app.post("/api/docs/:docId/flush", canEditNotWriting, throttled(async (req, res) => {
       const activeDocPromise = this._getActiveDocIfAvailable(req);
       if (!activeDocPromise) {
         // Only need to flush if doc is actually open.
@@ -989,7 +1003,7 @@ export class DocWorkerApi {
     // Optionally accepts a `group` query param for updating the document's group prior
     // to (possible) reassignment. A blank string unsets the current group, if any.
     // (Requires a special permit.)
-    this._app.post("/api/docs/:docId/assign", canEdit, throttled(async (req, res) => {
+    this._app.post("/api/docs/:docId/assign", canEditNotWriting, throttled(async (req, res) => {
       const docId = getDocId(req);
       const group = optStringParam(req.query.group, "group");
       if (group !== undefined && req.specialPermit?.action === "assign-doc") {
@@ -1080,7 +1094,7 @@ export class DocWorkerApi {
       res.json(await this._getStates(docSession, activeDoc));
     }));
 
-    this._app.post("/api/docs/:docId/states/remove", isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.post("/api/docs/:docId/states/remove", isOwnerWrite, withDoc(async (activeDoc, req, res) => {
       const docSession = docSessionFromRequest(req);
       const keep = integerParam(req.body.keep, "keep");
       await activeDoc.deleteActions(docSession, keep);
@@ -1537,7 +1551,7 @@ export class DocWorkerApi {
 
     // GET /api/docs/:docId/timings
     // Checks if timing is on for the document.
-    this._app.get("/api/docs/:docId/timing", isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.get("/api/docs/:docId/timing", isOwnerRead, withDoc(async (activeDoc, req, res) => {
       if (!activeDoc.isTimingOn) {
         res.json({ status: "disabled" });
       } else {
@@ -1549,7 +1563,7 @@ export class DocWorkerApi {
 
     // POST /api/docs/:docId/timings/start
     // Start a timing for the document.
-    this._app.post("/api/docs/:docId/timing/start", isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.post("/api/docs/:docId/timing/start", isOwnerRead, withDoc(async (activeDoc, req, res) => {
       if (activeDoc.isTimingOn) {
         res.status(400).json({ error: `Timing already started for ${activeDoc.docName}` });
         return;
@@ -1561,7 +1575,7 @@ export class DocWorkerApi {
 
     // POST /api/docs/:docId/timings/stop
     // Stop a timing for the document.
-    this._app.post("/api/docs/:docId/timing/stop", isOwner, withDoc(async (activeDoc, req, res) => {
+    this._app.post("/api/docs/:docId/timing/stop", isOwnerRead, withDoc(async (activeDoc, req, res) => {
       if (!activeDoc.isTimingOn) {
         res.status(400).json({ error: `Timing not started for ${activeDoc.docName}` });
         return;
@@ -1578,7 +1592,8 @@ export class DocWorkerApi {
       withDoc,
       checkOwner: this._isOwner.bind(this),
       middlewares: {
-        isOwner,
+        isOwnerRead,
+        isOwnerWrite,
         canEdit,
       },
     });
@@ -1742,19 +1757,8 @@ export class DocWorkerApi {
     return id;
   }
 
-  /**
-   * Check for read access to the given document, and return its
-   * canonical docId.  Throws error if read access not available.
-   * This method is used for documents that are not the main document
-   * associated with the request, but are rather an extra source to be
-   * read from, so the access information is not cached in the
-   * request.
-   */
   private async _confirmDocIdForRead(req: Request, urlId: string): Promise<string> {
-    const docAuth = await makeDocAuthResult(this._dbManager.getDoc({ ...getScope(req), urlId }));
-    if (docAuth.error) { throw docAuth.error; }
-    assertAccess("viewers", docAuth);
-    return docAuth.docId!;
+    return confirmDocIdForRead(this._dbManager, req, urlId);
   }
 
   private async _getDownloadFilename(req: Request, tableId?: string, optDoc?: Document): Promise<string> {
@@ -1795,15 +1799,18 @@ export class DocWorkerApi {
     next();
   }
 
-  private async _assertAccess(role: "viewers" | "editors" | "owners" | null, allowRemovedOrDisabled: boolean,
+  private async _assertAccess(role: "viewers" | "editors" | "owners" | null,
+    options: { allowRemovedOrDisabled?: boolean, writes?: boolean },
     req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
-    allowRemovedOrDisabled = scope.showAll || scope.showRemoved || allowRemovedOrDisabled;
+    const allowRemovedOrDisabled =
+      scope.showAll || scope.showRemoved || Boolean(options.allowRemovedOrDisabled);
     const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, scope.urlId);
     if (role) {
       assertAccess(role, docAuth, {
         allowRemoved: allowRemovedOrDisabled,
-        allowDisabled: allowRemovedOrDisabled });
+        allowDisabled: allowRemovedOrDisabled,
+        writes: options.writes });
     }
     next();
   }
@@ -1882,7 +1889,7 @@ export class DocWorkerApi {
         // Delete all remote document attachments before the doc itself.
         // This way we can re-attempt deletion if an error is thrown.
         const attachmentStores = await this._attachmentStoreProvider.getAllStores();
-        log.debug(`Deleting all attachments for ${docId} from ${attachmentStores.length} stores`);
+        log.info(`Deleting all attachments for ${docId} from ${attachmentStores.length} stores`);
         const poolDeletions = attachmentStores.map(
           store => store.removePool(getDocPoolIdFromDocInfo({ id: docId, trunkId: null })),
         );
@@ -2411,14 +2418,10 @@ export async function getChanges(
   }
   const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
   const actions = (await activeDoc.getActions(actionNums)).reverse();
-  let totalAction = createEmptyActionSummary();
-  for (const action of actions) {
-    if (!action) { continue; }
-    const summary = summarizeAction(action, {
-      maximumInlineRows: maxRows,
-    });
-    totalAction = concatenateSummaries([totalAction, summary]);
-  }
+  // Combine the per-action summaries into one net diff for the range.
+  // concatenateSummaries drops the changes that cancel out along the way.
+  const totalAction = concatenateSummaries(
+    actions.filter(isNonNullish).map(action => summarizeAction(action, { maximumInlineRows: maxRows })));
   const result: DocStateComparison = {
     left: states[leftOffset],
     right: states[rightOffset],

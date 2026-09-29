@@ -2313,7 +2313,7 @@ describe("ApiServerAccess", function() {
         assert.deepEqual(resp.data.map((org: any) => org.name),
           ["Chimpyland", "EmptyOrg", "EmptyWsOrg", "Fish", "Flightless",
             "FreeTeam", "NASA", "Primately", "TestAuditLogs", "TestDailyApiLimit",
-            "TestMaxNewUserInvites"]);
+            "TestHighDailyApiLimit", "TestMaxNewUserInvites"]);
       });
     });
   });

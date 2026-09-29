@@ -26,13 +26,15 @@ import { decodeObject, RaisedException } from "app/plugin/objtypes";
 import { Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe } from "grainjs";
 import debounce from "lodash/debounce";
 
+import type { KoReactive } from "app/client/models/modelUtil";
+
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;
 const t = makeT("FormulaEditor");
 
 export interface IFormulaEditorOptions extends Options {
   cssClass?: string;
-  editingFormula: ko.Computed<boolean>;
+  editingFormula: KoReactive<boolean>;
   column: ColumnRec;
   field?: ViewFieldRec;
   canDetach?: boolean;
@@ -70,6 +72,21 @@ export class FormulaEditor extends NewBaseEditor {
     this.editorState = Observable.create(this, initialValue);
 
     this._isEmpty = Computed.create(this, this.editorState, (_use, state) => state === "");
+
+    if (!options.readonly) {
+      const docModel = options.gristDoc.docModel;
+      // Set here rather than next to editingFormula, which is a flag on the field that turns on
+      // later (only once the user types after a double-click) and is cleared from several places.
+      // The edited table is known as soon as the editor opens, and belongs to this editor alone.
+      const editedTable = { tableId: options.column.table.peek().tableId.peek() };
+      docModel.editingFormulaTableId(editedTable);
+      this.onDispose(() => {
+        // Another editor may have replaced us already, so the entry is not always ours to clear.
+        if (docModel.editingFormulaTableId.peek() === editedTable) {
+          docModel.editingFormulaTableId(null);
+        }
+      });
+    }
 
     this._aceEditor = AceEditor.create({
       // A bit awkward, but we need to assume calcSize is not used until attach() has been called
@@ -416,24 +433,20 @@ export class FormulaEditor extends NewBaseEditor {
   }
 
   // TODO: update regexes to unicode?
-  private _onSetCursor(row?: DataRowModel, col?: ViewFieldRec) {
+  private _onSetCursor(row?: DataRowModel, col?: ViewFieldRec, event?: MouseEvent) {
     // Don't do anything when we are readonly.
     if (this.options.readonly) { return; }
     // If we don't have column information, we can't insert anything.
     if (!col) { return; }
 
-    const colId = col.origCol.peek().colId.peek();
+    event?.stopPropagation();
 
-    if (col.tableId.peek() !== this.options.column.table.peek().tableId.peek()) {
-      // Fall back to default behavior if cursor didn't move to a column in the same table.
-      this.options.gristDoc.onSetCursorPos(row, col).catch(reportError);
-      return;
-    }
+    const textToInsert = col.displayLabel.peek();
 
     const aceObj = this._aceEditor.getEditor();
     if (!aceObj.selection.isEmpty()) {
       // If text selected, replace whole selection
-      aceObj.session.replace(aceObj.selection.getRange(), "$" + colId);
+      aceObj.session.replace(aceObj.selection.getRange(), textToInsert);
     } else {
       // Not a selection, gotta figure out what to replace
       const pos = aceObj.getCursorPosition();
@@ -441,12 +454,12 @@ export class FormulaEditor extends NewBaseEditor {
       const result = _isInIdentifier(line, pos.column); // returns {start, end, id} | null
       if (!result) {
         // Not touching an identifier, insert colId as normal
-        aceObj.insert("$" + colId);
+        aceObj.insert(textToInsert);
         // We are touching an identifier
       } else if (result.ident.startsWith("$")) {
         // If ident is a colId, replace it
         const idRange = AceEditor.makeRange(pos.row, result.start, pos.row, result.end);
-        aceObj.session.replace(idRange, "$" + colId);
+        aceObj.session.replace(idRange, textToInsert);
       }
       // Else touching a normal identifier, don't mangle it
     }
@@ -492,7 +505,7 @@ export function openFormulaEditor(options: {
   column?: ColumnRec,
   // Associated formula from a view field. If provided together with column, this field is used
   field?: ViewFieldRec,
-  editingFormula: ko.Computed<boolean>,
+  editingFormula: KoReactive<boolean>,
   // Needed to get exception value, if any.
   editRow?: DataRowModel,
   // Element over which to position the editor.
@@ -505,7 +518,7 @@ export function openFormulaEditor(options: {
   setupCleanup: (
     owner: Disposable,
     doc: GristDoc,
-    editingFormula: ko.Computed<boolean>,
+    editingFormula: KoReactive<boolean>,
     save: () => Promise<void>,
   ) => void,
 }): FormulaEditor {

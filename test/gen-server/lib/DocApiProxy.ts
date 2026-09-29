@@ -277,13 +277,12 @@ describe("DocApiProxy", function() {
       res.status(200).json("fig tree?");
       requestDone();
     });
-    const CancelToken = axios.CancelToken;
-    const source = CancelToken.source();
+    const controller = new AbortController();
     const response = axios.get(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`,
-      { ...chimpy, cancelToken: source.token });
+      { ...chimpy, signal: controller.signal });
     await promiseForRequestReceived;
-    source.cancel("canceled for testing");
-    await assert.isRejected(response, /canceled for testing/);
+    controller.abort();
+    await assert.isRejected(response, /canceled/);
     await promiseForRequestDone;
     sinon.assert.calledOnce(checkIsClosed);
     assert.deepEqual(checkIsClosed.args, [[true]]);
@@ -297,12 +296,12 @@ describe("DocApiProxy", function() {
     const promiseForwarded = new Promise<void>((r) => { forwarded = r; });
     docWorkerStub.callsFake(() => forwarded());   // hold the request open
 
-    const source = axios.CancelToken.source();
+    const controller = new AbortController();
     const aborted = axios.get(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`,
-      { ...chimpy, cancelToken: source.token });
+      { ...chimpy, signal: controller.signal });
     await promiseForwarded;
-    source.cancel("canceled for testing");
-    await assert.isRejected(aborted, /canceled for testing/);
+    controller.abort();
+    await assert.isRejected(aborted, /canceled/);
     // If settle() crashes on the 'close' event, the uncaughtException fails this test.
     await delay(50);
   });

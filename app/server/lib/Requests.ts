@@ -64,6 +64,10 @@ export class DocRequests {
       log.debug(`Created DocRequests._cacheDir: ${this._cacheDir.name}`);
     }
 
+    // The key comes from the sandbox; check its hash shape before using it as a path.
+    if (!/^[0-9a-f]{64}$/.test(key)) {
+      throw new Error("invalid request cache key");
+    }
     const cachePath = path.resolve(this._cacheDir.name, key);
     try {
       const result = await fse.readJSON(cachePath);

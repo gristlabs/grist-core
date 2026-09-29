@@ -7,7 +7,7 @@
  */
 import {
   AirtableImportOptions,
-} from "app/client/lib/airtable/AirtableImporter";
+} from "app/client/lib/imports/airtable/AirtableImporter";
 
 import type { TopAppModel } from "app/client/models/AppModel";
 import type { DocPageModel } from "app/client/models/DocPageModel";
@@ -27,6 +27,8 @@ declare global {
       testNumPendingApiRequests?: () => number;
       testNumPendingChecks?: () => number;
       testNumPendingPastes?: () => number;
+      testNumPendingMenuActions?: () => number;
+      testNumPendingViewLoads?: () => number;
     };
     cmd?: { [name: string]: () => void };
     isRunningUnderElectron?: boolean;

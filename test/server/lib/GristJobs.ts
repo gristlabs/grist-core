@@ -103,22 +103,36 @@ describe("GristJobs", function() {
       try {
         let ct = 0;
         let defaultCt = 0;
+        const times: number[] = [];
+        const defaultTimes: number[] = [];
         q.handleName("add", async (job) => {
           ct += job.data.delta;
+          times.push(Date.now());
         });
         q.handleDefault(async () => {
           defaultCt++;
+          defaultTimes.push(Date.now());
         });
         await q.add("add", { delta: 2 }, { repeat: { every: 250 } });
         await q.add("badd", { delta: 2 }, { repeat: { every: 100 } });
         assert.equal(ct, 0);
         assert.equal(defaultCt, 0);
-        await delay(1000);
-        // allow for a lot of slop on CI
-        assert.isAtLeast(ct, 8 - 4);
-        assert.isAtMost(ct, 8 + 4);
-        assert.isAtLeast(defaultCt, 10 - 3);
-        assert.isAtMost(defaultCt, 10 + 3);
+        // Don't count how many ticks fit in a fixed sleep. With Redis the next repeat is only
+        // scheduled once the worker picks up the previous one, so on a loaded machine the count
+        // drifts down and the test flakes. Wait for a few ticks and time them instead.
+        await waitForIt(async () => {
+          assert.isAtLeast(times.length, 4);
+          assert.isAtLeast(defaultTimes.length, 4);
+        }, 10000, 20);
+        // Check the average interval, not each gap. BullMQ pins iterations to an absolute time
+        // grid and the worker polls for them, so a single gap swings by ±50ms either way while
+        // the average stays on the requested interval.
+        const meanGap = (ts: number[]) => (ts[3] - ts[0]) / 3;
+        assert.closeTo(meanGap(times), 250, 60, `add: ${times}`);
+        assert.closeTo(meanGap(defaultTimes), 100, 50, `badd: ${defaultTimes}`);
+        // Named jobs went to the named handler, unnamed ones to the default handler.
+        assert.isAtLeast(ct, 4 * 2);
+        assert.isAtLeast(defaultCt, 4);
       } finally {
         await jobs.stop({ obliterate: true });
       }

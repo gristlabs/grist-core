@@ -144,6 +144,8 @@ describe("OnDemand", function() {
       await cb.copy();
       const cell = await gu.getCell(1, 4).doClick();
       await gu.waitCellFocus(cell);
+      // Clicking moves focus off the copy/paste textarea; it is restored asynchronously.
+      await gu.waitAppFocus();
       await cb.paste();
     });
     await gu.waitAppFocus();
@@ -195,6 +197,8 @@ describe("OnDemand", function() {
       await cb.copy();
       const cell = await gu.getCell(1, 2).doClick();
       await gu.waitCellFocus(cell);
+      // Clicking moves focus off the copy/paste textarea; it is restored asynchronously.
+      await gu.waitAppFocus();
       await cb.paste();
     });
     await gu.waitForServer();

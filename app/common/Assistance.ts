@@ -1,5 +1,6 @@
 import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { DocAction } from "app/common/DocActions";
+import { StringUnion } from "app/common/StringUnion";
 
 /**
  * State related to a request for assistance.
@@ -42,7 +43,12 @@ export function isAssistanceRequestV2(req: AssistanceRequest): req is Assistance
   return !("tableId" in req.context);
 }
 
-export type DeveloperPromptVersion = "default" | "new-document";
+export const DeveloperPromptVersion = StringUnion(
+  "default",
+  "new-document",
+  "new-document-no-intro",
+);
+export type DeveloperPromptVersion = typeof DeveloperPromptVersion.type;
 
 interface BaseAssistanceRequest {
   conversationId: string;

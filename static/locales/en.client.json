@@ -101,7 +101,14 @@
         "Enterprise": "Enterprise",
         "OAuth apps": "OAuth apps",
         "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).",
-        "Accessibility": "Accessibility"
+        "Accessibility": "Accessibility",
+        "No usage data to show.": "No usage data to show.",
+        "Personal site": "Personal site",
+        "Usage summary": "Usage summary",
+        "You have **{{left}} of {{limit}}** monthly **API** calls left": "You have **{{left}} of {{limit}}** monthly **API** calls left",
+        "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left": "You have **{{left}} of {{limit}}** one time **AI Assistant** credits left",
+        "You have **{{limit}}** monthly **API** calls": "You have **{{limit}}** monthly **API** calls",
+        "You have **{{limit}}** one time **AI Assistant** credits": "You have **{{limit}}** one time **AI Assistant** credits"
     },
     "AccountWidget": {
         "Access Details": "Access Details",
@@ -172,6 +179,46 @@
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Add calendar",
+        "Create new column": "Create new column",
+        "Date + time": "Date + time",
+        "Date only": "Date only",
+        "Dates": "Dates",
+        "End": "End",
+        "End (optional)": "End (optional)",
+        "None": "None",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Pick the columns that hold your event dates and titles, or create new ones.",
+        "Select a column": "Select a column",
+        "Set up calendar": "Set up calendar",
+        "Start": "Start",
+        "Start and end must be the same date type.": "Start and end must be the same date type.",
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "This summary table has no date column. Add a formula column such as MIN($group.Date) first.",
+        "This summary table has no text column. Events will show without labels.": "This summary table has no text column. Events will show without labels.",
+        "Title": "Title",
+        "Title (optional)": "Title (optional)"
+    },
+    "CalendarView": {
+        "Day": "Day",
+        "Month": "Month",
+        "New Event": "New Event",
+        "Today": "Today",
+        "Week": "Week"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "+{{count}} more",
+        "+{{count}} more_other": "+{{count}} more",
+        "End Date": "End Date",
+        "Groups events by category. Each choice uses its own color and style.": "Groups events by category. Each choice uses its own color and style.",
+        "Is All Day": "Is All Day",
+        "Start Date": "Start Date",
+        "The label shown on the event.": "The label shown on the event.",
+        "Title": "Title",
+        "Type": "Type",
+        "When the event ends. If empty, the event lasts as long as its start.": "When the event ends. If empty, the event lasts as long as its start.",
+        "When the event starts.": "When the event starts.",
+        "Whether the event lasts all day.": "Whether the event lasts all day."
     },
     "CellContextMenu": {
         "Clear cell": "Clear cell",
@@ -375,7 +422,8 @@
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
         "Create my first document": "Create my first document",
         "You have read-only access to this site. Currently there are no documents.": "You have read-only access to this site. Currently there are no documents.",
-        "personal site": "personal site"
+        "personal site": "personal site",
+        "Documents": "Documents"
     },
     "DocPageModel": {
         "Add empty table": "Add empty table",
@@ -388,7 +436,9 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Sorry, access to this document has been denied. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]",
         "You do not have edit access to this document": "You do not have edit access to this document",
-        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]"
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]",
+        "Import from {{importSource}}": "Import from {{importSource}}",
+        "Import from...": "Import from..."
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.",
@@ -657,7 +707,9 @@
         "go to webhook settings": "go to webhook settings",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.",
         "Import from Airtable": "Import from Airtable",
-        "{{title}} widget": "{{title}} widget"
+        "{{title}} widget": "{{title}} widget",
+        "Airtable": "Airtable",
+        "File": "File"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -686,7 +738,8 @@
         "To use Grist, please either sign up or sign in.": "To use Grist, please either sign up or sign in.",
         "Visit our {{link}} to learn more about Grist.": "Visit our {{link}} to learn more about Grist.",
         "Learn more in our {{helpCenterLink}}.": "Learn more in our {{helpCenterLink}}.",
-        "Only show documents": "Only show documents"
+        "Only show documents": "Only show documents",
+        "Create a document": "Create a document"
     },
     "HomeLeftPane": {
         "Access Details": "Access Details",
@@ -706,7 +759,10 @@
         "Terms of service": "Terms of service",
         "Grist Resources": "Grist Resources",
         "context menu - {{- workspaceName }}": "context menu - {{- workspaceName }}",
-        "Import from Airtable": "Import from Airtable"
+        "Import from Airtable": "Import from Airtable",
+        "Airtable": "Airtable",
+        "Import from {{importSource}}": "Import from {{importSource}}",
+        "Import from...": "Import from..."
     },
     "Importer": {
         "Merge rows that match these fields:": "Merge rows that match these fields:",
@@ -1170,7 +1226,8 @@
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
         "Select fields": "Select fields",
-        "Upgrade now": "Upgrade now"
+        "Upgrade now": "Upgrade now",
+        "Loading...": "Loading..."
     },
     "modals": {
         "Cancel": "Cancel",
@@ -1572,7 +1629,13 @@
     "WelcomeSitePicker": {
         "Welcome back": "Welcome back",
         "You can always switch sites using the account menu.": "You can always switch sites using the account menu.",
-        "You have access to the following Grist sites.": "You have access to the following Grist sites."
+        "You have access to the following Grist sites.": "You have access to the following Grist sites.",
+        "No sites available": "No sites available",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "Personal sites are turned off on this installation, and you aren't a member of any team site yet.",
+        "Create a team site": "Create a team site",
+        "Ask an administrator to add you to a team site.": "Ask an administrator to add you to a team site.",
+        "Sign in to see your sites": "Sign in to see your sites",
+        "Sign in": "Sign in"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1624,7 +1687,10 @@
         "Access overview": "Access overview",
         "Share it publicly": "Share it publicly",
         "Verify your sensitive data before sharing publicly": "Verify your sensitive data before sharing publicly",
-        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing."
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.",
+        "Configure notifications": "Configure notifications",
+        "Invitation emails are not enabled on this installation.": "Invitation emails are not enabled on this installation.",
+        "Invitation emails are not sent on Grist Community edition.": "Invitation emails are not sent on Grist Community edition."
     },
     "SearchModel": {
         "Search all pages": "Search all pages",
@@ -1671,7 +1737,8 @@
     "buildViewSectionDom": {
         "No data": "No data",
         "No row selected in {{title}}": "No row selected in {{title}}",
-        "Not all data is shown": "Not all data is shown"
+        "Not all data is shown": "Not all data is shown",
+        "{{title}} widget header": "{{title}} widget header"
     },
     "FloatingEditor": {
         "Collapse Editor": "Collapse Editor"
@@ -2494,7 +2561,9 @@
         "Screen reader navigation": "Screen reader navigation",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!",
         "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "While not mandatory, you can enable screen reader improvements for a better navigation experience:",
-        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader."
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.",
+        "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.": "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.",
+        "When focus is on a widget, {{nextJumpTargetShortcut}} toggles focus between the widget and its header.": "When focus is on a widget, {{nextJumpTargetShortcut}} toggles focus between the widget and its header."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Proposed changes",
@@ -2637,7 +2706,10 @@
         "Open the context menu": "Open the context menu",
         "Toggle the screen reader improvements": "Toggle the screen reader improvements",
         "Open the current column menu": "Open the current column menu",
-        "Open the current row menu": "Open the current row menu"
+        "Open the current row menu": "Open the current row menu",
+        "When focused on a page panel, focus next landmark": "When focused on a page panel, focus next landmark",
+        "When focused on a page panel, focus previous landmark": "When focused on a page panel, focus previous landmark",
+        "When focused on a widget, move focus between widget and widget header": "When focused on a widget, move focus between widget and widget header"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",
@@ -2807,7 +2879,32 @@
         "Choose how people sign in. You can change this anytime after setup.": "Choose how people sign in. You can change this anytime after setup.",
         "Continue without authentication": "Continue without authentication",
         "Or connect your own identity provider": "Or connect your own identity provider",
-        "Skip authentication setup?": "Skip authentication setup?"
+        "Skip authentication setup?": "Skip authentication setup?",
+        "Activate": "Activate",
+        "Activate: {{name}}": "Activate: {{name}}",
+        "Address this.": "Address this.",
+        "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.",
+        "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.",
+        "Hide installation ID": "Hide installation ID",
+        "I have a key": "I have a key",
+        "I understand this server will run with no authentication": "I understand this server will run with no authentication",
+        "Meanwhile, finish setting up": "Meanwhile, finish setting up",
+        "Missing activation key": "Missing activation key",
+        "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.": "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.",
+        "Other methods": "Other methods",
+        "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.": "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.",
+        "Request activation key": "Request activation key",
+        "Requires activation key": "Requires activation key",
+        "Revert": "Revert",
+        "Show installation ID": "Show installation ID",
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).",
+        "Start your key request": "Start your key request",
+        "Switch to: {{name}}": "Switch to: {{name}}",
+        "Was: {{name}}": "Was: {{name}}",
+        "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.",
+        "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.",
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} is active but is outside the supported set without a Full Grist activation key. ",
+        "{{name}} requires an activation key": "{{name}} requires an activation key"
     },
     "DetailView": {
         "This row is unavailable or does not exist": "This row is unavailable or does not exist"
@@ -2831,7 +2928,8 @@
         "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.",
         "Recommended": "Recommended",
         "Use getgrist.com sign-in": "Use getgrist.com sign-in",
-        "You can switch to OIDC, SAML, or another method at any time.": "You can switch to OIDC, SAML, or another method at any time."
+        "You can switch to OIDC, SAML, or another method at any time.": "You can switch to OIDC, SAML, or another method at any time.",
+        "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping.": "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping."
     },
     "AirtableImportUI": {
         "Back": "Back",
@@ -2884,9 +2982,9 @@
     },
     "ChangeAdminModal": {
         "Enter new admin email": "Enter new admin email",
-        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.": "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.",
         "New admin": "New admin",
-        "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.",
+        "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.": "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.",
         "An account with {{email}} already exists.": "An account with {{email}} already exists."
     },
     "startDocAirtableImport": {
@@ -2983,7 +3081,7 @@
     },
     "BackupsSection": {
         "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.",
-        "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.": "AWS S3-compatible service via MinIO client library. Works with AWS S3, MinIO, and others.",
+        "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.",
         "Active": "Active",
         "Available in full edition": "Available in full edition",
         "Azure Blob Storage": "Azure Blob Storage",
@@ -2995,9 +3093,9 @@
         "No external storage": "No external storage",
         "Off": "Off",
         "S3 (AWS client)": "S3 (AWS client)",
-        "S3 (MinIO client)": "S3 (MinIO client)",
+        "S3-compatible": "S3-compatible",
         "Set these environment variables and restart Grist to enable Azure storage:": "Set these environment variables and restart Grist to enable Azure storage:",
-        "Set these environment variables and restart Grist to enable MinIO storage:": "Set these environment variables and restart Grist to enable MinIO storage:",
+        "Set these environment variables and restart Grist to enable S3-compatible storage:": "Set these environment variables and restart Grist to enable S3-compatible storage:",
         "Set these environment variables and restart Grist to enable S3 storage:": "Set these environment variables and restart Grist to enable S3 storage:",
         "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure.           This protects against data loss if the server's disk fails.",
         "Local filesystem (test only)": "Local filesystem (test only)",
@@ -3055,7 +3153,8 @@
         "Skip and Continue": "Skip and Continue",
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
         "macOS sandbox": "macOS sandbox",
-        "Sandbox": "Sandbox"
+        "Sandbox": "Sandbox",
+        "Revert": "Revert"
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmed",
@@ -3153,7 +3252,8 @@
         "Account settings": "Account settings",
         "Developer": "Developer",
         "Profile": "Profile",
-        "Authorized apps": "Authorized apps"
+        "Authorized apps": "Authorized apps",
+        "Personal site": "Personal site"
     },
     "SettingsLayout": {
         "Authentication": "Authentication",
@@ -3355,5 +3455,136 @@
         "We saved your details, but couldn't subscribe you to updates.": "We saved your details, but couldn't subscribe you to updates.",
         "We subscribed you for product updates, but couldn't save your other details.": "We subscribed you for product updates, but couldn't save your other details.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+    },
+    "InstallationIdBlock": {
+        "Copy": "Copy",
+        "Copy to clipboard": "Copy to clipboard",
+        "Installation ID": "Installation ID",
+        "Installation ID copied to clipboard": "Installation ID copied to clipboard"
+    },
+    "AskTheAdmin": {
+        "1 person has asked for this.": "1 person has asked for this.",
+        "Add a note": "Add a note",
+        "Ask the admin for this": "Ask the admin for this",
+        "Note sent.": "Note sent.",
+        "Why do you want this? Press Enter to send.": "Why do you want this? Press Enter to send.",
+        "You and 1 other have asked for this.": "You and 1 other have asked for this.",
+        "You and {{count}} others have asked for this._one": "You and {{count}} others have asked for this.",
+        "You and {{count}} others have asked for this._other": "You and {{count}} others have asked for this.",
+        "You've asked for this.": "You've asked for this.",
+        "{{count}} people have asked for this._one": "{{count}} people have asked for this.",
+        "{{count}} people have asked for this._other": "{{count}} people have asked for this."
+    },
+    "AdminServersSection": {
+        "1 document": "1 document",
+        "1 other server has stopped reporting that it is running.": "1 other server has stopped reporting that it is running.",
+        "1 other server is registered but not accepting new documents.": "1 other server is registered but not accepting new documents.",
+        "1 server": "1 server",
+        "Another server has the same address, so requests meant for one may reach the other.": "Another server has the same address, so requests meant for one may reach the other.",
+        "Could not reach the server": "Could not reach the server",
+        "Each document is held by one of these servers. Fleet-style routing.": "Each document is held by one of these servers. Fleet-style routing.",
+        "Each document is held by one of these servers. Worker-pool routing.": "Each document is held by one of these servers. Worker-pool routing.",
+        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.",
+        "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.": "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.",
+        "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.": "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.",
+        "Grist Fleet is not in your activation key": "Grist Fleet is not in your activation key",
+        "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.": "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.",
+        "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.": "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.",
+        "No servers are registered to hold documents": "No servers are registered to hold documents",
+        "Refresh": "Refresh",
+        "Refreshing…": "Refreshing…",
+        "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.": "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.",
+        "Said it is running within the last few seconds.": "Said it is running within the last few seconds.",
+        "Server pool found": "Server pool found",
+        "Servers": "Servers",
+        "Servers have stopped reporting that they are running": "Servers have stopped reporting that they are running",
+        "Set options through the environment rather than on this page, so that every server is configured the same way.": "Set options through the environment rather than on this page, so that every server is configured the same way.",
+        "Shares an address with {{list}}": "Shares an address with {{list}}",
+        "Some servers share an address": "Some servers share an address",
+        "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.": "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.",
+        "The list below is from the last successful check. Press Refresh to try again.": "The list below is from the last successful check. Press Refresh to try again.",
+        "The servers registered to hold documents": "The servers registered to hold documents",
+        "This build does not support Grist Fleet": "This build does not support Grist Fleet",
+        "checking": "checking",
+        "draining": "draining",
+        "group {{group}}": "group {{group}}",
+        "no proxy": "no proxy",
+        "no servers": "no servers",
+        "not reporting": "not reporting",
+        "running": "running",
+        "shared address": "shared address",
+        "this server": "this server",
+        "{{count}} documents_one": "{{count}} documents",
+        "{{count}} documents_other": "{{count}} documents",
+        "{{count}} of {{total}} not reporting_one": "{{count}} of {{total}} not reporting",
+        "{{count}} of {{total}} not reporting_other": "{{count}} of {{total}} not reporting",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} other servers are registered but not accepting new documents.",
+        "{{count}} other servers are registered but not accepting new documents._other": "{{count}} other servers are registered but not accepting new documents.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} other servers have stopped reporting that they are running.",
+        "{{count}} other servers have stopped reporting that they are running._other": "{{count}} other servers have stopped reporting that they are running.",
+        "{{count}} servers_one": "{{count}} servers",
+        "{{count}} servers_other": "{{count}} servers",
+        "{{percent}}% load": "{{percent}}% load"
+    },
+    "GristImportEntryPoints": {
+        "Copy data from another document": "Copy data from another document"
+    },
+    "GristImportUI": {
+        "1 warning": "1 warning",
+        "Cancel": "Cancel",
+        "Choose destination": "Choose destination",
+        "Continue": "Continue",
+        "Copy 1 table": "Copy 1 table",
+        "Copy from {{docName}} in progress. Do not navigate away from this page.": "Copy from {{docName}} in progress. Do not navigate away from this page.",
+        "Copy tables": "Copy tables",
+        "Copy {{count}} tables_one": "Copy {{count}} tables",
+        "Copy {{count}} tables_other": "Copy {{count}} tables",
+        "Copying data from another document is available in the full edition of Grist.": "Copying data from another document is available in the full edition of Grist.",
+        "Copying data from another document is available on Business plans and above.": "Copying data from another document is available on Business plans and above.",
+        "Copying tables...": "Copying tables...",
+        "Destination": "Destination",
+        "Document": "Document",
+        "Existing tables": "Existing tables",
+        "Failed to fetch document tables": "Failed to fetch document tables",
+        "New table": "New table",
+        "New table: structure only": "New table: structure only",
+        "No documents available in this workspace.": "No documents available in this workspace.",
+        "No workspaces available in this site.": "No workspaces available in this site.",
+        "Select tables to copy from {{docName}}": "Select tables to copy from {{docName}}",
+        "Select the Grist document to copy data from.": "Select the Grist document to copy data from.",
+        "Site": "Site",
+        "Skip": "Skip",
+        "Source tables": "Source tables",
+        "Structure only": "Structure only",
+        "Try for free": "Try for free",
+        "Try full Grist": "Try full Grist",
+        "Workspace": "Workspace",
+        "loading your tables...": "loading your tables...",
+        "{{count}} warnings_one": "{{count}} warnings",
+        "{{count}} warnings_other": "{{count}} warnings"
+    },
+    "HomeLearningResources": {
+        "A 3 minute tour of Grist": "A 3 minute tour of Grist",
+        "Grist Tutorial": "Grist Tutorial",
+        "Help Center": "Help Center",
+        "Learn Grist": "Learn Grist",
+        "Learn the basics, step by step": "Learn the basics, step by step",
+        "Learning resources": "Learning resources",
+        "Tutorials and live sessions": "Tutorials and live sessions",
+        "Tutorials, docs, guides and videos": "Tutorials, docs, guides and videos",
+        "Video Tour": "Video Tour",
+        "Webinars": "Webinars"
+    },
+    "HomeNewDocBlock": {
+        "Blank document": "Blank document",
+        "Import file": "Import file",
+        "Templates": "Templates"
+    },
+    "startDocGristImport": {
+        "Copy data from another document": "Copy data from another document"
+    },
+    "startHomeGristImport": {
+        "Copy data from another document": "Copy data from another document",
+        "Data can't be copied to the current workspace.": "Data can't be copied to the current workspace."
     }
 }

@@ -1,3 +1,4 @@
+import { isAffirmative } from "app/common/gutil";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import log from "app/server/lib/log";
 
@@ -23,8 +24,8 @@ export function expressWrap(callback: AsyncRequestHandler): express.RequestHandl
 }
 
 interface JsonErrorHandlerOptions {
-  shouldLogBody?: boolean;
-  shouldLogParams?: boolean;
+  shouldLogBody: boolean;
+  shouldLogParams: boolean;
 }
 
 /**
@@ -32,7 +33,7 @@ interface JsonErrorHandlerOptions {
  *
  * Currently allows for toggling of logging request bodies and params.
  */
-const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.ErrorRequestHandler => {
+const buildJsonErrorHandler = (options: JsonErrorHandlerOptions): express.ErrorRequestHandler => {
   const { shouldLogBody, shouldLogParams } = options;
   return (err, req, res, _next) => {
     const mreq = req as RequestWithLogin;
@@ -40,8 +41,8 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
       path: mreq.path,
       userId: mreq.userId,
       altSessionId: mreq.altSessionId,
-      body: shouldLogBody !== false ? req.body : undefined,
-      params: shouldLogParams !== false ? req.params : undefined,
+      body: shouldLogBody ? req.body : undefined,
+      params: shouldLogParams ? req.params : undefined,
     };
     const headersNote = res.headersSent ? " (headersSent)" : "";
     log.rawWarn(`Error during api call to ${meta.path}${headersNote}: ${err.message}`, meta);
@@ -68,7 +69,12 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
  * Error-handling middleware that responds to errors in json. The status code is taken from
  * error.status property (for which ApiError is convenient), and defaults to 500.
  */
-export const jsonErrorHandler: express.ErrorRequestHandler = buildJsonErrorHandler();
+export const jsonErrorHandler: express.ErrorRequestHandler = buildJsonErrorHandler({
+  // Request bodies may contain document data; log them only when asked to, with the same flag as
+  // the HTTP access log.
+  shouldLogBody: isAffirmative(process.env.GRIST_LOG_HTTP_BODY),
+  shouldLogParams: true,
+});
 
 /**
  * Variant of `jsonErrorHandler` that skips logging request bodies and params.

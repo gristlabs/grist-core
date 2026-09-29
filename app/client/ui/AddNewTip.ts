@@ -16,7 +16,7 @@ function shouldShowAddNewTip(home: HomeModel): boolean {
     home.shouldShowAddNewTip.get() &&
     // And the site isn't empty.
     !home.empty.get() &&
-    // And home page cards aren't being shown.
+    // And learning resources aren't being shown.
     !(home.currentPage.get() === "all" && !home.onlyShowDocuments.get()) &&
     // And the workspace loaded correctly.
     home.available.get() &&

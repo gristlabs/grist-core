@@ -23,6 +23,9 @@ export function getFieldType(widgetType: IWidgetType | null) {
     ["chart", {
       label: rpanelT("series", { count: 1 }), icon: "ChartLine", pluralLabel: rpanelT("series", { count: 2 }),
     }],
+    ["calendar", {
+      label: rpanelT("columns", { count: 1 }), icon: "TypeCell", pluralLabel: rpanelT("columns", { count: 2 }),
+    }],
     ["custom", {
       label: rpanelT("columns", { count: 1 }), icon: "TypeCell", pluralLabel: rpanelT("columns", { count: 2 }),
     }],

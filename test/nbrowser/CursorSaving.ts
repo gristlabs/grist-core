@@ -260,14 +260,20 @@ async function navigateToAnchor(anchorLink: string) {
 }
 
 async function clickAndCheck(options: gu.ICellSelect, expectedValue: string) {
-  const cell = gu.getCell(options);
-  await cell.click();
+  await gu.waitToPass(async () => {
+    await gu.getCell(options).click();
+  });
   await gu.waitAppFocus();
-  assert.equal(await cell.getText(), expectedValue);
+  await gu.waitToPass(async () => {
+    assert.equal(await gu.getCell(options).getText(), expectedValue);
+  });
 }
 
 async function clickAndCheckCard(options: gu.ICellSelect, expectedValue: string) {
-  const cell = gu.getDetailCell(options);
-  await cell.click();
-  assert.equal(await cell.getText(), expectedValue);
+  await gu.waitToPass(async () => {
+    await gu.getDetailCell(options).click();
+  });
+  await gu.waitToPass(async () => {
+    assert.equal(await gu.getDetailCell(options).getText(), expectedValue);
+  });
 }

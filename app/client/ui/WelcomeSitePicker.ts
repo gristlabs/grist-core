@@ -1,13 +1,15 @@
 import { makeT } from "app/client/lib/localization";
-import { AppModel } from "app/client/models/AppModel";
+import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
+import { AppModel, reportError } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
 import * as css from "app/client/ui/LoginPagesCss";
 import { createUserImage } from "app/client/ui/UserImage";
-import { bigBasicButtonLink } from "app/client/ui2018/buttons";
+import { bigBasicButtonLink, bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import { testId, theme } from "app/client/ui2018/cssVars";
+import { isFeatureEnabled } from "app/common/gristUrls";
 import { FullUser } from "app/common/LoginSessionAPI";
 import { getGristConfig } from "app/common/urlUtils";
-import { getOrgName } from "app/common/UserAPI";
+import { getOrgName, Organization } from "app/common/UserAPI";
 
 import { Computed, dom, DomContents, IDisposableOwner, styled } from "grainjs";
 
@@ -19,44 +21,109 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
   const personalOrg = Computed.create(owner, use =>
     use(appModel.topAppModel.orgs).find(o => Boolean(o.owner))?.domain || undefined);
 
+  const teamOrgs = Computed.create(owner, use =>
+    use(appModel.topAppModel.orgs).filter(org => !org.owner && org.domain));
+
+  // Nothing to offer: no team site, and no personal site either because they are turned off or
+  // because nobody is signed in. Wait for the session fetch, or the initially empty orgs flash
+  // "no sites" at a user who has some.
+  const hasNoSites = Computed.create(owner, use =>
+    use(appModel.topAppModel.sessionLoaded) &&
+    use(teamOrgs).length === 0 &&
+    (!getGristConfig().enablePersonalOrgs || !appModel.currentValidUser));
+
   return cssPageContainer(
     testId("welcome-page"),
     css.flexJustifyCenter(
-      css.formContainer(
-        css.flexJustifyCenter(css.gristLogo()),
-        cssHeading(t("Welcome back")),
-        cssMessage(t("You have access to the following Grist sites.")),
-        cssColumns(
-          dom.maybe(
-            () => getGristConfig().enablePersonalOrgs,
-            () => cssColumn(
-              cssColumnLabel(css.horizontalLine(), css.lightText("Personal"), css.horizontalLine()),
-              dom.forEach(appModel.topAppModel.users, user => (
-                cssOrgButton(
-                  cssPersonalOrg(
-                    createUserImage(user, "small"),
-                    dom("div", user.email, testId("personal-org-email")),
-                  ),
-                  dom.attr("href", use => urlState().makeUrl({ org: use(personalOrg) })),
-                  dom.on("click", (ev) => { void (switchToPersonalUrl(ev, appModel, personalOrg.get(), user)); }),
-                  testId("personal-org"),
-                )
-              )),
-            ),
-          ),
-          cssColumn(
-            cssColumnLabel(css.horizontalLine(), css.lightText("Team"), css.horizontalLine()),
-            dom.forEach(appModel.topAppModel.orgs, org => (
-              org.owner || !org.domain ? null : cssOrgButton(
-                getOrgName(org),
-                urlState().setLinkUrl({ org: org.domain }),
-                testId("org"),
-              )
-            )),
-          ),
-        ),
-        cssMessage(t("You can always switch sites using the account menu.")),
+      dom.domComputed(hasNoSites, isEmpty => isEmpty ?
+        buildNoSites(appModel) :
+        buildSiteList(appModel, personalOrg, teamOrgs),
       ),
+    ),
+  );
+}
+
+function buildSiteList(
+  appModel: AppModel,
+  personalOrg: Computed<string | undefined>,
+  teamOrgs: Computed<Organization[]>,
+): DomContents {
+  return css.formContainer(
+    css.flexJustifyCenter(css.gristLogo()),
+    cssHeading(t("Welcome back")),
+    cssMessage(t("You have access to the following Grist sites.")),
+    cssColumns(
+      dom.maybe(
+        () => getGristConfig().enablePersonalOrgs,
+        () => cssColumn(
+          cssColumnLabel(css.horizontalLine(), css.lightText("Personal"), css.horizontalLine()),
+          dom.forEach(appModel.topAppModel.users, user => (
+            cssOrgButton(
+              cssPersonalOrg(
+                createUserImage(user, "small"),
+                dom("div", user.email, testId("personal-org-email")),
+              ),
+              dom.attr("href", use => urlState().makeUrl({ org: use(personalOrg) })),
+              dom.on("click", (ev) => { void (switchToPersonalUrl(ev, appModel, personalOrg.get(), user)); }),
+              testId("personal-org"),
+            )
+          )),
+        ),
+      ),
+      cssColumn(
+        cssColumnLabel(css.horizontalLine(), css.lightText("Team"), css.horizontalLine()),
+        dom.forEach(teamOrgs, org => (
+          cssOrgButton(
+            getOrgName(org),
+            urlState().setLinkUrl({ org: org.domain || undefined }),
+            testId("org"),
+          )
+        )),
+      ),
+    ),
+    cssMessage(t("You can always switch sites using the account menu.")),
+  );
+}
+
+/**
+ * Shown in place of an empty list, when the user has nowhere to go from here. Install admins can
+ * create the first team site (they are exempt from GRIST_ORG_CREATION_ANYONE).
+ */
+function buildNoSites(appModel: AppModel): DomContents {
+  // Signed-out visitors reach this page too, since /welcome/teams has no login middleware. How the
+  // installation is configured is nothing they can act on; signing in is.
+  if (!appModel.currentValidUser) {
+    return css.formContainer(
+      testId("welcome-no-sites"),
+      css.flexJustifyCenter(css.gristLogo()),
+      cssHeading(t("Sign in to see your sites")),
+      css.flexJustifyCenter(
+        bigPrimaryButtonLink(t("Sign in"), { href: getLoginOrSignupUrl() }, testId("welcome-sign-in")),
+      ),
+    );
+  }
+
+  const isAdmin = appModel.isInstallAdmin();
+  const canCreateSite = isFeatureEnabled("createSite") &&
+    (isAdmin || Boolean(getGristConfig().canAnyoneCreateOrgs));
+
+  return css.formContainer(
+    testId("welcome-no-sites"),
+    css.flexJustifyCenter(css.gristLogo()),
+    cssHeading(t("No sites available")),
+    cssMessage(
+      t("Personal sites are turned off on this installation, and you aren't a member of any \
+team site yet."),
+    ),
+    canCreateSite ? css.flexJustifyCenter(
+      bigPrimaryButton(
+        t("Create a team site"),
+        dom.on("click", () => appModel.showNewSiteModal().catch(reportError)),
+        testId("welcome-create-team-site"),
+      ),
+    ) : cssMessage(
+      t("Ask an administrator to add you to a team site."),
+      testId("welcome-ask-admin"),
     ),
   );
 }

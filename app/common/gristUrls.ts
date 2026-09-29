@@ -12,7 +12,6 @@ import { TelemetryLevel } from "app/common/Telemetry";
 import { ThemeAppearance, themeAppearances, ThemeName, themeNames } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import { Document, PublicDocWorkerUrlInfo } from "app/common/UserAPI";
-import { IAttachedCustomWidget } from "app/common/widgetTypes";
 import { UIRowId } from "app/plugin/GristAPI";
 
 import clone from "lodash/clone";
@@ -48,7 +47,7 @@ export type HomePageTab = typeof HomePageTab.type;
 export const WelcomePage = StringUnion("teams", "signup", "verify", "select-account");
 export type WelcomePage = typeof WelcomePage.type;
 
-export const AccountPage = StringUnion("account", "authorized-apps", "developer");
+export const AccountPage = StringUnion("account", "authorized-apps", "developer", "personal-site");
 export type AccountPage = typeof AccountPage.type;
 
 export const ActivationPage = StringUnion("activation");
@@ -149,6 +148,9 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpTeamAuditLogs: "https://support.getgrist.com/install/audit-log-overview/",
   helpTelemetryLimited: "https://support.getgrist.com/telemetry-limited",
   helpEnterpriseOptIn: "https://support.getgrist.com/self-managed/#how-do-i-enable-the-full-edition-of-grist",
+  helpEmailNotifications: "https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications",
+  activationKeyRequestForm: "https://www.getgrist.com/request-activation-key",
+  freeActivationKeyFaq: "https://www.getgrist.com/free-grist-activation-key-faq/",
   helpCalendarWidget: "https://support.getgrist.com/widget-calendar",
   helpLinkKeys: "https://support.getgrist.com/examples/2021-04-link-keys",
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown-lists",
@@ -170,6 +172,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   termsOfService: getTermsOfServiceUrl(),
   onboardingTutorialVideoId: getOnboardingVideoId(),
   plans: "https://www.getgrist.com/pricing",
+  plansSelfManaged: "https://www.getgrist.com/pricing/#your-servers",
   contact: "https://www.getgrist.com/contact",
   templates: "https://www.getgrist.com/templates",
   webinars: getWebinarsUrl(),
@@ -815,29 +818,13 @@ export function parseSubdomain(host: string | undefined): { org?: string, base?:
 const localhostRegex = /^localhost(?::(\d+))?$/i;
 
 /**
- * Like parseSubdomain, but throws an error if neither of these cases apply:
- *   - host can be parsed into a valid subdomain and a valid base domain.
- *   - host is localhost:NNNN
- * An empty object is only returned when host is localhost:NNNN.
- */
-export function parseSubdomainStrictly(host: string | undefined): { org?: string, base?: string } {
-  if (!host) { throw new Error("host not known"); }
-  const result = parseSubdomain(host);
-  if (result.org) { return result; }
-  if (!host.match(localhostRegex)) {
-    throw new Error(`host not understood: ${host}`);
-  }
-  // Host is localhost[:NNNN], no org available.
-  return {};
-}
-
-/**
  * For a packaged version of Grist that requires activation, this
  * summarizes the current state. Not applicable to grist-core.
  * This is the thing that is send via sendAppPage (so this is embedded in HTML).
  */
 export interface ActivationState {
-  installationId: string;    // Unique identifier for this installation.
+  // Unique identifier for this installation. Absent on pages sent to non-admins.
+  installationId?: string;
   key?: {                    // Set when Grist is activated.
     expirationDate?: string; // ISO8601 date that Grist will need reactivation.
     daysLeft?: number;       // Number of days until Grist will need reactivation.
@@ -1013,8 +1000,6 @@ export interface GristLoadConfig {
 
   assistant?: AssistantConfig;
 
-  permittedCustomWidgets?: IAttachedCustomWidget[];
-
   // Email address of the support user.
   supportEmail?: string;
 
@@ -1079,11 +1064,11 @@ export interface AdminPageConfig extends GristLoadConfig {
   /** Whether there is a parent process that can restart Grist. */
   runningUnderSupervisor: boolean;
 
-  /** The unique installation ID. */
-  installationId: string;
-
   /** Whether AdminControls are available and should be enabled in UI. */
   adminControls?: boolean;
+
+  /** This installation's ID. Only sent to install admins, so absent for everyone else. */
+  installationId?: string;
 
   /**
    * Whether the installation is "in service". Set to false on fresh installs
@@ -1103,6 +1088,7 @@ export const Features = StringUnion(
   "multiSite",
   "multiAccounts",
   "importFromAirtable",
+  "importFromGrist",
   "sendToDrive",
   "tutorials",
   "supportGrist",
@@ -1114,7 +1100,8 @@ export type IFeature = typeof Features.type;
 
 // Features that are enabled, even if not explicitly listed in GRIST_UI_FEATURES.
 // These should be still be disabled if listed in GRIST_HIDE_UI_ELEMENTS.
-export const ImplicitlyEnabledFeatures: IFeature[] = ["importFromAirtable", "automations", "oauthApps"];
+export const ImplicitlyEnabledFeatures: IFeature[] =
+  ["importFromAirtable", "importFromGrist", "automations", "oauthApps"];
 
 export function isFeatureEnabled(feature: IFeature): boolean {
   return (getGristConfig().features || []).includes(feature);
@@ -1195,9 +1182,8 @@ export function getTermsOfServiceUrl(): string | undefined {
   return getCustomizableValue("termsOfServiceUrl", "GRIST_TERMS_OF_SERVICE_URL") || undefined;
 }
 
-export function getFreeCoachingCallUrl(): string {
-  const defaultUrl = "https://calendly.com/grist-team/grist-free-coaching-call";
-  return getCustomizableValue("freeCoachingCallUrl", "FREE_COACHING_CALL_URL") || defaultUrl;
+export function getFreeCoachingCallUrl(): string | undefined {
+  return getCustomizableValue("freeCoachingCallUrl", "FREE_COACHING_CALL_URL") || undefined;
 }
 
 export function getContactSupportUrl(): string {

@@ -121,6 +121,9 @@ export interface GristServer extends StorageCoordinator {
   // This server's doc-worker id, or null if it isn't a doc worker. Lets callers
   // tell whether a given doc is hosted here (vs. needing to be forwarded).
   getWorkerId(): string | null;
+  // Whether the url this server publishes for documents is only its own guess at one.
+  // See DocWorkerIdentity.
+  publicUrlIsGuessed(): boolean;
   // Shared per-doc API usage tracker, present on servers that host docs. Used to
   // charge in-process doc work (e.g. a local MCP tool call) against API limits.
   getDocApiUsageTracker?(): DocApiUsageTracker | undefined;
@@ -245,6 +248,7 @@ export function createDummyGristServer(): GristServer {
     hasDocManager() { return false; },
     getDocWorkerMap() { return null; },
     getWorkerId() { return null; },
+    publicUrlIsGuessed() { return true; },
     isRestrictedMode() { return false; },
     onUserChange() { /* do nothing */ },
     onStreamingDestinationsChange() { /* do nothing */ },

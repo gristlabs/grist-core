@@ -347,6 +347,7 @@ describe("Authorizer", function() {
         // But, oh no! Chimpy has been getting too greedy with the bananas,
         // so down comes the banhammer!
         sadChimpy.disabledAt = new Date();
+        sadChimpy.disabledReason = "Too many bananas";
         await sadChimpy.save();
 
         // No more bananas!
@@ -358,9 +359,22 @@ describe("Authorizer", function() {
         // Not even the home page is allowed!
         resp = await axios.get(`${serverUrl}/`, auth);
         assert.equal(resp.status, 403, "home page denied!");
+
+        // At least chimpy is told what the banhammer came down for.
+        resp = await axios.get(`${serverUrl}/o/pr/api/docs/${docId}`, auth);
+        assert.equal(resp.status, 403, "banana metadata denied!");
+        assert.equal(resp.data.error, "User is disabled (Reason: Too many bananas)");
+
+        // And when nothing was recorded, chimpy is told that much too.
+        sadChimpy.disabledReason = null;
+        await sadChimpy.save();
+        resp = await axios.get(`${serverUrl}/o/pr/api/docs/${docId}`, auth);
+        assert.equal(resp.status, 403, "banana metadata still denied!");
+        assert.equal(resp.data.error, "User is disabled (Reason: No reason provided)");
       } finally {
         // It's okay, chimpy, you learned your lesson
         sadChimpy.disabledAt = null;
+        sadChimpy.disabledReason = null;
         await sadChimpy.save();
       }
 

@@ -64,7 +64,7 @@ describe("AttachmentsTransfer", function() {
         await s.loadRelPath(`/doc/${docId}`);
         await gu.openDocumentSettings();
         await driver.findWait(".test-admin-panel-item-timezone", 1000);
-        await waitForNotPresent(attachmentSection);
+        await gu.waitForNotPresent(".test-admin-panel-item-preferredStorage", 4000);
       }
 
       await checkFor("user2");
@@ -158,10 +158,10 @@ describe("AttachmentsTransfer", function() {
       await gu.waitForServer();
 
       // We should see transfer spinner.
-      await waitForDisplay(transferSpinner);
+      await gu.waitForDisplay(SPINNER);
 
       // Wait for the spinner to disappear.
-      await waitForNotPresent(transferSpinner);
+      await gu.waitForNotPresent(SPINNER, 4000);
 
       // We now should have those files transfer.
       assert.lengthOf(files(), 4);
@@ -274,10 +274,10 @@ describe("AttachmentsTransfer", function() {
       await startTransferButton().click();
 
       // We should see transfer spinner.
-      assert.isTrue(await transferSpinner(WAIT).isDisplayed());
+      assert.isTrue(await driver.findWait(SPINNER, 500).isDisplayed());
 
       // Wait for the spinner to disappear.
-      await gu.waitToPass(async () => assert.isFalse(await transferSpinner().isPresent()));
+      await gu.waitForNotPresent(SPINNER, 4000);
       await gu.waitForServer();
 
       // We should see that internal storage is selected.
@@ -319,7 +319,7 @@ describe("AttachmentsTransfer", function() {
       // Set to external again.
       await api.setAttachmentStore("external");
       await storageType.waitForValue("External");
-      await waitForDisplay(startTransferButton);
+      await gu.waitForDisplay(START_BUTTON);
 
       // We are seeing that some files are internal.
       assert.isTrue(await internalCopy().isDisplayed());
@@ -331,16 +331,16 @@ describe("AttachmentsTransfer", function() {
       await api.transferAllAttachments();
 
       // Wait for the spinner to be shown.
-      await waitForDisplay(transferSpinner);
+      await gu.waitForDisplay(SPINNER);
 
       // The internal copy should be changed during the transfer.
       assert.isTrue(await internalCopy().inProgress());
 
       // Wait for the spinner to disappear.
-      await waitForNotPresent(transferSpinner);
+      await gu.waitForNotPresent(SPINNER, 4000);
 
       // Transfer button should also disappear
-      await waitForNotPresent(startTransferButton);
+      await gu.waitForNotPresent(START_BUTTON, 4000);
 
       // And all messages should be gone.
       assert.lengthOf(await messages(), 0);
@@ -352,14 +352,14 @@ describe("AttachmentsTransfer", function() {
       assert.isTrue(await externalCopy().isDisplayed());
       assert.isTrue(await externalCopy().isStatic());
       assert.isTrue(await startTransferButton().isDisplayed());
-      assert.isFalse(await transferSpinner().isPresent());
+      assert.isFalse(await driver.find(SPINNER).isPresent());
 
       // Start transfer and check components.
       await api.transferAllAttachments();
-      await waitForDisplay(transferSpinner);
+      await gu.waitForDisplay(SPINNER);
       assert.isTrue(await externalCopy().inProgress());
-      await waitForNotPresent(transferSpinner);
-      await waitForNotPresent(startTransferButton);
+      await gu.waitForNotPresent(SPINNER, 4000);
+      await gu.waitForNotPresent(START_BUTTON, 4000);
       assert.lengthOf(await messages(), 0);
     });
   });
@@ -391,23 +391,7 @@ const addRow = async () => {
   await gu.waitForServer();
 };
 
-const startTransferButton = () => driver.find(".test-settings-transfer-start-button");
+const START_BUTTON = ".test-settings-transfer-start-button";
+const startTransferButton = () => driver.find(START_BUTTON);
 
-const WAIT = true;
-const transferSpinner = (wait = false) => wait ?
-  driver.findWait(".test-settings-transfer-spinner", 500) :
-  driver.find(".test-settings-transfer-spinner");
-
-async function waitForDisplay(fn: () => WebElementPromise) {
-  await gu.waitToPass(async () => {
-    assert.isTrue(await fn().isDisplayed());
-  });
-}
-
-async function waitForNotPresent(fn: () => WebElementPromise) {
-  await gu.waitToPass(async () => {
-    assert.isFalse(await fn().isPresent());
-  });
-}
-
-const attachmentSection = () => driver.find(".test-admin-panel-item-preferredStorage");
+const SPINNER = ".test-settings-transfer-spinner";

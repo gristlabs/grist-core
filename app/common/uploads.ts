@@ -51,3 +51,8 @@ export interface FetchUrlOptions {
   fileName?: string;                  // The filename for external resource.
   headers?: { [key: string]: string };  // Additional headers to use when accessing external resource.
 }
+
+// This list coincides with the extensions defined in core/plugins/manifest.yml
+export const EXTENSIONS_IMPORTABLE_WITHIN_DOC = [".xlsx", ".json", ".csv", ".tsv", ".dsv"];
+
+export const EXTENSIONS_IMPORTABLE_AS_DOC = [".grist", ".csv", ".tsv", ".dsv", ".txt", ".xlsx", ".xlsm"];

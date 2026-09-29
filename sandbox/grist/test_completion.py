@@ -410,6 +410,7 @@ class TestCompletion(test_engine.EngineTestCase):
         'Schools.lookupRecords(lastModified=',
         'Schools.lookupRecords(lastModifier=',
         'Schools.lookupRecords(name=',
+        'Schools.lookupRecords(order_by=',
         'Schools.lookupRecords(yearFounded=',
       ],
     )
@@ -427,6 +428,7 @@ class TestCompletion(test_engine.EngineTestCase):
         'Schools.lookupRecords(lastModified=',
         'Schools.lookupRecords(lastModifier=',
         'Schools.lookupRecords(name=',
+        'Schools.lookupRecords(order_by=',
         'Schools.lookupRecords(yearFounded=',
       ],
     )
@@ -441,6 +443,7 @@ class TestCompletion(test_engine.EngineTestCase):
         'Students.lookupRecords(id=',
         'Students.lookupRecords(lastName=',
         'Students.lookupRecords(lastVisit=',
+        'Students.lookupRecords(order_by=',
         'Students.lookupRecords(school=',
         'Students.lookupRecords(school=$id)',
         'Students.lookupRecords(schoolCities=',
@@ -473,11 +476,123 @@ class TestCompletion(test_engine.EngineTestCase):
         'Students.lookupRecords(moreAddresses=',
         'Students.lookupRecords(moreAddresses=CONTAINS($address))',
         'Students.lookupRecords(moreAddresses=CONTAINS($address2))',
+        'Students.lookupRecords(order_by=',
         'Students.lookupRecords(school=',
         'Students.lookupRecords(school=$id)',
         'Students.lookupRecords(schoolCities=',
         'Students.lookupRecords(schoolIds=',
         'Students.lookupRecords(schoolName=',
+      ],
+    )
+
+  def test_suggest_lookup_further_arguments(self):
+    # After a comma, suggest the remaining unused columns, excluding the one already typed.
+    # order_by is offered like a plain column, and disappears once used too.
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne(name=$city,", "Address", "city"),
+      [
+        'Schools.lookupOne(name=$city, address=',
+        'Schools.lookupOne(name=$city, budget=',
+        'Schools.lookupOne(name=$city, id=',
+        'Schools.lookupOne(name=$city, lastModified=',
+        'Schools.lookupOne(name=$city, lastModifier=',
+        'Schools.lookupOne(name=$city, order_by=',
+        'Schools.lookupOne(name=$city, yearFounded=',
+      ],
+    )
+
+    # A space already typed after the comma isn't duplicated.
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne(name=$city, ", "Address", "city"),
+      self.autocomplete("Schools.lookupOne(name=$city,", "Address", "city"),
+    )
+
+    # Using order_by removes it from the suggestions too, like any other used argument.
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne(name=$city, order_by=\"id\",", "Address", "city"),
+      [
+        'Schools.lookupOne(name=$city, order_by="id", address=',
+        'Schools.lookupOne(name=$city, order_by="id", budget=',
+        'Schools.lookupOne(name=$city, order_by="id", id=',
+        'Schools.lookupOne(name=$city, order_by="id", lastModified=',
+        'Schools.lookupOne(name=$city, order_by="id", lastModifier=',
+        'Schools.lookupOne(name=$city, order_by="id", yearFounded=',
+      ],
+    )
+
+    # An unfinished argument name (no '=' yet) isn't a comma-triggered case: fall back to the
+    # plain function signature, instead of appending suggestions after the partial word.
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne(nam", "Address", "city"),
+      [('Schools.lookupOne', '(colName=<value>, ...)', True)],
+    )
+
+  def test_suggest_lookup_attributes(self):
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne().", "Address", "city"),
+      [
+        'Schools.lookupOne().address',
+        'Schools.lookupOne().budget',
+        'Schools.lookupOne().id',
+        'Schools.lookupOne().lastModified',
+        'Schools.lookupOne().lastModifier',
+        'Schools.lookupOne().name',
+        'Schools.lookupOne().yearFounded',
+      ],
+    )
+
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne(name=$city).", "Address", "city"),
+      [
+        'Schools.lookupOne(name=$city).address',
+        'Schools.lookupOne(name=$city).budget',
+        'Schools.lookupOne(name=$city).id',
+        'Schools.lookupOne(name=$city).lastModified',
+        'Schools.lookupOne(name=$city).lastModifier',
+        'Schools.lookupOne(name=$city).name',
+        'Schools.lookupOne(name=$city).yearFounded',
+      ],
+    )
+
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne().last", "Address", "city"),
+      [
+        'Schools.lookupOne().lastModified',
+        'Schools.lookupOne().lastModifier',
+      ],
+    )
+
+    self.assertEqual(self.autocomplete("NoSuchTable.lookupOne().", "Address", "city"), [])
+
+    # lookupRecords() returns a RecordSet, but a field on it gives a list of values for that
+    # column across all matched records, so the same columns are suggested as for lookupOne().
+    self.assertEqual(
+      self.autocomplete("Schools.lookupRecords().", "Address", "city"),
+      [
+        'Schools.lookupRecords().address',
+        'Schools.lookupRecords().budget',
+        'Schools.lookupRecords().id',
+        'Schools.lookupRecords().lastModified',
+        'Schools.lookupRecords().lastModifier',
+        'Schools.lookupRecords().name',
+        'Schools.lookupRecords().yearFounded',
+      ],
+    )
+
+  def test_suggest_lookup_attributes_with_call_argument(self):
+    # One level of parens inside the arguments (e.g. a function call) should still be
+    # recognized, as long as the lookupOne call itself is closed before the dot.
+    schools_cols = ['address', 'budget', 'id', 'lastModified', 'lastModifier', 'name', 'yearFounded']
+
+    def expect(txt, cols):
+      self.assertEqual(self.autocomplete(txt, "Address", "city"), [txt + c for c in cols])
+
+    expect("Schools.lookupOne(name=UPPER($city)).", schools_cols)
+    self.assertEqual(
+      self.autocomplete("Schools.lookupOne(name=UPPER($city)).last", "Address", "city"),
+      [
+        'Schools.lookupOne(name=UPPER($city)).lastModified',
+        'Schools.lookupOne(name=UPPER($city)).lastModifier',
       ],
     )
 

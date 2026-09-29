@@ -89,38 +89,6 @@ export interface UserOverride {
 
 export interface DocListAPI {
   /**
-   * Returns a all known Grist documents and document invites to show in the doc list.
-   */
-  getDocList(): Promise<{ docs: DocEntry[], docInvites: DocEntry[] }>;
-
-  /**
-   * Creates a new document, fetches it, and adds a table to it. Returns its name.
-   */
-  createNewDoc(): Promise<string>;
-
-  /**
-   * Makes a copy of the given sample doc. Returns the name of the new document.
-   */
-  importSampleDoc(sampleDocName: string): Promise<string>;
-
-  /**
-   * Processes an upload, containing possibly multiple files, to create a single new document, and
-   * returns the new document's name.
-   */
-  importDoc(uploadId: number): Promise<string>;
-
-  /**
-   * Deletes a Grist document. Returns the name of the deleted document. If `deletePermanently` is
-   * true, the doc is deleted permanently rather than just moved to the trash.
-   */
-  deleteDoc(docName: string, deletePermanently: boolean): Promise<string>;
-
-  /**
-   * Renames a document.
-   */
-  renameDoc(oldName: string, newName: string): Promise<void>;
-
-  /**
    * Opens a document, loads it, subscribes to its userAction events, and returns its metadata.
    */
   openDoc(userDocName: string, options?: OpenDocOptions): Promise<OpenLocalDocResult>;

@@ -1,3 +1,4 @@
+import "app/server/lib/lockdown";
 import { Level, TelemetryContracts } from "app/common/Telemetry";
 import { gitcommit, version } from "app/common/version";
 import { synchronizeProducts } from "app/gen-server/entity/Product";

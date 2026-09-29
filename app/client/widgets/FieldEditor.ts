@@ -20,6 +20,8 @@ import { CursorPos } from "app/plugin/GristAPI";
 import { Disposable, dom, Emitter, Holder, MultiHolder, Observable, subscribe } from "grainjs";
 import isEqual from "lodash/isEqual";
 
+import type { KoReactive } from "app/client/models/modelUtil";
+
 const t = makeT("FieldEditor");
 
 /**
@@ -483,7 +485,7 @@ function setupReadonlyEditorCleanup(
  * - Arrange for UnsavedChange protection against leaving the page with unsaved changes.
  */
 export function setupEditorCleanup(
-  owner: MultiHolder, gristDoc: GristDoc, editingFormula: ko.Computed<boolean>, _saveEdit: () => Promise<unknown>,
+  owner: MultiHolder, gristDoc: GristDoc, editingFormula: KoReactive<boolean>, _saveEdit: () => Promise<unknown>,
 ) {
   const saveEdit = () => _saveEdit().catch(reportError);
 

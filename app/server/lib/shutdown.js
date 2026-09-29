@@ -86,7 +86,7 @@ function signalExit(signal) {
       // in a situation when Grist is the init (pid 1) process in a container
       // See https://github.com/gristlabs/grist-core/pull/830 (and #892)
       const signalNumber = os.constants.signals[signal];
-      process.exit(process.pid, 128 + signalNumber);
+      process.exit(128 + signalNumber);
     });
 }
 

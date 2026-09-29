@@ -120,7 +120,9 @@ export interface ColumnDelta {
 
 /** Create an ActionSummary for a period with no action */
 export function createEmptyActionSummary(): ActionSummary {
-  return { tableRenames: [], tableDeltas: {} };
+  // Keyed by arbitrary table and column ids: use null-prototype maps so an id cannot
+  // clash with a name inherited from Object.prototype.
+  return { tableRenames: [], tableDeltas: Object.create(null) };
 }
 
 /** Create a TableDelta for a period with no action */
@@ -129,7 +131,7 @@ export function createEmptyTableDelta(): TableDelta {
     updateRows: [],
     removeRows: [],
     addRows: [],
-    columnDeltas: {},
+    columnDeltas: Object.create(null),
     columnRenames: [],
   };
 }

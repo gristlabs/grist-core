@@ -18,8 +18,13 @@ def make_sort_key(table, sort_spec):
     col_obj = table.get_column(col_id)
     col_sort_spec.append((col_obj, sign))
 
+  _sort_spec = sort_spec
+
   class SortKey(object):
     __slots__ = ("row_id", "values")
+
+    # Expose the sort_spec as a static member.
+    sort_spec = _sort_spec
 
     def __init__(self, row_id, values=None):
       # When values are provided, row_id is not used for access but is used for comparison, so

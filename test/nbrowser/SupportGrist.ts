@@ -103,7 +103,7 @@ describe("SupportGrist", function() {
         await gu.openAccountMenu();
         await driver.find(".test-usermenu-admin-panel").click();
         await driver.findWait(".test-admin-panel", 2000);
-        await driver.find(".test-admin-panel-item-name-telemetry").click();
+        await driver.findWait(".test-admin-panel-item-name-telemetry", 2000).click();
         await driver.sleep(500);  // Wait for section to expand.
         await driver.findContentWait(
           ".test-support-grist-page-telemetry-section button", /Opt out of Telemetry/, 2000).click();

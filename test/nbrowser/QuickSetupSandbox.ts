@@ -89,7 +89,7 @@ const FIXTURE_ENV_LOCKED: BootProbeResult = {
 };
 
 // gVisor is installed but broken (e.g. runsc crashes on start).
-// The UI should promote pyodide as the hero card and show an "ERROR" badge on gVisor.
+// The UI should promote pyodide as the hero card and show an "Error" badge on gVisor.
 const FIXTURE_WITH_ERROR: BootProbeResult = {
   status: "warning",
   details: {
@@ -116,7 +116,7 @@ const FIXTURE_WITH_ERROR: BootProbeResult = {
 };
 
 // gVisor is set via GRIST_SANDBOX_FLAVOR env var but it's broken.
-// The UI should show gvisor as the hero with an ERROR badge, radios disabled,
+// The UI should show gvisor as the hero with an Error badge, radios disabled,
 // and "Skip and Continue" since it's env-locked.
 const FIXTURE_CURRENT_HAS_ERROR: BootProbeResult = {
   status: "warning",
@@ -173,6 +173,20 @@ const FIXTURE_ONLY_UNSANDBOXED: BootProbeResult = {
   },
 };
 
+// GRIST_SANDBOX_FLAVOR=unsandboxed: env-locked on a flavor the wizard would not
+// preselect on its own, so nothing can be picked and the step must still be passable.
+const FIXTURE_ENV_LOCKED_UNSANDBOXED: BootProbeResult = {
+  ...FIXTURE_GVISOR_RECOMMENDED,
+  details: { ...FIXTURE_GVISOR_RECOMMENDED.details, flavorInEnv: "unsandboxed" },
+};
+
+// The same server as FIXTURE_GVISOR_RECOMMENDED, except the admin explicitly chose
+// to run unsandboxed (flavorInDB): the choice, not the recommendation, takes the hero.
+const FIXTURE_CHOSE_UNSANDBOXED: BootProbeResult = {
+  ...FIXTURE_GVISOR_RECOMMENDED,
+  details: { ...FIXTURE_GVISOR_RECOMMENDED.details, flavorInDB: "unsandboxed" },
+};
+
 describe("QuickSetupSandbox", function() {
   this.timeout(process.env.DEBUG ? "10m" : "20s");
   setupTestSuite();
@@ -201,30 +215,61 @@ describe("QuickSetupSandbox", function() {
 
     const hero = await flavorAt(0);
     assert.include(hero.header, "gVisor");
-    assert.include(hero.tags, "RECOMMENDED");
+    assert.include(hero.badges, "Recommended");
+    assert.include(hero.badges, "Ready");
+    assert.notInclude(hero.badges, "Active");
     assert.isTrue(hero.checked);
 
     // Pyodide should be selectable, macSandboxExec disabled.
-    // Sort order: pyodide(1), unsandboxed(2), macSandboxExec(3).
+    // Sort order: pyodide(1), macSandboxExec(2), then No sandbox muted last (3).
     const pyodide = await flavorAt(1);
     assert.include(pyodide.header, "Pyodide");
     assert.isFalse(pyodide.disabled);
 
-    const mac = await flavorAt(3);
+    const mac = await flavorAt(2);
     assert.include(mac.header, "macOS sandbox");
     assert.isTrue(mac.disabled);
 
+    // The running-but-unchosen fallback stays quiet: muted, unchecked, unmarked.
+    const unsandboxed = await flavorAt(3);
+    assert.include(unsandboxed.header, "No sandbox");
+    assert.isFalse(unsandboxed.checked);
+    assert.notInclude(unsandboxed.badges, "Active");
+
     assert.include(await buttonText(), "Apply and Continue");
+    assert.isFalse(await buttonDisabled());
   });
 
   it("should show other options with badges", async function() {
     await navigateToSandboxStep();
 
-    const unsandboxed = await flavorAt(2);
-    assert.include(unsandboxed.badges, "NOT RECOMMENDED");
+    const mac = await flavorAt(2);
+    assert.include(mac.badges, "Not available");
 
-    const mac = await flavorAt(3);
-    assert.include(mac.badges, "NOT AVAILABLE");
+    // The muted "No sandbox" card keeps its warning chip, but no Active mark.
+    const unsandboxed = await flavorAt(3);
+    assert.include(unsandboxed.badges, "Not recommended");
+    assert.notInclude(unsandboxed.badges, "Active");
+
+    // The wizard's list header is static: clicking it does not collapse the list.
+    await driver.find(".test-sandbox-section-others-header").click();
+    assert.isNotEmpty(await driver.findAll(".test-sandbox-section-flavor-1"));
+  });
+
+  it("should not stage anything in the admin panel", async function() {
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
+    await driver.find(".test-admin-panel-item-name-sandboxing").click();
+
+    // The state surface: the running (unchosen) fallback leads, quiet --
+    // nothing selected, and no pending-changes banner appears uninvited.
+    await gu.waitToPass(async () => {
+      const hero = await flavorAt(0);
+      assert.include(hero.header, "No sandbox");
+      assert.notInclude(hero.badges, "Active");
+      assert.isFalse(hero.checked);
+    }, 8000);
+    assert.notMatch(await driver.find("body").getText(), /Restart Grist to apply/);
   });
 
   it("should disable radios when env-locked", async function() {
@@ -254,10 +299,10 @@ describe("QuickSetupSandbox", function() {
     const hero = await flavorAt(0);
     assert.include(hero.header, "Pyodide");
 
-    // gVisor should be last in "Other options" (not functional → sorted last).
-    const gvisor = await flavorAt(2);
+    // gVisor sorts last among real options (not functional).
+    const gvisor = await flavorAt(1);
     assert.include(gvisor.header, "gVisor");
-    assert.include(gvisor.badges, "ERROR");
+    assert.include(gvisor.badges, "Error");
   });
 
   it("should show error on hero when env-locked sandbox is broken", async function() {
@@ -268,7 +313,7 @@ describe("QuickSetupSandbox", function() {
 
     const hero = await flavorAt(0);
     assert.include(hero.header, "gVisor");
-    assert.include(hero.badges, "ERROR");
+    assert.include(hero.badges, "Error");
     assert.isTrue(hero.disabled);
 
     assert.isTrue(await hasEnvWarning());
@@ -280,11 +325,94 @@ describe("QuickSetupSandbox", function() {
     await gu.session().personalSite.login();
     await navigateToSandboxStep();
 
+    // With no alternative to recommend and no choice made, nothing is checked
+    // and Continue waits for an explicit choice.
     const hero = await flavorAt(0);
     assert.include(hero.header, "No sandbox");
-    assert.isTrue(hero.checked);
+    assert.notInclude(hero.badges, "Active");
+    assert.isFalse(hero.checked);
+    assert.isTrue(await buttonDisabled());
 
-    assert.include(await buttonText(), "Continue");
+    // Explicitly choosing it unlocks Continue (nothing to apply: it already runs).
+    await driver.find(".test-sandbox-section-flavor-0").click();
+    await gu.waitToPass(async () => {
+      assert.isTrue((await flavorAt(0)).checked);
+      assert.isFalse(await buttonDisabled());
+    }, 2000);
+    assert.notInclude(await buttonText(), "Apply");
+  });
+
+  describe("with unsandboxed explicitly chosen", function() {
+    before(async function() {
+      setProbeFixture(FIXTURE_CHOSE_UNSANDBOXED);
+      await server.restart();
+      await gu.session().personalSite.login();
+    });
+
+    it("should re-offer the recommendation in the wizard, unstaged", async function() {
+      await navigateToSandboxStep();
+
+      // The wizard leads with guidance over any fallback: the recommendation
+      // is heroed but not selected, and proceeding takes a this-visit choice.
+      const hero = await flavorAt(0);
+      assert.include(hero.header, "gVisor");
+      assert.include(hero.badges, "Recommended");
+      assert.isFalse(hero.checked);
+      assert.isTrue(await buttonDisabled());
+
+      // The chosen fallback shows as the muted Active card at the end.
+      const unsandboxed = await flavorAt(3);
+      assert.include(unsandboxed.header, "No sandbox");
+      assert.include(unsandboxed.badges, "Active");
+      assert.isFalse(unsandboxed.checked);
+
+      // Re-choosing it this visit unlocks a plain Continue (it already runs).
+      await driver.find(".test-sandbox-section-flavor-3").click();
+      await gu.waitToPass(async () => {
+        assert.isFalse(await buttonDisabled());
+      }, 2000);
+      assert.notInclude(await buttonText(), "Apply");
+    });
+
+    it("should hero the choice in the admin panel, with a working Revert", async function() {
+      await driver.get(`${server.getHost()}/admin`);
+      await gu.waitForAdminPanel();
+      // The probe fixture is canned, so seed the real saved pref the revert
+      // will clear.
+      await setSavedFlavor("unsandboxed");
+      await driver.find(".test-admin-panel-item-name-sandboxing").click();
+
+      // The state surface leads with the chosen state and offers Revert.
+      await gu.waitToPass(async () => {
+        const hero = await flavorAt(0);
+        assert.include(hero.header, "No sandbox");
+        assert.include(hero.badges, "Active");
+      }, 8000);
+
+      // With the state settled, "Other options" starts collapsed.
+      assert.isEmpty(await driver.findAll(".test-sandbox-section-flavor-1"));
+
+      await driver.find(".test-sandbox-section-revert").click();
+      await gu.waitToPass(async () => {
+        assert.isNull(await getSavedFlavor());
+      }, 4000);
+    });
+  });
+
+  it("should let the wizard proceed when env-locked to unsandboxed", async function() {
+    setProbeFixture(FIXTURE_ENV_LOCKED_UNSANDBOXED);
+    await server.restart();
+    await gu.session().personalSite.login();
+    await navigateToSandboxStep();
+
+    assert.isTrue(await hasEnvWarning());
+
+    // Nothing is selectable, so nothing is checked, but the step is not a dead end.
+    const hero = await flavorAt(0);
+    assert.isTrue(hero.disabled);
+    assert.isFalse(hero.checked);
+    assert.include(await buttonText(), "Skip and Continue");
+    assert.isFalse(await buttonDisabled());
   });
 
   async function navigateToSandboxStep() {
@@ -308,7 +436,7 @@ describe("QuickSetupSandbox", function() {
       // Expand "Other options" if not already expanded.
       const items = await driver.findAll(`.test-sandbox-section-flavor-${index}`);
       if (items.length === 0) {
-        await driver.findContent("div", /Other options/i).click();
+        await driver.find(".test-sandbox-section-others-header").click();
         await driver.findWait(`.test-sandbox-section-flavor-${index}`, 1000);
       }
     }
@@ -316,17 +444,48 @@ describe("QuickSetupSandbox", function() {
     const header = await el.find(".test-setup-card-header").getText();
     const badgeEls = await el.findAll(".test-setup-card-badge");
     const badges = await Promise.all(badgeEls.map(b => b.getText()));
-    const tagEls = await el.findAll(".test-setup-card-tag");
-    const tags = await Promise.all(tagEls.map(t => t.getText()));
-    const radio = await el.find("input[type='radio']");
+    // Every card's input is the presentational checkbox glyph.
+    const radio = await el.find("input");
     const checked = (await radio.getAttribute("checked")) === "true";
     const disabled = (await radio.getAttribute("disabled")) === "true";
-    return { header, badges, tags, checked, disabled };
+    return { header, badges, checked, disabled };
+  }
+
+  // Prefix API fetches with location.origin: the page's <base> points elsewhere,
+  // so a relative URL would leave the session's origin (and its cookies) behind.
+
+  /** Reads the saved GRIST_SANDBOX_FLAVOR from install prefs, via the browser session. */
+  async function getSavedFlavor(): Promise<string | null> {
+    // Note: executeAsyncScript serializes undefined to null.
+    return driver.executeAsyncScript<string | null>(async (done: (v: string | null) => void) => {
+      const resp = await fetch(location.origin + "/api/install/prefs", { credentials: "include" });
+      done((await resp.json()).envVars?.GRIST_SANDBOX_FLAVOR ?? null);
+    });
+  }
+
+  /** Saves GRIST_SANDBOX_FLAVOR into install prefs, via the browser session. */
+  async function setSavedFlavor(flavor: string): Promise<void> {
+    const status = await driver.executeAsyncScript(async (flavorArg: string, done: (v: number) => void) => {
+      const resp = await fetch(location.origin + "/api/install/prefs", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ envVars: { GRIST_SANDBOX_FLAVOR: flavorArg } }),
+      });
+      done(resp.status);
+    }, flavor);
+    assert.equal(status, 200);
   }
 
   /** Returns the continue button text. */
   async function buttonText() {
     return driver.find(".test-quick-setup-sandbox-continue").getText();
+  }
+
+  /** Returns whether the continue button is disabled. */
+  async function buttonDisabled() {
+    const btn = await driver.find(".test-quick-setup-sandbox-continue");
+    return (await btn.getAttribute("disabled")) === "true";
   }
 
   /** Returns whether the env-lock warning is visible. */

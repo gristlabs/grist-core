@@ -1,14 +1,14 @@
 import collections
-import itertools
 import logging
 import types
 import column
 import depend
 import docmodel
-import functions
 import lookup
 from records import adjust_record, Record as BaseRecord, RecordSet as BaseRecordSet
 import relation as relation_module    # "relation" is used too much as a variable name below.
+from sort_key import make_sort_key
+import summary_helper
 import usertypes
 
 log = logging.getLogger(__name__)
@@ -249,6 +249,17 @@ class Table(object):
     #     * for row_id in table.row_ids
     self.row_ids = self.RowIDs(self._id_column)
 
+    # Support for DB-like triggers. For now we only support a few types that are easier to
+    # implement, and sufficient for the current purpose (summary tables).
+    self._hooks_after_load = _TriggerHooks()
+    self._hooks_after_add = _TriggerHooks()
+    self._hooks_before_remove = _TriggerHooks()
+
+    # Hooks fired when a specific column's value changes, keyed by col_id and called with
+    # (row_id, old_value, new_value). Used by reference lookups. Unlike the _hooks_* triggers
+    # above, these are NOT cleared on rebuild, but are maintained by each subscriber.
+    self._col_update_hooks = {}
+
     # For a summary table, this is a reference to the Table object for the source table.
     self._summary_source_table = None
 
@@ -348,6 +359,19 @@ class Table(object):
     # Make sure any new columns get resized to the full table size.
     self.grow_to_max()
 
+    self._hooks_after_add.clear()
+    self._hooks_after_load.clear()
+    self._hooks_before_remove.clear()
+
+    # Hook back Reference columns to react to rows being added, since they rely on it to index
+    # their default values. We skip is_private() columns because in practice these are internal
+    # formula columns (summary helpers and some metadata columns) which are never looked up on
+    # their empty values, and these hooks only create wasted work for them.
+    for col in self.all_columns.values():
+      if isinstance(col, column.BaseReferenceColumn) and not col.is_private():
+        self._hooks_after_add.add(col._on_row_added)
+        self._hooks_after_load.add(col._on_row_added)
+
     # If this is a summary table, auto-create a necessary helper formula in the source table.
     summary_src = getattr(self.Model, '_summarySourceTable', None)
     if summary_src not in self._engine.tables:
@@ -367,92 +391,43 @@ class Table(object):
         )
         for group_col in groupby_cols
       )
-      # Add the special helper column to the source table.
-      self._summary_source_table._add_update_summary_col(self, groupby_cols)
+      # Add the special helper column to the source table, and register its triggers so the
+      # summary's "group" membership stays current as source rows are added/removed/loaded.
+      helper_col = self._summary_source_table._add_update_summary_col(self, groupby_cols)
+      self._hooks_after_add.add(helper_col._on_summary_after_add)
+      self._hooks_after_load.add(helper_col._on_summary_after_add)
+      self._hooks_before_remove.add(helper_col._on_summary_before_remove)
 
   def _add_update_summary_col(self, summary_table, groupby_cols):
-    # TODO: things need to be removed also from summary_cols when a summary table is deleted.
-
-    # Grouping by list columns is significantly more complex and this comes with a
-    # performance cost, so in the common case we use the simpler older implementation
-    # In particular _updateSummary returns (possibly creating) just one reference
-    # instead of a list, which getSummarySourceGroup looks up directly instead
-    # of using CONTAINS, which in turn allows using SimpleLookupMapColumn
-    # instead of the similarly slower and more complicated ContainsLookupMapColumn
-    # All of these branches should be interchangeable and produce equivalent results
-    # when no list columns or CONTAINS are involved,
-    # especially since we need to be able to summarise by a combination of list and non-list
-    # columns or lookupRecords with a combination of CONTAINS and normal values,
-    # these are just performance optimisations
+    # The source table gets a hidden helper column "#summary#<SummaryTableId>" -- a Reference (or
+    # ReferenceList when grouping by list columns) into the summary table. It maintains the
+    # source-row -> summary-row mapping directly, so the summary's "group" column can read each
+    # group's members off this column's reverse reference relation, with no separate lookup index.
     if summary_table._summary_simple:
-      @usertypes.formulaType(usertypes.Reference(summary_table.table_id))
-      def _updateSummary(rec, table):  # pylint: disable=unused-argument
-        # summary table output should be treated as we treat formula columns, for acl purposes
-        with self._engine.user_actions.indirect_actions():
-          return summary_table.lookupOrAddDerived(**{c: getattr(rec, c) for c in groupby_cols})
-
+      helper_col_type = summary_helper.SummaryHelperSingleColumn
     else:
-      @usertypes.formulaType(usertypes.ReferenceList(summary_table.table_id))
-      def _updateSummary(rec, table):  # pylint: disable=unused-argument
-        # Create a row in the summary table for every combination of values in
-        # list type columns
-        lookup_values = []
-        for group_col in groupby_cols:
-          lookup_value = getattr(rec, group_col)
-          group_col_obj = self.all_columns[group_col]
-          if isinstance(group_col_obj, (column.ChoiceListColumn, column.ReferenceListColumn)):
-            # Check that ChoiceList/ReferenceList cells have appropriate types.
-            # Don't iterate over characters of a string.
-            if isinstance(lookup_value, (bytes, str)):
-              return []
-            try:
-              # We only care about the unique choices
-              lookup_value = set(lookup_value)
-            except TypeError:
-              return []
+      helper_col_type = summary_helper.SummaryHelperListColumn
 
-            if not lookup_value:
-              if isinstance(group_col_obj, column.ChoiceListColumn):
-                lookup_value = {""}
-              else:
-                lookup_value = {0}
-
-          else:
-            lookup_value = [lookup_value]
-          lookup_values.append(lookup_value)
-
-        result = []
-        values_to_add = {}
-        new_row_ids = []
-
-        for values_tuple in sorted(itertools.product(*lookup_values)):
-          values_dict = dict(zip(groupby_cols, values_tuple))
-          row_id = summary_table.lookup_one_record(**values_dict)._row_id
-          if row_id:
-            result.append(row_id)
-          else:
-            for col, value in values_dict.items():
-              values_to_add.setdefault(col, []).append(value)
-            new_row_ids.append(None)
-
-        if new_row_ids and not self._engine.is_triggered_by_table_action(summary_table.table_id):
-          # summary table output should be treated as we treat formula columns, for acl purposes
-          with self._engine.user_actions.indirect_actions():
-            result += self._engine.user_actions.BulkAddRecord(
-              summary_table.table_id, new_row_ids, values_to_add
-            )
-
-        return result
-
-    _updateSummary.is_private = True
     col_id = summary_table._summary_helper_col_id
-    if self.has_column(col_id):
-      # If type changed between Reference/ReferenceList, replace completely.
-      # pylint: disable=unidiomatic-typecheck
-      if type(self.get_column(col_id).type_obj) != type(_updateSummary.grist_type):
-        self.delete_column(self.get_column(col_id))
-    col_obj = self._create_or_update_col(col_id, _updateSummary)
-    self._add_special_col(col_obj)
+    helper_col = self.all_columns.get(col_id)
+    if helper_col and not isinstance(helper_col, helper_col_type):
+      # If the type changed between Reference/ReferenceList, replace completely.
+      self.delete_column(helper_col)
+      helper_col = None
+
+    if helper_col:
+      # Reuse the existing helper for the same summary table; just rebuild its mappings.
+      # TODO: could detect when only the groupby columns changed and skip even this.
+      helper_col.reset_mapping()
+      helper_col.initialize(summary_table, groupby_cols)
+    else:
+      helper_col = helper_col_type(self, col_id, summary_table, groupby_cols)
+      self._engine.invalidate_column(helper_col)
+
+    # Note that this special column is removed when the summary table is removed;
+    # get_helper_columns identifies it as no longer needed.
+    self._add_special_col(helper_col)
+    return helper_col
 
   def get_helper_columns(self):
     """
@@ -540,6 +515,7 @@ class Table(object):
         value = col._convert_raw_value(col.convert(value))
       key.append(value)
       col_ids.append(col_id)
+
     col_ids = tuple(col_ids)
     key = tuple(key)
 
@@ -547,12 +523,14 @@ class Table(object):
     sort_spec = make_sort_spec(order_by, sort_by, self.has_column('manualSort'))
     if sort_spec:
       sorted_lookup_map = self._get_sorted_lookup_map(lookup_map, sort_spec)
+      sort_key = sorted_lookup_map.sort_key
     else:
       sorted_lookup_map = lookup_map
+      sort_key = None
 
     row_ids, rel = sorted_lookup_map.do_lookup(key)
     return self.RecordSet(row_ids, rel, group_by=kwargs, sort_by=sort_by,
-        sort_key=sorted_lookup_map.sort_key)
+        sort_key=sort_key)
 
   def lookup_one_record(self, **kwargs):
     return self.lookup_records(**kwargs).get_one()
@@ -573,7 +551,7 @@ class Table(object):
         c = lookup.extract_column_id(c)
         if not self.has_column(c):
           raise KeyError("Table %s has no column %s" % (self.table_id, c))
-      lmap = lookup.LookupMapColumn(self, lookup_col_id, col_ids_tuple)
+      lmap = lookup.make_lookup_map_column(self, lookup_col_id, col_ids_tuple)
       self._add_special_col(lmap)
     return lmap
 
@@ -582,9 +560,26 @@ class Table(object):
     # Find or create a helper col for the given sort_spec.
     helper_col = self._special_cols.get(helper_col_id)
     if not helper_col:
-      helper_col = lookup.SortedLookupMapColumn(self, helper_col_id, lookup_map, sort_spec)
+      sort_key = make_sort_key(self, sort_spec)
+      helper_col = lookup.SortedLookupMapColumn(self, helper_col_id, lookup_map, sort_key)
       self._add_special_col(helper_col)
     return helper_col
+
+  def add_col_update_hook(self, col_id, cb):
+    # Register cb to be called with (row_id, old_value, new_value) when col_id's value changes.
+    # In particular, lookups of reference columns rely on this.
+    self._col_update_hooks.setdefault(col_id, []).append(cb)
+
+  def remove_col_update_hook(self, col_id, cb):
+    hooks = self._col_update_hooks.get(col_id)
+    if hooks:
+      hooks.remove(cb)
+      if not hooks:
+        del self._col_update_hooks[col_id]
+
+  def run_col_update_hooks(self, col_id, row_id, old_value, new_value):
+    for cb in self._col_update_hooks.get(col_id, ()):
+      cb(row_id, old_value, new_value)
 
   def delete_column(self, col_obj):
     assert col_obj.table_id == self.table_id
@@ -606,15 +601,8 @@ class Table(object):
 
   def getSummarySourceGroup(self, rec):
     if self._summary_source_table:
-      # See comment in _add_update_summary_col.
-      # _summary_source_table._summary_simple determines whether
-      # the column named self._summary_helper_col_id is a single reference
-      # or a reference list.
-      lookup_value = rec if self._summary_simple else functions.CONTAINS(rec)
-      result = self._summary_source_table.lookup_records(**{
-        self._summary_helper_col_id: lookup_value
-      })
-
+      helper_col = self._summary_source_table.get_column(self._summary_helper_col_id)
+      result = helper_col.get_source_group(rec._row_id)
       # Remove rows with empty groups
       self._engine.docmodel.setAutoRemove(rec, not result)
       return result
@@ -761,7 +749,31 @@ class Table(object):
       delattr(self.RecordSet, col_id)
 
 
+class _TriggerHooks():
+  """
+  DB-like triggers fired when records are added/removed/loaded, used to keep derived state
+  (reference reverse indexes, summary mappings) current. Each callback is called with a row_id.
+  """
+  def __init__(self):
+    self._callbacks = []
+
+  def add(self, cb):
+    self._callbacks.append(cb)
+
+  def clear(self):
+    self._callbacks = []
+
+  def run(self, row_ids):
+    for cb in self._callbacks:
+      for row_id in row_ids:
+        cb(row_id)
+
+
 def make_sort_spec(order_by, sort_by, has_manual_sort):
+  """
+  Normalizes arguments from order_by or sort_by arguments, and returns a tuple of col_ids,
+  optionally prefixed by "-".
+  """
   # Note that rowId is always an automatic fallback.
   if sort_by:
     if not isinstance(sort_by, str):

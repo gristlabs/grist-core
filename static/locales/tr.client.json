@@ -1,13 +1,13 @@
 {
     "ACUserManager": {
-        "Invite new member": "Yeni üyeyi davet edin",
+        "Invite new member": "Yeni üye davet edin",
         "Enter email address": "E-posta adresini girin",
         "We'll email an invite to {{email}}": "{{email}} adresine bir davet e-postası göndereceğiz"
     },
     "AccessRules": {
-        "Add column rule": "Sütuna Kural ekle",
+        "Add column rule": "Sütun kuralı ekle",
         "Add Default Rule": "Varsayılan kural ekle",
-        "Add table rules": "Tabloya kural ekle",
+        "Add table rules": "Tablo kuralı ekle",
         "Reset": "Sıfırla",
         "Saved": "Kaydedildi",
         "Attribute name": "Nitelik adı",

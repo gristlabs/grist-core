@@ -14,7 +14,7 @@ const {getFileUploadInfo, globalUploadSet, moveUpload} = require("app/server/lib
 tmp.setGracefulCleanup();
 
 describe("ActiveDocImport", function() {
-  this.timeout(10000);
+  this.timeout(testUtils.sandboxTimeout(10000));
 
   // Turn off logging for this test, and restore afterwards.
   testUtils.setTmpLogLevel("warn");

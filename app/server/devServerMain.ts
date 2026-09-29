@@ -18,6 +18,7 @@
  *
  */
 
+import "app/server/lib/lockdown";
 import { updateDb } from "app/server/lib/dbUtils";
 import { FlexServer } from "app/server/lib/FlexServer";
 import { getHomeUrl } from "app/server/lib/gristSettings";

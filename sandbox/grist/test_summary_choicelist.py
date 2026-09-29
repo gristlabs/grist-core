@@ -3,8 +3,8 @@
 Test of Summary tables grouped by ChoiceList columns.
 """
 import logging
-import column
 import lookup
+import summary_helper
 import testutil
 from test_engine import EngineTestCase, Table, Column, test_undo
 
@@ -140,26 +140,18 @@ class TestSummaryChoiceList(EngineTestCase):
     self.assertIs(self.engine.tables["Source_summary_other"]._summary_simple, True)
     self.assertIs(self.engine.tables["Source_summary_choices1_other"]._summary_simple, False)
 
+    # Summaries no longer build a companion lookup index: the helper column maintains the
+    # source->summary mapping directly, so the only special columns are the #summary# helpers
+    # (plus the table's unrelated empty-key #lookup# column).
     self.assertEqual(
       {k: type(v) for k, v in self.engine.tables["Source"]._special_cols.items()},
       {
-        '#summary#Source_summary_choices1': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#Source_summary_choices1', match_empty=no_match_empty)":
-          lookup.LookupMapColumn,
-        '#summary#Source_summary_choices1_choices2': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#Source_summary_choices1_choices2', "
-        "match_empty=no_match_empty)":
-          lookup.LookupMapColumn,
-
-        # simple summary and lookup
-        '#summary#Source_summary_other': column.ReferenceColumn,
-        '#lookup##summary#Source_summary_other': lookup.LookupMapColumn,
-
-        '#summary#Source_summary_choices1_other': column.ReferenceListColumn,
-        "#lookup#_Contains(value='#summary#Source_summary_choices1_other', "
-        "match_empty=no_match_empty)":
-          lookup.LookupMapColumn,
-
+        '#summary#Source_summary_choices1': summary_helper.SummaryHelperListColumn,
+        '#summary#Source_summary_choices1_choices2': summary_helper.SummaryHelperListColumn,
+        # simple summary (no list group-by columns)
+        '#summary#Source_summary_other': summary_helper.SummaryHelperSingleColumn,
+        '#summary#Source_summary_choices1_other': summary_helper.SummaryHelperListColumn,
+        # The table's empty-key lookup column (used by _num_rows), unrelated to summaries.
         "#lookup#": lookup.LookupMapColumn,
       }
     )

@@ -12,7 +12,7 @@ describe("HomeIntro", function() {
   this.timeout(40000);
   setupTestSuite({ samples: true, tutorial: true });
   gu.withEnvironmentSnapshot({
-    GRIST_UI_FEATURES: "templates,tutorials",
+    GRIST_UI_FEATURES: "helpCenter,templates,tutorials",
     GRIST_TEMPLATE_ORG: "templates",
     GRIST_ONBOARDING_TUTORIAL_DOC_ID: "grist-basics",
   });
@@ -98,6 +98,10 @@ describe("HomeIntro", function() {
     // TODO There is no longer a thumbnail + video link on an empty site, but it's a good place to
     // check for the presence and functionality of the planned links that open an intro video.
 
+    await gu.waitToPass(async () => {
+      assert.isTrue(await driver.find(".test-intro-create-section").isDisplayed());
+    }, 2000);
+    assert.isTrue(await driver.find(".test-intro-learn-section").isDisplayed());
     assert.isTrue(await driver.find(".test-intro-cards").isDisplayed());
     assert.isTrue(await driver.find(".test-intro-video-tour").isDisplayed());
     assert.isTrue(await driver.find(".test-intro-create-doc").isDisplayed());
@@ -120,13 +124,17 @@ describe("HomeIntro", function() {
       await driver.find(".test-welcome-menu").click();
       await driver.findWait(".test-welcome-menu-only-show-documents", 1000).click();
       await gu.waitForServer();
+      assert.isFalse(await driver.find(".test-intro-create-section").isPresent());
+      assert.isFalse(await driver.find(".test-intro-learn-section").isPresent());
       assert.isFalse(await driver.find(".test-intro-cards").isPresent());
       await driver.navigate().refresh();
       await gu.waitForDocMenuToLoad();
+      assert.isFalse(await driver.find(".test-intro-create-section").isPresent());
       assert.isFalse(await driver.find(".test-intro-cards").isPresent());
       await driver.find(".test-welcome-menu").click();
       await driver.findWait(".test-welcome-menu-only-show-documents", 1000).click();
       await gu.waitForServer();
+      assert.isTrue(await driver.find(".test-intro-create-section").isDisplayed());
       assert.isTrue(await driver.find(".test-intro-cards").isDisplayed());
     }
   }

@@ -253,27 +253,19 @@ export class Housekeeper {
   public async testProxyUrl() {
     const url = GRIST_TEST_PROXY_URL;
     if (!url) { return; }
-    const response = await fetchUntrustedWithAgent(url, {
-      method: "GET",
-      timeout: 5000,
-    }).catch((e) => {
-      return {
-        ok: false,
-        status: "error",
-        async text() { return String(e); },
-      };
-    });
-    if (response.ok) {
-      log.rawInfo("testProxyUrl passed", {
-        url,
-        status: response.status,
-      });
-    } else {
-      log.rawError("testProxyUrl failed", {
-        url,
-        status: response.status,
-        body: await response.text().catch(e => String(e)),
-      });
+    try {
+      const response = await fetchUntrustedWithAgent(url, { method: "GET", timeout: 5000 });
+      if (response.ok) {
+        log.rawInfo("testProxyUrl passed", { url, status: response.status });
+      } else {
+        log.rawError("testProxyUrl failed", {
+          url,
+          status: response.status,
+          responseText: await response.text().catch(e => String(e)),
+        });
+      }
+    } catch (e) {
+      log.rawError("testProxyUrl failed", { url, error: String(e) });
     }
   }
 

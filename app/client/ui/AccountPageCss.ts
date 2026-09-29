@@ -101,3 +101,29 @@ export const dataRow = styled("div", `
   align-items: baseline;
   gap: 2px;
 `);
+
+// Copied from the billing page, so that both usage summaries look the same.
+export const summaryFeatures = styled("div", `
+  margin: 20px 0 8px 0;
+`);
+
+export const summaryFeature = styled("div", `
+  color: ${theme.text};
+  margin: 16px 0 16px 20px;
+  text-indent: -20px;
+`);
+
+export const summaryText = styled("span", `
+  font-size: ${vars.mediumFontSize};
+  color: ${theme.text};
+`);
+
+export const tickIcon = styled(gristIcon, `
+  background-color: ${theme.accentIcon};
+  margin: 0 4px 2px 0;
+`);
+
+export const badIcon = styled(gristIcon, `
+  background-color: ${theme.errorText};
+  margin: 0 4px 2px 0;
+`);

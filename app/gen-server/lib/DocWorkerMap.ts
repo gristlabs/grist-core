@@ -1,11 +1,14 @@
 import { MapWithTTL } from "app/common/AsyncCreate";
 import { isAffirmative } from "app/common/gutil";
-import * as version from "app/common/version";
-import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import {
+  DocStatus, DocWorkerInfo, DocWorkerRegistration, IDocWorkerMap,
+} from "app/server/lib/DocWorkerMap";
+import { readLoadIntervalMs } from "app/server/lib/docWorkerSettings";
 import log from "app/server/lib/log";
 import { checkPermitKey, formatPermitKey, IPermitStore, Permit } from "app/server/lib/Permit";
 
 import { promisifyAll } from "bluebird";
+import chunk from "lodash/chunk";
 import mapValues from "lodash/mapValues";
 import { createClient, Multi, RedisClient } from "redis";
 import Redlock from "redlock";
@@ -28,6 +31,22 @@ const PERMIT_TTL_MSEC = 1 * 60 * 1000;  // 1 minute
 
 // Default doc worker group.
 const DEFAULT_GROUP = "default";
+
+// How long a worker's word that it is running lasts, kept here rather than taken from callers,
+// the claim being this map's to keep. Several turns of the timer that reports it, since a worker
+// briefly too busy to report has not gone anywhere. Read when needed rather than at load, since
+// settings are not in place until a server starts.
+function _aliveTtlSeconds(): number {
+  return Math.ceil(readLoadIntervalMs() * 5 / 1000);
+}
+
+/**
+ * Read one reply out of a pipeline's results. A failed command leaves an Error in the array where
+ * its reply would have been, which a positional read would otherwise take for a value.
+ */
+function reply(value: unknown): unknown {
+  return value instanceof Error ? null : value;
+}
 
 class DummyDocWorkerMap implements IDocWorkerMap {
   private _worker?: DocWorkerInfo;
@@ -63,12 +82,30 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     this._worker = undefined;
   }
 
+  public async getRegisteredWorkers(): Promise<DocWorkerRegistration[]> {
+    // Nothing registers anywhere without Redis, and callers check for it before asking.
+    throw new Error("getRegisteredWorkers is not answerable without redis");
+  }
+
+  public async getRegisteredWorkerCount(): Promise<number> {
+    return this._worker ? 1 : 0;
+  }
+
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
     this._available = available;
   }
 
   public async setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void> {
     // nothing to do
+  }
+
+  public async recordWorkerAlive(workerId: string): Promise<void> {
+    // nothing to do
+  }
+
+  public async isWorkerAlive(workerId: string): Promise<boolean> {
+    // The only worker there is, and it is this process, which is running.
+    return this._worker?.id === workerId;
   }
 
   public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {
@@ -174,33 +211,27 @@ class DummyDocWorkerMap implements IDocWorkerMap {
  *   worker-{workerId} - a hash of contact information for a worker
  *   worker-{workerId}-docs - a set of docs assigned to a worker, identified by docId
  *   worker-{workerId}-group - if set, marks the worker as serving a particular group
+ *   worker-{workerId}-alive - the worker's word that it is running, expiring if it stops saying
  *   doc-${docId} - a hash containing (JSON serialized) DocStatus fields, other than docMD5.
  *   doc-${docId}-checksum - the docs docMD5, or 'null' if docMD5 is null
  *   doc-${docId}-group - if set, marks the doc as to be served by workers in a given group
  *   workers-lock - a lock used when working with the list of workers
- *   groups - a hash from groupIds (arbitrary strings) to desired number of workers in group
- *   elections-${deployment} - a hash, from groupId to a (serialized json) list of worker ids
  *
  * Assignments of documents to workers can end abruptly at any time.  Clients
  * should be prepared to retry if a worker is not responding or denies that a document
  * is assigned to it.
  *
- * If the groups key is set, workers assign themselves to groupIds to
- * fill the counts specified in groups (in order of groupIds), and
- * once those are exhausted, get assigned to the special group
- * "default".
+ * A worker serves a particular group when it is told to, with GRIST_WORKER_GROUP, and otherwise
+ * serves the group called "default".
  */
 export class DocWorkerMap implements IDocWorkerMap {
   private _client: RedisClient;
   private _clients: RedisClient[];
   private _redlock: Redlock;
 
-  // Optional deploymentKey argument supplies a key unique to the deployment (this is important
-  // for maintaining groups across redeployments only)
-  constructor(_clients?: RedisClient[], private _deploymentKey?: string, private _options?: {
+  constructor(_clients?: RedisClient[], private _options?: {
     permitMsec?: number
   }) {
-    this._deploymentKey = this._deploymentKey || version.version;
     this._clients = _clients || [createClient(process.env.REDIS_URL)];
     this._redlock = new Redlock(this._clients);
     this._client = this._clients[0]!;
@@ -222,27 +253,6 @@ export class DocWorkerMap implements IDocWorkerMap {
         // Accept work only for a specific group.
         // Do not accept work not associated with the specified group.
         await this._client.setAsync(`worker-${info.id}-group`, info.group);
-      } else {
-        // Figure out if worker should belong to a group via elections.
-        // Be careful: elections happen within a single deployment, so are somewhat
-        // unintuitive in behavior. For example, if a document is assigned to a group
-        // but there is no worker available for that group, it may open on any worker.
-        // And if a worker is assigned to a group, it may still end up assigned work
-        // not associated with that group if it is the only worker available.
-        const groups = await this._client.hgetallAsync("groups");
-        if (groups) {
-          const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`) || {};
-          for (const group of Object.keys(groups).sort()) {
-            const count = parseInt(groups[group], 10) || 0;
-            if (count < 1) { continue; }
-            const elected: string[] = JSON.parse(elections[group] || "[]");
-            if (elected.length >= count) { continue; }
-            elected.push(info.id);
-            await this._client.setAsync(`worker-${info.id}-group`, group);
-            await this._client.hsetAsync(`elections-${this._deploymentKey}`, group, JSON.stringify(elected));
-            break;
-          }
-        }
       }
     } finally {
       await lock.unlock();
@@ -262,28 +272,6 @@ export class DocWorkerMap implements IDocWorkerMap {
       // At this point, this worker should no longer be receiving new doc assignments, though
       // clients may still be directed to the worker.
 
-      // If we were elected for anything, back out.
-      const elections = await this._client.hgetallAsync(`elections-${this._deploymentKey}`);
-      if (elections) {
-        if (group in elections) {
-          const elected: string[] = JSON.parse(elections[group]);
-          const newElected = elected.filter(worker => worker !== workerId);
-          if (elected.length !== newElected.length) {
-            if (newElected.length > 0) {
-              await this._client.hsetAsync(`elections-${this._deploymentKey}`, group,
-                JSON.stringify(newElected));
-            } else {
-              await this._client.hdelAsync(`elections-${this._deploymentKey}`, group);
-              delete elections[group];
-            }
-          }
-          // We're the last one involved in elections - remove the key entirely.
-          if (Object.keys(elected).length === 0) {
-            await this._client.delAsync(`elections-${this._deploymentKey}`);
-          }
-        }
-      }
-
       // Now, we start removing the assignments.
       const assignments = await this._client.smembersAsync(`worker-${workerId}-docs`);
       if (assignments) {
@@ -299,9 +287,64 @@ export class DocWorkerMap implements IDocWorkerMap {
 
       // Forget about this worker completely.
       await this._client.sremAsync("workers", workerId);
+      await this._client.delAsync(`worker-${workerId}-alive`);
     } finally {
       await lock.unlock();
     }
+  }
+
+  public async getRegisteredWorkerCount(): Promise<number> {
+    // scard, not smembers: this is asked on behalf of an installation that is told how many
+    // servers it runs and nothing further, so the ids are not fetched in the first place.
+    return await this._client.scardAsync("workers");
+  }
+
+  public async getRegisteredWorkers(): Promise<DocWorkerRegistration[]> {
+    // A stable order from one call to the next, with worker-2 ahead of worker-10.
+    const byWorkerId = new Intl.Collator(undefined, { numeric: true });
+    const workerIds = (await this._client.smembersAsync("workers")).sort(byWorkerId.compare);
+
+    // Two passes, each one round trip, rather than a few round trips per worker. Availability
+    // needs the group, which only the first pass knows, so it cannot be folded into one.
+    const details = this._client.multi();
+    for (const workerId of workerIds) {
+      details.hgetall(`worker-${workerId}`);
+      // Read rather than taken from the registration, this key being what availability is
+      // keyed by below.
+      details.get(`worker-${workerId}-group`);
+      details.scard(`worker-${workerId}-docs`);
+      details.exists(`worker-${workerId}-alive`);
+    }
+    // Replies come back flat, in the order queued, so they regroup into the four per worker.
+    const results = await details.execAsync() ?? [];
+    const perWorker = chunk(results.map(reply), 4) as
+      [DocWorkerInfo | null, string | null, number | null, number | null][];
+
+    const found = workerIds.flatMap((workerId, i) => {
+      const [info, group, docCount, alive] = perWorker[i] ?? [];
+      // A worker can deregister between the two reads, leaving an id with nothing behind it.
+      return info ? [{ workerId, info, group, docCount, alive }] : [];
+    });
+
+    // The by-load set rather than `workers-available-${group}`. Membership means the same in both,
+    // and this one carries the load as well, so availability and load come of a single read.
+    const availability = this._client.multi();
+    for (const w of found) {
+      availability.zscore(`workers-available-by-load-${w.group || DEFAULT_GROUP}`, w.workerId);
+    }
+    const scores = (await availability.execAsync() ?? []).map(reply) as (string | null)[];
+
+    return found.map((w, i) => {
+      const score = scores[i];
+      return {
+        info: w.group ? { ...w.info, group: w.group } : w.info,
+        // Absent from the set means unavailable, so there is no load to report either.
+        available: score != null,
+        load: score == null ? undefined : parseFloat(score),
+        assignmentCount: w.docCount ?? 0,
+        alive: Boolean(w.alive),
+      };
+    });
   }
 
   public async setWorkerAvailability(workerId: string, available: boolean): Promise<void> {
@@ -331,20 +374,35 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
+  public async recordWorkerAlive(workerId: string): Promise<void> {
+    await this._client.setexAsync(`worker-${workerId}-alive`, _aliveTtlSeconds(), "1");
+  }
+
+  public async isWorkerAlive(workerId: string): Promise<boolean> {
+    return Boolean(await this._client.existsAsync(`worker-${workerId}-alive`));
+  }
+
   /**
-   * Sets the load of the specified worker. Does nothing if the worker is not
-   * in the available set.
+   * What a worker says about itself, in one round trip. Load does nothing where the worker is not
+   * in the available set. Taken as the worker saying that it is running, as well.
    *
    * Note: This method should only be called by the worker.
    */
   public async setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void> {
-    log.rawInfo("DocWorkerMap.setWorkerLoad", {
+    log.rawDebug("DocWorkerMap.setWorkerLoad", {
       workerId: workerInfo.id,
       load,
     });
     const group = workerInfo.group || DEFAULT_GROUP;
+    const op = this._client.multi();
+    op.setex(`worker-${workerInfo.id}-alive`, _aliveTtlSeconds(), "1");
     // The "XX" argument means only update the key if it exists.
-    await this._client.zaddAsync(`workers-available-by-load-${group}`, "XX", load, workerInfo.id);
+    op.zadd(`workers-available-by-load-${group}`, "XX", load, workerInfo.id);
+    // A pipeline reports a failure in its replies, and one that did not run as nothing.
+    const replies = await op.execAsync();
+    if (!replies) { throw new Error("worker report was not applied"); }
+    const failure = replies.find(result => result instanceof Error);
+    if (failure) { throw failure; }
   }
 
   public async isWorkerRegistered(workerInfo: DocWorkerInfo): Promise<boolean> {

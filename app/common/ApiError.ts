@@ -8,7 +8,7 @@ export interface ApiTip {
   message: string;
 }
 
-export type LimitType = "collaborators" | "docs" | "workspaces" | "assistant";
+export type LimitType = "collaborators" | "docs" | "workspaces" | "assistant" | "apiCallsPerMonth";
 
 /**
  * Documentation of a limit relevant to an API error.

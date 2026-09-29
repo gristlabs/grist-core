@@ -105,18 +105,9 @@ export async function withExpandedItem(itemId: string, callback: () => Promise<v
  * switch hidden until its value arrives, and clicking a hidden element throws
  * ElementNotInteractableError. Re-finds on each poll, since the panel re-renders as values land.
  */
-export async function switchElement(name: string, options: { visible?: boolean } = {}) {
+export function switchElement(name: string, options: { visible?: boolean } = {}) {
   const selector = `.test-admin-panel-item-value-${name} .test-toggle-switch`;
-  await driver.wait(async () => {
-    try {
-      const [elem] = await driver.findAll(selector);
-      if (!elem) { return false; }
-      return options.visible ? await elem.isDisplayed() : true;
-    } catch (e) {
-      return false;   // Replaced mid-poll.
-    }
-  }, ITEM_TIMEOUT, `Timed out waiting for toggle switch ${JSON.stringify(selector)}`);
-  return driver.find(selector);
+  return options.visible ? gu.waitForDisplay(selector, ITEM_TIMEOUT) : driver.findWait(selector, ITEM_TIMEOUT);
 }
 
 export async function clickSwitch(name: string) {

@@ -21,11 +21,11 @@ import { RecordCardPopup } from "app/client/components/RecordCardPopup";
 import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
 import { ActionGroupWithCursorPos, UndoStack } from "app/client/components/UndoStack";
 import { ViewLayout } from "app/client/components/ViewLayout";
-import { startDocAirtableImport } from "app/client/lib/airtable/startDocAirtableImport";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
 import { DocPluginManager } from "app/client/lib/DocPluginManager";
-import { ImportSourceElement } from "app/client/lib/ImportSourceElement";
+import { startDocAirtableImport } from "app/client/lib/imports/airtable/startDocAirtableImport";
+import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement";
 import { makeT } from "app/client/lib/localization";
 import { createSessionObs } from "app/client/lib/sessionObs";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
@@ -45,6 +45,7 @@ import { getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen } from "app/client/mo
 import { UserPresenceModel, UserPresenceModelImpl } from "app/client/models/UserPresenceModel";
 import { App } from "app/client/ui/App";
 import { TriggersPage } from "app/client/ui/Automations/TriggersPage";
+import { buildCalendarSetupModal } from "app/client/ui/CalendarConfigModal";
 import { showCustomWidgetGallery } from "app/client/ui/CustomWidgetGallery";
 import { DocHistory } from "app/client/ui/DocHistory";
 import { startDocTour } from "app/client/ui/DocTour";
@@ -91,7 +92,7 @@ import { StringUnion } from "app/common/StringUnion";
 import { TableData } from "app/common/TableData";
 import { getGristConfig } from "app/common/urlUtils";
 import { AttachmentTransferStatus, DocAPI, ExtendedUser } from "app/common/UserAPI";
-import { AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType } from "app/common/widgetTypes";
+import { IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { CursorPos } from "app/plugin/GristAPI";
 
 import {
@@ -616,7 +617,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     const importSourceElems = ImportSourceElement.fromArray(this.docPluginManager.pluginsList);
     const importMenuItems = [
       {
-        label: t("Import from file"),
+        label: t("File"),
         action: () => importFromFile(this, createPreview),
       },
       ...importSourceElems.map(importSourceElem => ({
@@ -624,7 +625,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         action: () => selectAndImport(this, importSourceElems, importSourceElem, createPreview),
       })),
       ...(isFeatureEnabled("importFromAirtable") && [{
-        label: t("Import from Airtable"),
+        label: t("Airtable"),
         action: async () => {
           if (this.docPageModel.appModel.currentValidUser) {
             await startDocAirtableImport(this);
@@ -1615,8 +1616,8 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
   private _showNewWidgetPopups(type: IWidgetType) {
     this._maybeShowEditCardLayoutTip(type).catch(reportError);
 
-    if (AttachedCustomWidgets.guard(type)) {
-      this._handleNewAttachedCustomWidget(type).catch(reportError);
+    if (type === WidgetType.Calendar) {
+      this._handleNewCalendarWidget();
     }
   }
 
@@ -1836,18 +1837,14 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     });
   }
 
-  private async _handleNewAttachedCustomWidget(widget: IAttachedCustomWidget) {
-    switch (widget) {
-      case "custom.calendar": {
-        if (this.behavioralPromptsManager.shouldShowPopup("calendarConfig")) {
-          // Open the right panel to the calendar subtab.
-          commands.allCommands.viewTabOpen.run();
-
-          // Wait for the right panel to finish animation if it was collapsed before.
-          await commands.allCommands.rightPanelOpen.run();
-        }
-        break;
-      }
+  private _handleNewCalendarWidget() {
+    // First add only: if the calendar has no start/title mapped yet, open the blocking setup
+    // modal so the user can pick (or create) those columns. Once mapped, this never reopens.
+    const section = this.viewModel.activeSection.peek();
+    if (section.isDisposed()) { return; }
+    const mapped = section.mappedColumns.peek();
+    if (!mapped?.startDate || !mapped?.title) {
+      buildCalendarSetupModal(section, this);
     }
   }
 

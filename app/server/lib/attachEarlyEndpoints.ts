@@ -17,6 +17,7 @@ import {
 import { canRestart, makeAdminPageConfig } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
+import { getBootKeySessionId } from "app/server/lib/Boot";
 import { BootProbes } from "app/server/lib/BootProbes";
 import { expressWrap } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
@@ -82,7 +83,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: makeAdminPageConfig(gristServer),
+        config: await makeAdminPageConfig(req, gristServer),
       });
     }),
   );
@@ -110,14 +111,14 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         path: mreq.path,
         email: mreq.user?.loginEmail,
       };
-      log.rawDebug(`Restart[${mreq.method}] starting:`, meta);
+      log.rawInfo(`Restart[${mreq.method}] starting:`, meta);
       res.on("finish", () => {
         // If we have IPC with parent process (e.g. when running under
         // Docker) tell the parent that we have a new environment so it
         // can restart us.
-        log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
+        log.rawInfo(`Restart[${mreq.method}] finishing:`, meta);
         if (process.send && canRestart()) {
-          log.rawDebug(`Restart[${mreq.method}] requesting restart:`, meta);
+          log.rawInfo(`Restart[${mreq.method}] requesting restart:`, meta);
           process.send({ action: "restart" });
         }
       });
@@ -183,8 +184,20 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/prefs",
     json({ limit: "1mb" }),
     expressWrap(async (req, res) => {
-      const prefs = req.body;
-      const { telemetry, envVars } = prefs as InstallPrefs;
+      const prefs = req.body as InstallPrefs;
+      const { telemetry, envVars } = prefs;
+
+      // Which session survives a session clear is the server's decision alone, so drop any
+      // value the client sent and derive it here.
+      delete prefs.onRestartKeepSessionId;
+      if (prefs.onRestartClearSessions) {
+        // Keeping the boot-key session protects the operator mid-setup. Going live ends
+        // the setup, so nothing is kept from that point on.
+        const goingLive = envVars?.GRIST_IN_SERVICE === "true";
+        prefs.onRestartKeepSessionId = goingLive ?
+          null :
+          (await getBootKeySessionId(req, gristServer)) ?? null;
+      }
 
       if (envVars && typeof envVars === "object" && "GRIST_SERVER_EDITION" in envVars) {
         const edition = envVars.GRIST_SERVER_EDITION;

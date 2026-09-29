@@ -53,6 +53,7 @@ describe("ToggleColumns", function() {
   async function verifyToggleBehavior() {
     // Selecting a cell in Src should show only linked values in Items.
     await gu.getCell({ section: "Src", col: "A", rowNum: 1 }).click();
+    await gu.waitForViewLoads();
     assert.deepEqual(await gu.getVisibleGridCells({ section: "Items", cols: ["A", "Chk2"], rowNums: [1, 2, 3] }), [
       "Src[1]", "false",
       "Src[1]", "false",
@@ -73,6 +74,7 @@ describe("ToggleColumns", function() {
 
     // Try another row of table Src. It should have its own Items (initially none).
     await gu.getCell({ section: "Src", col: "A", rowNum: 2 }).click();
+    await gu.waitForViewLoads();
     assert.deepEqual(await gu.getVisibleGridCells({ section: "Items", cols: ["A", "Chk2"], rowNums: [1] }),
       ["", ""]);
 

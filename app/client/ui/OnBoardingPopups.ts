@@ -199,11 +199,12 @@ class OnBoardingPopupsCtl extends Disposable {
     const { placement } = entry;
 
     // The element the popup refers to is not present. To the user we show nothing and simply skip
-    // it to the next.
+    // it to the next. The previous popup is already closed, so if this skip runs out of steps, the
+    // tour must finish rather than leave the overlay up with nothing to close it.
     if (!elem) {
       console.warn(`On boarding tour: element ${entry.selector} not found!`);
       // movement = 0 when starting a tour, make sure we don't get stuck in a loop
-      return this._move(movement || +1);
+      return this._move(movement || +1, true);
     }
 
     // Cleanup

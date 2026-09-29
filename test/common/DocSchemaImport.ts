@@ -1,16 +1,22 @@
 import { UserAction } from "app/common/DocActions";
 import {
   ApplyUserActionsFunc,
+  buildDocSchema,
   ColumnImportSchema, DocSchemaImportTool,
   ImportSchema,
   transformImportSchema,
   USER_ACTION_BATCH_SIZE,
   validateImportSchema,
 } from "app/common/DocSchemaImport";
+import { ColumnMetadata, TableMetadata } from "app/plugin/DocApiTypes";
 
 import { assert } from "chai";
 import { takeWhile } from "lodash";
 import sinon from "sinon";
+
+function existingCol(id: string, colRef: number, type: string, label = ""): ColumnMetadata {
+  return { id, fields: { colRef, label, type, isFormula: false } };
+}
 
 function parseUserActions(applyUserActions: sinon.SinonSpy) {
   const calls = applyUserActions.getCalls();
@@ -114,14 +120,7 @@ describe("DocSchemaImport", function() {
       const existingTables = {
         tables: [{
           id: "A",
-          columns: [
-            {
-              id: "A-1",
-              ref: 1,
-              type: "Text",
-              isFormula: false,
-            },
-          ],
+          columns: [existingCol("A-1", 1, "Text")],
         }],
       };
       assert.isEmpty(validateImportSchema(schema, existingTables));
@@ -205,14 +204,8 @@ describe("DocSchemaImport", function() {
       const existingDocSchema = {
         tables: [{
           id: "Existing1",
-          columns: [{
-            id: "ExistingCol1",
-            ref: 1,
-            type: "Text",
-            // Needs to match the label on the source column for matching to work.
-            label: "Col Alpha",
-            isFormula: false,
-          }],
+          // The label needs to match the source column's for matching to work.
+          columns: [existingCol("ExistingCol1", 1, "Text", "Col Alpha")],
         }],
       };
 
@@ -278,14 +271,8 @@ describe("DocSchemaImport", function() {
       const existingDocSchema = {
         tables: [{
           id: "Existing1",
-          columns: [{
-            id: "ExistingCol1",
-            ref: 1,
-            type: "Text",
-            // Label doesn't match the column schema's label - column shouldn't match.
-            label: "",
-            isFormula: false,
-          }],
+          // The label doesn't match the column schema's label - the column shouldn't match.
+          columns: [existingCol("ExistingCol1", 1, "Text")],
         }],
       };
 
@@ -371,14 +358,10 @@ describe("DocSchemaImport", function() {
           {
             type: "Text",
             isFormula: false,
-            formula: undefined,
             label: "Col Alpha",
             untieColIdFromLabel: true,
             description: "Alpha column description",
             widgetOptions: "{}",
-            visibleCol: undefined,
-            recalcDeps: undefined,
-            recalcWhen: undefined,
           },
         ],
         [
@@ -389,13 +372,8 @@ describe("DocSchemaImport", function() {
             type: "Text",
             isFormula: true,
             formula: "$ArbitraryColumnId_Alpha",
-            label: undefined,
             untieColIdFromLabel: false,
-            description: undefined,
-            widgetOptions: undefined,
-            visibleCol: undefined,
-            recalcDeps: undefined,
-            recalcWhen: undefined,
+            widgetOptions: "",
           },
         ],
         [
@@ -405,14 +383,9 @@ describe("DocSchemaImport", function() {
           {
             type: "Ref:ArbitraryTableId_0",
             isFormula: false,
-            formula: undefined,
-            label: undefined,
             untieColIdFromLabel: false,
-            description: undefined,
-            widgetOptions: undefined,
+            widgetOptions: "",
             visibleCol: "ArbitraryColumnId_Alpha",
-            recalcDeps: undefined,
-            recalcWhen: undefined,
           },
         ],
         [
@@ -423,13 +396,8 @@ describe("DocSchemaImport", function() {
             type: "Text",
             isFormula: true,
             formula: 'ArbitraryTableId_0.lookupOne(ArbitraryColumnId_Alpha="A")',
-            label: undefined,
             untieColIdFromLabel: false,
-            description: undefined,
-            widgetOptions: undefined,
-            visibleCol: undefined,
-            recalcDeps: undefined,
-            recalcWhen: undefined,
+            widgetOptions: "",
           },
         ],
       ];
@@ -645,6 +613,49 @@ describe("DocSchemaImport", function() {
         assert.equal(action[0], "ModifyColumn");
         assert.equal(action[2], `ArbitraryColumnId_Col_${i}`);
       });
+    });
+  });
+
+  describe("buildDocSchema", () => {
+    let refCounter = 0;
+
+    function col(id: string): ColumnMetadata {
+      return { id, fields: { colRef: ++refCounter, label: id, isFormula: false, type: "Text" } };
+    }
+
+    function table(id: string, columns: ColumnMetadata[], fields: Record<string, any> = {}): TableMetadata {
+      return { id, fields: { tableRef: ++refCounter, summarySourceTable: 0, ...fields }, columns };
+    }
+
+    it("splits visible and hidden columns", function() {
+      const schema = buildDocSchema([
+        table("People", [col("Name"), col("manualSort"), col("gristHelper_Display2")]),
+      ]);
+      assert.deepEqual(schema.tables.map(t => t.id), ["People"]);
+      assert.deepEqual(schema.tables[0].columns.map(c => c.id), ["Name"]);
+      assert.deepEqual(schema.tables[0].hiddenColumns?.map(c => c.id), ["manualSort", "gristHelper_Display2"]);
+    });
+
+    it("filters out summary tables", function() {
+      const schema = buildDocSchema([
+        table("People", [col("Name")]),
+        table("People_summary_Team", [col("Team")], { summarySourceTable: 1 }),
+      ]);
+      assert.deepEqual(schema.tables.map(t => t.id), ["People"]);
+    });
+
+    it("filters out internal tables", function() {
+      const schema = buildDocSchema([
+        table("GristHidden_import", [col("A")]),
+        table("GristDocTour", [col("B")]),
+        table("Normal", [col("C")]),
+      ]);
+      assert.deepEqual(schema.tables.map(t => t.id), ["Normal"]);
+    });
+
+    it("handles tables with no columns", function() {
+      const schema = buildDocSchema([{ id: "Empty", fields: { tableRef: 1 } }]);
+      assert.deepEqual(schema.tables, [{ id: "Empty", columns: [], hiddenColumns: [] }]);
     });
   });
 });

@@ -84,13 +84,17 @@ class FocusLayerManager extends Disposable {
     this._focusLayers.push(layer);
     // Move the focus to the new layer. Not just grabFocus, because if the focus is on the previous
     // layer's defaultFocusElem, the new layer might consider it "allowed" and never get the focus.
-    setTimeout(() => layer.defaultFocusElem.focus({ preventScroll: true }), 0);
+    // Deferred, since the element is usually still being built, and cannot take focus until it is
+    // attached to the page.
+    setTimeout(() => layer.focusDefaultElem(), 0);
   }
 
   public removeLayer(layer: FocusLayer) {
     arrayRemove(this._focusLayers, layer);
-    // Give the remaining layers a chance to check focus.
-    this.grabFocus();
+    // Give the remaining layers a chance to check focus, synchronously if the focus fell to the
+    // body along with this layer's element.
+    const focusLost = document.activeElement === document.body;
+    this.grabFocus(focusLost ? layer.defaultFocusElem : undefined);
   }
 
   public getCurrentLayer(): FocusLayer | undefined {
@@ -200,6 +204,13 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
     manager.addLayer(this);
     this.onDispose(() => manager.removeLayer(this));
     this.autoDispose(dom.onElem(this.defaultFocusElem, "blur", (event, elem) => manager.grabFocus(elem)));
+  }
+
+  /**
+   * Focuses the default element. Has no effect if that element is not attached to the page.
+   */
+  public focusDefaultElem() {
+    this.defaultFocusElem.focus({ preventScroll: true });
   }
 
   public onDefaultFocus() {

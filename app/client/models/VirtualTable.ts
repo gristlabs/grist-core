@@ -3,7 +3,7 @@ import { DocModel } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
 import { TableData } from "app/client/models/TableData";
 import { concatenateSummaries, summarizeStoredAndUndo } from "app/common/ActionSummarizer";
-import { TableDelta } from "app/common/ActionSummary";
+import { createEmptyTableDelta, TableDelta } from "app/common/ActionSummary";
 import { ProcessedAction } from "app/common/AlternateActions";
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { DocAction, TableDataAction, UserAction } from "app/common/DocActions";
@@ -105,7 +105,8 @@ export class VirtualTableData extends TableData {
     const summary = concatenateSummaries(
       actions
         .map(action => summarizeStoredAndUndo(action.stored, action.undo)));
-    const delta = summary.tableDeltas[this.getName()];
+    // The summary omits a table with nothing to say (and with no actions has no table at all).
+    const delta = summary.tableDeltas[this.getName()] ?? createEmptyTableDelta();
     return {
       actions,
       delta,

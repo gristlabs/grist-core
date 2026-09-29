@@ -67,24 +67,24 @@ describe("NewDocument.ntest", function() {
     await driver.manage().setTimeouts({script: 500});
     let result = await driver.executeAsyncScript(() => {
       var cb = arguments[arguments.length - 1];
-      window.gristApp.comm.getDocList()
+      window.gristApp.comm.showItemInFolder()
         .then(
           newName => cb("unexpected success"),
           err => { cb(err.toString()); throw err; }
         );
     });
-    assert.match(result, /Unknown method getDocList/);
+    assert.match(result, /Unknown method showItemInFolder/);
 
     // Now make sure the notifications window is open and has the error we expect.
     await assert.isDisplayed($(".test-notifier-toast-message"));
-    assert.match(await $(".test-notifier-toast-message").last().text(), /Unknown method getDocList/);
+    assert.match(await $(".test-notifier-toast-message").last().text(), /Unknown method showItemInFolder/);
 
     // Close the notifications window.
     await $(".test-notifier-toast-close").click();
     await assert.isPresent($(".test-notifier-toast-message"), false);
 
     assert.deepEqual(await driver.executeScript(() => window.getAppErrors()),
-      ["Our fake error", "Unknown method getDocList"]);
+      ["Our fake error", "Unknown method showItemInFolder"]);
     await driver.executeScript(
       "setTimeout(() => window.gristApp.topAppModel.notifier.clearAppErrors())");
   });

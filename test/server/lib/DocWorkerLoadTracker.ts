@@ -133,10 +133,12 @@ describe("DocWorkerLoadTracker", function() {
   describe("interval runner", function() {
     let getLoadStub: sinon.SinonStub;
     let setWorkerLoadStub: sinon.SinonStub;
+    let recordWorkerAliveStub: sinon.SinonStub;
     let logErrorStub: sinon.SinonStub;
     beforeEach(function() {
       getLoadStub = sandbox.stub(docWorkerLoadTracker, "getLoad").resolves(0);
       setWorkerLoadStub = sandbox.stub(docWorkerMap, "setWorkerLoad").resolves(undefined);
+      recordWorkerAliveStub = sandbox.stub(docWorkerMap, "recordWorkerAlive").resolves(undefined);
       logErrorStub = sandbox.stub(docWorkerLoadTracker["_log"], "error").returns(undefined);
     });
 
@@ -145,8 +147,13 @@ describe("DocWorkerLoadTracker", function() {
     it("should update the worker load when the timer is triggered", async function() {
       getLoadStub.resolves(0.42);
       await triggerTimer();
-      assert.equal(setWorkerLoadStub.callCount, 1, "setWorkerLoad should have been called to update the load value");
-      assert.deepEqual(setWorkerLoadStub.firstCall.args, [docWorkerInfoMap, 0.42]);
+      assert.equal(setWorkerLoadStub.callCount, 1,
+        "setWorkerLoad should have been called to update the load value");
+      // The word that a worker is running rides along with its load, rather than costing a call
+      // of its own.
+      assert.deepEqual(setWorkerLoadStub.firstCall.args,
+        [docWorkerInfoMap, 0.42]);
+      assert.equal(recordWorkerAliveStub.callCount, 0);
     });
 
     it("should log an error when the worker load cannot be computed", async function() {
@@ -155,6 +162,9 @@ describe("DocWorkerLoadTracker", function() {
       await triggerTimer();
       assert.equal(setWorkerLoadStub.callCount, 0, "setWorkerLoad should not have been called");
       assert.include(logErrorStub.firstCall.args, error, "the error should have been logged");
+      // Still running, whatever its memory files say. A worker that cannot measure itself must
+      // not read as one that has stopped, which is an invitation to deregister it.
+      assert.deepEqual(recordWorkerAliveStub.firstCall?.args, [docWorkerInfoMap.id]);
     });
   });
 });

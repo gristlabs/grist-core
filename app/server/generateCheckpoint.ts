@@ -7,6 +7,7 @@
  *
  */
 
+import "app/server/lib/lockdown";
 import { getCreate } from "app/server/lib/create";
 
 export async function main() {

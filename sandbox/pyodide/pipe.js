@@ -58,12 +58,22 @@ class GristPipe {
   }
 
   async loadCode() {
-    // Load python packages.
+    // Load python packages. Pyodide names a wheel after the last "/"-separated
+    // part of its path, so hand it forward slashes: a native Windows path is
+    // all one part, leaving every wheel with the same name but the first
+    // discarded as a duplicate.
     const src = path.join(__dirname, "_build", "packages");
-    const lsty = (await listLibs(src)).available.map(item => item.fullName);
-    await this.pyodide.loadPackage(lsty, {
-      messageCallback: (msg) => this.log("[package]", msg),
-    });
+    const libs = (await listLibs(src)).available;
+    const loaded = await this.pyodide.loadPackage(
+      libs.map(item => item.fullName.replaceAll(path.sep, "/")), {
+        messageCallback: (msg) => this.log("[package]", msg),
+        errorCallback: (msg) => this.log("[package error]", msg),
+      });
+    // loadPackage resolves even when it loaded nothing, so check. Otherwise the
+    // first sign of trouble is an ImportError from inside the data engine.
+    if (loaded.length !== libs.length) {
+      throw new Error(`Pyodide loaded ${loaded.length} of ${libs.length} packages`);
+    }
 
     // Load Grist data engine code.
     // We mount it as /grist_src, copy to /grist, then unmount.

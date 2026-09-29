@@ -1,5 +1,5 @@
 import { detectCurrentLang, makeT } from "app/client/lib/localization";
-import { markdown } from "app/client/lib/markdown";
+import { inlineMarkdown, markdown } from "app/client/lib/markdown";
 import { checkName } from "app/client/lib/nameUtils";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -25,9 +25,9 @@ import { cssLink, cssNestedLinks } from "app/client/ui2018/links";
 import { select } from "app/client/ui2018/menus";
 import { commonUrls, getPageTitleSuffix, isFeatureEnabled } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
-import { FullUser } from "app/common/UserAPI";
+import { AccountInfo } from "app/common/UserAPI";
 
-import { Computed, Disposable, dom, domComputed, makeTestId, Observable, styled, subscribe } from "grainjs";
+import { Computed, Disposable, dom, makeTestId, Observable, styled, subscribe } from "grainjs";
 
 const testId = makeTestId("test-account-page-");
 const t = makeT("AccountPage");
@@ -41,7 +41,9 @@ export class AccountPage extends Disposable {
   );
 
   private _apiKey = Observable.create<string>(this, "");
-  private _userObs = Observable.create<FullUser | null>(this, null);
+  private _userObs = Observable.create<AccountInfo | null>(this, null);
+  // Usage of the personal site, whichever site the page was opened from.
+  private _personalUsage = Computed.create(this, use => use(this._userObs)?.personalSite ?? null);
   private _isEditingName = Observable.create(this, false);
   private _nameEdit = Observable.create<string>(this, "");
   private _isNameValid = Computed.create(this, this._nameEdit, (_use, val) => checkName(val));
@@ -65,12 +67,14 @@ export class AccountPage extends Disposable {
   }
 
   private _buildContentMain() {
-    return domComputed(this._currentPage, (page) => {
+    return dom.domComputed(this._currentPage, (page) => {
       switch (page) {
         case "developer":
           return dom.create(OAuthAppsUI.developerPageOverride, this._appModel, () => this._buildDeveloperContent());
         case "authorized-apps":
           return dom.create(OAuthAppsUI.authorizedAppsPageContent, this._appModel);
+        case "personal-site":
+          return dom.maybe(this._userObs, () => this._buildPersonalSiteContent());
         default: return this._buildProfileContent();
       }
     });
@@ -101,7 +105,7 @@ export class AccountPage extends Disposable {
         ),
         css.dataRow(
           css.inlineSubHeader(t("Name")),
-          domComputed(this._isEditingName, isEditing => (
+          dom.domComputed(this._isEditingName, isEditing => (
             isEditing ? [
               transientInput(
                 {
@@ -213,6 +217,34 @@ OAuth apps are available with the [full version of Grist]({{fullGrist}}).`,
     ]);
   }
 
+  private _buildPersonalSiteContent() {
+    return SettingsPage(t("Personal site"), [
+      SectionCard(t("Usage summary"), [
+        dom.domComputed(this._personalUsage, (usage) => {
+          const api = usage?.apiCalls;
+          const ai = usage?.assistant;
+          if (!api && !ai) {
+            return css.description(t("No usage data to show."),
+              testId("usage-none"));
+          }
+          // Whole sentences, so that a translation can put the words in any order.
+          return css.summaryFeatures(
+            !api ? null : line("api", api.used === 0 ?
+              t("You have **{{limit}}** monthly **API** calls", { limit: api.limit }) :
+              t("You have **{{left}} of {{limit}}** monthly **API** calls left",
+                { left: Math.max(0, api.limit - api.used), limit: api.limit }),
+            api.used >= api.limit),
+            !ai ? null : line("assistant", ai.used === 0 ?
+              t("You have **{{limit}}** one time **AI Assistant** credits", { limit: ai.limit }) :
+              t("You have **{{left}} of {{limit}}** one time **AI Assistant** credits left",
+                { left: Math.max(0, ai.limit - ai.used), limit: ai.limit }),
+            ai.used >= ai.limit),
+          );
+        }),
+      ]),
+    ]);
+  }
+
   private _buildHeaderMain() {
     return [
       fullBreadcrumbs(
@@ -286,6 +318,15 @@ OAuth apps are available with the [full version of Grist]({{fullGrist}}).`,
 const cssWarnings = styled(css.warning, `
   margin: -8px 0 0 110px;
 `);
+
+// One line of the usage summary, with a tick and bold parts from markdown.
+function line(name: string, text: string, isUsedUp?: boolean) {
+  return css.summaryFeature(
+    isUsedUp ? css.badIcon("CrossBig") : css.tickIcon("Tick"),
+    css.summaryText(inlineMarkdown(text)),
+    testId(`usage-${name}`),
+  );
+}
 
 const cssFirstUpper = styled("div", `
   & > div::first-letter {

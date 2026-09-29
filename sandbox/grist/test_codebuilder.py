@@ -181,6 +181,19 @@ return rec
                      " If you want to check for equality, use `==` instead of `=`.\", "
                      "('usercode', 1, 1, 'foo = 1'))")
 
+  def test_multiline_fstring_indent(self):
+    # Since Python 3.12 (PEP 701), the pieces nested inside an f-string have source positions of
+    # their own, so one multi-line f-string yields several overlapping spans. Patching all of them
+    # rather than just the outermost duplicated the string, producing code that doesn't compile.
+    for formula in [
+      'f"""test1\ntest2\ntest3"""',                            # no interpolation
+      'f"""test1\n{1 + 2}\ntest3"""',                          # interpolation
+      'f"""test1\n{f"{1 + 2}"}\ntest3"""',                     # f-string nested in an f-string
+      '"""plain1\nplain2""" + f"""fstr1\n{1 + 2}\nfstr2"""',   # alongside a plain string
+    ]:
+      # Only the `return` gets indented; the contents of the strings are left alone.
+      self.assertEqual(make_body(formula, indent='  '), '  return ' + formula)
+
   def test_make_formula_body_unicode(self):
     # Test that we don't fail when strings include unicode characters
     self.assertEqual(make_body("'résumé' + $foo"), u"return 'résumé' + rec.foo")

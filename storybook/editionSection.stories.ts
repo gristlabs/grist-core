@@ -82,27 +82,6 @@ export const AdminServerCommunity = adminStory({
   overrides: { fullGristAvailable: true, initialServerEdition: COMMUNITY_EDITION },
 });
 
-/**
- * Full Grist build, server currently running Full Grist. Shows the downgrade
- * button AND the ToggleEnterpriseWidget above it (activation-key / trial /
- * license UI). The widget's activation fetch fails silently in storybook and
- * the widget renders its initial state.
- */
-export const AdminServerFull = adminStory({
-  deploymentType: "enterprise",
-  overrides: { fullGristAvailable: true, initialServerEdition: FULL_EDITION },
-});
-
-/** Edition forced via GRIST_FORCE_ENABLE_ENTERPRISE: env note. */
-export const AdminEditionForced = adminStory({
-  deploymentType: "enterprise",
-  overrides: {
-    fullGristAvailable: true,
-    editionForced: true,
-    initialServerEdition: FULL_EDITION,
-  },
-});
-
 // --- Status-pill stories ----------------------------------------------------
 
 export const StatusCommunity = statusStory({

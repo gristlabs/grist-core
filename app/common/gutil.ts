@@ -1114,3 +1114,11 @@ export function inSeconds(text: string): number {
     default: throw new Error(`Invalid duration unit: ${unit}`);
   }
 }
+
+/**
+ * Parses a url, returning nothing where it is not one, for callers that have something to say
+ * about that themselves.
+ */
+export function tryParseUrl(url: string | undefined): URL | undefined {
+  try { return new URL(url ?? ""); } catch { return undefined; }
+}

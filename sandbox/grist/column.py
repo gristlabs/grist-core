@@ -100,6 +100,13 @@ class BaseColumn(object):
     """
     return self.method is not None
 
+  def used_col_ids(self):
+    """
+    The set of col_ids (of the same table) whose column objects this column holds state tied to,
+    so that it must be rebuilt when any of them is. Overridden by lookup helper columns.
+    """
+    return frozenset()
+
   def clear(self):
     self._data = []
     self.growto(1)    # Always include the special empty record at index 0.
@@ -413,18 +420,23 @@ class ChoiceListColumn(ChoiceColumn):
       return tuple(renames.get(choice, choice) for choice in value)
     return None
 
+class _EmptySentinel:
+  def __repr__(self):
+    return "_empty_sentinel"
+_empty_sentinel = _EmptySentinel()
 
 class BaseReferenceColumn(BaseColumn):
   """
   Base class for ReferenceColumn and ReferenceListColumn.
   """
   def __init__(self, table, col_id, col_info):
-    super(BaseReferenceColumn, self).__init__(table, col_id, col_info)
+    super().__init__(table, col_id, col_info)
     # We can assume that all tables have been instantiated, but not all initialized.
     target_table_id = self.type_obj.table_id
     self._table = table
     self._target_table = table._engine.tables.get(target_table_id, None)
-    self._relation = relation.ReferenceRelation(table.table_id, target_table_id, col_id)
+    self._relation = relation.ReferenceRelation(table.table_id, target_table_id, col_id,
+                                                self._build_index)
     # Note that we need to remove these back-references when the column is removed.
     if self._target_table:
       self._target_table._back_references.add(self)
@@ -433,21 +445,43 @@ class BaseReferenceColumn(BaseColumn):
     if self._reverse_source_node:
       _multimap_add(self._table._reverse_cols_by_source_node, self._reverse_source_node, self)
 
+  def target_table_id(self):
+    return self._target_table.table_id
 
   def destroy(self):
     # Destroy the column and remove the back-reference we created in the constructor.
-    super(BaseReferenceColumn, self).destroy()
+    super().destroy()
     if self._reverse_source_node:
       _multimap_remove(self._table._reverse_cols_by_source_node, self._reverse_source_node, self)
 
     if self._target_table:
       self._target_table._back_references.remove(self)
 
-  def _update_references(self, row_id, old_value, new_value):
-    for r in self._value_iterable(old_value):
-      self._relation.remove_reference(row_id, r)
-    for r in self._value_iterable(new_value):
+  def do_reverse_lookup(self, target_row_id, default=None):
+    return self._relation.inverse_map.get(target_row_id, default)
+
+  def _add_to_index(self, row_id, value):
+    # Add row_id to the reverse map under each target referenced by `value`.
+    for r in self._value_iterable_full(value):
       self._relation.add_reference(row_id, r)
+
+  def _build_index(self):
+    # Called by our ReferenceRelation to build its inverse map on first use: index every live
+    # row's current value (including defaults, which lookups use for empty-value matches).
+    for row_id in self._table.row_ids:
+      self._add_to_index(row_id, self.raw_get(row_id))
+
+  def _update_references(self, row_id, old_value, new_value, index_new=True):
+    for r in self._value_iterable_full(old_value):
+      self._relation.remove_reference(row_id, r)
+    # On removal (index_new=False) we drop the row from the index but must not re-index it under
+    # new_value -- it no longer exists, so it doesn't belong in any lookup result.
+    if index_new:
+      self._add_to_index(row_id, new_value)
+
+    # Fire any column-update hooks (e.g. reference lookups). They live on the table keyed by col_id
+    # (not on this column object) so they survive rebuilds of this column.
+    self._table.run_col_update_hooks(self.col_id, row_id, old_value, new_value)
 
   def _reject_unresolved_temp_ids(self, values):
     # A negative id surviving translation is a temp id the bundle never created, and can never
@@ -463,26 +497,50 @@ class BaseReferenceColumn(BaseColumn):
     raise NotImplementedError()
 
   def _value_iterable(self, value):
+    # Should return a "clean" iterable: only actual references in the value (e.g. no AltText).
+    raise NotImplementedError()
+
+  def _value_iterable_full(self, value):
+    # Like _value_iterable, but also returns AltText for Refs, and _empty_sentinel for RefLists,
+    # to support lookups that use our internal map but are compatible with other lookups.
     raise NotImplementedError()
 
   def _list_to_value(self, value_as_list):
     raise NotImplementedError()
 
   def set(self, row_id, value):
-    old = self.safe_get(row_id)
-    super(BaseReferenceColumn, self).set(row_id, self._clean_up_value(value))
-    new = self.safe_get(row_id)
+    # raw_get, so that we can see invalid (alt-text) Refs and empty RefLists and include them into
+    # inverse_map, which is also used for lookups.
+    old = self.raw_get(row_id)
+    super().set(row_id, self._clean_up_value(value))
+    new = self.raw_get(row_id)
     self._update_references(row_id, old, new)
 
-  def copy_from_column(self, other_column):
-    super(BaseReferenceColumn, self).copy_from_column(other_column)
+  def unset(self, row_id):
+    # On row removal, drop the row from the relation index entirely. Unlike set(), we must not
+    # re-index it under the empty key (0 / the empty-list sentinel) -- the row no longer exists.
+    old = self.raw_get(row_id)
+    super().set(row_id, self.getdefault())
+    self._update_references(row_id, old, self.raw_get(row_id), index_new=False)
+
+  def _on_row_added(self, row_id):
+    # Registered on the table's after-add/after-load hooks. A row added without an explicit value
+    # never passes through set(), so this is where we add it into the reverse map under its
+    # default value. If it has a non-default value, it would already be indexed.
+    default = self.getdefault()
+    if self.raw_get(row_id) == default:
+      self._add_to_index(row_id, default)
+
+  def clear(self):
+    super().clear()
+    # Reset the index to unbuilt (as PositionColumn does for _sorted_rows); it gets rebuilt from
+    # the new data on next use. Matters when load_table loads over a live table.
     self._relation.clear()
-    # This is hacky: we should have an interface to iterate through values of a column. (As it is,
-    # self._data may include values for non-existent rows; it works here because those values are
-    # falsy, which makes them ignored by self._update_references).
-    for row_id, value in enumerate(self._data):
-      if self.type_obj.is_right_type(value):
-        self._update_references(row_id, None, value)
+
+  def copy_from_column(self, other_column):
+    super().copy_from_column(other_column)
+    # Reset the index to unbuilt; it gets rebuilt from the copied data on next use.
+    self._relation.clear()
 
   def sample_value(self):
     return self._target_table.sample_record
@@ -564,6 +622,11 @@ class ReferenceColumn(BaseReferenceColumn):
   def _value_iterable(self, value):
     return (value,) if value and self.type_obj.is_right_type(value) else ()
 
+  def _value_iterable_full(self, value):
+    # Return the value even when empty or invalid (like AltText), which isn't relevant to
+    # invalidations, but relevant to lookups that use the same mapping.
+    return (value,) if self.type_obj.is_right_type(value) else (self._alt_text(value),)
+
   def _list_to_value(self, value_as_list):
     if len(value_as_list) > 1:
       raise UniqueReferenceError("UNIQUE reference constraint violated")
@@ -642,6 +705,11 @@ class ReferenceListColumn(BaseReferenceColumn):
 
   def _value_iterable(self, value):
     return value if value and self.type_obj.is_right_type(value) else ()
+
+  def _value_iterable_full(self, value):
+    # Return an empty sentinel for empty lists, which isn't relevant to invalidations, but
+    # used for lookups that use match_empty.
+    return value or (_empty_sentinel,) if self.type_obj.is_right_type(value) else ()
 
   def _list_to_value(self, value_as_list):
     return value_as_list or None

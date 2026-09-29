@@ -15,7 +15,7 @@ import {
   ShellToWorker,
   WorkerToShell,
 } from "app/server/lib/RestartShellWorker";
-import { listenPromise } from "app/server/lib/serverUtils";
+import { cleanEnv, listenPromise } from "app/server/lib/serverUtils";
 import * as shutdownLib from "app/server/lib/shutdown";
 
 import * as childProcess from "child_process";
@@ -118,6 +118,9 @@ export class RestartShell {
   private readonly _server: net.Server;
   private readonly _fallbackServer: http.Server;
   private _actualPort = 0;
+  // The address the socket ended up on. The worker never binds one of its own, so it is told,
+  // as it is told the port: it needs to know where peers reach it.
+  private _actualAddress = "";
 
   // Keys of specs that failed to spawn this lifetime, so the resolver can fall back
   // (e.g. full edition extensions that crash on boot -> run the built-in build).
@@ -142,7 +145,9 @@ export class RestartShell {
   public async listen(): Promise<void> {
     log.info("RestartShell: starting");
     this._status = { kind: "starting" };
-    this._actualPort = await bindPublicSocket(this._server, this._options.publicPort);
+    const bound = await bindPublicSocket(this._server, this._options.publicPort);
+    this._actualPort = bound.port;
+    this._actualAddress = bound.address;
     log.info(`RestartShell: listening on port ${this._actualPort}`);
 
     // Signal handling via shutdown.js -- on SIGINT/SIGTERM it runs
@@ -313,12 +318,13 @@ export class RestartShell {
       ...spec.env,
       GRIST_UNDER_RESTART_SHELL: "1",
       PORT: String(this._actualPort),
+      GRIST_BOUND_ADDRESS: this._actualAddress,
     };
     // Clear GRIST_RESTART_SHELL so the child can't re-detect shell mode.
     delete env.GRIST_RESTART_SHELL;
 
     const c = childProcess.fork(spec.entryPoint, [], {
-      env,
+      env: cleanEnv(env),
       stdio: ["inherit", "inherit", "inherit", "ipc"],
     });
 
@@ -460,11 +466,11 @@ export function shouldRunAsRestartShell() {
   return process.platform === "linux" && !isElectron;
 }
 
-/** Bind `server` to `port` on the Grist host; return the actual bound port. */
-async function bindPublicSocket(server: net.Server, port: number): Promise<number> {
+/** Bind `server` to `port` on the Grist host; return the address and port it actually got. */
+async function bindPublicSocket(server: net.Server, port: number): Promise<net.AddressInfo> {
   server.on("error", err => log.error("RestartShell: server error:", err));
   const listening = listenPromise(server);
   server.listen(port, getGristHost());
   await listening;
-  return (server.address() as net.AddressInfo).port;
+  return server.address() as net.AddressInfo;
 }

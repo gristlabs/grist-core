@@ -9,6 +9,7 @@ import { getDoc } from "app/client/models/gristConfigCache";
 import { docUrl, urlState } from "app/client/models/gristUrlState";
 import { addNewButton, cssAddNewButton } from "app/client/ui/AddNewButton";
 import { App } from "app/client/ui/App";
+import { buildDocGristImportMenuItem } from "app/client/ui/GristImportEntryPoints";
 import { cssLeftPanel, cssScrollPane } from "app/client/ui/LeftPanelCommon";
 import { buildPagesDom } from "app/client/ui/Pages";
 import { openPageWidgetPicker } from "app/client/ui/PageWidgetPicker";
@@ -16,7 +17,7 @@ import { tools } from "app/client/ui/Tools";
 import { createVersionFooter } from "app/client/ui/VersionFooter";
 import { bigBasicButton } from "app/client/ui2018/buttons";
 import { testId } from "app/client/ui2018/cssVars";
-import { menu, menuDivider, menuIcon, menuItem, menuText } from "app/client/ui2018/menus";
+import { menu, menuDivider, menuIcon, menuItem, menuItemSubmenu, menuText } from "app/client/ui2018/menus";
 import { confirmModal } from "app/client/ui2018/modals";
 import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { AsyncFlow, CancelledError, FlowRunner } from "app/common/AsyncFlow";
@@ -25,7 +26,13 @@ import { OpenDocMode, OpenDocOptions, OpenLocalDocResult, UserOverride } from "a
 import { createEmptyDocStateComparison } from "app/common/DocState";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
 import { Features, mergedFeatures, Product } from "app/common/Features";
-import { buildUrlId, CompareEmphasis, IGristUrlState, parseUrlId, UrlIdParts } from "app/common/gristUrls";
+import {
+  buildUrlId,
+  CompareEmphasis,
+  IGristUrlState,
+  parseUrlId,
+  UrlIdParts,
+} from "app/common/gristUrls";
 import { getReconnectTimeout } from "app/common/gutil";
 import { canEdit, isOwner } from "app/common/roles";
 import { UserInfo } from "app/common/User";
@@ -42,7 +49,7 @@ import {
   Workspace,
 } from "app/common/UserAPI";
 
-import { Computed, Disposable, dom, DomArg, DomElementArg, Holder, Observable, subscribe } from "grainjs";
+import { Computed, Disposable, dom, DomArg, DomContents, DomElementArg, Holder, Observable, subscribe } from "grainjs";
 import isEqual from "lodash/isEqual";
 
 const t = makeT("DocPageModel");
@@ -602,17 +609,42 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       dom.cls("disabled", isReadonly),
     ),
     menuDivider(),
-    ...importSources.map((importSource, i) =>
-      menuItem(importSource.action,
-        menuIcon("Import"),
-        importSource.label,
-        testId(`dp-import-option`),
-        dom.cls("disabled", isReadonly),
-      ),
-    ),
+    buildImportMenu(importSources, isReadonly),
+    buildDocGristImportMenuItem(gristDoc, isReadonly),
     isReadonly ? menuText(t("You do not have edit access to this document")) : null,
     testId("dp-add-new-menu"),
   ];
+}
+
+// An "Import from..." submenu of the available import sources, shown as a single menu
+// item when there is only one source, and omitted when there are none.
+function buildImportMenu(importSources: ImportSource[], isReadonly: boolean): DomContents {
+  if (importSources.length === 0) { return null; }
+  if (importSources.length === 1) {
+    const [importSource] = importSources;
+    return menuItem(importSource.action,
+      menuIcon("Import"),
+      t("Import from {{importSource}}", { importSource: importSource.label }),
+      testId("dp-import-option"),
+      dom.cls("disabled", isReadonly),
+    );
+  }
+  return menuItemSubmenu(
+    () => [
+      ...importSources.map(importSource =>
+        menuItem(importSource.action,
+          importSource.label,
+          testId(`dp-import-option`),
+          dom.cls("disabled", isReadonly),
+        ),
+      ),
+      testId("dp-import-menu-items"),
+    ],
+    {},
+    menuIcon("Import"), t("Import from..."),
+    testId("dp-import-menu"),
+    dom.cls("disabled", isReadonly),
+  );
 }
 
 function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
@@ -649,7 +681,8 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
 
   const isPreFork = openMode === "fork";
   const isTemplate = type === DOCTYPE_TEMPLATE && (isFork || isPreFork);
-  const isEditable = !isSnapshot && (canEdit(doc.access) || isPreFork);
+  // A document can be held read-only whatever the access level, so check both.
+  const isEditable = !isSnapshot && ((canEdit(doc.access) && !doc.readOnlyReason) || isPreFork);
   return {
     ...doc,
     isFork,

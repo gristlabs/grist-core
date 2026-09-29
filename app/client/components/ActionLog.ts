@@ -13,9 +13,9 @@ import { basicButton } from "app/client/ui2018/buttons";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme } from "app/client/ui2018/cssVars";
 import { ActionGroup } from "app/common/ActionGroup";
-import { concatenateSummaryPair } from "app/common/ActionSummarizer";
+import { concatenateSummaries } from "app/common/ActionSummarizer";
 import {
-  ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
+  ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
   LabelDelta,
 } from "app/common/ActionSummary";
 import { CellDelta, TabularDiff, TabularDiffs } from "app/common/TabularDiff";
@@ -110,8 +110,13 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    */
   public async getChangesSince(actionNum: number): Promise<ActionSummary> {
     await this._loadActionSummaries();
-    return takeWhile(this.displayStack.all(), item => item.actionNum > actionNum)
-      .reduce((summary, item) => concatenateSummaryPair(item.actionSummary, summary), createEmptyActionSummary());
+    // displayStack is newest-first; reverse to oldest-first so we combine the
+    // changes in the order they happened. concatenateSummaries drops the changes
+    // that cancel out, leaving what display should show.
+    const summaries = takeWhile(this.displayStack.all(), item => item.actionNum > actionNum)
+      .map(item => item.actionSummary)
+      .reverse();
+    return concatenateSummaries(summaries);
   }
 
   /**

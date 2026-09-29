@@ -302,7 +302,6 @@ export class OAuth2Clients {
      * 401 if the token is missing or expired.
      */
     app.get(OAUTH2_ENDPOINTS.token, middleware, expressWrap(async (req, res) => {
-      log.warn(`REQ ${req.method} ${req.url} ${req.params.integration}`);
       assertUserIsAuthorized(req);
       const { id, name } = this._getIntegration(req.params.integration);
       const session = this._sessions.getOrCreateSessionFromRequest(req);

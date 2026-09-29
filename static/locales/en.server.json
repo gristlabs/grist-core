@@ -9,7 +9,9 @@
   },
   "access": {
     "docDisabled": "This document is disabled.",
-    "docNoAccess": "You do not have access to this document."
+    "docNoAccess": "You do not have access to this document.",
+    "userDisabled": "User is disabled (Reason: {{- reason }})",
+    "userDisabledReasonMissing": "No reason provided"
   },
   "admin": {
     "emptyOrg": "No owners found in the admin organization defined by `GRIST_INSTALL_ADMIN_ORG={{org}}`",

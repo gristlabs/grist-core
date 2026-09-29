@@ -43,13 +43,13 @@ export async function insightLogWrap<T>(
   prefix: string, callback: () => Promise<T>, logIfLongerThanMs: number = 5000,
 ): Promise<T> {
   const entry = new InsightLogEntry();
-  const timer = setTimeout(() => log.rawInfo(`${prefix} running`, entry.getMeta()), logIfLongerThanMs);
+  const timer = setTimeout(() => log.rawDebug(`${prefix} running`, entry.getMeta()), logIfLongerThanMs);
   try {
     return await asyncLocalStorage.run(entry, callback);
   } finally {
     clearTimeout(timer);
     entry.mark("end");
-    log.rawInfo(`${prefix} done`, entry.getMeta());
+    log.rawDebug(`${prefix} done`, entry.getMeta());
   }
 }
 

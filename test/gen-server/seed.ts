@@ -24,6 +24,7 @@
 
 /* eslint-disable @import-x/order */
 
+import "app/server/lib/lockdown";
 import * as path from "path";
 
 import { addPath } from "app-module-path";
@@ -58,6 +59,11 @@ export const testDailyApiLimitFeatures = {
   baseMaxApiUnitsPerDocumentPerDay: 3,
 };
 
+export const testHighDailyApiLimitFeatures = {
+  ...teamFreeFeatures,
+  baseMaxApiUnitsPerDocumentPerDay: 5000,
+};
+
 export const testMaxNewUserInvitesFeatures = {
   ...teamFeatures,
   maxNewUserInvitesPerOrg: 3,
@@ -73,6 +79,10 @@ const testProducts = [
   {
     name: "testDailyApiLimit",
     features: testDailyApiLimitFeatures,
+  },
+  {
+    name: "testHighDailyApiLimit",
+    features: testHighDailyApiLimitFeatures,
   },
   {
     name: "testMaxNewUserInvites",
@@ -249,6 +259,17 @@ export const exampleOrgs = [
     ],
   },
   {
+    name: "TestHighDailyApiLimit",
+    domain: "testhighdailyapilimit",
+    product: "testHighDailyApiLimit",
+    workspaces: [
+      {
+        name: "TestHighDailyApiLimitWs",
+        docs: [],
+      },
+    ],
+  },
+  {
     name: "TestMaxNewUserInvites",
     domain: "testmaxnewuserinvites",
     product: "testMaxNewUserInvites",
@@ -278,6 +299,7 @@ export const exampleOrgs = [
 const exampleUsers: { [user: string]: { [org: string]: string } } = {
   Chimpy: {
     TestDailyApiLimit: "owners",
+    TestHighDailyApiLimit: "owners",
     TestMaxNewUserInvites: "owners",
     TestAuditLogs: "owners",
     FreeTeam: "owners",

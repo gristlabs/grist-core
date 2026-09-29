@@ -19,6 +19,7 @@ import {
 } from "app/server/lib/SandboxControl";
 import { checkPyodideDeno, getPyodideSettings } from "app/server/lib/SandboxPyodide";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
+import { cleanEnv } from "app/server/lib/serverUtils";
 import * as shutdown from "app/server/lib/shutdown";
 
 import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from "child_process";
@@ -205,7 +206,7 @@ export class NSandbox implements ISandbox {
     shutdown.addCleanupHandler(this, this.shutdown);
 
     if (this._recordBuffersDir) {
-      log.rawDebug(`Recording sandbox buffers in ${this._recordBuffersDir}`, this._logMeta);
+      log.rawInfo(`Recording sandbox buffers in ${this._recordBuffersDir}`, this._logMeta);
       fs.mkdirSync(this._recordBuffersDir, { recursive: true });
     }
   }
@@ -289,7 +290,7 @@ export class NSandbox implements ISandbox {
    * stdout, and stderr.
    */
   private _initializeMinimalPipeMode(sandboxProcess: SandboxProcess) {
-    log.rawDebug("3-pipe Sandbox started", this._logMeta);
+    log.rawInfo("3-pipe Sandbox started", this._logMeta);
     if (!this.childProc) {
       throw new Error("child process required");
     }
@@ -320,7 +321,7 @@ export class NSandbox implements ISandbox {
    * to have a clean, separate data channel, when supported.
    */
   private _initializeFivePipeMode(sandboxProcess: SandboxProcess) {
-    log.rawDebug("5-pipe Sandbox started", this._logMeta);
+    log.rawInfo("5-pipe Sandbox started", this._logMeta);
     if (!this.childProc) {
       throw new Error("child process required");
     }
@@ -400,7 +401,7 @@ export class NSandbox implements ISandbox {
     const expected = this._isWriteClosed;
     this._close();
     if (expected) {
-      log.rawDebug(`Sandbox exited with code ${code} signal ${signal}`, this._logMeta);
+      log.rawInfo(`Sandbox exited with code ${code} signal ${signal}`, this._logMeta);
     } else {
       log.rawWarn(`Sandbox unexpectedly exited with code ${code} signal ${signal}`, this._logMeta);
     }
@@ -498,7 +499,7 @@ export class NSandbox implements ISandbox {
             this._sendData(sandboxUtil.EXC, err.toString());
           })
           .catch((err) => {
-            log.rawDebug(`Sandbox sending response failed: ${err}`, this._logMeta);
+            log.rawWarn(`Sandbox sending response failed: ${err}`, this._logMeta);
           });
       }
     } else {
@@ -726,9 +727,9 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
     info.lastSuccessfulStep = "create";
 
     // Step 2: Run a simple Python call to check if the sandbox can execute code.
-    // Give up after 5 seconds if it takes too long.
+    // Give up after 10 seconds if it takes too long.
     const timeoutProm = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Sandbox test timed out after 5s")), 5000).unref(),
+      setTimeout(() => reject(new Error("Sandbox test timed out after 10s")), 10000).unref(),
     );
     const result = await Promise.race([sandbox.pyCall("get_version"), timeoutProm]);
     if (typeof result !== "number") {
@@ -871,22 +872,21 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
 
       ...options.testSandboxArgs,
       // Ignore options.pythonArgs - no python process runs for pyodide
-      "--",
       scriptPath,
       ...(options.comment ? [options.comment] : []),
       ...(options.appendArgs ?? []),
     ];
-    log.rawDebug("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
+    log.rawInfo("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
     child = spawn(
       command,
       args,
-      { cwd, ...spawnOptions },
+      { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
     );
   } else {
-    log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
+    log.rawInfo("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
-      { cwd, ...spawnOptions },
+      { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
     );
   }
 
@@ -1052,7 +1052,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
     ...commandParts,
     ...pythonArgs,
     ...appendArgs,
-  ]);
+  ], { env: cleanEnv() });
   log.rawDebug("cannot do process control via docker yet", { ...options.logMeta });
   return { name: "docker", child, control: () => new NoProcessControl(child) };
 }
@@ -1079,7 +1079,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   };
   const command = findPython(options.command);
   const realPath = realpathSync(command);
-  log.rawDebug("macSandboxExec found a python", { ...options.logMeta, command: realPath });
+  log.rawInfo("macSandboxExec found a python", { ...options.logMeta, command: realPath });
 
   // Prepare sandbox profile
   const profile: string[] = [];
@@ -1152,7 +1152,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   const profileString = profile.join("\n");
   const child = spawn("/usr/bin/sandbox-exec",
     [...options.testSandboxArgs, "-p", profileString, command, ...pythonArgs, ...appendArgs],
-    { cwd, env });
+    { cwd, env: cleanEnv(env) });
   return {
     name: "macSandboxExec",
     child,
@@ -1381,7 +1381,10 @@ function realpathSync(src: string) {
   }
 }
 
-function adjustedSpawn(cmd: string, args: string[], options?: SpawnOptionsWithoutStdio) {
+function adjustedSpawn(cmd: string, args: string[], options: SpawnOptionsWithoutStdio = {}) {
+  // Pass only own environment variables through to the subprocess (see cleanEnv).
+  // With no options.env, cleanEnv defaults to process.env, as spawn would.
+  options = { ...options, env: cleanEnv(options.env) };
   const oomScoreAdj = process.env.GRIST_SANDBOX_OOM_SCORE_ADJ;
   if (oomScoreAdj) {
     return spawn("choom", ["-n", oomScoreAdj, "--", cmd, ...args], options);

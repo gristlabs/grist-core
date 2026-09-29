@@ -4,6 +4,7 @@ import { Session } from "test/nbrowser/gristUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
+import isEqual from "lodash/isEqual";
 import values from "lodash/values";
 import { assert, driver, Key } from "mocha-webdriver";
 
@@ -57,8 +58,7 @@ describe("Pages", function() {
     const revertAcl = await gu.beginAclTran(api, doc.id);
     // Update ACL, hide Overview table from all users.
     await hideTable("Overview");
-    // We will be reloaded, but it's not easy to wait for it, so do the refresh manually.
-    await gu.reloadDoc();
+    await waitForPages(["Interactions", "Documents", "People", "User & Leads"]);
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: "Interactions", children: [
@@ -74,7 +74,7 @@ describe("Pages", function() {
 
     // Now hide User_Leads
     await hideTable("User_Leads");
-    await gu.reloadDoc();
+    await waitForPages(["Interactions", "Documents", "People"]);
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: "Interactions", children: [
@@ -88,7 +88,7 @@ describe("Pages", function() {
 
     // Now hide People, and test that whole node is hidden.
     await hideTable("People");
-    await gu.reloadDoc();
+    await waitForPages(["Interactions", "Documents"]);
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: "Interactions", children: [
@@ -99,7 +99,7 @@ describe("Pages", function() {
 
     // Now hide Documents, this is a leaf, so it should be hidden from the start
     await hideTable("Documents");
-    await gu.reloadDoc();
+    await waitForPages(["Interactions"]);
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: "Interactions",
@@ -108,13 +108,12 @@ describe("Pages", function() {
 
     // Now hide Interactions, we should have a blank treeview
     await hideTable("Interactions");
-    // We can wait for doc to load, because it waits for section.
-    await driver.findWait(".test-treeview-container", 1000);
+    await waitForPages([]);
     assert.deepEqual(await gu.getPageTree(), []);
 
     // Rollback
     await revertAcl();
-    await gu.reloadDoc();
+    await waitForPages(["Interactions", "Documents", "People", "User & Leads", "Overview"]);
     assert.deepEqual(await gu.getPageTree(), [
       {
         label: "Interactions", children: [
@@ -225,6 +224,28 @@ describe("Pages", function() {
     // revert changes
     await gu.undo(2);
     assert.deepEqual(await gu.getPageNames(), ["Interactions", "Documents", "People", "User & Leads", "Overview"]);
+  });
+
+  it("opens the rename editor holding the focus, with the name selected", async () => {
+    // Renaming types over the name, so the editor has to arrive focused with its text selected.
+    // This catches a focus put off by longer than it takes to ask; it would not catch one put
+    // off by a few milliseconds, which is what this used to do.
+    await gu.openPage(/People/);
+    await driver.findContent(".test-treeview-label", "People").doClick();
+
+    const editor = await driver.find(".test-docpage-editor");
+    assert.equal(await editor.hasFocus(), true);
+    const selected = await driver.executeScript<string>(() => {
+      const input = document.activeElement as HTMLInputElement;
+      return input.value.slice(input.selectionStart ?? 0, input.selectionEnd ?? 0);
+    });
+    assert.equal(selected, "People");
+
+    await driver.sendKeys(Key.ESCAPE);
+    assert.deepEqual(
+      await gu.getPageNames(),
+      ["Interactions", "Documents", "People", "User & Leads", "Overview"],
+    );
   });
 
   it("should not allow blank page name", async () => {
@@ -362,9 +383,13 @@ describe("Pages", function() {
   it("should allow saving collapsed state", async () => {
     // Collapse Interactions and save. It should remain collapsed on page reload.
     await driver.findContent(".test-treeview-itemHeader", /Interactions/).find(".test-treeview-itemArrow").doClick();
-    assert.deepEqual(await gu.getPageNames(), ["Interactions", "", "People", "User & Leads", "Overview"]);
+    // The arrow collapses the tree on the spot, but the children go on their own schedule, so
+    // read this until it settles rather than once.
+    await gu.waitToPass(async () =>
+      assert.deepEqual(await gu.getPageNames(), ["Interactions", "", "People", "User & Leads", "Overview"]));
     await gu.openPageMenu("Interactions");
     await gu.findOpenMenuItem(".test-docpage-collapse-by-default", "Set default: Collapse").click();
+    await gu.waitForMenuAction();
     await gu.waitForServer();
     assert.deepEqual(await gu.getPageNames(), ["Interactions", "", "People", "User & Leads", "Overview"]);
     await driver.navigate().refresh();
@@ -380,9 +405,11 @@ describe("Pages", function() {
 
     // Expand Interactions and save. It should remain expanded on page reload.
     await driver.findContent(".test-treeview-itemHeader", /Interactions/).find(".test-treeview-itemArrow").doClick();
-    assert.deepEqual(await gu.getPageNames(), ["Interactions", "Documents", "People", "User & Leads", "Overview"]);
+    await gu.waitToPass(async () =>
+      assert.deepEqual(await gu.getPageNames(), ["Interactions", "Documents", "People", "User & Leads", "Overview"]));
     await gu.openPageMenu("Interactions");
     await gu.findOpenMenuItem(".test-docpage-expand-by-default", "Set default: Expand").click();
+    await gu.waitForMenuAction();
     await gu.waitForServer();
     assert.deepEqual(await gu.getPageNames(), ["Interactions", "Documents", "People", "User & Leads", "Overview"]);
     await driver.navigate().refresh();
@@ -669,6 +696,25 @@ describe("Pages", function() {
     assert.deepEqual(await gu.getPageNames(), ["Table1", "Table B", "Table C", "Table Last"]);
     assert.deepEqual(await gu.getSectionTitles(), ["TABLE C", "TABLE D", "TABLE1"]);
   });
+
+  /**
+   * Waits for the page tree to settle on the given names. Hiding a table makes the app reload the
+   * document itself, and the tree is emptied before it is rebuilt, so waiting for a page to be
+   * gone is not enough.
+   */
+  async function waitForPages(expected: string[]) {
+    await driver.wait(async () => {
+      try {
+        return await driver.find(".test-treeview-container").isPresent() &&
+          isEqual(await gu.getPageNames(), expected);
+      } catch (e) {
+        // A rebuild during the read makes the elements it found stale, which is expected here,
+        // so retry. Other errors are not expected, so rethrow.
+        if (e.name !== "StaleElementReferenceError") { throw e; }
+        return false;
+      }
+    }, 10000, `pages did not settle as ${expected.join(", ")}`);
+  }
 
   async function hideTable(tableId: string) {
     await api.applyUserActions(doc.id, [

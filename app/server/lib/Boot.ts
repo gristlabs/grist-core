@@ -1,6 +1,7 @@
 import { ApiError } from "app/common/ApiError";
 import { normalizeEmail } from "app/common/emails";
 import { isEmail } from "app/common/gutil";
+import { BOOT_KEY_PROVIDER_KEY } from "app/common/loginProviders";
 import { UserProfile } from "app/common/UserAPI";
 import { makeAdminPageConfig } from "app/server/lib/adminPageConfig";
 import { appSettings } from "app/server/lib/AppSettings";
@@ -8,7 +9,9 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { expressWrap, secureJsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession } from "app/server/lib/GristServer";
 import { getAdminEmail, getBootKey, invalidateReloadableSettings } from "app/server/lib/gristSettings";
+import log from "app/server/lib/log";
 import { getFallbackLoginProvider } from "app/server/lib/loginSystemHelpers";
+import { getDefaultProfile } from "app/server/lib/MinimalLogin";
 import { stringParam } from "app/server/lib/requestUtils";
 
 import express, { Express, Request } from "express";
@@ -74,7 +77,7 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
       await this._server.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: makeAdminPageConfig(this._server),
+        config: await makeAdminPageConfig(req, this._server),
       });
     }));
 
@@ -92,8 +95,8 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
 
     app.post("/boot/login", express.json(), expressWrap(async (req, res) => {
       const bootKey = stringParam(req.body.bootKey, "bootKey");
-      const adminEmail = stringParam(req.body.adminEmail, "adminEmail");
-      if (!isEmail(adminEmail)) {
+      const newAdminEmail = stringParam(req.body.adminEmail, "adminEmail");
+      if (!isEmail(newAdminEmail)) {
         throw new ApiError("Invalid admin email", 400);
       }
 
@@ -102,12 +105,29 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
         throw new ApiError("Invalid boot key", 401);
       }
 
-      const profile = getAdminProfile();
-      if (!profile || normalizeEmail(profile.email) !== normalizeEmail(adminEmail)) {
+      const adminEmail = getAdminEmail();
+      if (!adminEmail || normalizeEmail(adminEmail) !== normalizeEmail(newAdminEmail)) {
+        const db = this._server.getHomeDBManager();
         const activations = this._server.getActivations();
         const envVars = (await activations.current()).prefs?.envVars || {};
-        const newEnvVars = { GRIST_ADMIN_EMAIL: adminEmail };
-        await activations.updateEnvVars(newEnvVars);
+        const newEnvVars = { GRIST_ADMIN_EMAIL: newAdminEmail };
+        // One transaction, so that the rename and the admin email cannot come apart.
+        await db.runInTransaction(undefined, async (manager) => {
+          // The admin user so far was the default user, and is now becoming the newly
+          // configured email. Resources created before setup, such as the
+          // GRIST_SINGLE_ORG org, already belong to the default user. Rename that
+          // user to the newly configured email, to ensure that email owns them. The
+          // rename is only possible before the new email exists, so needs to be done
+          // before the first request authenticated with the new user.
+          const defaultEmail = getDefaultProfile().email;
+          if (!adminEmail &&
+            await db.getExistingUserByLogin(defaultEmail, manager) &&
+            !await db.getExistingUserByLogin(newAdminEmail, manager)) {
+            log.info(`Renaming user "${defaultEmail}" to the new admin email "${newAdminEmail}"`);
+            await db.updateUserEmail(defaultEmail, newAdminEmail, manager);
+          }
+          await activations.updateEnvVars(newEnvVars, manager);
+        });
         appSettings.setEnvVars({ ...envVars, ...newEnvVars });
         invalidateReloadableSettings("GRIST_ADMIN_EMAIL");
       }
@@ -127,11 +147,39 @@ export class BootKeyLoginMiddleware implements GristLoginMiddleware {
 
       await setUserInSession(req, this._server, getRequiredAdminProfile());
 
+      // Record that this session was established with a boot key. An auth change clears
+      // sessions on restart, and this one is kept: see `getBootKeySessionId`.
+      await this._server.getSessions()
+        .getOrCreateSessionFromRequest(req)
+        .updateUser(req, { authProvider: BOOT_KEY_PROVIDER_KEY });
+
       res.sendStatus(204);
     }), secureJsonErrorHandler);
 
     return "boot-key";
   }
+}
+
+/**
+ * Returns the request's session id, but only if a boot key login is that session's
+ * only login. Callers use it to keep that one session when sessions are cleared after
+ * an auth change: it was not vouched for by the login provider being replaced, and the
+ * operator can sign in again with the same key anyway. Any other session returns
+ * undefined and is cleared as usual.
+ */
+export async function getBootKeySessionId(
+  req: Request, server: GristServer,
+): Promise<string | undefined> {
+  const sessions = server.getSessions();
+  const sessionId = sessions.getSessionIdFromRequest(req);
+  if (!sessionId) { return undefined; }
+
+  // Note that we don't use getScopedSession here to avoid org-session mismatches:
+  // the boot-key login may have happened on a URL with an org in the path, while
+  // this request may have a different org or none at all.
+  const users = await sessions.getOrCreateSessionFromRequest(req, { sessionId }).getSessionUsers();
+  const isBootKeyOnlySession = users.length === 1 && users[0]?.authProvider === BOOT_KEY_PROVIDER_KEY;
+  return isBootKeyOnlySession ? sessionId : undefined;
 }
 
 function getAdminProfile(): UserProfile | undefined {

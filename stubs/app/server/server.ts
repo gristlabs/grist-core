@@ -4,37 +4,27 @@
  * By default, starts up on port 8484.
  */
 
+import "app/server/lib/lockdown";
+
 import { normalizeEmail } from "app/common/emails";
 import { commonUrls } from "app/common/gristUrls";
-import { isAffirmative } from "app/common/gutil";
 import { ActivationsManager } from "app/gen-server/lib/ActivationsManager";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { appSettings } from "app/server/lib/AppSettings";
 import { maybeManageFullEdition, resolveFullEditionWorker } from "app/server/lib/bootstrapFullEdition";
 import { updateDb } from "app/server/lib/dbUtils";
-import { getAdminEmail, invalidateReloadableSettings } from "app/server/lib/gristSettings";
+import { getAdminEmail, getHomeUrl, invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import { initializeAppSettings } from "app/server/lib/initializeAppSettings";
 import { getDefaultEmail } from "app/server/lib/InstallAdmin";
-import log from "app/server/lib/log";
+import log, { logLevel } from "app/server/lib/log";
 import { runPrometheusExporter } from "app/server/prometheus-exporter";
 
 import * as fse from "fs-extra";
-
-const debugging = isAffirmative(process.env.DEBUG) || isAffirmative(process.env.VERBOSE);
-
-// Set log levels before importing anything.
-if (!debugging) {
-  // Be a lot less noisy by default.
-  setDefaultEnv("GRIST_LOG_LEVEL", "error");
-}
 
 // Use a distinct cookie.  Bump version to 2.
 setDefaultEnv("GRIST_SESSION_COOKIE", "grist_core2");
 
 setDefaultEnv("GRIST_SERVE_SAME_ORIGIN", "true");
-if (!process.env.DOC_WORKER_COUNT) {
-  setDefaultEnv("GRIST_SINGLE_PORT", "true");
-}
 setDefaultEnv("GRIST_DEFAULT_PRODUCT", "Free");
 
 if (!process.env.GRIST_SINGLE_ORG) {
@@ -130,24 +120,7 @@ async function setUpAdminEmail(db: HomeDBManager) {
         }
 
         log.info(`Replacing "${onRestartReplaceEmailWithAdmin}" with GRIST_ADMIN_EMAIL ("${adminEmail}").`);
-        const user = await db.getExistingUserByLogin(onRestartReplaceEmailWithAdmin, manager);
-        if (!user) {
-          throw new Error(`user with email "${onRestartReplaceEmailWithAdmin}" not found`);
-        }
-
-        // If a user with `adminEmail` exists, we can't assign it to another user
-        // without violating the uniqueness constraint on the `email` column in the
-        // `logins` table. For now, just inform the user.
-        if (await db.getExistingUserByLogin(adminEmail, manager)) {
-          throw new Error(`cannot replace "${onRestartReplaceEmailWithAdmin}" with "${adminEmail}" ` +
-            "because a user with that email already exists");
-        }
-
-        const login = user.logins[0];
-        login.email = normalizeEmail(adminEmail);
-        login.displayEmail = adminEmail;
-        user.name = "";
-        await manager.save([login, user]);
+        await db.updateUserEmail(onRestartReplaceEmailWithAdmin, adminEmail, manager);
         log.info(`Successfully replaced "${onRestartReplaceEmailWithAdmin}" with GRIST_ADMIN_EMAIL ("${adminEmail}").`);
       }
     });
@@ -193,12 +166,6 @@ async function setUpSingleOrg(db: HomeDBManager) {
 }
 
 export async function main() {
-  console.log("Welcome to Grist.");
-  if (!debugging) {
-    console.log(`In quiet mode, see http://localhost:${G.port} to use.`);
-    console.log("For full logs, re-run with DEBUG=1");
-  }
-
   if (shouldRunAsRestartShell()) {
     // Shell owns the socket and manages a forked worker. Returns the
     // RestartShell handle instead of a FlexServer.
@@ -211,6 +178,11 @@ export async function main() {
     });
   }
 
+  // Under a RestartShell, this prints in the worker, so that it repeats after
+  // every restart and is not duplicated by the shell process.
+  console.log("Welcome to Grist.");
+  console.log(`Logging at level "${logLevel}" (set GRIST_LOG_LEVEL to change)`);
+
   if (process.env.GRIST_PROMCLIENT_PORT) {
     runPrometheusExporter(parseInt(process.env.GRIST_PROMCLIENT_PORT, 10));
   }
@@ -222,7 +194,7 @@ export async function main() {
   setDefaultEnv("GRIST_SERVERS", "home,docs,static");
   if (process.env.GRIST_SERVERS?.includes("home")) {
     // By default, we will now start an untrusted port alongside a
-    // home server, for bundled custom widgets.
+    // home server, for custom widgets served from plugins.
     // Suppress with GRIST_UNTRUSTED_PORT=''
     setDefaultEnv("GRIST_UNTRUSTED_PORT", "0");
   }
@@ -279,6 +251,10 @@ export async function main() {
   if (isUnderRestartShell()) {
     await signalRestartShellReady();
   }
+
+  // Print via console.log to stay visible in quiet mode; the bind host is not
+  // a usable destination, so without a configured URL fall back to localhost.
+  console.log(`Grist is available at ${getHomeUrl() || `http://localhost:${G.port}`}`);
 
   if (fullEditionRestartRequested) {
     if (process.send && canRestart()) {

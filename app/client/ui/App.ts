@@ -12,7 +12,8 @@ import { onClickOutside } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import * as koUtil from "app/client/lib/koUtil";
 import { makeT } from "app/client/lib/localization";
-import { testPendingChecks, testPendingPastes } from "app/client/lib/testPendingOps";
+import { testPendingChecks, testPendingMenuActions, testPendingPastes, testPendingViewLoads }
+  from "app/client/lib/testPendingOps";
 import { reportError, TopAppModel, TopAppModelImpl } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { setUpErrorHandling } from "app/client/models/errors";
@@ -51,7 +52,7 @@ export class AppImpl extends DisposableWithEvents implements App {
   // Used by #newui code to avoid a dependency on commands.js, and by tests to issue commands.
   public allCommands = commands.allCommands;
 
-  public comm = this.autoDispose(Comm.create(this._checkError.bind(this)));
+  public comm = this.autoDispose(Comm.create(null, this._checkError.bind(this)));
   public clientScope: ClientScope;
   public features: ko.Computed<ISupportedFeatures>;
   public topAppModel: TopAppModel;    // Exposed because used by test/nbrowser/gristUtils.
@@ -274,6 +275,14 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   public testNumPendingPastes(): number {
     return testPendingPastes.count;
+  }
+
+  public testNumPendingMenuActions(): number {
+    return testPendingMenuActions.count;
+  }
+
+  public testNumPendingViewLoads(): number {
+    return testPendingViewLoads.count;
   }
 
   private _reloadPane() {

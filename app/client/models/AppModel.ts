@@ -1,13 +1,12 @@
 import { BehavioralPromptsManager } from "app/client/components/BehavioralPromptsManager";
 import { ScreenReaderAnnouncer } from "app/client/components/ScreenReaderAnnouncer";
-import { hooks } from "app/client/Hooks";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
-import { makeT } from "app/client/lib/localization";
 import { sessionStorageObs } from "app/client/lib/localStorageObs";
 import { error } from "app/client/lib/log";
 import { reportError, setErrorNotifier } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
-import { getHomeUrl } from "app/client/models/homeUrl";
+import { newUserAPIImpl } from "app/client/models/homeUrl";
+import { Impressions } from "app/client/models/Impressions";
 import { Notifier } from "app/client/models/NotifyModel";
 import { getUserPrefObs, getUserPrefsObs, markAsSeen } from "app/client/models/UserPrefs";
 import { getFlavor, ProductFlavor } from "app/client/ui/CustomThemes";
@@ -28,11 +27,9 @@ import { getTagManagerScript } from "app/common/tagManager";
 import { getDefaultThemePrefs, ThemePrefs } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import { ExtendedUser } from "app/common/UserAPI";
-import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI, UserAPIImpl } from "app/common/UserAPI";
+import { getOrgName, isTemplatesOrg, Organization, OrgError, UserAPI } from "app/common/UserAPI";
 
 import { bundleChanges, Computed, Disposable, Observable, subscribe } from "grainjs";
-
-const t = makeT("AppModel");
 
 // Reexported for convenience.
 export { reportError } from "app/client/models/errors";
@@ -69,6 +66,9 @@ export interface TopAppModel {
 
   orgs: Observable<Organization[]>;
   users: Observable<FullUser[]>;
+
+  // Whether orgs/users have been fetched at least once; before that they are empty.
+  sessionLoaded: Observable<boolean>;
 
   // Reinitialize the app. This is called when org or user changes.
   initialize(): void;
@@ -140,6 +140,7 @@ export interface AppModel {
   planName: string | null;
 
   behavioralPromptsManager: BehavioralPromptsManager;
+  impressions: Impressions;
 
   refreshOrgUsage(): Promise<void>;
   showUpgradeModal(): Promise<void>;
@@ -169,6 +170,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
   public readonly appObs = Observable.create<AppModel | null>(this, null);
   public readonly orgs = Observable.create<Organization[]>(this, []);
   public readonly users = Observable.create<FullUser[]>(this, []);
+  public readonly sessionLoaded = Observable.create<boolean>(this, false);
   public readonly plugins: LocalPlugin[] = [];
   private readonly _gristConfig? = this._window.gristConfig;
   // Keep a list of available widgets, once requested, so we don't have to
@@ -251,6 +253,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
     bundleChanges(() => {
       this.users.set(data.users);
       this.orgs.set(data.orgs);
+      this.sessionLoaded.set(true);
     });
   }
 
@@ -270,12 +273,6 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
           // If not, redirect.  This is to allow vanity domains
           // to "stick" only if paid for.
           await urlState().pushUrl({ ...state, org: org.domain });
-        }
-        if (org.billingAccount?.product?.name === "suspended") {
-          this.notifier.createUserMessage(
-            t("This team site is suspended. Documents can be read, but not modified."),
-            { actions: ["renew", "personal"] },
-          );
         }
       }
       AppModelImpl.create(this.appObs, this, user, org, orgError);
@@ -374,6 +371,8 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly behavioralPromptsManager: BehavioralPromptsManager =
     BehavioralPromptsManager.create(this, this);
 
+  public readonly impressions: Impressions = Impressions.create(this, this);
+
   constructor(
     public readonly topAppModel: TopAppModel,
     public readonly currentUser: ExtendedUser | null,
@@ -450,7 +449,8 @@ export class AppModelImpl extends Disposable implements AppModel {
   }
 
   public async showNewSiteModal(plan?: PlanSelection) {
-    if (this.planName) {
+    // With no current org there is no plan, but creating a site still makes sense.
+    if (this.planName || !this.currentOrg) {
       await buildNewSiteModal(this, {
         appModel: this,
         plan,
@@ -560,10 +560,4 @@ export function getOrgNameOrGuest(org: Organization | null, user: FullUser | nul
     return "@Guest";
   }
   return getOrgName(org);
-}
-
-export function newUserAPIImpl(): UserAPIImpl {
-  return new UserAPIImpl(getHomeUrl(), {
-    fetch: hooks.fetch,
-  });
 }

@@ -1,4 +1,4 @@
-import { getExistingDocSchema } from "app/client/lib/DocSchemaImport";
+import { getDocSchema } from "app/client/lib/DocSchemaImport";
 import { DocAPI } from "app/common/UserAPI";
 import { TableMetadata } from "app/plugin/DocApiTypes";
 import clientUtil from "test/client/clientUtil";
@@ -9,7 +9,7 @@ import sinon from "sinon";
 describe("DocSchemaImport", function() {
   clientUtil.setTmpMochaGlobals();
 
-  describe("getExistingDocSchema", () => {
+  describe("getDocSchema", () => {
     it("returns a correctly formatted document description from an SQL response", async () => {
       const tables: TableMetadata[] = [
         {
@@ -61,17 +61,16 @@ describe("DocSchemaImport", function() {
         getTables: sinon.fake(() => ({ tables })),
       } as unknown as DocAPI;
 
-      const schema = await getExistingDocSchema(docApi);
+      const schema = await getDocSchema(docApi);
       assert.lengthOf(schema.tables, 2);
       assert.deepEqual(schema.tables.map(t => t.id), ["Table1", "Table2"]);
-      assert.deepEqual(schema.tables.map(t => t.ref), [1, 2]);
 
       const table1 = schema.tables.find(t => t.id === "Table1")!;
       assert.lengthOf(table1.columns, 2);
       assert.deepEqual(table1.columns.map(col => col.id), ["Col1", "Col2"]);
-      assert.deepEqual(table1.columns.map(col => col.ref), [1, 2]);
-      assert.deepEqual(table1.columns.map(col => col.label), ["Column 1", "Column 2"]);
-      assert.deepEqual(table1.columns.map(col => col.isFormula), [false, true]);
+      assert.deepEqual(table1.columns.map(col => col.fields.colRef), [1, 2]);
+      assert.deepEqual(table1.columns.map(col => col.fields.label), ["Column 1", "Column 2"]);
+      assert.deepEqual(table1.columns.map(col => col.fields.isFormula), [false, true]);
     });
   });
 });

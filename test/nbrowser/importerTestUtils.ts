@@ -46,7 +46,7 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
 
   if (await driver.find(".test-multi-select-menu").isPresent()) {
     await gu.sendKeys(Key.ESCAPE);
-    await gu.notPresent(".test-multi-select-menu");
+    await gu.waitForNotPresent(".test-multi-select-menu");
   }
 
   await gu.waitToPass(async () => {

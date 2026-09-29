@@ -1,5 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { AssistantProvider } from "app/common/Assistant";
+import { tryParseUrl } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
 import { OptDocSession } from "app/server/lib/DocSession";
 import {
@@ -71,14 +72,10 @@ export function getAssistantV2Options(): AssistantV2Options {
 }
 
 export function getProviderFromHostname(url: string): AssistantProvider {
-  let hostname: string;
-  try {
-    hostname = new URL(url).hostname;
-  } catch {
-    return null;
-  }
+  const parsed = tryParseUrl(url);
+  if (!parsed) { return null; }
 
-  switch (hostname) {
+  switch (parsed.hostname) {
     case "api.openai.com": {
       return "OpenAI";
     }

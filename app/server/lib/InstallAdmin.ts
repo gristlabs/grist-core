@@ -6,6 +6,7 @@ import { HomeDBManager, SUPPORT_EMAIL } from "app/gen-server/lib/homedb/HomeDBMa
 import { appSettings } from "app/server/lib/AppSettings";
 import { getUser, RequestWithLogin } from "app/server/lib/Authorizer";
 import { getAdminEmail } from "app/server/lib/gristSettings";
+import log from "app/server/lib/log";
 
 import express from "express";
 
@@ -53,15 +54,15 @@ export abstract class InstallAdmin {
   }
 }
 
-// Considers the user whose email matches GRIST_ADMIN_EMAIL env var, if set, to be the
-// installation admin.
-// If GRIST_ADMIN_EMAIL is not set, we fall back on GRIST_DEFAULT_EMAIL, and finally
-// GRIST_SUPPORT_EMAIL, which defaults to support@getgrist.com.
+// Considers the user whose email matches getEffectiveAdminEmail() to be the installation
+// admin, falling back to GRIST_SUPPORT_EMAIL (default support@getgrist.com) when no admin
+// email is configured.
 export class SimpleInstallAdmin extends InstallAdmin {
-  private _defaultEmail = getDefaultEmail();
-
   public constructor(private _dbManager: HomeDBManager) {
     super();
+    if (!getEffectiveAdminEmail()) {
+      log.warn("No install admin email configured (set GRIST_ADMIN_EMAIL)");
+    }
   }
 
   public override async getAdminUser(): Promise<User> {
@@ -76,34 +77,35 @@ export class SimpleInstallAdmin extends InstallAdmin {
   public override clearCaches(): void {}
 
   private get _adminOrDefaultEmail(): string {
-    return this._adminEmail || this._defaultEmail || SUPPORT_EMAIL;
-  }
-
-  private get _adminEmail(): string | undefined {
-    return getAdminEmail();
+    return getEffectiveAdminEmail() || SUPPORT_EMAIL;
   }
 
   public override async getAdminUsers(req: express.Request): Promise<InstallAdminInfo[]> {
-    const adminEmail = this._adminEmail;
-    if (adminEmail) {
-      const admin = await this._dbManager.getUserByLogin(adminEmail);
-      return [{
-        user: admin.toUserProfile(),
-        reason: req.t("admin.accountByAdminEmail", { adminEmail }),
-      }];
-    } else if (this._defaultEmail) {
-      const admin = await this._dbManager.getUserByLogin(this._defaultEmail);
-      return [{
-        user: admin.toUserProfile(),
-        reason: req.t("admin.accountByEmail", { defaultEmail: this._defaultEmail }),
-      }];
-    } else {
+    const email = getEffectiveAdminEmail();
+    if (!email) {
       return [{
         user: null,
         reason: req.t("admin.noAdminEmail"),
       }];
     }
+    const admin = await this._dbManager.getUserByLogin(email);
+    // Label which variable supplied the email; the resolution itself is
+    // getEffectiveAdminEmail()'s job.
+    const reason = getAdminEmail() ?
+      req.t("admin.accountByAdminEmail", { adminEmail: email }) :
+      req.t("admin.accountByEmail", { defaultEmail: email });
+    return [{ user: admin.toUserProfile(), reason }];
   }
+}
+
+/**
+ * Returns the email of the effective install admin: `GRIST_ADMIN_EMAIL` if configured,
+ * falling back to `GRIST_DEFAULT_EMAIL`. This is the single definition of who the install
+ * admin is; code that needs to match it should use it rather than duplicate the
+ * resolution.
+ */
+export function getEffectiveAdminEmail(): string | undefined {
+  return getAdminEmail() || getDefaultEmail();
 }
 
 /**
