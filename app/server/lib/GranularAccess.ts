@@ -2788,6 +2788,9 @@ export class GranularAccess implements GranularAccessForBundle {
       // Another exception: ensure owners always have full access to ACL tables, so they
       // can change rules and don't get stuck.
       if (isAclTable(tableId) && await this.isOwner(docSession)) {
+        if (docSession.credential?.permissionMask()?.schemaEdit === "deny") {
+          throw new ErrorWithCode("ACL_DENY", "Access rules cannot be changed with this credential");
+        }
         return dummyAccessCheck;
       }
       // Webhook management writes _grist_Triggers. The `webhook` option waives the schema-edit

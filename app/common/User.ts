@@ -25,6 +25,7 @@ export interface UserInfo {
    */
   ShareRef: number | null;
   Type: UserType | null;
+  IsLoggedIn: boolean;
   [attributes: string]: unknown;
 }
 
@@ -44,6 +45,7 @@ export class User implements UserInfo {
   public UserRef: string | null = null;
   public ShareRef: number | null = null;
   public Type: UserType | null = null;
+  public IsLoggedIn: boolean = false;
   [attribute: string]: any;
 
   constructor(info: Record<string, unknown> = {}) {

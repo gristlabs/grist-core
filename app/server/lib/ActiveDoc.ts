@@ -1373,6 +1373,10 @@ export class ActiveDoc extends EventEmitter {
     return this._granularAccess.canCopyEverything(docSession);
   }
 
+  public async hasAccessRulesPermission(docSession: OptDocSession) {
+    return this._granularAccess.hasAccessRulesPermission(docSession);
+  }
+
   // Check if it is appropriate for the user to be treated as an owner of
   // the document for granular access purposes when in "prefork" mode
   // (meaning a document has been opened with the intent to fork it, but
@@ -1967,7 +1971,7 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Check if an ACL formula is valid. If not, will throw an error with an explanation.
    */
-  public async checkAclFormula(docSession: DocSession, text: string): Promise<PredicateFormulaProperties> {
+  public async checkAclFormula(docSession: OptDocSession, text: string): Promise<PredicateFormulaProperties> {
     // Checks can leak names of tables and columns.
     if (await this._granularAccess.hasNuancedAccess(docSession)) { return {}; }
     await this.waitForInitialization();

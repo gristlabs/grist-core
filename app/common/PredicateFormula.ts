@@ -326,6 +326,7 @@ export function typeCheckFormula(
       SessionID: "",
       ShareRef: 0,
       Type: "login",
+      IsLoggedIn: true,
     };
     const sampleInput: PredicateFormulaInput = { user: sampleUser, rec: sampleRecord, newRec: sampleRecord };
     compiledFormula(sampleInput);

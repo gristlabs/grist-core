@@ -1,4 +1,7 @@
-import { parsePermissions, permissionSetToText, splitSchemaEditPermissionSet } from "app/common/ACLPermissions";
+import {
+  ALL_PERMISSION_PROPS, parsePermissions, PermissionKey, permissionSetToText,
+  splitSchemaEditPermissionSet,
+} from "app/common/ACLPermissions";
 import { AVAILABLE_BITS_COLUMNS, AVAILABLE_BITS_TABLES, trimPermissions } from "app/common/ACLPermissions";
 import { ACLRulesReader } from "app/common/ACLRulesReader";
 import { AclRuleProblem } from "app/common/ActiveDocAPI";
@@ -7,7 +10,10 @@ import { RulePart, RuleSet, UserAttributeRule } from "app/common/GranularAccessC
 import { getSetMapValue, isNonNullish } from "app/common/gutil";
 import { CompiledPredicateFormula, ParsedPredicateFormula } from "app/common/PredicateFormula";
 import { MetaRowRecord } from "app/common/TableData";
+import { User } from "app/common/User";
 import { decodeObject } from "app/plugin/objtypes";
+
+import intersection from "lodash/intersection";
 
 export type ILogger = Pick<Console, "log" | "debug" | "info" | "warn" | "error">;
 
@@ -128,6 +134,59 @@ const EMERGENCY_RULE_SET: RuleSet = {
   }],
 };
 
+/**
+ * What each special rule contains: the bits it works on, and the rule the UI stores for it.
+ * SchemaEdit is shown as a special rule, but the UI stores it on the default resource, when
+ * its checkbox is unchecked. The names and descriptions shown to the user are in the UI code,
+ * for translation purposes.
+ */
+export interface SpecialRuleSpec {
+  availableBits: PermissionKey[];
+
+  /** For example "+R" or "-S". */
+  permissions: string;
+
+  /** Condition that says who the rule applies to. */
+  formula: string;
+}
+
+export const SPECIAL_RULE_SPECS: Record<SpecialRuleName, SpecialRuleSpec> = {
+  /** Let everyone see the rules themselves, not just owners. */
+  AccessRules: {
+    availableBits: ["read"],
+    permissions: "+R",
+    formula: "True",
+  },
+
+  /** Stop everyone but owners from copying or downloading the whole document. */
+  DocCopies: {
+    availableBits: ["read"],
+    permissions: "-R",
+    formula: "user.Access != OWNER",
+  },
+
+  /** Let everyone copy the whole document, even what read rules hide. Used for templates. */
+  FullCopies: {
+    availableBits: ["read"],
+    permissions: "+R",
+    formula: "True",
+  },
+
+  /** Rule that is copied into every new table rule set, so owners keep full access. */
+  SeedRule: {
+    availableBits: ["read", "create", "update", "delete"],
+    permissions: "+CRUD",
+    formula: "user.Access in [OWNER]",
+  },
+
+  /** Stop editors from changing tables, columns and formulas. */
+  SchemaEdit: {
+    availableBits: ["schemaEdit"],
+    permissions: "-S",
+    formula: "user.Access != OWNER",
+  },
+};
+
 export class ACLRuleCollection {
   // Store error if one occurs while reading rules.  Rules are replaced with emergency rules
   // in this case.
@@ -244,7 +303,7 @@ export class ACLRuleCollection {
           // Log that we are seeing an invalid rule, but don't fail.
           // (Historically, older versions of the Grist app will attempt to
           // open newer documents).
-          options.log.error(`Invalid rule for ${ruleSet.tableId}:${ruleSet.colIds}`);
+          options.log?.error(`Invalid rule for ${ruleSet.tableId}:${ruleSet.colIds}`);
         } else {
           specialRuleSets.set(specialType, { ...ruleSet, body: [...ruleSet.body, ...specialDefault.body] });
         }
@@ -332,7 +391,7 @@ export class ACLRuleCollection {
    *   - Rules for columns that include a column that does not exist
    *   - User attributes links to a column that does not exist
    */
-  public findRuleProblems(docData: DocData): AclRuleProblem[] {
+  public findRuleProblems(docData: DocData, options: { strict?: boolean } = {}): AclRuleProblem[] {
     const problems: AclRuleProblem[] = [];
     const tablesTable = docData.getMetaTable("_grist_Tables");
     const columnsTable = docData.getMetaTable("_grist_Tables_column");
@@ -399,6 +458,145 @@ export class ACLRuleCollection {
         comment: `Invalid columns in User Attribute rules: ${invalidUAColumns.join(", ")}`,
       });
     }
+
+    if (options.strict) {
+      problems.push(...this._findStrictProblems());
+    }
+    return problems;
+  }
+
+  /**
+   * Extra checks for things the document accepts, but that are almost certainly mistakes.
+   */
+  private _findStrictProblems(): AclRuleProblem[] {
+    const problems: AclRuleProblem[] = [];
+
+    // A user attribute with the same name as a built-in one is dropped at runtime, so
+    // rules that read it get the built-in value instead of the lookup they wanted.
+    const shadowed = [...this._userAttributeRules.keys()]
+      .filter(name => String(name) in new User());
+    if (shadowed.length > 0) {
+      problems.push({
+        comment: `User attributes conflict with built-in ones: ${shadowed.join(", ")}`,
+      });
+    }
+
+    // colIds is saved as one string with commas, so extra spaces end up inside the column
+    // name, and the same colId can appear twice.
+    for (const tableId of this.getAllTableIds()) {
+      for (const ruleSet of this.getAllColumnRuleSets(tableId)) {
+        if (!Array.isArray(ruleSet.colIds)) { continue; }
+        const seen = new Set<string>();
+        const duplicates: string[] = [];
+        for (const colId of ruleSet.colIds) {
+          if (seen.has(colId)) { duplicates.push(colId); }
+          seen.add(colId);
+        }
+        if (duplicates.length > 0) {
+          problems.push({
+            comment: `Duplicate columns in rules for table ${tableId}: ${duplicates.join(", ")}`,
+          });
+        }
+        const untrimmed = ruleSet.colIds.filter(colId => colId !== colId.trim());
+        if (untrimmed.length > 0) {
+          problems.push({
+            comment: `Columns with stray whitespace in rules for table ${tableId}: ` +
+              untrimmed.map(colId => JSON.stringify(colId)).join(", "),
+          });
+        }
+      }
+    }
+
+    // During update, the `readAclRules` dropped permissions that some resources can't use, but the
+    // stored permissionsText wasn't updated. Report those inconsistencies here, for any caller that
+    // might want to update those rules and drop those permissions themselves. For example for
+    // column rule someone might have stored +CRUD, while only +RU are used during parsing.
+    for (const tableId of this.getAllTableIds()) {
+      const defaultRuleSet = [this.getTableDefaultRuleSet(tableId)].filter(isNonNullish);
+      const ruleSets = [
+        ...this.getAllColumnRuleSets(tableId),
+        ...defaultRuleSet,
+      ];
+      for (const ruleSet of ruleSets) {
+        for (const rule of ruleSet.body) {
+          const stored = rule.origRecord?.permissionsText;
+          if (!stored) { continue; }
+          // "all", "none", "+CRUDS" and "-CRUDS" mean every bit that applies here.
+          const storedText = permissionSetToText(parsePermissions(stored));
+          if (storedText === "all" || storedText === "none") { continue; }
+          const effective = permissionSetToText(rule.permissions);
+          if (effective !== storedText) {
+            problems.push({
+              comment: `Rule for ${ruleSet.tableId}:${ruleSet.colIds} stores permissions ` +
+                `${JSON.stringify(stored)} but only ${effective || "nothing"} applies here`,
+            });
+          }
+        }
+      }
+    }
+
+    // Special rules keep every bit, so one that means nothing for them is saved and kept
+    // as it is, instead of being refused.
+    for (const [colId, ruleSet] of this._specialRuleSets) {
+      const allowed = SPECIAL_RULE_SPECS[colId as SpecialRuleName]?.availableBits;
+      if (!allowed) { continue; }
+      for (const rule of ruleSet.body) {
+        if (!rule.origRecord) { continue; }
+        const used = ALL_PERMISSION_PROPS.filter(prop => rule.permissions[prop]);
+        const unexpected = used.filter(prop => !allowed.includes(prop));
+        if (unexpected.length > 0) {
+          problems.push({
+            comment: `Special rule ${colId} uses permissions that do not apply to it: ` +
+              unexpected.join(", "),
+          });
+        }
+      }
+    }
+
+    // Find missing and repeated rule positions within each rule set, and columns that
+    // have rules in more than one rule set.
+    const allRuleSets: RuleSet[] = [
+      ...[...this._columnRuleSets.values()].flat(), // special rules are included here
+      ...this._tableRuleSets.values(),
+      this._defaultRuleSet,
+    ];
+    const colIdsByTable = new Map<string, string[]>();   // e.g. "Orders" -> ["*", "Amount"]
+    for (const ruleSet of allRuleSets) {
+      const colIds = ruleSet.colIds === "*" ? ["*"] : ruleSet.colIds;
+      const seen = getSetMapValue(colIdsByTable, ruleSet.tableId, () => []);
+      const shared = intersection(seen, colIds);
+      if (shared.length) {
+        problems.push({
+          comment: `Duplicate rule set for ${ruleSet.tableId}:${shared.join(",")}`,
+        });
+      }
+      seen.push(...colIds);
+      const positions = new Map<number, number>();   // rulePos -> count
+      let missingPos = 0;
+      for (const rule of ruleSet.body) {
+        if (!rule.origRecord) { continue; } // Skip built-in rules
+        const pos = rule.origRecord.rulePos;
+        if (typeof pos !== "number" || !isFinite(pos)) {
+          missingPos++;
+        } else {
+          positions.set(pos, (positions.get(pos) ?? 0) + 1);
+        }
+      }
+      const repeated = [...positions].filter(([, count]) => count > 1).map(([pos]) => pos);
+      if (repeated.length > 0) {
+        problems.push({
+          comment: `Rules for ${ruleSet.tableId}:${ruleSet.colIds} share the same rulePos, ` +
+            `so their order is undefined: ${repeated.join(", ")}`,
+        });
+      }
+      if (missingPos > 0) {
+        problems.push({
+          comment: `${missingPos} rule(s) for ${ruleSet.tableId}:${ruleSet.colIds} have no usable ` +
+            `rulePos, so their order is undefined`,
+        });
+      }
+    }
+
     return problems;
   }
 
@@ -413,7 +611,7 @@ export class ACLRuleCollection {
 }
 
 export interface ReadAclOptions {
-  log: ILogger;     // For logging warnings during rule processing.
+  log?: ILogger;    // For logging warnings during rule processing.
   compile?: (parsed: ParsedPredicateFormula) => CompiledPredicateFormula;
   // If true, add and modify access rules in some special ways.
   // Specifically, call addHelperCols to add helper columns of restricted columns to rule sets,
@@ -441,7 +639,7 @@ export interface ReadAclResults {
  * For each column in colIds, return the colIds of any hidden helper columns it has,
  * i.e. display columns of references, and conditional formatting rule columns.
  */
-function getHelperCols(docData: DocData, tableId: string, colIds: string[], log: ILogger): string[] {
+function getHelperCols(docData: DocData, tableId: string, colIds: string[], log?: ILogger): string[] {
   const tablesTable = docData.getMetaTable("_grist_Tables");
   const columnsTable = docData.getMetaTable("_grist_Tables_column");
   const fieldsTable = docData.getMetaTable("_grist_Views_section_field");
@@ -473,7 +671,7 @@ function getHelperCols(docData: DocData, tableId: string, colIds: string[], log:
         if (extraCol.colId.startsWith("gristHelper_") && extraCol.parentId === tableRef) {
           result.push(extraCol.colId);
         } else {
-          log.error(`Invalid helper column ${extraCol.colId} of ${tableId}:${colId}`);
+          log?.error(`Invalid helper column ${extraCol.colId} of ${tableId}:${colId}`);
         }
       }
     }
@@ -581,13 +779,15 @@ function splitSchemaEditRulePart(rulePart: RulePart): { schemaEdit?: RulePart, n
   let schemaEdit: RulePart | undefined;
   let nonSchemaEdit: RulePart | undefined;
   if (p.schemaEdit) {
-    schemaEdit = { ...rulePart,
+    schemaEdit = {
+      ...rulePart,
       permissions: p.schemaEdit,
       permissionsText: permissionSetToText(p.schemaEdit),
     };
   }
   if (p.nonSchemaEdit) {
-    nonSchemaEdit = { ...rulePart,
+    nonSchemaEdit = {
+      ...rulePart,
       permissions: p.nonSchemaEdit,
       permissionsText: permissionSetToText(p.nonSchemaEdit),
     };

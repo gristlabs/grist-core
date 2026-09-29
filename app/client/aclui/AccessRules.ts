@@ -39,7 +39,7 @@ import {
   trimPermissions,
 } from "app/common/ACLPermissions";
 import { ACLRuleCollection, isSchemaEditResource, SPECIAL_RULES_TABLE_ID } from "app/common/ACLRuleCollection";
-import { SpecialRuleName } from "app/common/ACLRuleCollection";
+import { SPECIAL_RULE_SPECS, SpecialRuleName } from "app/common/ACLRuleCollection";
 import { AclRuleProblem, AclTableDescription, getTableTitle } from "app/common/ActiveDocAPI";
 import { BulkColValues, getColValues, RowRecord, UserAction } from "app/common/DocActions";
 import {
@@ -1488,48 +1488,39 @@ const schemaEditRules: { [key: string]: SpecialRuleBody } = {
   },
 };
 
-const specialRuleProperties: Record<SpecialRuleName, SpecialRuleProperties> = {
+const specialRuleProperties = {
   AccessRules: {
+    ...SPECIAL_RULE_SPECS.AccessRules,
     name: t("Permission to view Access Rules"),
     description: t("Allow everyone to view access rules."),
-    availableBits: ["read"],
-    permissions: "+R",
-    formula: "True",
   },
   DocCopies: {
+    ...SPECIAL_RULE_SPECS.DocCopies,
     name: t("Permission to access the document in full by unrestricted users"),
     description: t(`Restrict non-Owners from copying or downloading the full document. \
 Note: this only affects users without read restrictions, since others will be restricted \
 regardless of this setting.`),
-    availableBits: ["read"],
-    permissions: "-R",
-    formula: "user.Access != OWNER",
   },
   FullCopies: {
+    ...SPECIAL_RULE_SPECS.FullCopies,
     name: t("Permission to access the document in full by all users"),
     description: t(`Circumvent all read restrictions and allow everyone to copy the entire document, \
 or view it in full in fiddle mode. \
 Only use for for examples and templates, not for documents with sensitive data.`),
-    availableBits: ["read"],
-    permissions: "+R",
-    formula: "True",
   },
   SeedRule: {
+    ...SPECIAL_RULE_SPECS.SeedRule,
     name: t("Seed rules"),
     description: t("When adding table rules, automatically add a rule to grant OWNER full access."),
-    availableBits: ["read", "create", "update", "delete"],
-    permissions: "+CRUD",
-    formula: "user.Access in [OWNER]",
   },
   SchemaEdit: {
+    ...SPECIAL_RULE_SPECS.SchemaEdit,
     name: t("Permission to edit document structure"),
     description: t(`Allow Editors to edit structure (e.g. modify and delete tables, columns, and \
 layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access \
 all data, regardless of table and column access rules!`),
-    availableBits: ["schemaEdit"],
-    ...schemaEditRules.denyEditors,
   },
-};
+} satisfies Record<SpecialRuleName, SpecialRuleProperties>;
 
 function getSpecialRuleProperties(name: string): SpecialRuleProperties {
   return specialRuleProperties[name as SpecialRuleName] || {
