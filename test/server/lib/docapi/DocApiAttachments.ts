@@ -46,6 +46,15 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     return workspaces.find(w => w.name === name)!.id;
   }
 
+  async function attachToTable1(docUrl: string, attIds: number[]) {
+    const { chimpy } = getCtx();
+    const resp = await axios.post(`${docUrl}/apply`, [
+      ["AddColumn", "Table1", "Attached", { type: "Attachments" }],
+      ["AddRecord", "Table1", null, { Attached: ["L", ...attIds] }],
+    ], chimpy);
+    assert.equal(resp.status, 200);
+  }
+
   describe("attachments", function() {
     it("POST /docs/{did}/attachments adds attachments", async function() {
       const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
@@ -123,6 +132,7 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip", async function() {
       const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
       const testDoc = await getOrCreateTestDoc();
+      await attachToTable1(`${homeUrl}/api/docs/${testDoc}`, [1, 2, 3]);
       const resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/archive`,
         { ...chimpy, responseType: "arraybuffer" });
       assert.equal(resp.status, 200);
@@ -481,6 +491,7 @@ function addAttachmentsTests(getCtx: () => TestContext) {
           { name: "hello2.doc", contents: "foobar" },
         ], chimpy);
         assert.deepEqual(resp.data, [1, 2, 3]);
+        await attachToTable1(docUrl, [1, 2, 3]);
       });
 
       after(async () => {
