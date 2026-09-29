@@ -33,7 +33,7 @@ For 'Link (in http://www.uk?)'
 */
 
 // Match http or https then domain name (with optional port) then any text that ends with letter or number.
-export const urlRegex = /(https?:\/\/[A-Za-z\d][A-Za-z\d-.]*(?!\.)(?::\d+)?(?:\/[^\s]*)?[\w\d/])/;
+export const urlRegex = /(https?:\/\/[A-Za-z\d][A-Za-z\d-.]*(?!\.)(?::\d+)?(?:\/[^\s]*)?[\w\d/-])/;
 
 /**
  * Detects URLs in a text and returns list of tokens { value, isLink }
