@@ -25,7 +25,7 @@ const t = makeT("QuickSetupApplyStep");
 const testId = makeTestId("test-permissions-setup-");
 
 type SurveyStatus = "ok" | "retryable" | "unrecoverable";
-type RestartStatus = "restarted" | "errored" | false;
+type FinalStatus = "restarted" | "restart-failed" | false;
 
 /**
  * Orchestrates the wizard's "Apply & restart" step: assembles the
@@ -46,7 +46,7 @@ export class QuickSetupApplyStep extends Disposable {
   private _error = Observable.create<string>(this, "");
   // Whether the server restarted successfully, can't restart, or hasn't attempted it yet.
   // Used to switch to and modify the success page.
-  private _restartStatus = Observable.create<RestartStatus>(this, false);
+  private _restartStatus = Observable.create<FinalStatus>(this, false);
 
   // Drives the retry section on the success page:
   //  - 'ok'            → section hidden
@@ -99,7 +99,7 @@ export class QuickSetupApplyStep extends Disposable {
     return dom("div",
       testId("section"),
       dom.domComputed(this._restartStatus, (_restartStatus) => {
-        if (_restartStatus !== false) { return this._buildSuccessPage(_restartStatus); }
+        if (_restartStatus !== false) { return this._buildFinalPage(_restartStatus); }
         return dom("div",
           dom.maybe(this._error, err => cssError(err)),
           this._permissions.buildDom({ disabled: this._drafts.isApplying }),
@@ -169,7 +169,7 @@ export class QuickSetupApplyStep extends Disposable {
       }
     }
     if (this.isDisposed()) { return; }
-    this._restartStatus.set(restartErrored ? "errored" : "restarted");
+    this._restartStatus.set(restartErrored ? "restart-failed" : "restarted");
     this._submitSurvey();
   }
 
@@ -239,10 +239,10 @@ export class QuickSetupApplyStep extends Disposable {
       })
       .finally(() => {
         if (!this.isDisposed()) { this._surveyRetrying.set(false); }
-      })
+      });
   }
 
-  private _buildSuccessPage(restartStatus: RestartStatus): DomContents {
+  private _buildFinalPage(restartStatus: FinalStatus): DomContents {
     const title = restartStatus === "restarted" ?
       t("Grist is live!") :
       t("Grist needs restarting");
