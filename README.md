@@ -186,6 +186,10 @@ To enable gVisor sandboxing, set `--env GRIST_SANDBOX_FLAVOR=gvisor`.
 This should work with default docker settings, but may not work in all
 environments.
 
+### Easypanel
+
+[Easypanel](https://easypanel.io) is a self-hosted Docker deployment platform, and `grist-core` has a one-click deployment template there: https://easypanel.io/templates/grist - it sets up a persistent volume for `/persist` automatically.
+
 You can find a lot more about configuring Grist, setting up authentication,
 and running it on a public server in our
 [Self-Managed Grist](https://support.getgrist.com/self-managed/) documentation.
