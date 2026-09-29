@@ -163,8 +163,7 @@ export class QuickSetupApplyStep extends Disposable {
     // to the success page. Retry re-uses this cached payload.
     await this._captureSurveyPayload();
     if (this.isDisposed()) { return; }
-    // Purely defensive catch - submitSurvey should be setting error state instead of throwing.
-    this._submitSurvey().catch(err => console.error(err));
+    this._submitSurvey();
   }
 
   private async _captureSurveyPayload() {
@@ -172,20 +171,21 @@ export class QuickSetupApplyStep extends Disposable {
     this._surveyPayload = await this._improveForm.getSubmissionData();
   }
 
-  private async _submitSurvey() {
-    const surveyUrl = commonUrls.helpUsImproveSurvey ? new URL(commonUrls.helpUsImproveSurvey) : undefined;
-    if (!surveyUrl || !this._surveyPayload || this._surveyRetrying.get()) { return; }
-    this._surveyRetrying.set(true);
-    this._surveyStatus.set("ok");
-    // Ask the server to skip whatever the last response reported either
-    // succeeded OR unrecoverably failed — retry should only re-attempt parts
-    // that could still succeed.
-    const prev = this._lastResponse.get();
-    if (prev && (!prev.persistFailed || prev.persistUnrecoverable)) {
-      surveyUrl.searchParams.set("skipPersist", "1");
-    }
-    if (prev && !prev.subscribeFailed) { surveyUrl.searchParams.set("skipSubscribe", "1"); }
-    try {
+  private _submitSurvey() {
+    // Should be self-contained and handle its own errors.
+    const doSubmit = async () => {
+      const surveyUrl = commonUrls.helpUsImproveSurvey ? new URL(commonUrls.helpUsImproveSurvey) : undefined;
+      if (!surveyUrl || !this._surveyPayload || this._surveyRetrying.get()) { return; }
+      this._surveyRetrying.set(true);
+      this._surveyStatus.set("ok");
+      // Ask the server to skip whatever the last response reported either
+      // succeeded OR unrecoverably failed — retry should only re-attempt parts
+      // that could still succeed.
+      const prev = this._lastResponse.get();
+      if (prev && (!prev.persistFailed || prev.persistUnrecoverable)) {
+        surveyUrl.searchParams.set("skipPersist", "1");
+      }
+      if (prev && !prev.subscribeFailed) { surveyUrl.searchParams.set("skipSubscribe", "1"); }
       const resp = await fetch(surveyUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -193,13 +193,17 @@ export class QuickSetupApplyStep extends Disposable {
       });
       // Any 400 error (except 429 rate limited) means it isn't worth retrying (bad payload shape, etc.).
       if (400 <= resp.status && resp.status < 500 && resp.status !== 429) {
-        if (this.isDisposed()) { return; }
+        if (this.isDisposed()) {
+          return;
+        }
         this._lastResponse.set(null);
         this._surveyStatus.set("unrecoverable");
         return;
       }
       const body = await resp.json();
-      if (this.isDisposed()) { return; }
+      if (this.isDisposed()) {
+        return;
+      }
 
       const persistFailed = body.persistFailed !== false;
       const persistUnrecoverable = Boolean(body.persistUnrecoverable);
@@ -216,15 +220,19 @@ export class QuickSetupApplyStep extends Disposable {
       // If any part is still retryable, offer retry; otherwise all failures
       // are unrecoverable and we just tell the user something went wrong.
       this._surveyStatus.set(persistRetryable || subscribeRetryable ? "retryable" : "unrecoverable");
-    } catch (e) {
-      if (this.isDisposed()) { return; }
-      console.warn("Help-us-improve form submission failed", e);
-      // Network error / bad JSON: we don't know what the server did. Retry both parts.
-      this._lastResponse.set(null);
-      this._surveyStatus.set("retryable");
-    } finally {
-      if (!this.isDisposed()) { this._surveyRetrying.set(false); }
-    }
+    };
+
+    doSubmit()
+      .catch((e) => {
+        if (this.isDisposed()) { return; }
+        console.warn("Help-us-improve form submission failed", e);
+        // Network error / bad JSON: we don't know what the server did. Retry both parts.
+        this._lastResponse.set(null);
+        this._surveyStatus.set("retryable");
+      })
+      .finally(() => {
+        if (!this.isDisposed()) { this._surveyRetrying.set(false); }
+      })
   }
 
   private _buildSuccessPage(restartStatus: RestartStatus): DomContents {
@@ -317,7 +325,7 @@ const cssSuccessPage = styled("div", `
   gap: 12px;
 `);
 
-const cssIconStyle = styled("div",`
+const cssIconStyle = styled("div", `
   height: 48px;
   width: 48px;
 `);

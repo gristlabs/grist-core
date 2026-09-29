@@ -208,49 +208,48 @@ describe("QuickSetupApply", function() {
   });
 
   it("should stay on the form and show an error when applying fails", async function() {
-    // Make every write request fail, so each dirty section's apply() throws. The
-    // draft manager then skips the restart and reports "Could not apply: ...".
-    // The stub only lives in this page; the next test's navigateToStep() reloads
-    // and clears it.
-    await navigateToStep(async () => {
-      await driver.executeScript(() => {
-        const origFetch = window.fetch;
-        window.fetch = async (input: any, init?: any) => {
-          const method = (input?.method ?? init?.method ?? "GET").toUpperCase();
-          if (method !== "GET" && method !== "HEAD") {
-            return new Response(JSON.stringify({ error: "Simulated failure" }), {
-              status: 500,
-              headers: { "Content-Type": "application/json" },
-            });
-          }
-          return origFetch(input, init);
-        };
-      });
-    });
+    // Make every write request fail, triggering a non-restart related error.
+    // This should skip the restart and report the error, instead of moving
+    // to the "restart failed" page.
 
-    await driver.find(".test-permissions-setup-go-live").click();
+    // Need to navigate to quick setup before selecting the step.
+    // Once the step is selected, `window.fetch` is bound and can't be stubbed.
+    await navigateToQuickSetup();
 
-    // The form stays put, with the error banner above it.
-    await gu.waitToPass(async () => {
-      assert.include(
-        await driver.find(".test-permissions-setup-section").getText(),
-        "Could not apply",
-      );
-      assert.isTrue(await driver.find(".test-permissions-setup-go-live").isPresent());
-    }, 5000);
+    try {
+      // Returns 500 all write requests (non-GET non-HEAD) so we get an error thrown before the server
+      // tries to restart.
+      await stubFetchToMakeWriteRequests500();
+      await selectApplyStep();
 
-    // Neither variant of the success page should be shown.
-    const text = await driver.find(".test-permissions-setup-section").getText();
-    assert.notInclude(text, "Grist needs restarting");
-    assert.notInclude(text, "Grist is live!");
-    assert.isFalse(await driver.find(".test-permissions-setup-back-to-install").isPresent());
+      await driver.find(".test-permissions-setup-go-live").click();
 
-    // Nothing should have been persisted.
-    const status = await installApi.getPermissionsStatus();
-    assert.isUndefined(status.orgCreationAnyone.source);
-    assert.isUndefined(status.personalOrgs.source);
-    assert.isUndefined(status.forceLogin.source);
-    assert.isUndefined(status.anonPlayground.source);
+      // The form stays put, with the error banner above it.
+      await gu.waitToPass(async () => {
+        assert.include(
+          await driver.find(".test-permissions-setup-section").getText(),
+          "Could not apply",
+        );
+        assert.isTrue(await driver.find(".test-permissions-setup-go-live").isPresent());
+      }, 5000);
+
+      // Neither variant of the success page should be shown.
+      const text = await driver.find(".test-permissions-setup-section").getText();
+      assert.notInclude(text, "Grist needs restarting");
+      assert.notInclude(text, "Grist is live!");
+      assert.isFalse(await driver.find(".test-permissions-setup-back-to-install").isPresent());
+
+      // Nothing should have been persisted.
+      const status = await installApi.getPermissionsStatus();
+      assert.isUndefined(status.orgCreationAnyone.source);
+      assert.isUndefined(status.personalOrgs.source);
+      assert.isUndefined(status.forceLogin.source);
+      assert.isUndefined(status.anonPlayground.source);
+    } finally {
+      // Refreshes the page, clearing the stubbed `window.fetch` values.
+      // As they're bound, refreshing is the only way to reliably clear them.
+      await navigateToStep();
+    }
   });
 
   it("should save permissions and show restart-needed page when restart is unavailable", async function() {
@@ -306,13 +305,12 @@ describe("QuickSetupApply", function() {
     assert.equal(status.telemetry.source, "preferences");
   });
 
-  // onLoad, if given, runs after the page loads but before the apply step is
-  // built — the step's API objects bind window.fetch when they're constructed,
-  // so anything stubbing fetch has to be installed first.
-  async function navigateToStep(onLoad?: () => Promise<void>) {
+  async function navigateToQuickSetup() {
     await driver.get(`${server.getHost()}/admin/setup`);
+  }
+
+  async function selectApplyStep() {
     await driver.findWait(".test-stepper-step-4", 1000);
-    await onLoad?.();
     await driver.find(".test-stepper-step-4").click();
     await gu.waitToPass(async () => {
       assert.include(
@@ -320,6 +318,11 @@ describe("QuickSetupApply", function() {
         "Apply & restart",
       );
     }, 1000);
+  }
+
+  async function navigateToStep() {
+    await navigateToQuickSetup();
+    await selectApplyStep();
   }
 
   async function isPresetActive(preset: string): Promise<boolean> {
@@ -346,3 +349,19 @@ describe("QuickSetupApply", function() {
     return driver.find(`.test-permissions-setup-perm-${permKey} .test-permissions-setup-conflict-badge`).isPresent();
   }
 });
+
+async function stubFetchToMakeWriteRequests500() {
+  await driver.executeScript(() => {
+    const origFetch = window.fetch;
+    window.fetch = async (input: any, init?: any) => {
+      const method = (input?.method ?? init?.method ?? "GET").toUpperCase();
+      if (method !== "GET" && method !== "HEAD") {
+        return new Response(JSON.stringify({ error: "Simulated failure" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return origFetch(input, init);
+    };
+  });
+}
