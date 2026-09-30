@@ -35,16 +35,23 @@ export interface ColumnInfo {
   skip: boolean;
   // For a Ref or RefList column, the table it points into.
   refTableId?: string;
-  // Set on the side of a two-way reference that the engine keeps in step
-  // with the side the patch writes. See followingActions.
-  following?: boolean;
-  // Set on the side the patch writes of a two-way reference where both
-  // sides are Refs, so each row pairs with at most one other. See
-  // releaseActions.
-  oneToOne?: boolean;
+  // The part the column plays in a two-way reference, if any:
+  //   - "following": the side the engine keeps in step with the side the
+  //     patch writes. See followingActions.
+  //   - "oneToOne": the side the patch writes, where both sides are Refs,
+  //     so each row pairs with at most one other. See releaseActions.
+  //   - "manyToMany": the side the patch writes, where both sides are
+  //     RefLists. See mergeLinks.
+  twoWay?: "following" | "oneToOne" | "manyToMany";
 }
 
 export type GetColumnInfo = (tableId: string, colId: string) => ColumnInfo;
+
+/**
+ * Cells of the target as it is now, as read for the patch: tableId, then
+ * colId, then rowId to value. See targetReads for which cells are read.
+ */
+export type TargetCells = Record<string, Record<string, Map<number, CellValue>>>;
 
 // Values to write to one row.
 interface RowValues {
@@ -100,8 +107,9 @@ export class Patch {
         }
       }
 
-      const actions = buildActions(userTables, (tableId, colId) => this._getColumnInfo(tableId, colId),
-        trunkChanges.tableDeltas);
+      const getColumn: GetColumnInfo = (tableId, colId) => this._getColumnInfo(tableId, colId);
+      const target = await this._readTarget(targetReads(userTables, getColumn, trunkChanges.tableDeltas));
+      const actions = buildActions(userTables, getColumn, trunkChanges.tableDeltas, target);
       // Describe before writing, so an action we cannot account for is
       // caught while the document is still untouched.
       const described = actions.map(describeAction);
@@ -120,6 +128,36 @@ export class Patch {
     return { changes, applied };
   }
 
+  /**
+   * Read the cells of the target that two-way references need.
+   *
+   * TODO: the read and the write that follows are separate steps, so a
+   * change landing between them goes unseen, as does any change after the
+   * trunk's summary was taken. Doing the read inside the same engine action
+   * as the write would close the gap.
+   *
+   * The read is made as the user applying the patch, so what access rules
+   * hide from them does not shape what is written in their name. A row or
+   * column hidden from them goes unread. A hidden row holding a partner the
+   * patch claims is not released, and the engine then refuses the claim. A
+   * hidden row the patch unpairs is unpaired, as if unchanged since the
+   * branch point. A hidden list is not merged into, and the patch is
+   * refused.
+   */
+  private async _readTarget(reads: TargetRead[]): Promise<TargetCells> {
+    const target: TargetCells = {};
+    for (const { tableId, colId, rowIds, values } of reads) {
+      const filters = rowIds ? { id: rowIds } : { [colId]: values ?? [] };
+      const { tableData } = await this._activeDoc.fetchQuery(this._docSession, { tableId, filters });
+      const [, , ids, colValues] = tableData;
+      const column = colValues[colId];
+      if (!column) { continue; }
+      const cells = ((target[tableId] ??= {})[colId] ??= new Map());
+      ids.forEach((id, i) => cells.set(id, column[i]));
+    }
+    return target;
+  }
+
   private _getColumnInfo(tableId: string, colId: string): ColumnInfo {
     const column = this._getTableColumn(tableId, colId);
     // Careful, isFormula set, with a blank formula, means
@@ -131,21 +169,25 @@ export class Patch {
     const skip = (Boolean(column.isFormula) && Boolean(column.formula)) || isHiddenCol(colId);
     const info = extractInfoFromColType(column.type);
     const refTableId = (info.type === "Ref" || info.type === "RefList") ? info.tableId : undefined;
-    return { skip, refTableId, ...this._twoWayRole(column) };
+    return { skip, refTableId, twoWay: this._twoWayRole(column) };
   }
 
   /**
    * The part a column plays in a two-way reference, if any. The engine
    * follows the RefList side of a Ref/RefList pair, and the later column of
-   * a pair of the same kind.
+   * a pair of the same kind. Which column of a same-kind pair is written
+   * does not change which links result (see releaseActions,
+   * isStaleUnpairing and mergeLinks), though it can change their order in
+   * the other column.
    */
-  private _twoWayRole(column: MetaRowRecord<"_grist_Tables_column">): Pick<ColumnInfo, "following" | "oneToOne"> {
+  private _twoWayRole(column: MetaRowRecord<"_grist_Tables_column">): ColumnInfo["twoWay"] {
     const reverse = column.reverseCol ? this._columns.getRecord(column.reverseCol) : undefined;
-    if (!reverse) { return {}; }
-    const kind = (col: MetaRowRecord<"_grist_Tables_column">) => extractInfoFromColType(col.type).type;
-    const following = (kind(column) !== kind(reverse)) ? kind(column) === "RefList" : column.id > reverse.id;
-    const oneToOne = kind(column) === "Ref" && kind(reverse) === "Ref";
-    return following ? { following } : { oneToOne };
+    if (!reverse) { return undefined; }
+    const kind = extractInfoFromColType(column.type).type;
+    const reverseKind = extractInfoFromColType(reverse.type).type;
+    if (kind !== reverseKind) { return kind === "RefList" ? "following" : undefined; }
+    if (column.id > reverse.id) { return "following"; }
+    return kind === "Ref" ? "oneToOne" : "manyToMany";
   }
 
   private _getTableColumn(tableId: string, colId: string) {
@@ -171,6 +213,52 @@ export class Patch {
 }
 
 /**
+ * A read of the target the patch needs before it can be built: either the
+ * current values of some rows, or the rows whose cell currently holds one
+ * of some values.
+ */
+export interface TargetRead {
+  tableId: string;
+  colId: string;
+  rowIds?: number[];
+  values?: number[];
+}
+
+/**
+ * The cells of the target that two-way references need read before the
+ * patch is built. For a many-to-many pair, the lists the patch changes on
+ * the side it writes, to merge into (see mergeLinks). For a one-to-one
+ * pair, the rows now holding the partners the patch claims, to release
+ * (see releaseActions), and the rows the patch unpairs, to check they
+ * still hold the partner being given up (see isStaleUnpairing).
+ */
+export function targetReads(
+  userTables: [string, TableDelta][], getColumn: GetColumnInfo, trunkDeltas: Record<string, TableDelta> = {},
+): TargetRead[] {
+  return planTables(userTables, getColumn, trunkDeltas).flatMap(tableReads);
+}
+
+function tableReads(table: TablePlan): TargetRead[] {
+  const { tableId, delta } = table;
+  const existing = existingUpdatedRows(delta);
+  const reads = table.columns.flatMap((column): TargetRead[] => {
+    const { colId, cells } = column;
+    const written = existing.filter(rowId => cells[rowId]);
+    if (column.twoWay === "manyToMany") {
+      return [{ tableId, colId, rowIds: written }];
+    }
+    if (column.twoWay === "oneToOne") {
+      return [
+        { tableId, colId, values: claimedPartners(delta, column, table.isAddedRow) },
+        { tableId, colId, rowIds: written.filter(rowId => !isPartner(extractValue(cells[rowId][1]))) },
+      ];
+    }
+    return [];
+  });
+  return reads.filter(read => (read.rowIds ?? read.values)?.length);
+}
+
+/**
  * Build the whole bundle without touching the document. The order matters:
  *   - Removes and releases free one-to-one partners (see releaseActions)
  *     before anything claims them.
@@ -178,10 +266,31 @@ export class Patch {
  *     Refs may name added rows, and the Ref values kept out of the Adds.
  *   - Reordered lists on the following side of a two-way reference go
  *     last, once the engine has settled what is in them.
+ *
+ * `target` has the cells targetReads asks for. Without it, many-to-many
+ * lists are written whole, and only rows the patch itself changes release
+ * one-to-one partners.
  */
 export function buildActions(
   userTables: [string, TableDelta][], getColumn: GetColumnInfo, trunkDeltas: Record<string, TableDelta> = {},
+  target?: TargetCells,
 ): UserAction[] {
+  const tables = planTables(userTables, getColumn, trunkDeltas, target);
+  const adds = tables.map(addActions);
+  return [
+    ...tables.flatMap(removeActions),
+    ...tables.flatMap(releaseActions),
+    ...adds.flatMap(a => a.adds),
+    ...tables.flatMap(updateActions),
+    ...adds.flatMap(a => a.laterRefs),
+    ...tables.flatMap(followingActions),
+  ];
+}
+
+function planTables(
+  userTables: [string, TableDelta][], getColumn: GetColumnInfo, trunkDeltas: Record<string, TableDelta>,
+  target?: TargetCells,
+): TablePlan[] {
   // Source row ids this patch adds, per table.
   const isAddedRow = rowCheck(userTables.map(([tableId, delta]) => [tableId, delta.addRows]));
   // Rows of the branch point the target has removed since. On the source,
@@ -194,32 +303,32 @@ export function buildActions(
     return [tableId, delta.removeRows.filter(rowId => added.has(rowId))];
   }));
   const isTrunkUpdatedRow = rowCheck(trunkEntries.map(([tableId, delta]) => [tableId, delta.updateRows]));
-  const tables = userTables.map(([tableId, delta]) => planTable(tableId, delta, getColumn, isAddedRow,
-    { isGoneRow, isReusedRow, isTrunkUpdatedRow, trunkDelta: trunkDeltas[tableId] }));
+  // Rows the patch removes from the target, which the target still has.
+  const isRemovedRow = rowCheck(userTables.map(([tableId, delta]) =>
+    [tableId, delta.removeRows.filter(rowId => !isGoneRow(tableId, rowId))]));
+  const context: PatchContext = { isAddedRow, isGoneRow, isReusedRow, isRemovedRow, isTrunkUpdatedRow, target };
+  return userTables.map(([tableId, delta]) => planTable(tableId, delta, getColumn, trunkDeltas[tableId], context));
+}
 
-  const adds = tables.map(addActions);
-  return [
-    ...tables.flatMap(removeActions),
-    ...tables.flatMap(releaseActions),
-    ...adds.flatMap(a => a.adds),
-    ...tables.flatMap(updateActions),
-    ...adds.flatMap(a => a.laterRefs),
-    ...tables.flatMap(followingActions),
-  ];
+// What planning each table needs to know about the patch as a whole.
+interface PatchContext {
+  isAddedRow: RowCheck;
+  isGoneRow: RowCheck;
+  isReusedRow: RowCheck;
+  isRemovedRow: RowCheck;
+  isTrunkUpdatedRow: RowCheck;
+  // Cells read from the target as it is now, if read. See targetReads.
+  target?: TargetCells;
 }
 
 // One table's part in the patch, with its columns looked up once.
-interface TablePlan {
+interface TablePlan extends PatchContext {
   tableId: string;
   delta: TableDelta;
   // The columns to write, leaving out skipped ones.
   columns: PlannedColumn[];
   // The following sides of two-way references. See followingActions.
   following: PlannedColumn[];
-  isAddedRow: RowCheck;
-  isGoneRow: RowCheck;
-  isReusedRow: RowCheck;
-  isTrunkUpdatedRow: RowCheck;
   // What the target changed in this table since the branch point, if anything.
   trunkDelta?: TableDelta;
 }
@@ -230,12 +339,12 @@ interface PlannedColumn extends ColumnInfo {
 }
 
 function planTable(
-  tableId: string, delta: TableDelta, getColumn: GetColumnInfo, isAddedRow: RowCheck,
-  trunk: Pick<TablePlan, "isGoneRow" | "isReusedRow" | "isTrunkUpdatedRow" | "trunkDelta">,
+  tableId: string, delta: TableDelta, getColumn: GetColumnInfo, trunkDelta: TableDelta | undefined,
+  context: PatchContext,
 ): TablePlan {
   // Changing a row the target has removed would fail if the id is free,
   // and change an unrelated row if it was reused.
-  const goneUpdate = existingUpdatedRows(delta).find(rowId => trunk.isGoneRow(tableId, rowId));
+  const goneUpdate = existingUpdatedRows(delta).find(rowId => context.isGoneRow(tableId, rowId));
   if (goneUpdate !== undefined) {
     throw new Error(`the suggestion changes row ${goneUpdate} of ${tableId}, ` +
       "which was removed from this document after the suggestion's copy was made");
@@ -243,9 +352,17 @@ function planTable(
   const planned = Object.entries(delta.columnDeltas)
     .map(([colId, cells]): PlannedColumn => ({ colId, cells, ...getColumn(tableId, colId) }))
     .filter(col => !col.skip);
-  const columns = planned.filter(col => !col.following);
-  const following = planned.filter(col => col.following);
-  return { tableId, delta, columns, following, isAddedRow, ...trunk };
+  // Only truncated summaries have unknown values, and applyChanges refuses
+  // those. Check anyway: one would land as a null over real data.
+  for (const { colId, cells } of planned) {
+    const unknown = Object.entries(cells).find(([, cellDelta]) => cellDelta.includes("?"));
+    if (unknown) {
+      throw new Error(`the suggestion's change to ${tableId}.${colId} in row ${unknown[0]} is not known in full`);
+    }
+  }
+  const columns = planned.filter(col => col.twoWay !== "following");
+  const following = planned.filter(col => col.twoWay === "following");
+  return { ...context, tableId, delta, columns, following, trunkDelta };
 }
 
 /**
@@ -259,10 +376,10 @@ function rowCheck(rowsByTable: [string, number[]][]): RowCheck {
   return (tableId, rowId) => Boolean(sets.get(tableId)?.has(rowId));
 }
 
-function removeActions({ tableId, delta, isGoneRow }: TablePlan): UserAction[] {
+function removeActions({ tableId, delta, isRemovedRow }: TablePlan): UserAction[] {
   // Both sides agree that a row the target has removed is gone. If its id
   // was reused, removing it here would remove the target's new row.
-  const rows = delta.removeRows.filter(rowId => !isGoneRow(tableId, rowId));
+  const rows = delta.removeRows.filter(rowId => isRemovedRow(tableId, rowId));
   return rows.length === 0 ? [] : [["BulkRemoveRecord", tableId, rows]];
 }
 
@@ -274,14 +391,72 @@ function removeActions({ tableId, delta, isGoneRow }: TablePlan): UserAction[] {
  * partner's old claimant still held it: an Add going before the update
  * that frees its partner, or a swap split over two updates. The real
  * values follow in the update pass, when every partner is free.
+ *
+ * The target may also have given a partner the patch claims to some other
+ * row since the branch point. That row is released too, so the patch's
+ * claim lands, as the patch's value currently does for any cell both
+ * sides changed, with no conflict reported. This matches what the engine
+ * does when the other side is written.
  */
 function releaseActions(table: TablePlan): UserAction[] {
-  const oneToOne = table.columns.filter(col => col.oneToOne);
-  const rows = existingUpdatedRows(table.delta).map(rowId => ({
-    rowId,
-    values: Object.fromEntries(oneToOne.filter(col => col.cells[rowId]).map(col => [col.colId, 0])),
-  }));
-  return bulkUpdates(table.tableId, rows);
+  const { tableId, delta } = table;
+  const existing = existingUpdatedRows(delta);
+  const released = new Map<number, Record<string, CellValue>>();
+  const release = (rowId: number, colId: string) => {
+    released.set(rowId, { ...released.get(rowId), [colId]: 0 });
+  };
+  for (const column of table.columns.filter(col => col.twoWay === "oneToOne")) {
+    const written = existing.filter(rowId => column.cells[rowId] && !isStaleUnpairing(table, column, rowId));
+    written.forEach(rowId => release(rowId, column.colId));
+    const claimed = new Set(claimedPartners(delta, column, table.isAddedRow));
+    // Rows the patch removes are gone by now. A row the target added under
+    // the id of one both sides removed is not, and is released like any.
+    const inWritten = new Set(written);
+    const skipped = (rowId: number) => inWritten.has(rowId) || table.isRemovedRow(tableId, rowId);
+    for (const [rowId, partner] of table.target?.[tableId]?.[column.colId] ?? []) {
+      if (typeof partner === "number" && claimed.has(partner) && !skipped(rowId)) {
+        release(rowId, column.colId);
+      }
+    }
+  }
+  return bulkUpdates(tableId, [...released].map(([rowId, values]) => ({ rowId, values })));
+}
+
+/**
+ * The partners a one-to-one column claims, in rows the patch adds or
+ * updates. Partners the patch adds are left out, since nothing in the
+ * target can hold them yet.
+ */
+function claimedPartners(
+  delta: TableDelta, { cells, refTableId }: Pick<PlannedColumn, "cells" | "refTableId">, isAddedRow: RowCheck,
+): number[] {
+  return [...delta.addRows, ...existingUpdatedRows(delta)]
+    .map(rowId => cells[rowId] && extractValue(cells[rowId][1]))
+    .filter((partner): partner is number => isPartner(partner) && !(refTableId && isAddedRow(refTableId, partner)));
+}
+
+// Whether a Ref value names a row, rather than being empty.
+function isPartner(value: CellValue | undefined): value is number {
+  return typeof value === "number" && value > 0;
+}
+
+/**
+ * Whether the patch unpairs a row, on the written side of a one-to-one
+ * reference, from a partner the target has since unpaired it from. As in
+ * mergeLinks, the change is taken as a link removed, and the target no
+ * longer has that link to remove. Clearing the row anyway would undo the
+ * target's own pairing, and only where this side is the one written: from
+ * the other side, the patch would clear the old partner's cell, and leave
+ * this row alone.
+ */
+function isStaleUnpairing(table: TablePlan, column: PlannedColumn, rowId: number): boolean {
+  const cellDelta = column.cells[rowId];
+  if (column.twoWay !== "oneToOne" || !cellDelta || isPartner(extractValue(cellDelta[1]))) { return false; }
+  const current = table.target?.[table.tableId]?.[column.colId]?.get(rowId);
+  // Not read, or not a row id, as when censored: see Patch._readTarget.
+  if (current === undefined || (current !== null && typeof current !== "number")) { return false; }
+  const partner = (value: CellValue) => isPartner(value) ? value : 0;
+  return partner(current) !== partner(extractValue(cellDelta[0]));
 }
 
 /**
@@ -317,7 +492,7 @@ function updateActions(table: TablePlan): UserAction[] {
   const rows = existingUpdatedRows(delta).map((rowId) => {
     // Every Add is already in the bundle, so temp ids here resolve, and
     // values naming added rows can go in with the rest.
-    const { plain, namingAdded } = newRowValues(table, rowId);
+    const { plain, namingAdded } = newRowValues(table, rowId, { existing: true });
     return { rowId, values: { ...plain, ...namingAdded } };
   });
   return bulkUpdates(tableId, rows);
@@ -388,17 +563,96 @@ function existingUpdatedRows(delta: TableDelta): number[] {
  * The values the source gave one row, ready for the target, and split in
  * two: `namingAdded` has the Ref and RefList values that name rows this
  * patch adds (now given as temp ids), and `plain` has everything else.
+ * For a row the target already has, many-to-many lists are merged into
+ * the target's, and left out if that changes nothing.
  */
-function newRowValues(table: TablePlan, sourceRowId: number) {
+function newRowValues(table: TablePlan, sourceRowId: number, options: { existing?: boolean } = {}) {
   const plain: Record<string, CellValue> = {};
   const namingAdded: Record<string, CellValue> = {};
   for (const column of table.columns) {
     const cellDelta = column.cells[sourceRowId];
-    if (!cellDelta) { continue; }
-    const { value, namesAdded } = targetValue(table, column, extractValue(cellDelta[1]));
-    (namesAdded ? namingAdded : plain)[column.colId] = value;
+    if (!cellDelta || (options.existing && isStaleUnpairing(table, column, sourceRowId))) { continue; }
+    const result = (options.existing && column.twoWay === "manyToMany") ?
+      mergedValue(table, column, sourceRowId, cellDelta) :
+      targetValue(table, column, extractValue(cellDelta[1]));
+    if (!result) { continue; }
+    (result.namesAdded ? namingAdded : plain)[column.colId] = result.value;
   }
   return { plain, namingAdded };
+}
+
+/**
+ * The value to write to the written side of a many-to-many reference, in
+ * a row the target has. If the target's list is as it was at the branch
+ * point, the source's list is written as is, order and all. Otherwise the
+ * source's change is merged into the target's list (see mergeLinks), and
+ * undefined is returned if that leaves it unchanged.
+ */
+function mergedValue(table: TablePlan, column: PlannedColumn, rowId: number, cellDelta: CellDelta) {
+  const sourceValue = extractValue(cellDelta[1]);
+  if (!table.target) { return targetValue(table, column, sourceValue); }
+  const { tableId } = table;
+  const { colId, refTableId } = column;
+  const current = table.target[tableId]?.[colId]?.get(rowId);
+  const [baseIds, sourceIds, now] = [extractValue(cellDelta[0]), sourceValue, current].map(linkIds);
+  if (!now) {
+    // Not read, or censored: see Patch._readTarget.
+    throw new Error(`the suggestion changes ${tableId}.${colId} in row ${rowId}, ` +
+      "and this document's value there could not be read as a list to merge into, " +
+      "perhaps because access rules hide it");
+  }
+  if (!baseIds || !sourceIds) {
+    throw new Error(`the suggestion changes ${tableId}.${colId} in row ${rowId}, ` +
+      "and not as a list whose change could be merged");
+  }
+  const refersTo = (check: RowCheck, id: number) => Boolean(refTableId && check(refTableId, id));
+  // A row of the branch point the target removed and reused the id of is
+  // not the row now listed under that id. The source's link to it, kept or
+  // dropped, is left out. Only a new link to it is refused, in targetValue.
+  const isStale = (id: number) => refersTo(table.isReusedRow, id) && !refersTo(table.isAddedRow, id);
+  const inBase = new Set(baseIds);
+  const base = baseIds.filter(id => !isStale(id));
+  const sourceKept = sourceIds.filter(id => !(isStale(id) && inBase.has(id)));
+  const proposed = targetValue(table, column,
+    sourceKept.length === sourceIds.length ? sourceValue : [GristObjCode.List, ...sourceKept]);
+  if (isEqual(base, now)) { return proposed; }
+  // Rows the patch removes are unlinked before this is written, and must
+  // stay so.
+  const live = now.filter(id => !refersTo(table.isRemovedRow, id));
+  const merged = mergeLinks(base, linkIds(proposed.value) ?? [], live);
+  if (isEqual(merged, live)) { return undefined; }
+  return { value: [GristObjCode.List, ...merged] as CellValue, namesAdded: merged.some(id => id < 0) };
+}
+
+/**
+ * Merge the source's change to one side of a many-to-many reference into
+ * the target's list, where the target changed the list too. Each side is
+ * one set of links, shown twice, so the change is taken as links added and
+ * removed rather than as a new list. Nothing the target linked or unlinked
+ * is undone: writing the source's list whole would drop any row the target
+ * linked meanwhile, and which rows could be dropped would depend on which
+ * side of the pair is written. Links the target kept stay in its order,
+ * and the source's new ones follow in the source's order.
+ *
+ * All three are row ids as the target knows them: `proposed` with rows the
+ * patch adds as temp ids, which cannot match anything in `current`.
+ */
+export function mergeLinks(base: number[], proposed: number[], current: number[]): number[] {
+  const [inBase, inProposed] = [new Set(base), new Set(proposed)];
+  const kept = current.filter(id => !inBase.has(id) || inProposed.has(id));
+  const inKept = new Set(kept);
+  const added = proposed.filter(id => !inBase.has(id) && !inKept.has(id));
+  return [...kept, ...added];
+}
+
+// The row ids in a RefList value, or undefined if it is not one, or was
+// not read. An empty RefList may be stored as null.
+function linkIds(value: CellValue | undefined): number[] | undefined {
+  if (value === undefined) { return undefined; }
+  if (value === null || value === "") { return []; }
+  if (!isList(value)) { return undefined; }
+  const ids = value.slice(1);
+  return ids.every(id => typeof id === "number") ? ids : undefined;
 }
 
 /**
@@ -506,7 +760,8 @@ function columnSetKey(row: RowValues): string {
 }
 
 // A CellDelta side is `[value]`, `"?"` (unknown), or `null` (cell didn't
-// exist). The latter two collapse to null.
+// exist). The latter two collapse to null. Unknown values are refused in
+// planTable, so here that only happens to cells the patch leaves alone.
 function extractValue(side: CellDelta[0]): CellValue {
   return Array.isArray(side) ? side[0] : null;
 }
