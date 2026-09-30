@@ -8,6 +8,7 @@
  */
 
 import { UserAPIImpl } from "app/common/UserAPI";
+import { getAvailablePort } from "app/server/lib/serverUtils";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
 import { TestServer } from "test/server/lib/helpers/TestServer";
 import { createTestDir, EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
@@ -34,16 +35,32 @@ describe("SingleServerRouting", function() {
     await prepareDatabase(testDir, oldEnv);
     // No Redis, as a single server has no use for one. Its own registration is held in memory.
     server = await TestServer.startServer("home,docs,static", testDir, "single", { REDIS_URL: "" });
-    api = new UserAPIImpl(`${server.serverUrl}/o/docs`, {
-      fetch: fetch as any,
-      headers: { Authorization: "Bearer api_key_for_chimpy" },
-    });
+    api = server.makeUserApi("docs");
   });
 
   after(async function() {
     await TestServer.stopAll([server]);
     oldEnv?.restore();
   });
+
+  // Runs body against a server of its own, with a database of its own rather than the one the
+  // server in the other tests is still using.
+  async function withOwnServer(
+    name: string, env: NodeJS.ProcessEnv, body: (own: TestServer, ownApi: UserAPIImpl) => Promise<void>,
+    options: { homeUrl?: string, port?: number } = {},
+  ) {
+    const testDir = await createTestDir(`SingleServer-${name}`);
+    const sharedDb = process.env.TYPEORM_DATABASE;
+    await prepareDatabase(testDir, oldEnv, `${name}.db`);
+    const own = await TestServer.startServer("home,docs,static", testDir, name,
+      { REDIS_URL: "", ...env }, options.homeUrl, { port: options.port });
+    try {
+      await body(own, own.makeUserApi("docs"));
+    } finally {
+      await TestServer.stopAll([own]);
+      if (sharedDb) { process.env.TYPEORM_DATABASE = sharedDb; }
+    }
+  }
 
   it("sends a client back to itself, for a document and for an import", async function() {
     // The home page imports with one request, so the import answer is what that goes to.
@@ -59,46 +76,20 @@ describe("SingleServerRouting", function() {
   it("hands out its own address when an operator has named one", async function() {
     // APP_DOC_URL is how a client is routed to the server holding a document, so a server given
     // one has an address worth passing on, and the reason to say "stay where you are" is gone.
-    const testDir = await createTestDir("SingleServerNamed");
-    // A database of its own, rather than the one the server in the other tests is still using.
-    const sharedDb = process.env.TYPEORM_DATABASE;
-    await prepareDatabase(testDir, oldEnv, "named.db");
-    const named = await TestServer.startServer("home,docs,static", testDir, "named", {
-      REDIS_URL: "",
-      APP_DOC_URL: "https://named.example.com",
-    });
-    try {
-      const namedApi = new UserAPIImpl(`${named.serverUrl}/o/docs`, {
-        fetch: fetch as any,
-        headers: { Authorization: "Bearer api_key_for_chimpy" },
-      });
+    await withOwnServer("named", { APP_DOC_URL: "https://named.example.com" }, async (_named, namedApi) => {
       const wsId = (await namedApi.getOrgWorkspaces("current"))[0].id;
       const docId = await namedApi.newDoc({ name: "named-address" }, wsId);
       const info = await namedApi.getWorkerFull(docId);
       assert.equal(new URL(info.docWorkerUrl!).host, "named.example.com",
         "the address the operator gave was not passed on");
       assert.isNull(info.selfPrefix);
-    } finally {
-      await TestServer.stopAll([named]);
-      if (sharedDb) { process.env.TYPEORM_DATABASE = sharedDb; }
-    }
+    });
   });
 
   it("hands out an address on a domain with no subdomain to spare", async function() {
     // Most self-hosted setups serve everything from one domain, which names no worker. There is
     // only one here to name, so the address is passed on as the operator wrote it.
-    const testDir = await createTestDir("SingleServerBare");
-    const sharedDb = process.env.TYPEORM_DATABASE;
-    await prepareDatabase(testDir, oldEnv, "bare.db");
-    const bare = await TestServer.startServer("home,docs,static", testDir, "bare", {
-      REDIS_URL: "",
-      APP_DOC_URL: "https://grist.app",
-    });
-    try {
-      const bareApi = new UserAPIImpl(`${bare.serverUrl}/o/docs`, {
-        fetch: fetch as any,
-        headers: { Authorization: "Bearer api_key_for_chimpy" },
-      });
+    await withOwnServer("bare", { APP_DOC_URL: "https://grist.app" }, async (bare, bareApi) => {
       const wsId = (await bareApi.getOrgWorkspaces("current"))[0].id;
       const docId = await bareApi.newDoc({ name: "bare-address" }, wsId);
       const info = await bareApi.getWorkerFull(docId);
@@ -109,10 +100,7 @@ describe("SingleServerRouting", function() {
         headers: { Authorization: "Bearer api_key_for_chimpy" },
       });
       assert.equal(resp.status, 200);
-    } finally {
-      await TestServer.stopAll([bare]);
-      if (sharedDb) { process.env.TYPEORM_DATABASE = sharedDb; }
-    }
+    });
   });
 
   it("opens a document", async function() {
@@ -130,5 +118,18 @@ describe("SingleServerRouting", function() {
     // the address in the browser, not an address this server made up for itself.
     assert.match(page, /"selfPrefix":\s*"/, "the page did not send the client back to this server");
     assert.notMatch(page, /"docWorkerUrl":\s*"http/, "the page named an address of its own");
+  });
+
+  it("copies a document when fetching it from an address it does not recognize", async function() {
+    // A copy is fetched from the worker's registered address, even when that is this server.
+    // 127.0.0.1 stands in for an address derived from Redis, such as 172.22.0.4.
+    const port = await getAvailablePort(parseInt(process.env.GET_AVAILABLE_PORT_START || "8080", 10));
+    const env = { GRIST_ORG_IN_PATH: "true", GRIST_HOST: "127.0.0.1", APP_DOC_URL: `http://127.0.0.1:${port}` };
+    await withOwnServer("self", env,
+      async (_self, selfApi) => {
+        const wsId = (await selfApi.getOrgWorkspaces("current"))[0].id;
+        const docId = await selfApi.newDoc({ name: "source" }, wsId);
+        await selfApi.copyDoc(docId, wsId, { documentName: "copy" });
+      }, { homeUrl: `http://grist.example.test:${port}`, port });
   });
 });

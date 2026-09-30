@@ -1,5 +1,6 @@
 import { Hosts } from "app/server/lib/extractOrg";
 import { listenPromise } from "app/server/lib/serverUtils";
+import { EnvironmentSnapshot } from "test/server/testUtils";
 
 import * as http from "http";
 import { AddressInfo } from "net";
@@ -54,8 +55,8 @@ describe("extractOrg", function() {
 
   // Fetches the URL from our dummy server regardless of the hostname, and returns a parsed JSON
   // response which includes an extra 'STATUS' key with the status.
-  async function myFetch(url: string): Promise<any> {
-    const resp = await fetch(url, { agent });
+  async function myFetch(url: string, headers: Record<string, string> = {}): Promise<any> {
+    const resp = await fetch(url, { agent, headers });
     try {
       const values = await resp.json();
       if (!values.isCustomHost) { delete values.isCustomHost; }
@@ -148,6 +149,19 @@ describe("extractOrg", function() {
       { STATUS: 404, error: "Domain not recognized: example.com" });
     assert.deepEqual(await myFetch("http://1.2.3.4/"),
       { STATUS: 404, error: "Domain not recognized: 1.2.3.4" });
+  });
+
+  it("should serve unrecognized domains when orgs are named in the path", async function() {
+    const oldEnv = new EnvironmentSnapshot();
+    process.env.GRIST_ORG_IN_PATH = "true";
+    try {
+      assert.deepEqual(await myFetch("http://1.2.3.4/o/bar/d"),
+        { STATUS: 200, hostname: "1.2.3.4", path: "/d", url: "/d", org: "bar" });
+      assert.deepEqual(await myFetch("http://1.2.3.4/d", { Organization: "bar" }),
+        { STATUS: 200, hostname: "1.2.3.4", path: "/d", url: "/d", org: "bar" });
+    } finally {
+      oldEnv.restore();
+    }
   });
 
   it("should recognize custom domains", async function() {

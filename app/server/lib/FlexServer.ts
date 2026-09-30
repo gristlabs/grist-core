@@ -7,7 +7,7 @@ import {
   GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseFirstUrlPart, parseSubdomain,
 } from "app/common/gristUrls";
 import { extractOrgParts, getOrgUrlInfo, getSingleOrg } from "app/common/gristUrls";
-import { isAffirmative } from "app/common/gutil";
+import { isAffirmative, tryParseUrl } from "app/common/gutil";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { SandboxInfo } from "app/common/SandboxInfo";
 import { tbind } from "app/common/tbind";
@@ -2512,11 +2512,24 @@ export class FlexServer implements GristServer {
       await workers.recordWorkerAlive(this.worker.id);
       await workers.addWorker(this.worker);
       await workers.setWorkerAvailability(this.worker.id, true);
+      await this._removeOldDockerWorkers(workers);
     } catch (err) {
       this._healthy = false;
       throw err;
     }
     return this.worker.id;
+  }
+
+  // Up to 1.7.17, the docker image registered workers at http://0.0.0.0:<port>. A request there
+  // reaches the sender, so getWorker never finds a dead one gone. Remove any left in Redis.
+  private async _removeOldDockerWorkers(workers: IDocWorkerMap) {
+    if (!workers.getRedisClient()) { return; }
+    for (const { info } of await workers.getRegisteredWorkers()) {
+      if (info.id !== this.worker.id && tryParseUrl(info.internalUrl)?.hostname === "0.0.0.0") {
+        log.warn(`Removing doc worker ${info.id} left at ${info.internalUrl}`);
+        await workers.removeWorker(info.id);
+      }
+    }
   }
 
   private async _removeSelfAsWorker(workers: IDocWorkerMap, docWorkerId: string) {
