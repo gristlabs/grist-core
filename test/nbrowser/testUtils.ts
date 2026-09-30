@@ -39,6 +39,10 @@ setOptionsModifyFunc(({ chromeOpts, firefoxOpts }) => {
 
   // See https://www.selenium.dev/blog/2024/chrome-browser-woes/
   chromeOpts.addArguments("--disable-search-engine-choice-screen");
+
+  // Skip decorative animations, which can leave elements invisible for a moment after they
+  // appear in the DOM.
+  chromeOpts.addArguments("--force-prefers-reduced-motion");
   chromeOpts.addArguments("--disable-features=OptimizationGuideModelDownloading," +
     "OptimizationHintsFetching,OptimizationTargetPrediction,OptimizationHints");
 

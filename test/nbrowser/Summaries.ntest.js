@@ -2,7 +2,7 @@
  * This test suite is partially duplicated as `test/nbrowser/Summaries.ts`.
  */
 
-import { assert } from "mocha-webdriver";
+import { assert, driver } from "mocha-webdriver";
 import { $, gu, test } from "test/nbrowser/gristUtil-nbrowser";
 
 describe("Summaries.ntest", function() {
@@ -15,6 +15,11 @@ describe("Summaries.ntest", function() {
     await gu.useFixtureDoc(cleanup, "CC_Summaries.grist", true);
     await gu.toggleSidePanel("left", "open");
   });
+
+  // After jumping to the end of a long table, the last rows render asynchronously.
+  async function waitForRow(rowNum) {
+    await driver.findContentWait(".active_section .gridview_data_row_num", new RegExp(`^${rowNum}$`), 2000);
+  }
 
   afterEach(function() {
     return gu.checkForErrors();
@@ -165,6 +170,7 @@ describe("Summaries.ntest", function() {
     // Check a couple of values.
     await gu.actions.viewSection("By Date/Category").selectSection();
     await gu.sendKeys([$.MOD, $.DOWN]);  // Go to the end.
+    await waitForRow(151);
     assert.deepEqual(await gu.getGridValues({section: "By Date/Category", rowNums:[151], cols:[0, 1, 3]}),
       [ "2015-12-04", "Travel-Lodging", "3021.54" ]);
   });
@@ -205,6 +211,7 @@ describe("Summaries.ntest", function() {
     // Change a category in Transactions, and check that numbers changed.
     await gu.actions.viewSection("Transactions").selectSection();
     await gu.sendKeys([$.MOD, $.DOWN]);  // Go to the end.
+    await waitForRow(208);
     await gu.getCell(2, 208).click();
     await gu.waitAppFocus();
     await gu.sendKeys("Merchandise & Supplies-Internet Purchase", $.ENTER);
