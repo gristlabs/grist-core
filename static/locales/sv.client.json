@@ -2536,7 +2536,9 @@
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Varning: stödet för skärmläsare är ett pågående arbete i Grist och förbättras över tid. Återkoppling mottages tacksamt!",
         "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Det är inte obligatoriskt men du kan aktivera förbättringar för skärmläsare för att få en bättre navigations upplevelse:",
         "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Vi rekommenderar Firefox, Chrome eller Edge vid användning av Grist med skärmläsare.",
-        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Läs först \"Tangentbordsnavigering\" ovan för att förstå hur navigering mellan olika regioner i gränssnittet fungerar: specifika tangentbordsgenvägar behöver användas."
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Läs först \"Tangentbordsnavigering\" ovan för att förstå hur navigering mellan olika regioner i gränssnittet fungerar: specifika tangentbordsgenvägar behöver användas.",
+        "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.": "När en panel är i fokus låter samma genväg dig att hoppa mellan fördefinierade landmärken, vilket gör det lättare att navigera inom den panelen.",
+        "When focus is on a widget, {{nextJumpTargetShortcut}} toggles focus between the widget and its header.": "När en widget är i fokus växlar {{nextJumpTargetShortcut}} fokus mellan en widget och dess titel."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Föreslagna ändringar",
@@ -2679,7 +2681,10 @@
         "Open the context menu": "Öppna snabbmenyn",
         "Toggle the screen reader improvements": "Slå av/på förbättringar för skärmläsare",
         "Open the current column menu": "Öppna nuvarande kolumnmenyn",
-        "Open the current row menu": "Öppna nuvarande radmenyn"
+        "Open the current row menu": "Öppna nuvarande radmenyn",
+        "When focused on a page panel, focus next landmark": "När en panel är i fokus, fokuseras nästa landmärke",
+        "When focused on a page panel, focus previous landmark": "När en panel är i fokus, fokuseras föregående landmärke",
+        "When focused on a widget, move focus between widget and widget header": "När en widget är I fokus, flyttas fokus mellan widget och widget titel"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-timmarsformat",
@@ -3556,7 +3561,14 @@
         "Grist Fleet is not in your activation key": "Grist Fleet ingår inte i din aktiveringsnyckel",
         "draining": "invallidering",
         "This build does not support Grist Fleet": "Denna installation stödjer inte Grist Fleet",
-        "Server pool found": "Server grupp hittad"
+        "Server pool found": "Server grupp hittad",
+        "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.": "Ge varje server en adress som de andra kollade servrarna kan nå den på, en adress som inte används av de andra servrarna. Tills dess kan anrop till dokumentet på olika servrar hamna fel och misslyckas.",
+        "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.": "Grist Fleet är ett enket sätt med gott teknikt stöd skala Grist horisontellt, så att en grupp av server kan dela upp belastningen intelligent genom att dela dokumenten mellan sig. Denna sektion listar varje server, med dokument som lagras på den och om den är i drift.",
+        "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.": "Har inte meddelat att den är I drift på mycket längre tid än den borde. En server i drift meddelar detta med några få sekunders mellanrum, oavsett om någon efterfrågat det eller ej.",
+        "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.": "Inget dokument kan öppnas tills en server är registrerad för att lagra det. Kontrollera att minst en server kör som dokument handerare och att den kan nå Redis.",
+        "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.": "Registrerad och behåller de dokument som är lagrade på den, men tar inte emot nya. Normalt när en server stängs av.",
+        "Set options through the environment rather than on this page, so that every server is configured the same way.": "Ställ in inställningar genom miljövariabler i stället för denna sida, så att alla servrar ställs in på samma sätt.",
+        "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.": "Grist processen kan vara borta, eller kan inte nå Redis. Stäng av servern permanent innan arbete med att åtgärda detta påbörjas, annars kan en server som bara är upptagen med att hantera anrop komma igång igen och skriva till dokumentet som en annan server lagrar."
     },
     "GristImportEntryPoints": {
         "Copy data from another document": "Kopiera data från ett annat dokument"
