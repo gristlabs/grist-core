@@ -70,6 +70,28 @@ export class Sharing {
     });
   }
 
+  /**
+   * Acquire the user action lock for a transaction. Returns a release function.
+   * While held, no other writes can proceed on this document. The caller MUST
+   * call the release function (in a finally block) or the document will deadlock.
+   */
+  public async acquireUserActionLock(): Promise<() => void> {
+    return this._userActionLock.acquire();
+  }
+
+  /**
+   * Apply user actions while the lock is already held (during a transaction).
+   * The caller must have acquired the lock via acquireUserActionLock().
+   */
+  public async applyUserActionsWithinLock(
+    docSession: OptDocSession,
+    info: ActionInfo,
+    userActions: UserAction[],
+    options: ApplyUAExtendedOptions | null,
+  ): Promise<ApplyUAResult> {
+    return this._doApplyUserActions(info, userActions, docSession, options);
+  }
+
   private async _doApplyUserActions(info: ActionInfo, userActions: UserAction[],
     docSession: OptDocSession,
     options: ApplyUAExtendedOptions | null): Promise<ApplyUAResult> {
