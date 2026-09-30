@@ -629,7 +629,8 @@
         "Any documents created in this site will appear here.": "Alla dokument som skapas på denna sajt kommer att visas här.",
         "Create my first document": "Skapa mitt första dokument",
         "You have read-only access to this site. Currently there are no documents.": "Du har läsbehörighet till denna sajt. För närvarande finns inga dokument.",
-        "personal site": "personlig sajt"
+        "personal site": "personlig sajt",
+        "Documents": "Dokument"
     },
     "DocPageModel": {
         "Add empty table": "Lägg till en tom tabell",
@@ -642,7 +643,9 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Beklagar, åtkomst till detta dokument har nekats. {{error}}",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Du kan försöka ladda om dokumentet eller använda återställningsläget. Återställningsläget öppnar dokumentet för ägare med fulla rättigheter, och låser det helt för andra. Det inaktiverar också alla formler. [{{error}}]",
         "You do not have edit access to this document": "Du har inte redigeringsrättighet till detta dokument",
-        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Var god, ladda om dokumentet och om felet kvarstår, kontakta dokumentets ägare för att försöka göra en dokumenteåterställning. [{{error}}]"
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Var god, ladda om dokumentet och om felet kvarstår, kontakta dokumentets ägare för att försöka göra en dokumenteåterställning. [{{error}}]",
+        "Import from {{importSource}}": "Importera från {{importSource}}",
+        "Import from...": "Importera från..."
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Kan inte skapa en dokument guide med datan i detta dokument. Säkerställ att det finns en tabell med namnet GristDocTour med kolumnerna Title, Body, Placement och Location.",
@@ -911,7 +914,9 @@
         "go to webhook settings": "gå till webhookinställningar",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Nya ändringar är tillfälligt pausade. Wehbooks kön är överfull. Kontrollera webhooksinställningar, ta bort felaktiga webhooks och rensa kön.",
         "Import from Airtable": "Importera från Airtable",
-        "{{title}} widget": "{{title}} widget"
+        "{{title}} widget": "{{title}} widget",
+        "Airtable": "Airtable",
+        "File": "Fil"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Alla dokument som skapas på denna sajt kommer synas här.",
@@ -940,7 +945,8 @@
         "To use Grist, please either sign up or sign in.": "För att använda Grist, registrera dig eller logga in.",
         "Visit our {{link}} to learn more about Grist.": "Besök vår {{link}} för att lära dig med om Grist.",
         "Learn more in our {{helpCenterLink}}.": "Lär dig mer i vårt {{helpCenterLink}}.",
-        "Only show documents": "Visa bara dokument"
+        "Only show documents": "Visa bara dokument",
+        "Create a document": "Skapa ett dokument"
     },
     "HomeLeftPane": {
         "Access Details": "Behörighets detaljer",
@@ -960,7 +966,10 @@
         "Terms of service": "Användarvillkor",
         "Grist Resources": "Grist resurser",
         "context menu - {{- workspaceName }}": "snabbmeny - {{- workspaceName }}",
-        "Import from Airtable": "Importera från Airtable"
+        "Import from Airtable": "Importera från Airtable",
+        "Airtable": "Airtable",
+        "Import from {{importSource}}": "Importera från {{importSource}}",
+        "Import from...": "Importera från..."
     },
     "Importer": {
         "Merge rows that match these fields:": "Slå ihop rader som där dessa fällt matchar:",
@@ -1322,7 +1331,8 @@
         "Attachment": "Bilaga",
         "Search columns": "Sök kolumner",
         "By Name": "Efter namn",
-        "By Date Modified": "Efter ändringsdatum"
+        "By Date Modified": "Efter ändringsdatum",
+        "Loading...": "Laddar..."
     },
     "pages": {
         "Duplicate page": "Duplicera sida",
@@ -1733,7 +1743,8 @@
     "buildViewSectionDom": {
         "No data": "Ingen data",
         "No row selected in {{title}}": "Ingen rad vald i {{title}}",
-        "Not all data is shown": "Alla dara visas inte"
+        "Not all data is shown": "Alla dara visas inte",
+        "{{title}} widget header": "{{title}} widget rubrik"
     },
     "FloatingEditor": {
         "Collapse Editor": "Komprimera redigerare"
@@ -2939,7 +2950,9 @@
         "Enter new admin email": "Fyll i ny administratörs se-post",
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Gör den nya e-postadressen till installationens administratör. Organisationer, arbetsytor och dokument kommer fortsatt att vara ägda av {{email}}. Dessa ändringar kommer att få effekt först efter omstart av denna Gristserver.",
         "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ersätt {{email}} med den nya e-postadressen för allt. Den nya e-postadressen blir installationens administratör och ägare av allt material som tidigare ägdes av you@example.com.",
-        "An account with {{email}} already exists.": "Ett konto med {{email}} finns redan."
+        "An account with {{email}} already exists.": "Ett konto med {{email}} finns redan.",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.": "Gör en ny e-postadress till administratör för installationen. Organisationer, arbetsytor och dokument kommer fortsatt ägas av **{{email}}**. Dessa ändringar kommer slå igenom vid omstart av Gristservern.",
+        "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.": "Ersätt **{{email}}** med den nya e-postadress en över allt. Den nya e-postadressen kommer bli administratör för Installationen och ägare av allt som tidigare ägdes av **{{email}}**."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Importera från Airtable"
@@ -3049,7 +3062,10 @@
         "To preserve it, mount a volume at ": {
             "persist.": "För att spara det, montera en lagringsvolym på /persist."
         },
-        "Your data may not survive a container restart.": "Din data kan försvinna vid kontaineromstart."
+        "Your data may not survive a container restart.": "Din data kan försvinna vid kontaineromstart.",
+        "S3-compatible": "S3-kompatibel",
+        "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Valfri S3-kompatibel lagring med versionshanterade buckets, så som RustFS eller bara AWS S3.",
+        "Set these environment variables and restart Grist to enable S3-compatible storage:": "Ställ in följande miljövariabler och starta om Grist för att använda S3-kompatibel lagring:"
     },
     "QuickSetupContinueButton": {
         "Continue": "Fortsätt",
@@ -3473,5 +3489,110 @@
         "We saved your details, but couldn't subscribe you to updates.": "Vi spara din kontaktuppgifter, men kunde inte anmäla dig till uppdateringar.",
         "We subscribed you for product updates, but couldn't save your other details.": "Vi har anmält dig till produkt uppdateringar, men kunde inte spara dina kontaktuppgifter.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställningsändringar har applicerats och servern har startats om. Grist är nu i drift och tillgänglig för anvädare."
+    },
+    "startHomeGristImport": {
+        "Copy data from another document": "Kopiera data från ett annat dokument",
+        "Data can't be copied to the current workspace.": "Data kan inte kopieras till nuvarande arbetsyta."
+    },
+    "startDocGristImport": {
+        "Copy data from another document": "Kopiera data från ett annat dokument"
+    },
+    "HomeNewDocBlock": {
+        "Templates": "Mallar",
+        "Import file": "Importera fil",
+        "Blank document": "Tomt dokument"
+    },
+    "HomeLearningResources": {
+        "Webinars": "Webbinarier",
+        "Video Tour": "Videogenomgång",
+        "Help Center": "Hjälpcenter",
+        "Learn Grist": "Lär dig Grist",
+        "Learning resources": "Lärresurser",
+        "A 3 minute tour of Grist": "En 3 minuters rundtur av Grist",
+        "Grist Tutorial": "Grist instruktionsguide",
+        "Learn the basics, step by step": "Lär dig grunderna, steg för steg",
+        "Tutorials and live sessions": "Instruktionsguider och live genomgångar",
+        "Tutorials, docs, guides and videos": "Instruktionsguider, dokumentation, guider och filmer"
+    },
+    "AdminServersSection": {
+        "Could not reach the server": "Servern kunde inte nås",
+        "1 server": "1 server",
+        "1 document": "1 dokument",
+        "{{count}} of {{total}} not reporting_other": "{{count}} av {{total}} svarar inte",
+        "{{count}} servers_one": "{{count}} servrar",
+        "{{count}} servers_other": "{{count}} servrar",
+        "{{percent}}% load": "{{percent}}% belastning",
+        "1 other server has stopped reporting that it is running.": "1 annan server har slutat att rapportera att den är i drift.",
+        "1 other server is registered but not accepting new documents.": "1 annan server är registrerad men tar inte emot inte nya dokument.",
+        "Another server has the same address, so requests meant for one may reach the other.": "En annan server har samma adress, det innebär att anrop till ena servern kan komma till den andra i stället.",
+        "Each document is held by one of these servers. Fleet-style routing.": "Varje dokument hanteras av en av dessa servrar. Fleet-style routing.",
+        "Each document is held by one of these servers. Worker-pool routing.": "Varje dokument hanteras av en av dessa servrar. Den server som har det efterfrågdade dokumentet får hantera anropet.",
+        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET är inställd, men den här installationen kan inte skicka vidare dokument mellan servrar, det innebär att dokument bara går att nå på den servrar som har just det dokumentet.",
+        "No servers are registered to hold documents": "Inga servrar är registrerade för att hantera dokument",
+        "Refresh": "Uppdatera",
+        "Refreshing…": "Uppdaterar…",
+        "Said it is running within the last few seconds.": "Meddelande att den är i drift för någon sekund sedan.",
+        "Servers": "Servrar",
+        "Servers have stopped reporting that they are running": "Servrar har slutat att rapportera att de är i drift",
+        "Shares an address with {{list}}": "Dela en adress med {{list}}",
+        "Some servers share an address": "Några serverar delar en adress",
+        "The list below is from the last successful check. Press Refresh to try again.": "Listan nedan är från den senaste lyckade kontrollen. Tryck på Uppdatera för att försöka igen.",
+        "The servers registered to hold documents": "Servrarna är registrerade för att hantera dokument",
+        "checking": "kontrollerar",
+        "group {{group}}": "grupp {{group}}",
+        "no proxy": "ingen proxy",
+        "no servers": "inga servrar",
+        "not reporting": "ingen rappotering",
+        "running": "i drift",
+        "shared address": "delad adress",
+        "this server": "denna server",
+        "{{count}} documents_one": "{{count}}dokument",
+        "{{count}} documents_other": "{{count}} dokument",
+        "{{count}} of {{total}} not reporting_one": "{{count}} av {{total}} svar ej",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
+        "{{count}} other servers are registered but not accepting new documents._other": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} andra servrar har slutat rapportera att de är i drift.",
+        "{{count}} other servers have stopped reporting that they are running._other": "{{count}} andra servrar har slutat rapportera att de är i drift.",
+        "Grist Fleet is not in your activation key": "Grist Fleet ingår inte i din aktiveringsnyckel",
+        "draining": "invallidering",
+        "This build does not support Grist Fleet": "Denna installation stödjer inte Grist Fleet",
+        "Server pool found": "Server grupp hittad"
+    },
+    "GristImportEntryPoints": {
+        "Copy data from another document": "Kopiera data från ett annat dokument"
+    },
+    "GristImportUI": {
+        "1 warning": "1 varning",
+        "Cancel": "Avbryt",
+        "Choose destination": "Vällj mål",
+        "Continue": "Fortsätt",
+        "Copy 1 table": "Kopiera 1 tabell",
+        "Copy tables": "Kopiera tabeller",
+        "Copy {{count}} tables_one": "Kopiera {{count}} tabeller",
+        "Copy {{count}} tables_other": "Kopiera {{count}} tabeller",
+        "Copying tables...": "Kopierar tabeller...",
+        "Destination": "Mål",
+        "Document": "Dokument",
+        "Existing tables": "Tabeller som finns",
+        "New table": "Ny tabell",
+        "Site": "Sajt",
+        "Skip": "Hoppa över",
+        "Workspace": "Arbetsyta",
+        "{{count}} warnings_one": "{{count}} varningar",
+        "{{count}} warnings_other": "{{count}} varningar",
+        "Copy from {{docName}} in progress. Do not navigate away from this page.": "Kopiering från {{docName}} pågår. Lämna inte denna sida.",
+        "Copying data from another document is available in the full edition of Grist.": "Kopiering av data från ett annat dokument är tillgängligt i komplett variant av Grist.",
+        "Copying data from another document is available on Business plans and above.": "Kopiering av data från ett annat dokument är tillgängligt från Företags abonnemang och uppåt.",
+        "Failed to fetch document tables": "Kunde inte hämta dokumentets tabeller",
+        "New table: structure only": "Ny tabell: enbart struktur",
+        "No documents available in this workspace.": "Inga dokument tillgängliga på denna arbetsyta.",
+        "No workspaces available in this site.": "Inga arbetsytor är tillgängliga på denna sajt.",
+        "Select tables to copy from {{docName}}": "Välj tabeller att kopiera från {{docName}}",
+        "Select the Grist document to copy data from.": "Välj det Grist dokument som datan ska kopieras från.",
+        "Source tables": "Källtabeller",
+        "Structure only": "Enbart struktur",
+        "Try for free": "Testa gratis",
+        "Try full Grist": "Pröva komplett Grist",
+        "loading your tables...": "laddar dina tabeller..."
     }
 }
