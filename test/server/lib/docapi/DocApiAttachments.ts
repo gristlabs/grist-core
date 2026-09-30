@@ -603,6 +603,20 @@ function addAttachmentsTests(getCtx: () => TestContext) {
         }, "2 attachments should be added, 1 unused, no errors");
       });
 
+      it("GET /docs/{did}/attachments/archive errors if attachment files are missing", async function() {
+        const { homeUrl, chimpy } = getCtx();
+        const docResp = await axios.get(`${docUrl}/download`, { ...chimpy, responseType: "arraybuffer" });
+        assert.equal(docResp.status, 200);
+        const docUploadForm = new FormData();
+        docUploadForm.append("upload", new File([docResp.data], "ExternalAttachmentsMissing.grist"));
+        docUploadForm.append("workspaceId", String(await getWorkspaceId("Private")));
+        const docUploadResp = await axios.post(`${homeUrl}/api/docs`, docUploadForm, chimpy);
+        assert.equal(docUploadResp.status, 200);
+
+        const resp = await axios.get(`${homeUrl}/api/docs/${docUploadResp.data}/attachments/archive`, chimpy);
+        checkError(500, /Unable to retrieve/, resp);
+      });
+
       it("POST /docs/{did}/attachments/archive errors if no .tar file is found", async function() {
         const { chimpy } = getCtx();
         const badUploadForm = new FormData();
