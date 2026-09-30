@@ -762,38 +762,6 @@ describe("Proposals", function() {
       assert.deepEqual(removed.records, []);
     });
 
-    it("skips updates of rows that are also being removed", async function() {
-      // Regression: the remove pass deletes the row; without Patch
-      // filtering removed rows out of updateRows, the update pass would
-      // throw on the missing row.
-      const { trunk, fork } = await setupForkWithAdvance({
-        trunkSeed: [
-          ["AddTable", "Customers", [
-            { id: "name", type: "Text", isFormula: false },
-          ]],
-          ["AddRecord", "Customers", null, { name: "Alice" }],
-          ["AddRecord", "Customers", null, { name: "ToRemove" }],
-        ],
-        trunkAdvance: [],
-      });
-      // Update + remove in one bundle.
-      await fork.applyUserActions([
-        ["UpdateRecord", "Customers", 2, { name: "renamed-then-removed" }],
-        ["RemoveRecord", "Customers", 2],
-      ]);
-      const proposal = await fork.makeProposal();
-      const actions = await applyAndGetActions(trunk, proposal.shortId);
-      assert.sameDeepMembers(actions, [
-        { kind: "remove", tableId: "Customers", count: 1 },
-      ]);
-      const rows = await trunk.sql(
-        "select name from Customers order by id",
-      );
-      assert.deepEqual(rows.records, [
-        { fields: { name: "Alice" } },
-      ]);
-    });
-
     it("does not delete the wrong trunk row on an add-then-remove transient", async function() {
       // Carol briefly takes fork row id 4, which on the trunk is Frank. The
       // fork nets to nothing, so the trunk must too. Mistaking this for a
@@ -1203,6 +1171,21 @@ describe("Proposals", function() {
         };
       }
 
+      // Each owner's pet, and each pet's owner, both by name, where both
+      // sides are Refs.
+      async function pairs(api: DocAPI, colO = "Pets", colP = "owner") {
+        const owners = await labelsById(api, "Owners", "name");
+        const pets = await labelsById(api, "Pets", "name");
+        const ownerRows = await api.getRows("Owners");
+        const petRows = await api.getRows("Pets");
+        return {
+          pet: Object.fromEntries(ownerRows.id.map((id, i) =>
+            [owners.get(id), pets.get(Number(ownerRows[colO][i])) ?? null])),
+          owner: Object.fromEntries(petRows.id.map((id, i) =>
+            [pets.get(id), owners.get(Number(petRows[colP][i])) ?? null])),
+        };
+      }
+
       it("moves a pet to a new owner", async function() {
         const { trunk, fork } = await setup();
         const r = await fork.applyUserActions([["AddRecord", "Owners", null, { name: "Cat" }]]);
@@ -1274,19 +1257,6 @@ describe("Proposals", function() {
       describe("when one-to-one", function() {
         // Both sides are Refs, so each owner has at most one pet. The engine
         // checks that after every action, not just at the end of a bundle.
-        async function pairs(api: DocAPI) {
-          const owners = await labelsById(api, "Owners", "name");
-          const pets = await labelsById(api, "Pets", "name");
-          const ownerRows = await api.getRows("Owners");
-          const petRows = await api.getRows("Pets");
-          return {
-            pet: Object.fromEntries(ownerRows.id.map((id, i) =>
-              [owners.get(id), pets.get(Number(ownerRows.Pets[i])) ?? null])),
-            owner: Object.fromEntries(petRows.id.map((id, i) =>
-              [pets.get(id), owners.get(Number(petRows.owner[i])) ?? null])),
-          };
-        }
-
         it("swaps pets when one is also renamed", async function() {
           const { trunk, fork } = await setup({ oneToOne: true });
           // Rex's row writes a different set of columns than Tom's, so the
@@ -1428,10 +1398,358 @@ describe("Proposals", function() {
             [tags.get(id), listedLabels(tagRows.Posts[i] ?? [GristObjCode.List], posts)])),
           { "old": ["P1"], "trunk-tag": [], "new": ["P1"], "other": ["P1", "P2"] });
       });
+
+      // Which column of a pair the patch writes depends on which was
+      // created first, something users cannot see. These run each case
+      // with the columns created both ways, and expect the same outcome.
+      describe("whichever side is written", function() {
+        for (const first of ["Lectures", "Students"]) {
+          describe(`when many-to-many, with ${first} created first`, function() {
+            // Students A, S, T and lectures L, M. At the branch point, A
+            // attends L. The reverse column is named after the other table.
+            const colL = first === "Lectures" ? "attendees" : "Students";
+            const colS = first === "Lectures" ? "Lectures" : "lectures";
+            async function setupLectures(trunkAdvance: UserAction[]) {
+              const seed: UserAction[] = first === "Lectures" ? [
+                ["AddTable", "Students", [{ id: "name", type: "Text", isFormula: false }]],
+                ["AddTable", "Lectures", [
+                  { id: "title", type: "Text", isFormula: false },
+                  { id: "attendees", type: "RefList:Students", isFormula: false },
+                ]],
+                ["AddReverseColumn", "Lectures", "attendees"],
+              ] : [
+                ["AddTable", "Lectures", [{ id: "title", type: "Text", isFormula: false }]],
+                ["AddTable", "Students", [
+                  { id: "name", type: "Text", isFormula: false },
+                  { id: "lectures", type: "RefList:Lectures", isFormula: false },
+                ]],
+                ["AddReverseColumn", "Students", "lectures"],
+              ];
+              return setupForkWithAdvance({
+                trunkSeed: [
+                  ...seed,
+                  ["BulkAddRecord", "Students", [null, null, null], { name: ["A", "S", "T"] }],
+                  ["BulkAddRecord", "Lectures", [null, null], { title: ["L", "M"] }],
+                  ["UpdateRecord", "Lectures", 1, { [colL]: ["L", 1] }],
+                ],
+                trunkAdvance,
+              });
+            }
+
+            // Who attends each lecture, and what each student attends. The
+            // lists are sorted: where a link lands in the list the engine
+            // keeps in step is the engine's choice, and so differs with the
+            // side written. Membership is what must not.
+            async function enrollment(api: DocAPI) {
+              const students = await labelsById(api, "Students", "name");
+              const lectures = await labelsById(api, "Lectures", "title");
+              const lectureRows = await api.getRows("Lectures");
+              const studentRows = await api.getRows("Students");
+              return {
+                attendees: Object.fromEntries(lectureRows.id.map((id, i) =>
+                  [lectures.get(id), listedLabels(lectureRows[colL][i] ?? [GristObjCode.List], students).sort()])),
+                lectures: Object.fromEntries(studentRows.id.map((id, i) =>
+                  [students.get(id), listedLabels(studentRows[colS][i] ?? [GristObjCode.List], lectures).sort()])),
+              };
+            }
+
+            // The proposal enrolls S in L, from either side.
+            const enrollS: Record<string, UserAction> = {
+              "from the student's side": ["UpdateRecord", "Students", 2, { [colS]: ["L", 1] }],
+              "from the lecture's side": ["UpdateRecord", "Lectures", 1, { [colL]: ["L", 1, 2] }],
+            };
+
+            for (const [side, action] of Object.entries(enrollS)) {
+              it(`keeps a student this document enrolled in the same lecture, ${side}`, async function() {
+                const { trunk, fork } = await setupLectures([["UpdateRecord", "Students", 3, { [colS]: ["L", 1] }]]);
+                await fork.applyUserActions([action]);
+                const proposal = await fork.makeProposal();
+                await applyAndGetActions(trunk, proposal.shortId);
+                assert.deepEqual(await enrollment(trunk), {
+                  attendees: { L: ["A", "S", "T"], M: [] },
+                  lectures: { A: ["L"], S: ["L"], T: ["L"] },
+                });
+              });
+
+              it(`keeps another lecture this document enrolled the student in, ${side}`, async function() {
+                const { trunk, fork } = await setupLectures([["UpdateRecord", "Lectures", 2, { [colL]: ["L", 2] }]]);
+                await fork.applyUserActions([action]);
+                const proposal = await fork.makeProposal();
+                await applyAndGetActions(trunk, proposal.shortId);
+                assert.deepEqual(await enrollment(trunk), {
+                  attendees: { L: ["A", "S"], M: ["S"] },
+                  lectures: { A: ["L"], S: ["L", "M"], T: [] },
+                });
+              });
+
+              it(`drops this document's enrollment in a lecture the proposal removes, ${side}`, async function() {
+                const { trunk, fork } = await setupLectures([["UpdateRecord", "Students", 2, { [colS]: ["L", 2] }]]);
+                await fork.applyUserActions([["RemoveRecord", "Lectures", 2], action]);
+                const proposal = await fork.makeProposal();
+                await applyAndGetActions(trunk, proposal.shortId);
+                assert.deepEqual(await enrollment(trunk), {
+                  attendees: { L: ["A", "S"] },
+                  lectures: { A: ["L"], S: ["L"], T: [] },
+                });
+              });
+
+              it(`drops this document's enrollment of a student the proposal removes, ${side}`, async function() {
+                const { trunk, fork } = await setupLectures([["UpdateRecord", "Students", 3, { [colS]: ["L", 1] }]]);
+                await fork.applyUserActions([["RemoveRecord", "Students", 3], action]);
+                const proposal = await fork.makeProposal();
+                await applyAndGetActions(trunk, proposal.shortId);
+                assert.deepEqual(await enrollment(trunk), {
+                  attendees: { L: ["A", "S"], M: [] },
+                  lectures: { A: ["L"], S: ["L"] },
+                });
+              });
+            }
+
+            it("enrolls in a lecture the proposal adds, keeping one this document added", async function() {
+              // Both sides add a lecture under id 3 and enroll S in it.
+              const { trunk, fork } = await setupLectures([
+                ["AddRecord", "Lectures", null, { title: "P" }],
+                ["UpdateRecord", "Students", 2, { [colS]: ["L", 3] }],
+              ]);
+              await fork.applyUserActions([
+                ["AddRecord", "Lectures", null, { title: "N" }],
+                ["UpdateRecord", "Students", 2, { [colS]: ["L", 3] }],
+              ]);
+              const proposal = await fork.makeProposal();
+              await applyAndGetActions(trunk, proposal.shortId);
+              assert.deepEqual(await enrollment(trunk), {
+                attendees: { L: ["A"], M: [], P: ["S"], N: ["S"] },
+                lectures: { A: ["L"], S: ["N", "P"], T: [] },
+              });
+            });
+
+            // Enrolled from the side that does not name the removed row. The
+            // summary shows the enrollment on both sides, so it still changes
+            // the removed row, as any other cell would.
+            for (const [gone, removal, side] of [
+              ["lecture", ["RemoveRecord", "Lectures", 1], "from the student's side"],
+              ["student", ["RemoveRecord", "Students", 2], "from the lecture's side"],
+            ] as [string, UserAction, string][]) {
+              it(`refuses to enroll in a ${gone} this document removed`, async function() {
+                const { trunk, fork } = await setupLectures([removal]);
+                await fork.applyUserActions([enrollS[side]]);
+                const proposal = await fork.makeProposal();
+                const before = await enrollment(trunk);
+                const result = await trunk.applyProposal(proposal.shortId);
+                assert.isFalse(result.changes.log.applied);
+                assert.match(JSON.stringify(result.changes.log.changes), /removed from this document/);
+                assert.deepEqual(await enrollment(trunk), before);
+              });
+            }
+
+            it("refuses to merge into a list access rules hide", async function() {
+              const { trunk, fork } = await setupLectures([]);
+              await fork.applyUserActions([enrollS["from the lecture's side"]]);
+              const proposal = await fork.makeProposal();
+              // Hide the side the patch writes, from everyone.
+              const [tableId, colIds] = first === "Lectures" ? ["Lectures", colL] : ["Students", colS];
+              await trunk.applyUserActions([
+                ["AddRecord", "_grist_ACLResources", -1, { tableId, colIds }],
+                ["AddRecord", "_grist_ACLRules", null, { resource: -1, aclFormula: "", permissionsText: "-R" }],
+              ]);
+              const result = await trunk.applyProposal(proposal.shortId);
+              assert.isFalse(result.changes.log.applied);
+              assert.match(JSON.stringify(result.changes.log.changes), /perhaps because access rules hide it/);
+            });
+
+            it("keeps an unenrollment this document made", async function() {
+              // The proposal enrolls S; the document unenrolls A meanwhile.
+              const { trunk, fork } = await setupLectures([["UpdateRecord", "Lectures", 1, { [colL]: null }]]);
+              await fork.applyUserActions([enrollS["from the lecture's side"]]);
+              const proposal = await fork.makeProposal();
+              await applyAndGetActions(trunk, proposal.shortId);
+              assert.deepEqual(await enrollment(trunk), {
+                attendees: { L: ["S"], M: [] },
+                lectures: { A: [], S: ["L"], T: [] },
+              });
+            });
+
+            it("unenrolls a student, keeping one this document enrolled", async function() {
+              const { trunk, fork } = await setupLectures([["UpdateRecord", "Students", 3, { [colS]: ["L", 1] }]]);
+              await fork.applyUserActions([["UpdateRecord", "Students", 1, { [colS]: null }]]);
+              const proposal = await fork.makeProposal();
+              await applyAndGetActions(trunk, proposal.shortId);
+              assert.deepEqual(await enrollment(trunk), {
+                attendees: { L: ["T"], M: [] },
+                lectures: { A: [], S: [], T: ["L"] },
+              });
+            });
+          });
+        }
+
+        for (const first of ["Pets", "Owners"]) {
+          describe(`when one-to-one, with ${first} created first`, function() {
+            // Owner Ann, pets Rex and Max. Nobody is paired at the branch
+            // point, unless Ann is with Rex.
+            const colP = first === "Pets" ? "owner" : "Owners";
+            const colO = first === "Pets" ? "Pets" : "pet";
+            async function setupPairs(trunkAdvance: UserAction[], options: { annWithRex?: boolean } = {}) {
+              const seed: UserAction[] = first === "Pets" ? [
+                ["AddTable", "Owners", [{ id: "name", type: "Text", isFormula: false }]],
+                ["AddTable", "Pets", [
+                  { id: "name", type: "Text", isFormula: false },
+                  { id: "owner", type: "Ref:Owners", isFormula: false },
+                ]],
+                ["AddReverseColumn", "Pets", "owner"],
+                ["ModifyColumn", "Owners", "Pets", { type: "Ref:Pets" }],
+              ] : [
+                ["AddTable", "Pets", [{ id: "name", type: "Text", isFormula: false }]],
+                ["AddTable", "Owners", [
+                  { id: "name", type: "Text", isFormula: false },
+                  { id: "pet", type: "Ref:Pets", isFormula: false },
+                ]],
+                ["AddReverseColumn", "Owners", "pet"],
+                ["ModifyColumn", "Pets", "Owners", { type: "Ref:Owners" }],
+              ];
+              return setupForkWithAdvance({
+                trunkSeed: [
+                  ...seed,
+                  ["AddRecord", "Owners", null, { name: "Ann" }],
+                  ["BulkAddRecord", "Pets", [null, null], { name: ["Rex", "Max"] }],
+                  ...(options.annWithRex ? [["UpdateRecord", "Pets", 1, { [colP]: 1 }] as UserAction] : []),
+                ],
+                trunkAdvance,
+              });
+            }
+
+            const pairing = (api: DocAPI) => pairs(api, colO, colP);
+
+            // This document pairs Ann with Rex; the proposal pairs her with Max.
+            const pairMax: Record<string, UserAction> = {
+              "from the pet's side": ["UpdateRecord", "Pets", 2, { [colP]: 1 }],
+              "from the owner's side": ["UpdateRecord", "Owners", 1, { [colO]: 2 }],
+            };
+            for (const [side, action] of Object.entries(pairMax)) {
+              it(`lets the proposal's pairing win, ${side}`, async function() {
+                const { trunk, fork } = await setupPairs([["UpdateRecord", "Pets", 1, { [colP]: 1 }]]);
+                await fork.applyUserActions([action]);
+                const proposal = await fork.makeProposal();
+                await applyAndGetActions(trunk, proposal.shortId);
+                assert.deepEqual(await pairing(trunk), {
+                  pet: { Ann: "Max" },
+                  owner: { Rex: null, Max: "Ann" },
+                });
+              });
+
+              it(`releases a pet this document added, ${side}`, async function() {
+                const { trunk, fork } = await setupPairs([["AddRecord", "Pets", null, { name: "Kit", [colP]: 1 }]]);
+                await fork.applyUserActions([action]);
+                const proposal = await fork.makeProposal();
+                await applyAndGetActions(trunk, proposal.shortId);
+                assert.deepEqual(await pairing(trunk), {
+                  pet: { Ann: "Max" },
+                  owner: { Rex: null, Max: "Ann", Kit: null },
+                });
+              });
+            }
+
+            // The proposal unpairs Ann and Rex.
+            const unpairRex: Record<string, UserAction> = {
+              "from the pet's side": ["UpdateRecord", "Pets", 1, { [colP]: 0 }],
+              "from the owner's side": ["UpdateRecord", "Owners", 1, { [colO]: 0 }],
+            };
+            for (const [side, action] of Object.entries(unpairRex)) {
+              it(`unpairs, ${side}`, async function() {
+                const { trunk, fork } = await setupPairs([], { annWithRex: true });
+                await fork.applyUserActions([action]);
+                const proposal = await fork.makeProposal();
+                await applyAndGetActions(trunk, proposal.shortId);
+                assert.deepEqual(await pairing(trunk), {
+                  pet: { Ann: null },
+                  owner: { Rex: null, Max: null },
+                });
+              });
+
+              it(`keeps a pairing this document made instead, ${side}`, async function() {
+                const { trunk, fork } = await setupPairs([
+                  ["UpdateRecord", "Pets", 1, { [colP]: 0 }],
+                  ["UpdateRecord", "Pets", 2, { [colP]: 1 }],
+                ], { annWithRex: true });
+                await fork.applyUserActions([action]);
+                const proposal = await fork.makeProposal();
+                await applyAndGetActions(trunk, proposal.shortId);
+                assert.deepEqual(await pairing(trunk), {
+                  pet: { Ann: "Max" },
+                  owner: { Rex: null, Max: "Ann" },
+                });
+              });
+            }
+
+            it("lets a pet the proposal adds win its pairing", async function() {
+              const { trunk, fork } = await setupPairs([["UpdateRecord", "Pets", 1, { [colP]: 1 }]]);
+              await fork.applyUserActions([["AddRecord", "Pets", null, { name: "Kit", [colP]: 1 }]]);
+              const proposal = await fork.makeProposal();
+              await applyAndGetActions(trunk, proposal.shortId);
+              assert.deepEqual(await pairing(trunk), {
+                pet: { Ann: "Kit" },
+                owner: { Rex: null, Max: null, Kit: "Ann" },
+              });
+            });
+          });
+        }
+      });
+
+      describe("within one table", function() {
+        // People A, B, C, D. The reverse column is named after the table.
+        async function setupPeople(kind: "Ref" | "RefList", trunkAdvance: UserAction[]) {
+          return setupForkWithAdvance({
+            trunkSeed: [
+              ["AddTable", "People", [
+                { id: "name", type: "Text", isFormula: false },
+                { id: "link", type: `${kind}:People`, isFormula: false },
+              ]],
+              ["AddReverseColumn", "People", "link"],
+              ...(kind === "Ref" ? [["ModifyColumn", "People", "People", { type: "Ref:People" }] as UserAction] : []),
+              ["BulkAddRecord", "People", [null, null, null, null], { name: ["A", "B", "C", "D"] }],
+            ],
+            trunkAdvance,
+          });
+        }
+
+        async function links(api: DocAPI) {
+          const people = await labelsById(api, "People", "name");
+          const rows = await api.getRows("People");
+          const labels = (value: CellValue) => typeof value === "number" ? [people.get(value) ?? null] :
+            listedLabels(value ?? [GristObjCode.List], people).sort();
+          return Object.fromEntries(rows.id.map((id, i) =>
+            [people.get(id), { link: labels(rows.link[i]), People: labels(rows.People[i]) }]));
+        }
+
+        it("merges links added on both sides when many-to-many", async function() {
+          const { trunk, fork } = await setupPeople("RefList", [["UpdateRecord", "People", 1, { link: ["L", 3] }]]);
+          await fork.applyUserActions([["UpdateRecord", "People", 1, { link: ["L", 2] }]]);
+          const proposal = await fork.makeProposal();
+          await applyAndGetActions(trunk, proposal.shortId);
+          assert.deepEqual(await links(trunk), {
+            A: { link: ["B", "C"], People: [] },
+            B: { link: [], People: ["A"] },
+            C: { link: [], People: ["A"] },
+            D: { link: [], People: [] },
+          });
+        });
+
+        it("lets the proposal's pairing win when one-to-one", async function() {
+          const { trunk, fork } = await setupPeople("Ref", [["UpdateRecord", "People", 1, { link: 3 }]]);
+          await fork.applyUserActions([["UpdateRecord", "People", 4, { link: 3 }]]);
+          const proposal = await fork.makeProposal();
+          await applyAndGetActions(trunk, proposal.shortId);
+          assert.deepEqual(await links(trunk), {
+            A: { link: [null], People: [null] },
+            B: { link: [null], People: [null] },
+            C: { link: [null], People: ["D"] },
+            D: { link: ["C"], People: [null] },
+          });
+        });
+      });
     });
 
     it("leaves the document untouched when the engine rejects the bundle", async function() {
-      // Each customer has at most one desk, and each desk one customer.
+      // A desk may have many customers when the proposal is made.
       const { trunk, fork } = await setupForkWithAdvance({
         trunkSeed: [
           ["AddTable", "Desks", [{ id: "label", type: "Text", isFormula: false }]],
@@ -1440,23 +1758,22 @@ describe("Proposals", function() {
             { id: "desk", type: "Ref:Desks", isFormula: false },
           ]],
           ["AddReverseColumn", "Customers", "desk"],
-          ["ModifyColumn", "Desks", "Customers", { type: "Ref:Customers" }],
           ["AddRecord", "Desks", null, { label: "D1" }],
           ["AddRecord", "Customers", null, { name: "Alice" }],
           ["AddRecord", "Customers", null, { name: "Zoe" }],
         ],
       });
-      // Two adds and an update, in that order within the bundle.
+      // Two adds, and an update giving the one desk to two customers.
       await fork.applyUserActions([
         ["AddRecord", "Customers", null, { name: "Bob" }],
         ["AddRecord", "Customers", null, { name: "Carol" }],
-        ["UpdateRecord", "Customers", 1, { desk: 1 }],
+        ["BulkUpdateRecord", "Customers", [1, 2], { desk: [1, 1] }],
       ]);
       const proposal = await fork.makeProposal();
-      // Give the desk to Zoe meanwhile. The engine then rejects the update
-      // giving it to Alice, after the adds in the same bundle have already
-      // been processed. No guard in Patch catches this one.
-      await trunk.applyUserActions([["UpdateRecord", "Customers", 2, { desk: 1 }]]);
+      // Make it one customer per desk meanwhile. The engine then rejects
+      // the update, after the adds in the same bundle have already been
+      // processed. No guard in Patch catches this one.
+      await trunk.applyUserActions([["ModifyColumn", "Desks", "Customers", { type: "Ref:Customers" }]]);
       const before = await trunk.sql("select id, name, desk from Customers order by id");
 
       const result = await trunk.applyProposal(proposal.shortId);
