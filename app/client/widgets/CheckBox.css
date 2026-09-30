@@ -8,9 +8,15 @@
 
 .widget_checkbox-unchecked {
   box-sizing: border-box;
-  background-color: var(--grist-theme-toggle-checkbox-unchecked-bg, #f0f8ff);
-  border: 1px solid var(--grist-theme-toggle-checkbox-unchecked-border, #d9d9d9);
+  background-color: var(--grist-theme-toggle-checkbox-unchecked-bg, #f7f7f7);
+  border: 1px solid var(--grist-theme-toggle-checkbox-unchecked-border, #929299);
   border-radius: 3px;
+}
+
+/* The cursor and hover styles below already outline the checkbox with a box-shadow. */
+:not(.formula_field)>.field_clip.has_cursor>.widget_checkbox-unchecked,
+:not(.formula_field)>.field_clip>.widget_checkbox-unchecked:hover:not(.disabled) {
+  border: none;
 }
 
 :not(.formula_field)>.field_clip.has_cursor>.widget_checkbox {

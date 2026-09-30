@@ -979,8 +979,6 @@ export interface SpecificThemeTokens {
     announcementPopupBg: Token;
     scrollShadow: Token;
     toggleCheckboxFg: Token;
-    toggleCheckboxUncheckedBg: Token;
-    toggleCheckboxUncheckedBorder: Token;
     numericSpinnerFg: Token;
     widgetGalleryBorder: Token;
     widgetGalleryShadow: Token;
@@ -1325,6 +1323,8 @@ export interface BaseThemeTokens {
     switchActiveSlider: Token;
     switchActivePill: Token;
     switchHoverShadow: Token;
+    toggleCheckboxUncheckedBg: Token;
+    toggleCheckboxUncheckedBorder: Token;
   };
 }
 

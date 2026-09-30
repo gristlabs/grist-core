@@ -482,6 +482,10 @@ export const Base: BaseThemeTokens = {
     switchActivePill: tokens.bg,
     switchHoverShadow: components.switchActiveSlider,
 
+    /* Toggle Checkboxes */
+    toggleCheckboxUncheckedBg: tokens.bgSecondary,
+    toggleCheckboxUncheckedBorder: tokens.secondary,
+
     /* Custom Widget Gallery */
     widgetGalleryBorderSelected: tokens.primary,
     widgetGalleryBgHover: tokens.bgSecondary,
