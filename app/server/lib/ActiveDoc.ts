@@ -2768,11 +2768,18 @@ export class ActiveDoc extends EventEmitter {
     const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;
     const locale = docSession.browserSettings?.locale ?? DEFAULT_LOCALE;
     const documentSettings: DocumentSettings = { locale };
-    const externalStoreLabel = getConfiguredStandardAttachmentStore();
-    const externalStoreId = externalStoreLabel &&
-      this._attachmentStoreProvider?.getStoreIdFromLabel(externalStoreLabel);
-    if (externalStoreId && isAffirmative(process.env.GRIST_SET_EXTERNAL_ATTACHMENT_MODE_ON_CREATE)) {
-      documentSettings.attachmentStoreId = externalStoreId;
+    if (isAffirmative(process.env.GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE)) {
+      const externalStoreLabel = getConfiguredStandardAttachmentStore();
+      const externalStoreId = externalStoreLabel &&
+        this._attachmentStoreProvider?.getStoreIdFromLabel(externalStoreLabel);
+      // Only point the document at the store if it is actually configured and available:
+      // a dangling store id would make every attachment upload fail.
+      if (externalStoreId && this._attachmentStoreProvider?.storeExists(externalStoreId)) {
+        documentSettings.attachmentStoreId = externalStoreId;
+      } else {
+        this._log.warn(docSession, "GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE is set, but no external " +
+        `attachment store is available for ${externalStoreLabel}; the new document will use internal storage`);
+      }
     }
     documentSettings.engine = "python3";
     await this.docStorage.run("UPDATE _grist_DocInfo SET timezone = ?, documentSettings = ?",

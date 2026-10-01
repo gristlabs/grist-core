@@ -14,6 +14,7 @@ import {
   AttachmentStoreProvider,
   IAttachmentStoreProvider,
 } from "app/server/lib/AttachmentStoreProvider";
+import * as AttachmentStoreProviderModule from "app/server/lib/AttachmentStoreProvider";
 import { AuthCredential } from "app/server/lib/AuthCredential";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { Client } from "app/server/lib/Client";
@@ -1220,6 +1221,69 @@ describe("ActiveDoc", async function() {
     } finally {
       env.restore();
     }
+  });
+
+  describe("GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE", async function() {
+    let env: EnvironmentSnapshot;
+
+    this.beforeEach(() => {
+      env = new EnvironmentSnapshot();
+    });
+
+    this.afterEach(() => {
+      // FIXME: delete the store provider pool
+      env.restore();
+    });
+
+    // Creates a doc with a provider that knows about the stores with the given labels.
+    async function createDocWithStores(docName: string, storeLabels: string[]) {
+      const provider = new AttachmentStoreProvider(
+        await Promise.all(storeLabels.map(label => makeTestingFilesystemStoreConfig(label))),
+        "TEST-INSTALLATION-UUID",
+      );
+      const activeDoc = new ActiveDoc(docTools.getDocManager(), docName, provider);
+      await activeDoc.createEmptyDoc(fakeSession);
+      return activeDoc;
+    }
+
+    it("sets the configured store on new documents when set", async function() {
+      process.env.GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE = "true";
+      sandbox.stub(AttachmentStoreProviderModule, "getConfiguredStandardAttachmentStore")
+        .returns("test-filesystem");
+      const activeDoc = await createDocWithStores("setStoreOnCreate", ["test-filesystem"]);
+      try {
+        assert.equal(await activeDoc.getAttachmentStore(), "TEST-INSTALLATION-UUID-test-filesystem");
+      } finally {
+        await activeDoc.shutdown();
+      }
+    });
+
+    it("leaves new documents on internal storage when unset", async function() {
+      delete process.env.GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE;
+      sandbox.stub(AttachmentStoreProviderModule, "getConfiguredStandardAttachmentStore")
+        .returns("test-filesystem");
+      const activeDoc = await createDocWithStores("noStoreOnCreate", ["test-filesystem"]);
+      try {
+        assert.isUndefined(await activeDoc.getAttachmentStore());
+      } finally {
+        await activeDoc.shutdown();
+      }
+    });
+
+    it("leaves new documents on internal storage when no store is available", async function() {
+      // E.g. external attachments are in "snapshots" mode, but no snapshot storage is configured,
+      // so the provider ends up with no store at all. Pointing the document at a store that
+      // doesn't exist would make every attachment upload fail.
+      process.env.GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE = "true";
+      sandbox.stub(AttachmentStoreProviderModule, "getConfiguredStandardAttachmentStore")
+        .returns("snapshots");
+      const activeDoc = await createDocWithStores("unavailableStoreOnCreate", []);
+      try {
+        assert.isUndefined(await activeDoc.getAttachmentStore());
+      } finally {
+        await activeDoc.shutdown();
+      }
+    });
   });
 
   describe("attachments", async function() {

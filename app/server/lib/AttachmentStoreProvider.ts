@@ -42,12 +42,14 @@ export interface IAttachmentStoreSpecification {
   create: (storeId: string) => Promise<IAttachmentStore>,
 }
 
+// Labels of the stores that can be configured with GRIST_EXTERNAL_ATTACHMENTS_MODE. Stores set up
+// by other means (e.g. tests) may use any label.
 export type AttachmentStoreLabel = "snapshots" | "test-filesystem";
 
 // All the information needed to create a particular store instance
 export interface IAttachmentStoreConfig {
   // This is the name for the store, but it also used to construct the store ID.
-  label: AttachmentStoreLabel;
+  label: string;
   spec: IAttachmentStoreSpecification;
 }
 
