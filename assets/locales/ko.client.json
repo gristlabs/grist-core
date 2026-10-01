@@ -554,9 +554,7 @@
         "You can filter by more than one column.": "둘 이상의 열로 필터링할 수 있습니다.",
         "relational": "관계형",
         "Access Rules": "접근 규칙",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "캘린더를 구성하려면 시작/종료 날짜 및 이벤트 제목에 대한 열을 선택하세요. 각 열의 유형을 확인하세요."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "캘린더를 구성하려면 시작/종료 날짜 및 이벤트 제목에 대한 열을 선택하세요. 각 열의 유형을 확인하세요.",
         "Lookups return data from related tables.": "조회는 관련된 표의 데이터를 반환합니다.",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "접근 규칙을 사용하면 문서의 어느 부분을 누가 보거나 편집할 수 있는지 결정하는 세분화된 규칙을 만들 수 있습니다.",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "𝚺 아이콘을 사용하여 합계 또는 소계를 위한 요약(또는 피벗) 표를 만듭니다.",
@@ -1963,20 +1961,12 @@
         "Widget URL": "위젯 URL"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# 새 마크다운 함수\n *\n *      Grainjs 요소 *안에* _[일반적인 마크다운](https://markdownguide.org)_을\n *      작성할 수 있습니다."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# 새 마크다운 함수\n *\n *      Grainjs 요소 *안에* _[일반적인 마크다운](https://markdownguide.org)_을\n *      작성할 수 있습니다.",
         "The toggle is **off**": "토글이 **꺼짐** 상태입니다",
         "The toggle is **on**": "토글이 **켜짐** 상태입니다"
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# 새 마크다운 함수\n *\n *      Grainjs 요소 *안에* _[일반적인 마크다운](https://markdownguide.org)_을\n *      작성할 수 있습니다."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# 새 마크다운 함수\n *\n *      Grainjs 요소 *안에* _[일반적인 마크다운](https://markdownguide.org)_을\n *      작성할 수 있습니다.",
         "The toggle is **off**": "토글이 **꺼짐** 상태입니다",
         "The toggle is **on**": "토글이 **켜짐** 상태입니다"
     },

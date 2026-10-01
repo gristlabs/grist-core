@@ -10,7 +10,7 @@ ecosystem. It is also very popular and widely used.
 
 ## Localization setup
 
-Resource files are located in a `static/locales` directory, but Grist can be configured to read them
+Resource files are located in an `assets/locales` directory, but Grist can be configured to read them
 from any other location by using the `GRIST_LOCALES_DIR` environmental variable. All resource files
 are read when the server starts. The default and required language code is `en` (English), all other
 languages are optional and will be supported if server can find a resource file with proper language

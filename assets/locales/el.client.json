@@ -1388,9 +1388,7 @@
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Δημιουργήστε απλές φόρμες απευθείας στο Grist και κοινοποιήστε τες με ένα κλικ με το νέο μας γραφικό στοιχείο (widget). {{learnMoreButton}}",
         "You can filter by more than one column.": "Μπορείτε να φιλτράρετε με βάση περισσότερες από μία στήλες.",
         "Community widgets are created and maintained by Grist community members.": "Τα γραφικά στοιχεία (widgets) της κοινότητας δημιουργούνται και συντηρούνται από τα μέλη της κοινότητας Grist.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Για να διαμορφώσετε το ημερολόγιό σας, επιλέξτε στήλες για ημερομηνίες έναρξης/λήξης και τίτλους συμβάντων. Σημειώστε τον τύπο κάθε στήλης."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Για να διαμορφώσετε το ημερολόγιό σας, επιλέξτε στήλες για ημερομηνίες έναρξης/λήξης και τίτλους συμβάντων. Σημειώστε τον τύπο κάθε στήλης.",
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Για να επιτρέψετε πολλαπλές αναθέσεις, αλλάξτε τον τύπο της στήλης στην οποία γίνεται αναφορά σε Λίστα Αναφορών.",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "Οι αμφίδρομες αναφορές δεν υποστηρίζονται προς το παρόν για στήλες φόρμουλας ή φόρμουλας ενεργοποίησης",
         "Formulas support many Excel functions and full Python syntax.": "Οι τύποι υποστηρίζουν πολλές συναρτήσεις του Excel και πλήρη σύνταξη Python.",
@@ -2113,11 +2111,7 @@
     "markdown.d": {
         "The toggle is **off**": "Η εναλλαγή είναι **απενεργοποιημένη**",
         "The toggle is **on**": "Η εναλλαγή είναι **ενεργοποιημένη**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Νέα Συνάρτηση Markdown\n*\n* Μπορούμε να _γράψουμε_ [το συνηθισμένο Markdown](https://markdownguide.org) *μέσα*\n* σε ένα στοιχείο Grainjs."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Νέα Συνάρτηση Markdown\n*\n* Μπορούμε να _γράψουμε_ [το συνηθισμένο Markdown](https://markdownguide.org) *μέσα*\n* σε ένα στοιχείο Grainjs."
     },
     "HomeIntroCards": {
         "3 minute video tour": "Βίντεο περιήγησης 3 λεπτών",
@@ -2311,11 +2305,7 @@
     "markdown": {
         "The toggle is **off**": "Η εναλλαγή είναι **απενεργοποιημένη**",
         "The toggle is **on**": "Η εναλλαγή είναι **ενεργοποιημένη**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Νέα Συνάρτηση Markdown\n*\n* Μπορούμε να _γράψουμε_ [το συνηθισμένο Markdown](https://markdownguide.org) *μέσα*\n* σε ένα στοιχείο Grainjs."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Νέα Συνάρτηση Markdown\n*\n* Μπορούμε να _γράψουμε_ [το συνηθισμένο Markdown](https://markdownguide.org) *μέσα*\n* σε ένα στοιχείο Grainjs."
     },
     "MentionTextBox": {
         "no access": "χωρίς πρόσβαση",
@@ -2598,9 +2588,7 @@
     "GridViewMenusDateHelpers": {
         "12-hour format": "Μορφή 12 ωρών",
         "24-hour format": "24ωρη μορφή",
-        "AM": {
-            "PM": "πμ/μμ"
-        },
+        "AM/PM": "πμ/μμ",
         "Calendar": "Ημερολόγιο",
         "Date helpers…": "Βοηθοί ημερομηνιών…",
         "Day": "Ημέρα",
@@ -2672,48 +2660,10 @@
         "Restart required. Authentication change may affect your access": "Απαιτείται επανεκκίνηση. Η αλλαγή στον έλεγχο ταυτότητας ενδέχεται να επηρεάσει την πρόσβασή σας",
         "Revert change of admin user": "Επαναφορά αλλαγής χρήστη διαχειριστή",
         "See \"Restart Grist\" section on top of this page to restart.": "Ανατρέξτε στην ενότητα \"Επανεκκίνηση του Grist\" στο επάνω μέρος αυτής της σελίδας για επανεκκίνηση.",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "grist-connect": {
-                            ").": "Για να ρυθμίσετε το **Grist Connect**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το Grist Connect](https://support.getgrist.com/install/grist-connect/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "oidc).": "Για να ρυθμίσετε το **OIDC**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το OIDC](https://support.getgrist.com/install/oidc)."
-                    }
-                }
-            }
-        },
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "saml": {
-                            ").": "Για να ρυθμίσετε το **SAML**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το SAML](https://support.getgrist.com/install/saml/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "forwarded-headers": {
-                            ").": "Για να ρυθμίσετε **προωθημένες κεφαλίδες**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για προωθημένες κεφαλίδες](https://support.getgrist.com/install/forwarded-headers/)."
-                        }
-                    }
-                }
-            }
-        },
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "Για να ρυθμίσετε το **Grist Connect**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το Grist Connect](https://support.getgrist.com/install/grist-connect/).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "Για να ρυθμίσετε το **OIDC**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το OIDC](https://support.getgrist.com/install/oidc).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "Για να ρυθμίσετε το **SAML**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για το SAML](https://support.getgrist.com/install/saml/).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "Για να ρυθμίσετε **προωθημένες κεφαλίδες**, ακολουθήστε τις οδηγίες στο [άρθρο υποστήριξης του Grist για προωθημένες κεφαλίδες](https://support.getgrist.com/install/forwarded-headers/).",
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Όταν ένας χρήστης αποκτά πρόσβαση στο Grist, ο διακομιστής μεσολάβησης χειρίζεται τον έλεγχο ταυτότητας και προωθεί επαληθευμένες πληροφορίες χρήστη μέσω κεφαλίδων HTTP. Το Grist χρησιμοποιεί αυτές τις κεφαλίδες για την αναγνώριση του χρήστη.",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Κατά τη σύνδεση, οι χρήστες θα ανακατευθύνονται σε μια σελίδα σύνδεσης του Grist Connect όπου μπορούν να επαληθεύσουν τον έλεγχο ταυτότητας χρησιμοποιώντας διάφορους παρόχους ταυτότητας. Μετά τον έλεγχο ταυτότητας, θα ανακατευθύνονται πίσω στον διακομιστή Grist και θα συνδέονται.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Κατά τη σύνδεση, οι χρήστες θα ανακατευθύνονται στη σελίδα σύνδεσης του παρόχου ταυτότητας που έχετε επιλέξει για έλεγχο ταυτότητας. Μετά την επιτυχή έλεγχο ταυτότητας, θα ανακατευθύνονται πίσω στον διακομιστή Grist και θα συνδέονται ως ο χρήστης που έχει επαληθευτεί από τον πάροχο.",

@@ -1256,9 +1256,7 @@
         "Add new": "Pridať nové",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Môžete si vybrať jednu z našich predpripravených widgetov alebo vložiť svoj vlastný poskytnutím jeho celej URL.",
         "Calendar": "Kalendár",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Ak chcete nakonfigurovať svoj kalendár, vyberte stĺpce pre dátumy začiatku/ukončenia a názvy udalostí. Všimnite si typ každého stĺpca."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Ak chcete nakonfigurovať svoj kalendár, vyberte stĺpce pre dátumy začiatku/ukončenia a názvy udalostí. Všimnite si typ každého stĺpca.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID je náhodne vygenerovaný reťazec, ktorý je užitočný pre jedinečné identifikátory a kľúče odkazov.",
         "Lookups return data from related tables.": "Vyhľadávania vracajú údaje zo súvisiacich tabuliek.",
         "Use reference columns to relate data in different tables.": "Použite referenčné stĺpce na prepojenie údajov v rôznych tabuľkách.",
@@ -2067,11 +2065,7 @@
     },
     "markdown": {
         "The toggle is **on**": "Prepínač je **on**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkcia Markdown\n *\n *      Môžete použiť _write_ [the usual Markdown](https://markdownguide.org) *vo vnútri*\n *      elementu Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkcia Markdown\n *\n *      Môžete použiť _write_ [the usual Markdown](https://markdownguide.org) *vo vnútri*\n *      elementu Grainjs.",
         "The toggle is **off**": "Prepínač je **off**"
     },
     "HomeIntroCards": {
@@ -2090,11 +2084,7 @@
         "Learn more": "Zistiť viac"
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkcia Markdown\n *\n *      Môžete použiť _write_ [the usual Markdown](https://markdownguide.org) *vo vnútri*\n *      elementu Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkcia Markdown\n *\n *      Môžete použiť _write_ [the usual Markdown](https://markdownguide.org) *vo vnútri*\n *      elementu Grainjs.",
         "The toggle is **off**": "Prepínač je **off**",
         "The toggle is **on**": "Prepínač je **on**"
     },
@@ -2555,9 +2545,7 @@
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hodinový formát",
         "24-hour format": "24-hodinový formát",
-        "AM": {
-            "PM": "AM/PM"
-        },
+        "AM/PM": "AM/PM",
         "Calendar": "Kalendár",
         "Date helpers…": "Pomôcky dátumu…",
         "Day": "Deň",

@@ -1423,9 +1423,7 @@
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "您可以选择我们的一个预制小部件或通过提供其完整的URL嵌入您自己的。",
         "Custom Widgets": "自定义小部件",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID 是随机生成的字符串，可用于唯一标识符和链接密钥。",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "要配置日历，请选择开始/结束日期和事件标题的列。注意每列的类型。"
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "要配置日历，请选择开始/结束日期和事件标题的列。注意每列的类型。",
         "Calendar": "日历",
         "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "公式支持许多 Excel 函数和完整的 Python 语法，还包括一个有用的人工智能助手。",
         "Lookups return data from related tables.": "查找会返回相关表中的数据。",
@@ -2216,20 +2214,12 @@
     "markdown": {
         "The toggle is **on**": "此开关已**打开**",
         "The toggle is **off**": "此开关已**关闭**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# 新的 Markdown 功能\n*\n* 我们可以*在* Grainjs 元素内部_书写_ [常规的 Markdown 样式](https://markdownguide.org)\n* 文本。"
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# 新的 Markdown 功能\n*\n* 我们可以*在* Grainjs 元素内部_书写_ [常规的 Markdown 样式](https://markdownguide.org)\n* 文本。"
     },
     "markdown.d": {
         "The toggle is **off**": "此开关已**关闭**",
         "The toggle is **on**": "此开关已**打开**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# 新的 Markdown 功能\n*\n* 我们现在可以*在* Grainjs 元素内部_书写_ [常规的 Markdown](https://markdownguide.org)  样式文本。"
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# 新的 Markdown 功能\n*\n* 我们现在可以*在* Grainjs 元素内部_书写_ [常规的 Markdown](https://markdownguide.org)  样式文本。"
     },
     "buildReassignModal": {
         "Cancel": "取消",

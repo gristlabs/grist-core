@@ -26,9 +26,12 @@ import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
 import { ISandbox, ISandboxCreationOptions } from "app/server/lib/ISandbox";
 import { IWebSocketProxy, IWebSocketProxyOptions } from "app/server/lib/IWebSocketProxy";
 import { createSandbox, SpawnFn } from "app/server/lib/NSandbox";
+import { getAppRoot } from "app/server/lib/places";
 import * as ProcessMonitor from "app/server/lib/ProcessMonitor";
 import { SqliteVariant } from "app/server/lib/SqliteCommon";
 import { ITelemetry } from "app/server/lib/Telemetry";
+
+import * as path from "path";
 
 import { Application, Express } from "express";
 
@@ -100,6 +103,9 @@ export interface ICreate {
   // Return a string containing 1 or more HTML tags to insert into the head element of every
   // static page.
   getExtraHeadHtml?(): string;
+  // Directories with resource files (translations), in the order they are merged. The first one
+  // holds the core files; each later one adds or overrides keys.
+  getLocaleDirs(): string[];
   getAvailableStorageBackends(): StorageBackendName[];
   getStorageOptions?(name: string): ICreateStorageOptions | undefined;
   getAttachmentStoreOptions(): { [key: string]: ICreateAttachmentStoreOptions | undefined };
@@ -219,6 +225,10 @@ export class BaseCreate implements ICreate {
     }
     elements.push(getThemeBackgroundSnippet());
     return elements.join("\n");
+  }
+
+  public getLocaleDirs() {
+    return [path.join(getAppRoot(), "assets", "locales")];
   }
 
   public getAvailableStorageBackends() {

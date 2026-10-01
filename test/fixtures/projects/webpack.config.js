@@ -80,7 +80,7 @@ module.exports = {
         directory: "./bower_components",
       },
       {
-        directory: "./static/locales",
+        directory: "./assets/locales",
         publicPath: "/locales",
       },
     ],

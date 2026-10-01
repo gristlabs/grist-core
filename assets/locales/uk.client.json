@@ -1394,9 +1394,7 @@
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Ви можете вибрати один із наших готових віджетів або вбудувати свій власний, надавши його повну URL-адресу.",
         "Calendar": "Календар",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Не можете знайти потрібні стовпці? Натисніть «Змінити віджет», щоб вибрати таблицю з даними подій.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Щоб налаштувати календар, виберіть стовпці для дат початку/закінчення та назв подій. Зверніть увагу на тип кожного стовпця."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Щоб налаштувати календар, виберіть стовпці для дат початку/закінчення та назв подій. Зверніть увагу на тип кожного стовпця.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID — це випадково згенерований рядок, корисний для унікальних ідентифікаторів та ключів посилань.",
         "Lookups return data from related tables.": "Пошукові запити повертають дані з пов'язаних таблиць.",
         "Use reference columns to relate data in different tables.": "Використовуйте стовпці-посилання для зв'язку даних у різних таблицях.",
@@ -2057,20 +2055,12 @@
         "Widget URL": "URL-адреса віджета"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Нова функція Markdown\n*\n* Ми можемо _записати_ [звичайний Markdown](https://markdownguide.org) *всередині*\n* елемента Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Нова функція Markdown\n*\n* Ми можемо _записати_ [звичайний Markdown](https://markdownguide.org) *всередині*\n* елемента Grainjs.",
         "The toggle is **off**": "Перемикач **вимкнено**",
         "The toggle is **on**": "Перемикач **увімкнено**"
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Нова функція Markdown\n*\n* Ми можемо _записати_ [звичайний Markdown](https://markdownguide.org) *всередині*\n* елемента Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Нова функція Markdown\n*\n* Ми можемо _записати_ [звичайний Markdown](https://markdownguide.org) *всередині*\n* елемента Grainjs.",
         "The toggle is **off**": "Перемикач **вимкнено**",
         "The toggle is **on**": "Перемикач **увімкнено**"
     },
@@ -2525,9 +2515,7 @@
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-годинний формат",
         "24-hour format": "24-годинний формат",
-        "AM": {
-            "PM": "AM/PM"
-        },
+        "AM/PM": "AM/PM",
         "Calendar": "Календар",
         "Date helpers…": "Помічники на побаченнях…",
         "Day": "День",

@@ -1445,9 +1445,7 @@
         "Custom Widgets": "Vues personnalisées",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Pour créer un lien d'ancrage qui amène l'utilisateur à une cellule spécifique, cliquez sur une ligne et appuyez sur {{shortcut}}.",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Vous pouvez choisir l'une de nos vues prédéfinies ou intégrer la vôtre en indiquant son URL complète.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Pour configurer votre calendrier, sélectionnez les colonnes pour les dates de début/fin et le nom de l'évènement. Notez le type de chaque colonne."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Pour configurer votre calendrier, sélectionnez les colonnes pour les dates de début/fin et le nom de l'évènement. Notez le type de chaque colonne.",
         "Calendar": "Calendrier",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Impossible de trouver les bonnes colonnes ? Cliquez sur \"Changer de vue\" pour sélectionner la table contenant les évènements.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID est un texte généré aléatoirement qui est utile pour les identifiants uniques et les clés de jointures.",
@@ -2189,20 +2187,12 @@
     "markdown": {
         "The toggle is **off**": "L'interrupteur est sur **désactivé**",
         "The toggle is **on**": "L'interrupteur est sur **activé**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ du [Markdown hibituel](https://markdownguide.org) *à l'intérieur*\n *      d'un Élément Grainjs."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ du [Markdown hibituel](https://markdownguide.org) *à l'intérieur*\n *      d'un Élément Grainjs."
     },
     "markdown.d": {
         "The toggle is **off**": "L'interrupteur est sur **désactivé**",
         "The toggle is **on**": "L'interrupteur est sur **activé**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ [avec la syntaxe Markdown](https://markdownguide.org) *directement*\n *      dans un élément Grainjs."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ [avec la syntaxe Markdown](https://markdownguide.org) *directement*\n *      dans un élément Grainjs."
     },
     "HomeIntroCards": {
         "3 minute video tour": "Visite guidée de 3 minutes",
@@ -2468,9 +2458,7 @@
         "It is good practice not to run Grist as the root user.": "C'est une bonne pratique de ne pas faire tourner Grist en tant qu'utilisateur root.",
         "The main page of Grist should be available.": "La page principale de Grist devrait être disponible.",
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL est l'URL de base à laquelle les utilisateurs et les intégrations peuvent joindre votre serveur Grist. Les requêtes d'authentification, les liens d'API et les notifications par courriel dépendent toutes de ce paramètre pour fonctionner correctement.",
-        "If running in a container without external storage or with default database, ": {
-            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Si vous faites tourner un conteneur sans stockage externe ou avec la base de donnée par défaut, /persit devrait être monté comme volume. Dans le cas contraire les documents Grist et les métadonnées seront perdues à l'arrêt du conteneur."
-        }
+        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Si vous faites tourner un conteneur sans stockage externe ou avec la base de donnée par défaut, /persit devrait être monté comme volume. Dans le cas contraire les documents Grist et les métadonnées seront perdues à l'arrêt du conteneur."
     },
     "ChoiceListEntry": {
         "Edit": "Modifier",
@@ -2686,9 +2674,7 @@
     "GridViewMenusDateHelpers": {
         "12-hour format": "format 12-heures",
         "24-hour format": "format 24-heures",
-        "AM": {
-            "PM": "Matin/Après-Midi"
-        },
+        "AM/PM": "Matin/Après-Midi",
         "Calendar": "Calendrier",
         "Date helpers…": "Aides de dates…",
         "Day": "Jour",
@@ -2782,48 +2768,10 @@
         "Restart required. Authentication change may affect your access": "Redémarrage nécessaire. Les changements d'authentification peuvent impacter votre accès",
         "Revert change of admin user": "Annuler les changement d'utilisateur d'administration",
         "See \"Restart Grist\" section on top of this page to restart.": "Consultez la section \"Redémarrer Grist\" en haut de cette page pour redémarrer.",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "grist-connect": {
-                            ").": "Pour installer **Grist Connect**, suivez les instructions dans [l'article du support Grist pour Grist Connect](https://support.getgrist.com/install/grist-connect/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "oidc).": "Pour installer l'**OIDC**, suivez les instructions dans [l'article du support Grist pour l'OIDC](https://support.getgrist.com/install/oidc)."
-                    }
-                }
-            }
-        },
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "saml": {
-                            ").": "Pour installer le **SAML**, suivez les instructions dans [l'article du support Grist pour le SAML](https://support.getgrist.com/install/saml/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "forwarded-headers": {
-                            ").": "Pour installer les **forwarded headers**, suivez les instructions dans [l'article du support Grist pour les forwarded headers](https://support.getgrist.com/install/forwarded-headers/)."
-                        }
-                    }
-                }
-            }
-        },
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "Pour installer **Grist Connect**, suivez les instructions dans [l'article du support Grist pour Grist Connect](https://support.getgrist.com/install/grist-connect/).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "Pour installer l'**OIDC**, suivez les instructions dans [l'article du support Grist pour l'OIDC](https://support.getgrist.com/install/oidc).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "Pour installer le **SAML**, suivez les instructions dans [l'article du support Grist pour le SAML](https://support.getgrist.com/install/saml/).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "Pour installer les **forwarded headers**, suivez les instructions dans [l'article du support Grist pour les forwarded headers](https://support.getgrist.com/install/forwarded-headers/).",
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Quand un utilisateur accède à Grist, le proxy prend en charge l'authentification et transfert les information vérifiées de l'utilisateur au travers des entêtes HTTP. Grist utilise ces entêtes pour identifier l'utilisateur.",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Lors de la connexion, les utilisateurs seront redirigés vers une page d'identification Grist Connect où ils pourront s'authentifier en utilisant divers fournisseurs d'identité. Après l'authentification, il seront renvoyé vers votre serveur Grist et connectés.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Lorsqu'ils se connectent, les utilisateurs seront redirigés vers la page de connexion de fournisseur d'identité de votre choix afin de s'authentifier. Après une authentification réussi, ils seront renvoyés vers votre serveur Grist et connectés en tant que l'utilisateur vérifié par le fournisseur.",
@@ -2992,9 +2940,7 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "La clé d'amorçage ne devrait être utilisée que comme une solution temporaire d'authentification en attendant la mise en place d'une méthode d'authentification plus robuste et sécurisée via le menu Paramètres de sécurité → Authentification. Nous vous recommandons de supprimer la clé d'amorçage après avoir terminé la configuration de Grist.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Ce paramètre est actuellement géré par une variable d'environnement (`GRIST_BOOT_KEY`).",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Désactivez la variable d'environnement pour gérer ce paramètre via le portail d'administration.",
-        "You will no longer be able to authenticate as the install admin on the `": {
-            "boot-key` page.": "Vous ne pourrez plus vous authentifier en tant qu'administrateur de l'installation sur la page `/boot-key`."
-        }
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Vous ne pourrez plus vous authentifier en tant qu'administrateur de l'installation sur la page `/boot-key`."
     },
     "PermissionsSetupSection": {
         "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Les utilisateurs peuvent créer leurs propres espaces personnels avec des documents. Désactivez pour permettre l'ajout de documents uniquement dans des espaces d'équipe gérés par des administrateurs.",
@@ -3069,11 +3015,7 @@
         "URL is reachable": "L'URL est joignable",
         "automatic": "automatique",
         "checking": "en cours de vérification",
-        "https:": {
-            "": {
-                "grist.example.com": "https://exemple.grist.com"
-            }
-        },
+        "https://grist.example.com": "https://exemple.grist.com",
         "not set": "non défini",
         "set": "défini",
         "Leave automatic": "Laisser en automatique",
@@ -3105,9 +3047,7 @@
         "Downgrade": "Déclasser",
         "Downgrade to Community Edition": "Déclasser vers l'édition communautaire",
         "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Déclasser vers l'édition communautaire ? Les fonctionnalités de la version complète seront désactivées après le redémarrage. Cette action est irréversible.",
-        "For automations, MCP server, AI assistant, OIDC": {
-            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Pour les automatisations, le serveur MCP, l'assistant IA, le support OIDC / SAML, les notifications par courriel, les contrôles administrateur, les logs d'audit et plus encore, basculez vers la version complète de Grist."
-        },
+        "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Pour les automatisations, le serveur MCP, l'assistant IA, le support OIDC / SAML, les notifications par courriel, les contrôles administrateur, les logs d'audit et plus encore, basculez vers la version complète de Grist.",
         "Free activation keys": "Clés d'activation gratuites",
         "Restart Grist to apply this change.": "Redémarrez Grist pour appliquer cette modification.",
         "Switch to Full Grist": "Basculer sur la version complète",
@@ -3251,9 +3191,7 @@
         "Local filesystem (test only)": "Système de fichier local (pour test uniquement)",
         "Stores document snapshots on the local filesystem. For tests only, not production.": "Sauvegarde les instantanés des documents sur le système de fichier local. Uniquement pour les tests, ne pas mettre en production.",
         "Action needed": "Action nécéssaire",
-        "To preserve it, mount a volume at ": {
-            "persist.": "Pour le préserver, montez un volume sur /persist."
-        },
+        "To preserve it, mount a volume at /persist.": "Pour le préserver, montez un volume sur /persist.",
         "Your data may not survive a container restart.": "Vos données ne survivrons pas au redémarrage du conteneur."
     },
     "ScreenReaderAnnouncer": {
@@ -3390,20 +3328,12 @@
         "A business or organization": "Une entreprise ou une organisation",
         "A couple of quick questions — optional, and only our team sees this.": "Quelques questions rapides — facultatif, et seule votre équipe peut voir ceci.",
         "AI response": "Réponse d'IA",
-        "Conference": {
-            "event": "Conférence / événement"
-        },
-        "Developer": {
-            "IT": "Développeur / IT"
-        },
-        "Education": {
-            "Research Institute": "Éducation / Institut de recherche"
-        },
+        "Conference/event": "Conférence / événement",
+        "Developer/IT": "Développeur / IT",
+        "Education/Research Institute": "Éducation / Institut de recherche",
         "Email is required when subscribing to updates.": "Un courriel est nécessaire pour s'abonner aux mises à jour.",
         "Email:": "Courriel :",
-        "Friend": {
-            "colleague": "Ami / collègue"
-        },
+        "Friend/colleague": "Ami / collègue",
         "GitHub": "GitHub",
         "Help us improve Grist": "Aidez-nous à améliorer Grist",
         "How did you hear about Grist?": "Comment avez-vous entendu parler de Grist ?",
@@ -3412,9 +3342,7 @@
         "Occasional email about new releases and important security notices.": "Messages occasionnels à propos des nouvelles versions et des notifications de sécurité importantes.",
         "Other": "Autre",
         "Please enter a valid email address.": "Merci de saisir une adresse courriel valide.",
-        "Reddit": {
-            "forum": "Reddit / forum"
-        },
+        "Reddit/forum": "Reddit / forum",
         "Search engine": "Moteur de recherche",
         "Select…": "Sélectionner…",
         "Send me product and security updates": "Envoyez-moi des notifications de sécurité et des informations sur le produit",

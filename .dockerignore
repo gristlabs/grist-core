@@ -9,6 +9,7 @@
 !app
 !buildtools
 !static
+!assets
 !bower_components
 !sandbox
 !plugins

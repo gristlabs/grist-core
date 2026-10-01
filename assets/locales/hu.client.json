@@ -1430,9 +1430,7 @@
         "Add new": "Új hozzáadása",
         "Calendar": "Naptár",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Nem találod a megfelelő oszlopokat? Kattints a Widget megváltoztatására, hogy kiválaszd az esemény adatokat tartalmazó táblázatot.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "A naptárad beállításához válassz oszlopokat a kezdő és végdátumhoz és az események címéhez. Figyeld meg az egyes oszlopok típusát."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "A naptárad beállításához válassz oszlopokat a kezdő és végdátumhoz és az események címéhez. Figyeld meg az egyes oszlopok típusát.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Az UUID azonosító véletlenszerűen generált karaktersorozat, amely alkalmazható egyedi azonosítóként és hivatkozások kulcsaként.",
         "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "A Nyers adatok oldal felsorolja a dokumentum összes adattábláját, beleértve az összefoglaló táblázatokat és az oldalelrendezésben nem szereplő táblázatokat is.",
         "The total size of all data in this document, excluding attachments.": "A dokumentumban található összes adat teljes mérete, a mellékletek nélkül.",
@@ -2221,20 +2219,12 @@
         "Widget URL": "Widget URL"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is.",
         "The toggle is **off**": "A kapcsoló **kikapcsolva**",
         "The toggle is **on**": "A kapcsoló **bekapcsolva**"
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is.",
         "The toggle is **off**": "A kapcsoló **kikapcsolva**",
         "The toggle is **on**": "A kapcsoló **bekapcsolva**"
     },
@@ -2497,9 +2487,7 @@
         "It is good practice not to run Grist as the root user.": "Jó gyakorlat, ha nem root felhasználóként futtatod a Gristet.",
         "The main page of Grist should be available.": "A Grist főoldalának elérhetőnek kell lennie.",
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "Az APP_HOME_URL az alap URL, ahol a felhasználók és az integrációk elérik ezt a Grist-kiszolgálót. A hitelesítési callback-ek (visszahívások), az API-hivatkozások és az e-mailes értesítések mind attól függnek, hogy ez helyes-e.",
-        "If running in a container without external storage or with default database, ": {
-            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Ha egy külső tároló nélküli konténerben vagy az alapértelmezett adatbázissal fut, a /persist kötetnek felcsatolt kötetnek kell lennie, különben a Grist dokumentumok és metaadatok elvesznek, amikor a konténer leáll."
-        }
+        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Ha egy külső tároló nélküli konténerben vagy az alapértelmezett adatbázissal fut, a /persist kötetnek felcsatolt kötetnek kell lennie, különben a Grist dokumentumok és metaadatok elvesznek, amikor a konténer leáll."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+ {{count}} további",
@@ -2709,9 +2697,7 @@
     "GridViewMenusDateHelpers": {
         "12-hour format": "12 órás formátum",
         "24-hour format": "24 órás formátum",
-        "AM": {
-            "PM": "DE/DU"
-        },
+        "AM/PM": "DE/DU",
         "Calendar": "Naptár",
         "Date helpers…": "Dátum segítők…",
         "Day": "nap",
@@ -2783,48 +2769,10 @@
         "Restart required. Authentication change may affect your access": "Újraindítás szükséges. A hitelesítés megváltoztatása hatással lehet a hozzáférésedre",
         "Revert change of admin user": "Az adminisztrátor változtatásának visszavonása",
         "See \"Restart Grist\" section on top of this page to restart.": "Az újraindításhoz lásd a „Grist újraindítása” részt az oldal tetején.",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "grist-connect": {
-                            ").": "A **Grist Connect** beállításához kövesd [a Grist Connect támogatási cikkében] (https://support.getgrist.com/install/grist-connect/) található utasításokat."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "oidc).": "Az **OIDC** beállításához kövesd [az OIDC Grist támogatási cikkében] (https://support.getgrist.com/install/oidc) található utasításokat."
-                    }
-                }
-            }
-        },
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "saml": {
-                            ").": "A **SAML** beállításához kövesd [a Grist SAML támogatási cikkében] (https://support.getgrist.com/install/saml/) található utasításokat."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "forwarded-headers": {
-                            ").": "A **továbbított fejlécek** beállításához kövesd [a továbbított fejlécekre vonatkozó Grist támogatási cikk] (https://support.getgrist.com/install/forwarded-headers/) utasításait."
-                        }
-                    }
-                }
-            }
-        },
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "A **Grist Connect** beállításához kövesd [a Grist Connect támogatási cikkében] (https://support.getgrist.com/install/grist-connect/) található utasításokat.",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "Az **OIDC** beállításához kövesd [az OIDC Grist támogatási cikkében] (https://support.getgrist.com/install/oidc) található utasításokat.",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "A **SAML** beállításához kövesd [a Grist SAML támogatási cikkében] (https://support.getgrist.com/install/saml/) található utasításokat.",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "A **továbbított fejlécek** beállításához kövesd [a továbbított fejlécekre vonatkozó Grist támogatási cikk] (https://support.getgrist.com/install/forwarded-headers/) utasításait.",
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Amikor egy felhasználó hozzáfér a Gristhez, a proxy kezeli a hitelesítést, és HTTP-fejléceken keresztül továbbítja az ellenőrzött felhasználói információkat. A Grist ezeket a fejléceket használja a felhasználó azonosítására.",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Bejelentkezéskor a felhasználók egy Grist Connect bejelentkezési oldalra kerülnek, ahol különböző identitásszolgáltatók segítségével hitelesíthetik magukat. A hitelesítés után a rendszer visszairányítja őket a Grist szerverére, amit már bejelentkezett felhasználóként használhatnak.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Bejelentkezéskor a felhasználókat a kiválasztott identitásszolgáltató bejelentkezési oldalára irányítják át a hitelesítéshez. A sikeres hitelesítés után a rendszer visszairányítja őket a Grist-kiszolgálóra, és a szolgáltató által ellenőrzött felhasználóként jelentkezik be.",
@@ -3013,9 +2961,7 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "A rendszerindító kulcsot csak ideiglenes hitelesítési eszközként szabad használni, amíg egy biztonságosabb és robusztusabb hitelesítési módszert nem állítasz be a Biztonsági beállítások → Hitelesítés menüpontban. Javasoljuk, hogy a Grist beállításának befejezése után távolítsd el a rendszerindító kulcsot.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Ezt a beállítást jelenleg egy környezeti változó (`GRIST_BOOT_KEY`) kezeli.",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Töröld a környezeti változó beállítását, hogy ezt a beállítást a Rendszergazda panelen keresztül kezelhesd.",
-        "You will no longer be able to authenticate as the install admin on the `": {
-            "boot-key` page.": "A továbbiakban nem fogsz tudni belépni telepítési adminisztrátorként a `/boot-key' oldalon."
-        }
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "A továbbiakban nem fogsz tudni belépni telepítési adminisztrátorként a `/boot-key' oldalon."
     },
     "BootPage": {
         "Administrator email": "Rendszergazda e-mail",
@@ -3096,9 +3042,7 @@
         "Local filesystem (test only)": "Helyi fájlrendszer (csak teszt)",
         "Stores document snapshots on the local filesystem. For tests only, not production.": "A dokumentum pillanatképeit a helyi fájlrendszeren tárolja. Csak tesztelésre való, éles rendszerben ne használd!",
         "Action needed": "Tennivaló",
-        "To preserve it, mount a volume at ": {
-            "persist.": "A megőrzéshez csatolj fel egy kötetet a /persist helyre."
-        },
+        "To preserve it, mount a volume at /persist.": "A megőrzéshez csatolj fel egy kötetet a /persist helyre.",
         "Your data may not survive a container restart.": "Lehet, hogy az adataid nem élik túl a konténer újraindítását."
     },
     "PermissionsSetupSection": {
@@ -3172,11 +3116,7 @@
         "URL is reachable": "Az URL elérhető",
         "automatic": "automatikus",
         "checking": "ellenőrzés",
-        "https:": {
-            "": {
-                "grist.example.com": "https://grist.example.com"
-            }
-        },
+        "https://grist.example.com": "https://grist.example.com",
         "not set": "nincs beállítva",
         "set": "beállítva"
     },
@@ -3204,9 +3144,7 @@
         "Downgrade": "Visszalépés",
         "Downgrade to Community Edition": "Visszalépés közösségi kiadásra",
         "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Visszalépsz közösségi kiadásra? A teljes Grist extra funkciói nem lesznek már elérhetők újraindítás után, de ez visszavonható.",
-        "For automations, MCP server, AI assistant, OIDC": {
-            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Ha automatizálást, MCP-kiszolgálót, MI-asszisztenst, OIDC/SAML-támogatást, e-mailes értesítéseket, rendszergazdai beállításokat, auditnaplózást és egyéb szolgáltatásokat szeretnél használni, válts a Grist teljes verziójára."
-        },
+        "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Ha automatizálást, MCP-kiszolgálót, MI-asszisztenst, OIDC/SAML-támogatást, e-mailes értesítéseket, rendszergazdai beállításokat, auditnaplózást és egyéb szolgáltatásokat szeretnél használni, válts a Grist teljes verziójára.",
         "Free activation keys": "Ingyenes aktiváló kulcsok",
         "Restart Grist to apply this change.": "A Grist újraindítása ennek a változtatásnak a hatályba lépéséhez.",
         "Switch to Full Grist": "Váltás a teljes Grist-re",

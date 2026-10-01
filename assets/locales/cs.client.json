@@ -888,9 +888,7 @@
     "Selecting Data": "Výběr dat",
     "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID je náhodně generovaný řetězec, který je užitečný pro unikátní identifikátory a klíče odkazů.",
     "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Vytvářejte jednoduché formuláře přímo v Grist a sdílejte je jedním kliknutím s naším novým widgetem. {{learnMoreButton}}",
-    "To configure your calendar, select columns for start": {
-      "end dates and event titles. Note each column's type.": "Pro konfiguraci vašeho kalendáře vyberte sloupce pro začáteční a koncové datum a názvy událostí. Poznamenejte si typ každého sloupce."
-    },
+    "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Pro konfiguraci vašeho kalendáře vyberte sloupce pro začáteční a koncové datum a názvy událostí. Poznamenejte si typ každého sloupce.",
     "Editing Card Layout": "Úprava rozvržení karty",
     "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Použijte ikonu 𝚺 pro vytvoření souhrnných (nebo kontingenčních) tabulek, pro součty nebo mezisoučty.",
     "Pinning Filters": "Připnutí filtrů",
@@ -1785,11 +1783,7 @@
     "Admin Panel": "Panel správce"
   },
   "markdown.d": {
-    "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-      "": {
-        "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkce Markdown\n *\n * Můžeme _zapsat_ [obvyklý Markdown](https://markdownguide.org) *vnitř*\n * prvku Grainjs."
-      }
-    },
+    "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkce Markdown\n *\n * Můžeme _zapsat_ [obvyklý Markdown](https://markdownguide.org) *vnitř*\n * prvku Grainjs.",
     "The toggle is **on**": "Přepínač je **zapnutý**",
     "The toggle is **off**": "Přepínač je **vypnutý**"
   },
@@ -1868,11 +1862,7 @@
   },
   "markdown": {
     "The toggle is **on**": "Přepínač je **zapnutý**",
-    "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-      "": {
-        "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkce Markdown\n *\n * Můžeme _zapsat_ [obvyklý Markdown](https://markdownguide.org) *vnitř*\n * prvku Grainjs."
-      }
-    },
+    "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nová funkce Markdown\n *\n * Můžeme _zapsat_ [obvyklý Markdown](https://markdownguide.org) *vnitř*\n * prvku Grainjs.",
     "The toggle is **off**": "Přepínač je **vypnut**"
   },
   "DocList": {

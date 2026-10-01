@@ -1477,9 +1477,7 @@
         "Custom Widgets": "Widgets personalizados",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Para criar um link âncora que leve o usuário a uma célula específica, clique em uma linha e pressione {{shortcut}}.",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Você pode escolher um dos nossos widgets pré-feitos ou incorporar seu próprio, fornecendo sua URL completa.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Para configurar seu calendário, selecione colunas para datas de início/fim e títulos de eventos. Observe o tipo de cada coluna."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Para configurar seu calendário, selecione colunas para datas de início/fim e títulos de eventos. Observe o tipo de cada coluna.",
         "Calendar": "Calendário",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Não consegue encontrar as colunas certas? Clique em \"Change Widget\" (Alterar widget) para selecionar a tabela com os dados dos eventos.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Um UUID é uma cadeia de caracteres gerada aleatoriamente que é útil para identificadores exclusivos e chaves de link.",
@@ -2196,20 +2194,12 @@
     "markdown": {
         "The toggle is **off**": "O interruptor está **desligado**",
         "The toggle is **on**": "O interruptor está **ligado**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova função Markdown\n *\n * Podemos _escrever_ [o Markdown usual] (https://markdownguide.org) *dentro*\n * um elemento Grainjs."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova função Markdown\n *\n * Podemos _escrever_ [o Markdown usual] (https://markdownguide.org) *dentro*\n * um elemento Grainjs."
     },
     "markdown.d": {
         "The toggle is **off**": "O interruptor está **desligado**",
         "The toggle is **on**": "O interruptor está **ligado**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova função Markdown\n *\n * Podemos _escrever_ [o Markdown usual] (https://markdownguide.org) *dentro*\n * um elemento Grainjs."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova função Markdown\n *\n * Podemos _escrever_ [o Markdown usual] (https://markdownguide.org) *dentro*\n * um elemento Grainjs."
     },
     "HomeIntroCards": {
         "3 minute video tour": "Vídeo tour de 3 minutos",
@@ -2708,9 +2698,7 @@
         "Week of year": "Semana do ano",
         "Year": "Ano",
         "Years until": "Anos até",
-        "AM": {
-            "PM": "AM/PM"
-        },
+        "AM/PM": "AM/PM",
         "Date helpers…": "Ajudantes de data…",
         "Default": "Padrão",
         "End of": "Fim de",
@@ -2755,48 +2743,10 @@
         "Restart required. Authentication change may affect your access": "É necessário reiniciar. A alteração da autenticação pode afetar seu acesso",
         "Revert change of admin user": "Reverter a alteração do usuário administrador",
         "See \"Restart Grist\" section on top of this page to restart.": "Consulte a seção \"Reiniciar o Grist\" na parte superior desta página para reiniciar.",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "grist-connect": {
-                            ").": "Para configurar o **Grist Connect**, siga as instruções no [artigo de suporte do Grist para o Grist Connect] (https://support.getgrist.com/install/grist-connect/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "oidc).": "Para configurar o **OIDC**, siga as instruções em [o artigo de suporte do Grist para o OIDC] (https://support.getgrist.com/install/oidc)."
-                    }
-                }
-            }
-        },
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "saml": {
-                            ").": "Para configurar o **SAML**, siga as instruções no [artigo de suporte do Grist para SAML] (https://support.getgrist.com/install/saml/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "forwarded-headers": {
-                            ").": "Para configurar **cabeçalhos encaminhados**, siga as instruções no [artigo de suporte do Grist sobre cabeçalhos encaminhados] (https://support.getgrist.com/install/forwarded-headers/)."
-                        }
-                    }
-                }
-            }
-        },
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "Para configurar o **Grist Connect**, siga as instruções no [artigo de suporte do Grist para o Grist Connect] (https://support.getgrist.com/install/grist-connect/).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "Para configurar o **OIDC**, siga as instruções em [o artigo de suporte do Grist para o OIDC] (https://support.getgrist.com/install/oidc).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "Para configurar o **SAML**, siga as instruções no [artigo de suporte do Grist para SAML] (https://support.getgrist.com/install/saml/).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "Para configurar **cabeçalhos encaminhados**, siga as instruções no [artigo de suporte do Grist sobre cabeçalhos encaminhados] (https://support.getgrist.com/install/forwarded-headers/).",
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Quando um usuário acessa o Grist, o proxy lida com a autenticação e encaminha as informações verificadas do usuário por meio de cabeçalhos HTTP. O Grist usa esses cabeçalhos para identificar o usuário.",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Ao fazer login, os usuários serão redirecionados para uma página de login do Grist Connect, onde poderão se autenticar usando vários provedores de identidade. Após a autenticação, eles serão redirecionados de volta ao seu servidor Grist e farão login.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Ao fazer login, os usuários serão redirecionados para a página de login do provedor de identidade escolhido para autenticação. Após a autenticação bem-sucedida, eles serão redirecionados de volta ao servidor Grist e farão login como o usuário verificado pelo provedor.",
@@ -2923,9 +2873,7 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "A chave de inicialização deve ser usada apenas como um meio temporário de autenticação até que um método de autenticação mais seguro e robusto seja configurado em Configurações de Segurança → Autenticação. Recomendamos remover a chave de inicialização depois de concluir a configuração do Grist.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Essa configuração está sendo gerenciada atualmente por uma variável de ambiente (`GRIST_BOOT_KEY`).",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Desfaça a definição da variável de ambiente para gerenciar essa configuração por meio do Painel de Administração.",
-        "You will no longer be able to authenticate as the install admin on the `": {
-            "boot-key` page.": "Você não poderá mais se autenticar como administrador da instalação na página `/boot-key`."
-        }
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Você não poderá mais se autenticar como administrador da instalação na página `/boot-key`."
     },
     "selectBy": {
         "Select widget": "Selecionar Widget"
@@ -3091,11 +3039,7 @@
         "URL is reachable": "URL é acessível",
         "automatic": "automático",
         "checking": "verificando",
-        "https:": {
-            "": {
-                "grist.example.com": "https://grist.exemplo.com"
-            }
-        },
+        "https://grist.example.com": "https://grist.exemplo.com",
         "not set": "não definido",
         "set": "definir"
     },

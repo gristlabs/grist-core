@@ -1385,9 +1385,7 @@
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "用意されたウィジェットから選ぶか、完全なURLを指定して独自のウィジェットを埋め込むことができます。",
         "Calendar": "カレンダー",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "適切な列が見つかりませんか？「ウィジェットの変更」をクリックして、イベントデータのあるテーブルを選択してください。",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "カレンダーを設定するには、開始/終了日とイベントタイトルの列を選択します。各列の型に注意してください。"
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "カレンダーを設定するには、開始/終了日とイベントタイトルの列を選択します。各列の型に注意してください。",
         "Use reference columns to relate data in different tables.": "参照列を使うと、異なるテーブルのデータを関連付けられます。",
         "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "ドロップダウンから利用可能なウィジェットを選ぶか、完全なURLを指定して独自のウィジェットを埋め込むことができます。",
         "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "新しいウィジェットで、Grist内でシンプルなフォームを作成し、ワンクリックで共有できます。{{learnMoreButton}}",
@@ -2145,20 +2143,12 @@
         "Widget URL": "ウィジェットURL"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# 新しいMarkdown関数\n *\n *      Grainjs要素の*内側*に[通常のMarkdown](https://markdownguide.org)を_書く_ことができます。"
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# 新しいMarkdown関数\n *\n *      Grainjs要素の*内側*に[通常のMarkdown](https://markdownguide.org)を_書く_ことができます。",
         "The toggle is **off**": "トグルは**オフ**です",
         "The toggle is **on**": "トグルは**オン**です"
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# 新しいMarkdown関数\n *\n *      Grainjs要素の*内側*に[通常のMarkdown](https://markdownguide.org)を_書く_ことができます。"
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# 新しいMarkdown関数\n *\n *      Grainjs要素の*内側*に[通常のMarkdown](https://markdownguide.org)を_書く_ことができます。",
         "The toggle is **off**": "トグルは**オフ**です",
         "The toggle is **on**": "トグルは**オン**です"
     },
@@ -2417,9 +2407,7 @@
         "It is good practice not to run Grist as the root user.": "Gristをrootユーザーとして実行しないことが推奨されます。",
         "The main page of Grist should be available.": "Gristのメインページにアクセスできる必要があります。",
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URLは、ユーザーや連携機能がこのGristサーバーに到達するためのベースURLです。認証コールバック、APIリンク、メール通知はすべて、この値が正しいことに依存しています。",
-        "If running in a container without external storage or with default database, ": {
-            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "外部ストレージなし、またはデフォルトのデータベースでコンテナ内で実行する場合、/persistはマウントされたボリュームである必要があります。そうでない場合、コンテナ停止時にGristのドキュメントとメタデータが失われます。"
-        }
+        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "外部ストレージなし、またはデフォルトのデータベースでコンテナ内で実行する場合、/persistはマウントされたボリュームである必要があります。そうでない場合、コンテナ停止時にGristのドキュメントとメタデータが失われます。"
     },
     "ChoiceListEntry": {
         "+{{count}} more_other": "+{{count}} 件",
@@ -2628,9 +2616,7 @@
     "GridViewMenusDateHelpers": {
         "12-hour format": "12時間表記",
         "24-hour format": "24時間表記",
-        "AM": {
-            "PM": "AM/PM"
-        },
+        "AM/PM": "AM/PM",
         "Calendar": "カレンダー",
         "Date helpers…": "日付ヘルパー…",
         "Day": "日",
@@ -2702,48 +2688,10 @@
         "Restart required. Authentication change may affect your access": "再起動が必要です。認証の変更はアクセスに影響する可能性があります",
         "Revert change of admin user": "管理者ユーザーの変更を元に戻す",
         "See \"Restart Grist\" section on top of this page to restart.": "再起動するには、このページ上部の「Gristを再起動」セクションをご覧ください。",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "grist-connect": {
-                            ").": "**Grist Connect**を設定するには、[Grist Connectに関するGristサポート記事](https://support.getgrist.com/install/grist-connect/)の手順に従ってください。"
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "oidc).": "**OIDC**を設定するには、[OIDCに関するGristサポート記事](https://support.getgrist.com/install/oidc)の手順に従ってください。"
-                    }
-                }
-            }
-        },
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "saml": {
-                            ").": "**SAML**を設定するには、[SAMLに関するGristサポート記事](https://support.getgrist.com/install/saml/)の手順に従ってください。"
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "forwarded-headers": {
-                            ").": "**転送ヘッダー**を設定するには、[転送ヘッダーに関するGristサポート記事](https://support.getgrist.com/install/forwarded-headers/)の手順に従ってください。"
-                        }
-                    }
-                }
-            }
-        },
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "**Grist Connect**を設定するには、[Grist Connectに関するGristサポート記事](https://support.getgrist.com/install/grist-connect/)の手順に従ってください。",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "**OIDC**を設定するには、[OIDCに関するGristサポート記事](https://support.getgrist.com/install/oidc)の手順に従ってください。",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "**SAML**を設定するには、[SAMLに関するGristサポート記事](https://support.getgrist.com/install/saml/)の手順に従ってください。",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "**転送ヘッダー**を設定するには、[転送ヘッダーに関するGristサポート記事](https://support.getgrist.com/install/forwarded-headers/)の手順に従ってください。",
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "ユーザーがGristにアクセスすると、プロキシが認証を処理し、検証済みのユーザー情報をHTTPヘッダーで転送します。Gristはこれらのヘッダーを使ってユーザーを識別します。",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "サインイン時、ユーザーはGrist Connectのログインページにリダイレクトされ、さまざまなIDプロバイダーで認証できます。認証後、Gristサーバーにリダイレクトされてサインインされます。",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "サインイン時、ユーザーは選択したIDプロバイダーのログインページにリダイレクトされて認証を行います。認証に成功すると、Gristサーバーにリダイレクトされ、プロバイダーが検証したユーザーとしてサインインされます。",
@@ -2904,9 +2852,7 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "ブートキーは、セキュリティ設定 → 認証でより安全で堅牢な認証方法が設定されるまでの、一時的な認証手段としてのみ使用してください。Gristの設定が完了したら、ブートキーを削除することをお勧めします。",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "この設定は現在、環境変数（`GRIST_BOOT_KEY`）で管理されています。",
         "Unset the environment variable to manage this setting via the Admin Panel.": "管理パネルからこの設定を管理するには、環境変数を解除してください。",
-        "You will no longer be able to authenticate as the install admin on the `": {
-            "boot-key` page.": "`/boot-key` ページでインストール管理者として認証することはできなくなります。"
-        }
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "`/boot-key` ページでインストール管理者として認証することはできなくなります。"
     },
     "BootPage": {
         "Administrator email": "管理者のメールアドレス",
@@ -2987,9 +2933,7 @@
         "Local filesystem (test only)": "ローカルファイルシステム（テスト専用）",
         "Stores document snapshots on the local filesystem. For tests only, not production.": "ドキュメントのスナップショットをローカルファイルシステムに保存します。テスト専用で、本番環境向けではありません。",
         "Action needed": "対応が必要です",
-        "To preserve it, mount a volume at ": {
-            "persist.": "保持するには、/persist にボリュームをマウントしてください。"
-        },
+        "To preserve it, mount a volume at /persist.": "保持するには、/persist にボリュームをマウントしてください。",
         "Your data may not survive a container restart.": "コンテナの再起動後にデータが残らない可能性があります。"
     },
     "PermissionsSetupSection": {
@@ -3062,11 +3006,7 @@
         "URL is reachable": "URLに接続できます",
         "automatic": "自動",
         "checking": "確認中",
-        "https:": {
-            "": {
-                "grist.example.com": "https://grist.example.com"
-            }
-        },
+        "https://grist.example.com": "https://grist.example.com",
         "not set": "未設定",
         "set": "設定済み"
     },
@@ -3094,9 +3034,7 @@
         "Downgrade": "ダウングレード",
         "Downgrade to Community Edition": "コミュニティエディションにダウングレード",
         "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "コミュニティエディションにダウングレードしますか？再起動後、Full Gristの機能は無効になります。この操作は元に戻せます。",
-        "For automations, MCP server, AI assistant, OIDC": {
-            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "自動化、MCPサーバー、AIアシスタント、OIDC/SAML対応、メール通知、管理者向け機能、監査ログなどを利用するには、完全版のGristエディションに切り替えてください。"
-        },
+        "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "自動化、MCPサーバー、AIアシスタント、OIDC/SAML対応、メール通知、管理者向け機能、監査ログなどを利用するには、完全版のGristエディションに切り替えてください。",
         "Free activation keys": "無料アクティベーションキー",
         "Restart Grist to apply this change.": "この変更を適用するには、Gristを再起動してください。",
         "Switch to Full Grist": "Full Gristに切り替え",

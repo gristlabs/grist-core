@@ -583,9 +583,7 @@
     "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Nyttig for lagring av tidsstempel eller forfatter av en ny oppføring, datarensing, med mer.",
     "The total size of all data in this document, excluding attachments.": "Samlet størrelse av all data i dette dokumentet, fraregnet vedlegg.",
     "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Du kan velge en av miniprogrammene som finnes, eller bygge inn ditt eget ved å angi dets fulle nettadresse.",
-    "To configure your calendar, select columns for start": {
-      "end dates and event titles. Note each column's type.": "Velg kolonner for start-/slutt-dato og begivenhetsnavn. Merk deg hvilken type hver kolonne er."
-    },
+    "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Velg kolonner for start-/slutt-dato og begivenhetsnavn. Merk deg hvilken type hver kolonne er.",
     "Calendar": "Kalender",
     "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Klikk på en rad og trykk {{shortcut}} for å lage en ankerlenke som tar brukeren til en gitt celle.",
     "Anchor Links": "Ankerlenker",

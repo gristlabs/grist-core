@@ -1355,9 +1355,7 @@
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puoi scegliere uno dei nostri widget pronti all'uso, o inserirne uno fatto da te, immettendo la sua URL completa.",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Per creare un link che porta l'utente a una cella specifica, fai clic su una riga e premi {{shortcut}}.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID è una stringa generata automaticamente, uitle come identificatore univoco e chiave per i link.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Per configurare il calendario, seleziona le colonne per le date di inizio/fine, e i titoli degli eventi. Nota il tipo di ciascuna colonna."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Per configurare il calendario, seleziona le colonne per le date di inizio/fine, e i titoli degli eventi. Nota il tipo di ciascuna colonna.",
         "Calendar": "Calendario",
         "Lookups return data from related tables.": "Un lookup restituisce dati dalle tabelle collegate.",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Non trovi la colonna giusta? Fai clic su \"Cambia widget\" per selezionare la tabella con i dati degli eventi.",
@@ -1924,11 +1922,7 @@
     },
     "markdown.d": {
         "The toggle is **off**": "L'interruttore è **spento**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nuova funzione Markdown\n *\n *      Possiamo _scrivere_ [il solito Markdown](https://markdownguide.org) *dentro*\n *      un elemento Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nuova funzione Markdown\n *\n *      Possiamo _scrivere_ [il solito Markdown](https://markdownguide.org) *dentro*\n *      un elemento Grainjs.",
         "The toggle is **on**": "L'interruttore è **acceso**"
     },
     "HomeIntroCards": {
@@ -1948,11 +1942,7 @@
         "Admin Panel": "Pannello di amministrazione"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nuova funzione Markdown\n *\n *      Possiamo _scrivere_ [il solito Markdown](https://markdownguide.org) *dentro*\n *      un elemento Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nuova funzione Markdown\n *\n *      Possiamo _scrivere_ [il solito Markdown](https://markdownguide.org) *dentro*\n *      un elemento Grainjs.",
         "The toggle is **off**": "L'interruttore è **spento**",
         "The toggle is **on**": "L'interruttore è **acceso**"
     },

@@ -129,7 +129,9 @@
         "Sign up": "Sign up",
         "Use This Template": "Use This Template",
         "Site settings": "Site settings",
-        "Account settings": "Account settings"
+        "Account settings": "Account settings",
+        "Audit Logs": "Audit Logs",
+        "New": "New"
     },
     "ViewAsDropdown": {
         "View as": "View as",
@@ -1212,7 +1214,11 @@
         "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.",
         "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.",
         "automations": "automations",
-        "suggestions": "suggestions"
+        "suggestions": "suggestions",
+        "You have been unsubscribed from notifications about any comments in {{docName}}, including mentions of you and replies to your comments. You can update your preferences anytime in the document settings.": "You have been unsubscribed from notifications about any comments in {{docName}}, including mentions of you and replies to your comments. You can update your preferences anytime in the document settings.",
+        "You have been unsubscribed from notifications about changes to {{docName}}. You can update your preferences anytime in the document settings.": "You have been unsubscribed from notifications about changes to {{docName}}. You can update your preferences anytime in the document settings.",
+        "You have been unsubscribed from notifications about comments in {{docName}}, except for mentions of you and replies to your comments. You can update your preferences anytime in the document settings.": "You have been unsubscribed from notifications about comments in {{docName}}, except for mentions of you and replies to your comments. You can update your preferences anytime in the document settings.",
+        "You have been unsubscribed from notifications about suggestions to {{docName}}. You can update your preferences anytime in the document settings.": "You have been unsubscribed from notifications about suggestions to {{docName}}. You can update your preferences anytime in the document settings."
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
@@ -1420,7 +1426,8 @@
         "convert to card view, select data, and more.": "convert to card view, select data, and more.",
         "creator panel": "creator panel",
         "template library": "template library",
-        "AI Assistant": "AI Assistant"
+        "AI Assistant": "AI Assistant",
+        "Understand, modify and work with your data and formulas with the help of Grist's AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's AI Assistant!"
     },
     "LanguageMenu": {
         "Language": "Language"
@@ -1508,7 +1515,8 @@
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "When checked, this field’s default value can be prefilled from the URL using query parameters.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.",
         "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter.",
-        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records."
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.",
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "To configure your calendar, select columns for start/end dates and event titles. Note each column's type."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION",
@@ -2489,7 +2497,8 @@
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.",
         "If running in a container without external storage or with default database, ": {
             "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops."
-        }
+        },
+        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} more",
@@ -2742,7 +2751,8 @@
         "Week of year": "Week of year",
         "Year": "Year",
         "Years since": "Years since",
-        "Years until": "Years until"
+        "Years until": "Years until",
+        "AM/PM": "AM/PM"
     },
     "selectBy": {
         "Select widget": "Select widget"
@@ -3010,7 +3020,8 @@
         "Unset the environment variable to manage this setting via the Admin Panel.": "Unset the environment variable to manage this setting via the Admin Panel.",
         "You will no longer be able to authenticate as the install admin on the `": {
             "boot-key` page.": "You will no longer be able to authenticate as the install admin on the `/boot-key` page."
-        }
+        },
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "You will no longer be able to authenticate as the install admin on the `/boot-key` page."
     },
     "BootPage": {
         "Administrator email": "Administrator email",
@@ -3094,7 +3105,9 @@
         "To preserve it, mount a volume at ": {
             "persist.": "To preserve it, mount a volume at /persist."
         },
-        "Your data may not survive a container restart.": "Your data may not survive a container restart."
+        "Your data may not survive a container restart.": "Your data may not survive a container restart.",
+        "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.",
+        "To preserve it, mount a volume at /persist.": "To preserve it, mount a volume at /persist."
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Allow anonymous access",
@@ -3144,7 +3157,12 @@
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.",
         "macOS sandbox": "macOS sandbox",
         "Sandbox": "Sandbox",
-        "Revert": "Revert"
+        "Revert": "Revert",
+        "Formulas have full system access. Only appropriate when you trust every document and its authors.": "Formulas have full system access. Only appropriate when you trust every document and its authors.",
+        "Formulas run in WebAssembly, fully compatible but slower than gVisor. Works on any platform.": "Formulas run in WebAssembly, fully compatible but slower than gVisor. Works on any platform.",
+        "Grist runs user formulas as Python code. Sandboxing isolates this execution to protect your server. Without it, document formulas can access the full system.": "Grist runs user formulas as Python code. Sandboxing isolates this execution to protect your server. Without it, document formulas can access the full system.",
+        "Sandbox type is set via the GRIST_SANDBOX_FLAVOR environment variable and cannot be changed here. Remove the variable and restart to configure via this wizard.": "Sandbox type is set via the GRIST_SANDBOX_FLAVOR environment variable and cannot be changed here. Remove the variable and restart to configure via this wizard.",
+        "The fastest and most battle-tested sandbox. Each document's formulas run in their own isolated container.": "The fastest and most battle-tested sandbox. Each document's formulas run in their own isolated container."
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmed",
@@ -3173,7 +3191,8 @@
             }
         },
         "not set": "not set",
-        "set": "set"
+        "set": "set",
+        "https://grist.example.com": "https://grist.example.com"
     },
     "EditionSection": {
         "Choose which edition of Grist to run on this server": "Choose which edition of Grist to run on this server",
@@ -3429,7 +3448,12 @@
         "Select…": "Select…",
         "Send me product and security updates": "Send me product and security updates",
         "Social media": "Social media",
-        "What best describes you?": "What best describes you?"
+        "What best describes you?": "What best describes you?",
+        "Conference/event": "Conference/event",
+        "Developer/IT": "Developer/IT",
+        "Education/Research Institute": "Education/Research Institute",
+        "Friend/colleague": "Friend/colleague",
+        "Reddit/forum": "Reddit/forum"
     },
     "QuickSetupApplyStep": {
         "Apply and go live!": "Apply and go live!",

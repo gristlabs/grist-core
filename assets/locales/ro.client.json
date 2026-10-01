@@ -539,9 +539,7 @@
     "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID este un șir generat aleatoriu care este util pentru identificatori unici și chei de legătură.",
     "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puteți alege unul dintre widget-urile noastre prefabricate sau puteți încorpora pe al dvs., furnizând adresa URL completă.",
     "Reference Columns": "Coloane de referință",
-    "To configure your calendar, select columns for start": {
-      "end dates and event titles. Note each column's type.": "Pentru a vă configura calendarul, selectați coloanele pentru datele de început/sfârșit și titlurile evenimentelor. Notați tipul fiecărei coloane."
-    },
+    "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Pentru a vă configura calendarul, selectați coloanele pentru datele de început/sfârșit și titlurile evenimentelor. Notați tipul fiecărei coloane.",
     "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Regulile de acces vă oferă puterea de a crea reguli nuanțate pentru a determina cine poate vedea sau edita ce părți ale documentului dvs.",
     "Rearrange the fields in your card by dragging and resizing cells.": "Rearanjați câmpurile din cardul dvs. trăgând și redimensionând celulele.",
     "Calendar": "Calendar",

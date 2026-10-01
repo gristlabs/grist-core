@@ -1148,9 +1148,7 @@
     "Use reference columns to relate data in different tables.": "Използвайте референтни колони за свързване на данни в различни таблици.",
     "Build simple forms right in Grist and share in a click with our new widget. {{learnMoreButton}}": "Изграждайте прости формуляри директно в Grist и споделяйте с едно кликване с новата ни джаджа. {{learnMoreButton}}",
     "Filter displayed dropdown values with a condition.": "Отсяване на показаните стойности в падащото меню с условие.",
-    "To configure your calendar, select columns for start": {
-      "end dates and event titles. Note each column's type.": "За да конфигурирате календара си, изберете колони за начални/крайни дати и заглавия на събития. Обърнете внимание на типа на всяка колона."
-    },
+    "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "За да конфигурирате календара си, изберете колони за начални/крайни дати и заглавия на събития. Обърнете внимание на типа на всяка колона.",
     "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID е произволно генериран низ, който е полезен за уникални обозначения и ключове за връзки.",
     "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Можете да изберете от наличните джаджи в падащото меню или да вградите свои собствени, като предоставите пълния им URL адрес.",
     "Formulas support many Excel functions, full Python syntax, and include a helpful AI Assistant.": "Формулите поддържат много функции на Excel, пълен синтаксис на Python и включват полезен AI Assistant.",

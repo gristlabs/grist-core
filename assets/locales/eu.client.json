@@ -1258,9 +1258,7 @@
         "Useful for storing the timestamp or author of a new record, data cleaning, and more.": "Baliagarria da data-zigilu edo erregistro berri baten egilea gordetzeko, datuak garbitzeko, eta gehiagorako.",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Erabiltzailea gelaxka zehatz batera eramaten duen aingura-esteka bat sortzeko, egin klik errenkada batean eta sakatu {{shortcut}}.",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Aldez aurretik egindako widget bat aukeratu dezakezu edo zurea txertatu URL osoa emanez.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Zure egutegia konfiguratzeko, hautatu zutabeak hasierako/amaierako datetarako eta gertaeren izenburuetarako. Zehaztu zutabe bakoitzaren mota."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Zure egutegia konfiguratzeko, hautatu zutabeak hasierako/amaierako datetarako eta gertaeren izenburuetarako. Zehaztu zutabe bakoitzaren mota.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID bat ausaz sortutako kate bat da, identifikatzaile eta lotura-tekla berezietarako baliagarria dena.",
         "Lookups return data from related tables.": "Bilaketek erlazionatutako tauletatik datuak itzultzen dituzte.",
         "Use reference columns to relate data in different tables.": "Erabili erreferentzia-zutabeak taula ezberdinetako datuak erlazionatzeko.",
@@ -2167,20 +2165,12 @@
         "Admin Panel": "Administratzailearen panela"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Markdown funtzio berria\n *\n *      Grainjs elementu baten *barruan*\n *      [ohiko Markdown sintaxia](https://markdownguide.org) _idatz_ dezakegu."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Markdown funtzio berria\n *\n *      Grainjs elementu baten *barruan*\n *      [ohiko Markdown sintaxia](https://markdownguide.org) _idatz_ dezakegu.",
         "The toggle is **off**": "Ezaugarria **desaktibatuta** dago",
         "The toggle is **on**": "Ezaugarria **aktibatuta** dago"
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Markdown funtzio berria\n *\n *      Grainjs elementu baten *barruan*\n *      [ohiko Markdown sintaxia](https://markdownguide.org) _idatz_ dezakegu."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Markdown funtzio berria\n *\n *      Grainjs elementu baten *barruan*\n *      [ohiko Markdown sintaxia](https://markdownguide.org) _idatz_ dezakegu.",
         "The toggle is **off**": "Ezaugarria **desaktibatuta** dago",
         "The toggle is **on**": "Ezaugarria **aktibatuta** dago"
     },
@@ -2483,48 +2473,10 @@
         "**OIDC** allows users on your Grist server to sign in using an external identity provider that supports the OpenID Connect standard.": "**OIDC**-ek erabiltzaileek zure Grist zerbitzarian OpenID Connect estandarra onartzen duen kanpoko identitate-hornitzaile baten bidez saioa hasteko aukera ematen du.",
         "**SAML** allows users on your Grist server to sign in using an external identity provider that supports the SAML 2.0 standard.": "**SAML**-ek SAML 2.0 estandarra onartzen duen kanpoko identitate-hornitzaile baten bidez saioa hasteko aukera ematen die Grist zerbitzariko erabiltzaileei.",
         "Revert change of admin user": "Administratzaile-erabiltzailearen aldaketa desegin",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "grist-connect": {
-                            ").": "**Grist Connect** konfiguratzeko, jarraitu [Grist Connect-erako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/grist-connect/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "oidc).": "**OIDC** konfiguratzeko, jarraitu [OIDC-rako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/oidc)."
-                    }
-                }
-            }
-        },
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "saml": {
-                            ").": "**SAML** konfiguratzeko, jarraitu [SAML-erako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/saml/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "forwarded-headers": {
-                            ").": "**Goiburuen birbidalketa** konfiguratzeko, jarraitu [Goiburuen birbidalketarako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/forwarded-headers/)."
-                        }
-                    }
-                }
-            }
-        },
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "**Grist Connect** konfiguratzeko, jarraitu [Grist Connect-erako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/grist-connect/).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "**OIDC** konfiguratzeko, jarraitu [OIDC-rako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/oidc).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "**SAML** konfiguratzeko, jarraitu [SAML-erako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/saml/).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "**Goiburuen birbidalketa** konfiguratzeko, jarraitu [Goiburuen birbidalketarako Grist laguntza-artikuluko jarraibideei](https://support.getgrist.com/install/forwarded-headers/).",
         "If Grist is accessible on your network, or is available to multiple people, configure one of the authentication methods below and remove your boot key from Security Settings → Boot key.": "Grist zure sarean eskuragai badago, edo jende gehiagorentzat eskuragarri badago, konfiguratu honako autentifikazio-metodoren bat, eta kendu abio-gakoa Segurtasun ezarpenak → Abio-gakoa atalean.",
         "No authentication: using boot key as fallback method": "Ez dago autentifikaziorik: abio-gakoa erabiltzen ari da bigarren aukera gisa",
         "Are you sure you want to deactivate **{{name}}**?": "Ziur **{{name}}** desaktibatu nahi duzula?",
@@ -2717,9 +2669,7 @@
         "Start of": "Hasiera",
         "12-hour format": "12 orduko formatua",
         "24-hour format": "24 orduko formatua",
-        "AM": {
-            "PM": "AM/PM"
-        },
+        "AM/PM": "AM/PM",
         "Calendar": "Egutegia",
         "Day": "Eguna",
         "Days since": "Egun _tik",
@@ -2900,9 +2850,7 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "Abio-gakoa soilik aldi baterako autentifikazio gisa erabili behar da, autentifikazio-metodo seguruago eta sendoago bat konfiguratu arte, Segurtasun-ezarpenak → Autentifikazioa atalaren bidez. Grist konfiguratzen amaitu ondoren, abio-gakoa kentzea gomendatzen dugu.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Ezarpen hori, unean, ingurune-aldagai batek kudeatzen du (`GRIST_BOOT_KEY`).",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Ezarpen hau Administrazio panelaren bidez kudeatzeko deskonfiguratu ingurune-aldagaia.",
-        "You will no longer be able to authenticate as the install admin on the `": {
-            "boot-key` page.": "Aurrerantzean ezingo zara instalazioko administratzaile gisa autentifikatu `/boot-key` orrialdean."
-        }
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Aurrerantzean ezingo zara instalazioko administratzaile gisa autentifikatu `/boot-key` orrialdean."
     },
     "BackupsSection": {
         "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3, AWS SDK-ren bidez. Bateragarria da IAM rolekin eta AWS-native autentifikazioarekin.",
@@ -2989,11 +2937,7 @@
         "This URL was auto-detected — confirm it is correct, then save.": "URL hau automatikoki antzeman da — baieztatu zuzena dela, eta ondoren gorde.",
         "automatic": "automatikoa",
         "checking": "egiaztatzen",
-        "https:": {
-            "": {
-                "grist.example.com": "https://grist.adibidea.eus"
-            }
-        },
+        "https://grist.example.com": "https://grist.adibidea.eus",
         "not set": "ezarri gabe",
         "set": "ezarri"
     },

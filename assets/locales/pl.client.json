@@ -1420,9 +1420,7 @@
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Zrozum, modyfikuj i pracuj ze swoimi danymi i formułami przy pomocy nowego Asystenta AI Grist!",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ten formularz został utworzony przez użytkownika Grist i nie jest popierany przez Grist Labs. Nie przesyłaj haseł przez ten formularz i zachowaj ostrożność wobec linków w nim zawartych. Zgłoś złośliwe formularze na adres [{{mail}}](mailto:{{mail}}).",
         "Set the maximum number of lines for multi-line text.": "Ustaw maksymalną liczbę wierszy dla tekstu wielowierszowego.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Aby skonfigurować kalendarz, wybierz kolumny dat początkowych/końcowych i nazw wydarzeń. Zwróć uwagę na tyup każdej kolumny."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Aby skonfigurować kalendarz, wybierz kolumny dat początkowych/końcowych i nazw wydarzeń. Zwróć uwagę na tyup każdej kolumny.",
         "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ten formularz został stworzony przez użytkownika Grista i nie jest polecany przez Grist Labs, Inc. lub inne strony zapewniające tę usługę. Dla bezpieczeństwa, nie wpisuj haseł do tego formularza i zachowaj ostrożność przy klikaniu wbudowanych linków. Podejrzane formularze możesz zgłaszać na adres [{{mail}}](mailto:{{mail}}).",
         "Comments are here!": "Tu są komentarze!",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Możesz dodawać komentarze do komórek, odpowiadać na wątki i @oznaczać współpracowników.",
@@ -2056,20 +2054,12 @@
         "Widget URL": "URL widżetu"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nowa funkcja Markdown\n *\n *      Możemy _pisać_ [zwykły Markdown](https://markdownguide.org) *wewnątrz*\n *      elementu Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nowa funkcja Markdown\n *\n *      Możemy _pisać_ [zwykły Markdown](https://markdownguide.org) *wewnątrz*\n *      elementu Grainjs.",
         "The toggle is **off**": "Przełącznik jest **wyłączony**",
         "The toggle is **on**": "Przełącznik jest **włączony**"
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nowa funkcja Markdown\n *\n *      Możemy _pisać_ [zwykły Markdown](https://markdownguide.org) *wewnątrz*\n *      elementu Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nowa funkcja Markdown\n *\n *      Możemy _pisać_ [zwykły Markdown](https://markdownguide.org) *wewnątrz*\n *      elementu Grainjs.",
         "The toggle is **off**": "Przełącznik jest **wyłączony**",
         "The toggle is **on**": "Przełącznik jest **włączony**"
     },

@@ -1,4 +1,4 @@
-import { getAppRoot } from "app/server/lib/places";
+import { getCreate } from "app/server/lib/create";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import * as testUtils from "test/server/testUtils";
@@ -48,7 +48,7 @@ describe("Localization", function() {
     // Grist config should contain the list of supported languages;
     const gristConfig: any = await driver.executeScript("return window.gristConfig");
     // Should report all supported languages and namespaces.
-    const localeDirectory = path.join(getAppRoot(), "static", "locales");
+    const localeDirectory = getCreate().getLocaleDirs()[0];
     // Read all file names from localeDirectory
     const langs = new Set<string>();
     const namespaces = new Set<string>();
@@ -140,6 +140,8 @@ describe("Localization", function() {
 
     it("loads correct languages from file system", async function() {
       modifyByCode(tempLocale, "en", { HomeIntro: { "Welcome to Grist!": "TestMessage" } });
+      // Resource files are merged into memory at startup, so the edit above needs a restart.
+      await server.restart();
       await driver.navigate().refresh();
       assert.equal(await driver.findWait(".test-welcome-title", 3000).getText(), "TestMessage");
       const gristConfig: any = await driver.executeScript("return window.gristConfig");
@@ -186,7 +188,9 @@ describe("Localization", function() {
    */
   function makeCopy() {
     const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "grist_test_"));
-    const localeDirectory = path.join(getAppRoot(), "static", "locales");
+    // Only the core files: GRIST_LOCALES_DIR replaces the core directory, and the server still
+    // reads the ext and saas files from their own directories.
+    const localeDirectory = getCreate().getLocaleDirs()[0];
     // Copy all files from localeDirectory to tempDirectory.
     fs.readdirSync(localeDirectory).forEach((file) => {
       fs.copyFileSync(path.join(localeDirectory, file), path.join(tempDirectory, file));

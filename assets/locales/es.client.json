@@ -1366,9 +1366,7 @@
         "Custom Widgets": "Widgets personalizados",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Para crear un enlace de anclaje que lleve al usuario a una celda específica, haga clic en una fila y pulse {{shortcut}}.",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Puede elegir uno de nuestros widgets prediseñados o incrustar el suyo proporcionando su URL completa.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Para configurar tu calendario, selecciona las columnas para las fechas de inicio y fin y los títulos de los eventos. Ten en cuenta el tipo de cada columna."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Para configurar tu calendario, selecciona las columnas para las fechas de inicio y fin y los títulos de los eventos. Ten en cuenta el tipo de cada columna.",
         "Calendar": "Calendario",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "¿No encuentras las columnas adecuadas? Haz clic en \"Cambiar widget\" para seleccionar la tabla con los datos de los eventos.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Un UUID es una cadena generada aleatoriamente que resulta útil para identificadores únicos y claves de los enlaces.",
@@ -1998,11 +1996,7 @@
         "Admin Panel": "Panel de administración"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nueva función Markdown\n *\n * Podemos _escribir_ [el Markdown habitual](https://markdownguide.org) *dentro* de\n * un elemento Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nueva función Markdown\n *\n * Podemos _escribir_ [el Markdown habitual](https://markdownguide.org) *dentro* de\n * un elemento Grainjs.",
         "The toggle is **off**": "El conmutador está **desactivado**",
         "The toggle is **on**": "El conmutador está **activado**"
     },
@@ -2034,11 +2028,7 @@
         "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "Esto borrará la columna de referencia {{refCol}} en la tabla {{refTable}}. La columna de referencia {{myName}} permanecerá en la tabla actual {{myTable}}."
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nueva función Markdown\n *\n * Podemos _escribir_ [el Markdown habitual](https://markdownguide.org) *dentro* de\n * un elemento Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nueva función Markdown\n *\n * Podemos _escribir_ [el Markdown habitual](https://markdownguide.org) *dentro* de\n * un elemento Grainjs.",
         "The toggle is **off**": "El conmutador está **desactivado**",
         "The toggle is **on**": "El conmutador está **activado**"
     },

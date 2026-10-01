@@ -1,4 +1,4 @@
-// This file should be run during build. It will go through all the translations in the static/locales
+// This file should be run during build. It will go through all the translations in the assets/locales
 // directory, and pass every key and value through the sanitizer.
 
 const fs = require("fs");
@@ -66,13 +66,13 @@ function invalidValues(json) {
 
 
 function readDirectoryPath() {
-  // Directory path is optional, it defaults to static/locales, but can be passed as an argument.
+  // Directory path is optional, it defaults to assets/locales, but can be passed as an argument.
   const args = process.argv.slice(2);
   if (args.length > 1) {
     console.error("Too many arguments, expected at most 1 argument.");
     process.exit(1);
   }
-  return args[0] || path.join(__dirname, "../static/locales");
+  return args[0] || path.join(__dirname, "../assets/locales");
 }
 
 function purify(inputString) {

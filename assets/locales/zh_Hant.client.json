@@ -353,9 +353,7 @@
     "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID 是一個隨機產生的字串，對於唯一識別碼和連結鍵非常有用。",
     "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "您可以選擇我們的預製小工具之一，或者提供完整的 URL 來嵌入您自己的小工具。",
     "Reference Columns": "參考欄位",
-    "To configure your calendar, select columns for start": {
-      "end dates and event titles. Note each column's type.": "要設定您的日曆，請選擇開始/結束日期和事件標題的欄位。注意每個欄位的類型。"
-    },
+    "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "要設定您的日曆，請選擇開始/結束日期和事件標題的欄位。注意每個欄位的類型。",
     "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "存取規則讓您有權力建立細緻的規則，以決定誰可以檢視或編輯您文件的哪些部分。",
     "Rearrange the fields in your card by dragging and resizing cells.": "透過拖曳和調整儲存格大小來重新排列卡片中的欄位。",
     "Calendar": "日曆",

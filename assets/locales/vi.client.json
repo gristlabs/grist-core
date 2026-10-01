@@ -1054,9 +1054,7 @@
     "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Bạn có thể chọn một trong các tiện ích được tạo sẵn của chúng tôi hoặc nhúng tiện ích của riêng bạn bằng cách cung cấp URL đầy đủ của tiện ích.",
     "Calendar": "Lịch",
     "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Bạn không tìm thấy cột phù hợp? Nhấp vào 'Thay đổi tiện ích' để chọn bảng có dữ liệu sự kiện.",
-    "To configure your calendar, select columns for start": {
-      "end dates and event titles. Note each column's type.": "Để định cấu hình lịch của bạn, hãy chọn các cột cho ngày bắt đầu/kết thúc và tiêu đề sự kiện. Lưu ý loại của từng cột."
-    },
+    "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Để định cấu hình lịch của bạn, hãy chọn các cột cho ngày bắt đầu/kết thúc và tiêu đề sự kiện. Lưu ý loại của từng cột.",
     "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID là một chuỗi được tạo ngẫu nhiên hữu ích cho các mã định danh duy nhất và các khóa liên kết.",
     "Use reference columns to relate data in different tables.": "Sử dụng các cột tham chiếu để liên kết dữ liệu trong các bảng khác nhau.",
     "You can choose from widgets available to you in the dropdown, or embed your own by providing its full URL.": "Bạn có thể chọn từ các tiện ích có sẵn cho bạn trong trình đơn thả xuống hoặc nhúng tiện ích của riêng bạn bằng cách cung cấp URL đầy đủ của tiện ích.",

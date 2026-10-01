@@ -1435,9 +1435,7 @@
         "Custom Widgets": "Пользовательские виджеты",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Чтобы создать якорную ссылку, которая приведет пользователя к определенной ячейке, щелкните по строке и нажмите {{shortcut}}.",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Вы можете выбрать один из наших готовых виджетов или встроить свой собственный, указав его полный URL-адрес.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Чтобы настроить календарь, выберите столбцы для дат начала/окончания и названий событий. Обратите внимание на тип каждого столбца."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Чтобы настроить календарь, выберите столбцы для дат начала/окончания и названий событий. Обратите внимание на тип каждого столбца.",
         "Calendar": "Календарь",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Не можете найти нужные столбцы? Нажмите «Изменить виджет», чтобы выбрать таблицу с данными о событиях.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID - это случайно сгенерированная строка, которая полезна для уникальных идентификаторов и ключевых ссылок.",
@@ -2181,20 +2179,12 @@
     "markdown": {
         "The toggle is **off**": "Переключатель **Выключен**",
         "The toggle is **on**": "Переключатель **Включен**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Новая Markdown функция\n *\n *      Мы можем _писать_ [обычный Markdown](https://markdownguide.org) *внутри*\n *      Grainjs элемента."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Новая Markdown функция\n *\n *      Мы можем _писать_ [обычный Markdown](https://markdownguide.org) *внутри*\n *      Grainjs элемента."
     },
     "markdown.d": {
         "The toggle is **off**": "Переключатель **Выключен**",
         "The toggle is **on**": "Переключатель **Включен**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Новая Markdown функция\n *\n *      Мы можем _писать_ [обычный Markdown](https://markdownguide.org) *внутри*\n *      Grainjs элемента."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Новая Markdown функция\n *\n *      Мы можем _писать_ [обычный Markdown](https://markdownguide.org) *внутри*\n *      Grainjs элемента."
     },
     "AuditLogStreamingConfig": {
         "Add streaming destination": "Добавить пункт назначения потоковой передачи",

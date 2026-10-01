@@ -763,9 +763,7 @@
     "Pinning Filters": "Filtri za pripenjanje",
     "They allow for one record to point (or refer) to another.": "Omogočajo, da en zapis kaže (ali se sklicuje) na drugega.",
     "Reference Columns": "Referenčni stolpci",
-    "To configure your calendar, select columns for start": {
-      "end dates and event titles. Note each column's type.": "Če želiš konfigurirati svoj koledar, izberi stolpce za začetne/končne datume in naslove dogodkov. Upoštevaj vrsto vsakega stolpca."
-    },
+    "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Če želiš konfigurirati svoj koledar, izberi stolpce za začetne/končne datume in naslove dogodkov. Upoštevaj vrsto vsakega stolpca.",
     "Calendar": "Koledar",
     "Apply conditional formatting to cells in this column when formula conditions are met.": "Uporabi pogojno oblikovanje za celice v tem stolpcu, ko so izpolnjeni pogoji formule.",
     "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Če želiš narediti sidrno povezavo, ki uporabnika pripelje do določene celice, klikni vrstico in pritisni {{shortcut}}.",
@@ -1721,20 +1719,12 @@
   "markdown": {
     "The toggle is **off**": "Preklop je **izklopljen**",
     "The toggle is **on**": "Preklop je **vklopljen**",
-    "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-      "": {
-        "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova funkcija Markdown\n *\n * Lahko _napišemo_ [običajni Markdown](https://markdownguide.org) *znotraj*\n * element Grainjs."
-      }
-    }
+    "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova funkcija Markdown\n *\n * Lahko _napišemo_ [običajni Markdown](https://markdownguide.org) *znotraj*\n * element Grainjs."
   },
   "markdown.d": {
     "The toggle is **on**": "Preklop je **vklopljen**",
     "The toggle is **off**": "Preklop je **izklopljen**",
-    "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-      "": {
-        "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova funkcija Markdown\n *\n * Lahko _napišemo_ [običajni Markdown](https://markdownguide.org) *znotraj*\n * element Grainjs."
-      }
-    }
+    "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nova funkcija Markdown\n *\n * Lahko _napišemo_ [običajni Markdown](https://markdownguide.org) *znotraj*\n * element Grainjs."
   },
   "HomeIntroCards": {
     "3 minute video tour": "3 minutni video ogled",

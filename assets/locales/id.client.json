@@ -1444,9 +1444,7 @@
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Anda dapat memilih salah satu widget siap pakai kami atau menyematkan widget Anda sendiri dengan memberikan URL lengkapnya.",
         "Calendar": "Kalender",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Tidak menemukan kolom yang tepat? Klik \"Ubah Widget\" untuk memilih tabel berisi data peristiwa.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Untuk mengonfigurasi kalender Anda, pilih kolom untuk tanggal mulai/berakhir dan judul acara. Perhatikan jenis setiap kolom."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Untuk mengonfigurasi kalender Anda, pilih kolom untuk tanggal mulai/berakhir dan judul acara. Perhatikan jenis setiap kolom.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID adalah string yang dihasilkan secara acak yang berguna untuk pengenal unik dan kunci tautan.",
         "Lookups return data from related tables.": "Pencarian mengembalikan data dari tabel terkait.",
         "Use reference columns to relate data in different tables.": "Gunakan kolom referensi untuk menghubungkan data dalam tabel yang berbeda.",
@@ -1987,9 +1985,7 @@
         "Week of year": "Pekan dalam setahun",
         "12-hour format": "Format 12 jam",
         "24-hour format": "Format 24 jam",
-        "AM": {
-            "PM": "AM/PM"
-        },
+        "AM/PM": "AM/PM",
         "Calendar": "Kalender",
         "Date helpers…": "Pembantu tanggal…",
         "Day": "Hari",
@@ -2370,20 +2366,12 @@
         "Admin Panel": "Panel Admin"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs.",
         "The toggle is **off**": "Tombolnya **mati**",
         "The toggle is **on**": "Tombolnya **aktif**"
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs.",
         "The toggle is **off**": "Tombolnya **mati**",
         "The toggle is **on**": "Tombolnya **aktif**"
     },
@@ -2631,9 +2619,7 @@
         "It is good practice not to run Grist as the root user.": "Merupakan praktik yang baik untuk tidak menjalankan Grist sebagai pengguna root.",
         "The main page of Grist should be available.": "Halaman utama Grist seharusnya tersedia.",
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL adalah URL dasar tempat pengguna dan integrasi mengakses server Grist ini. Callback autentikasi, tautan API, dan notifikasi email semuanya bergantung pada ketepatan nilai ini.",
-        "If running in a container without external storage or with default database, ": {
-            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Jika berjalan dalam container tanpa penyimpanan eksternal atau dengan database bawaan, /persist harus berupa mounted volume. Jika tidak, dokumen dan metadata Grist akan hilang saat container berhenti."
-        }
+        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Jika berjalan dalam container tanpa penyimpanan eksternal atau dengan database bawaan, /persist harus berupa mounted volume. Jika tidak, dokumen dan metadata Grist akan hilang saat container berhenti."
     },
     "FormulaTransform": {
         "Apply": "Terapkan",
@@ -2748,48 +2734,10 @@
         "Restart required. Authentication change may affect your access": "Restart diperlukan. Perubahan otentikasi dapat memengaruhi akses Anda",
         "Revert change of admin user": "Batalkan perubahan pengguna admin",
         "See \"Restart Grist\" section on top of this page to restart.": "Lihat bagian \"Mulai Ulang Grist\" di bagian atas halaman ini untuk memulai ulang.",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "grist-connect": {
-                            ").": "Untuk mengatur **Grist Connect**, ikuti petunjuk di [artikel dukungan Grist untuk Grist Connect](https://support.getgrist.com/install/grist-connect/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "oidc).": "Untuk mengatur **OIDC**, ikuti petunjuk di [artikel dukungan Grist untuk OIDC](https://support.getgrist.com/install/oidc)."
-                    }
-                }
-            }
-        },
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "saml": {
-                            ").": "Untuk mengatur **SAML**, ikuti petunjuk di [artikel dukungan Grist untuk SAML](https://support.getgrist.com/install/saml/)."
-                        }
-                    }
-                }
-            }
-        },
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
-            "": {
-                "support.getgrist.com": {
-                    "install": {
-                        "forwarded-headers": {
-                            ").": "Untuk mengatur **header yang diteruskan**, ikuti petunjuk di [artikel dukungan Grist untuk header yang diteruskan](https://support.getgrist.com/install/forwarded-headers/)."
-                        }
-                    }
-                }
-            }
-        },
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "Untuk mengatur **Grist Connect**, ikuti petunjuk di [artikel dukungan Grist untuk Grist Connect](https://support.getgrist.com/install/grist-connect/).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "Untuk mengatur **OIDC**, ikuti petunjuk di [artikel dukungan Grist untuk OIDC](https://support.getgrist.com/install/oidc).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "Untuk mengatur **SAML**, ikuti petunjuk di [artikel dukungan Grist untuk SAML](https://support.getgrist.com/install/saml/).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "Untuk mengatur **header yang diteruskan**, ikuti petunjuk di [artikel dukungan Grist untuk header yang diteruskan](https://support.getgrist.com/install/forwarded-headers/).",
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Saat pengguna mengakses Grist, proxy menangani otentikasi dan meneruskan informasi pengguna yang terverifikasi melalui header HTTP. Grist menggunakan header ini untuk mengidentifikasi pengguna.",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Saat masuk, pengguna akan dialihkan ke halaman login Grist Connect tempat mereka dapat melakukan autentikasi menggunakan berbagai penyedia identitas. Setelah autentikasi, mereka akan dialihkan kembali ke server Grist Anda dan masuk.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Saat masuk, pengguna akan dialihkan ke halaman masuk penyedia identitas pilihan Anda untuk melakukan autentikasi. Setelah autentikasi berhasil, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah diverifikasi oleh penyedia tersebut.",
@@ -2978,9 +2926,7 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "Kunci boot sebaiknya hanya digunakan sebagai sarana autentikasi sementara sampai metode autentikasi yang lebih aman dan andal dikonfigurasi melalui Pengaturan Keamanan → Autentikasi. Kami menyarankan untuk menghapus kunci boot setelah Anda selesai menyiapkan Grist.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Pengaturan ini saat ini dikelola oleh variabel lingkungan (`GRIST_BOOT_KEY`).",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Hapus setelan variabel lingkungan untuk mengelola pengaturan ini melalui Panel Admin.",
-        "You will no longer be able to authenticate as the install admin on the `": {
-            "boot-key` page.": "Anda tidak akan lagi dapat mengautentikasi sebagai admin instalasi pada halaman `/boot-key`."
-        }
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Anda tidak akan lagi dapat mengautentikasi sebagai admin instalasi pada halaman `/boot-key`."
     },
     "BootPage": {
         "Administrator email": "Email administrator",
@@ -3061,9 +3007,7 @@
         "Local filesystem (test only)": "Sistem file lokal (khusus pengujian)",
         "Stores document snapshots on the local filesystem. For tests only, not production.": "Menyimpan snapshot dokumen pada sistem file lokal. Hanya untuk pengujian, bukan produksi.",
         "Action needed": "Tindakan diperlukan",
-        "To preserve it, mount a volume at ": {
-            "persist.": "Untuk mempertahankannya, mount volume di /persist."
-        },
+        "To preserve it, mount a volume at /persist.": "Untuk mempertahankannya, mount volume di /persist.",
         "Your data may not survive a container restart.": "Data Anda mungkin tidak bertahan setelah container dimulai ulang."
     },
     "PermissionsSetupSection": {
@@ -3141,11 +3085,7 @@
         "URL is reachable": "URL dapat dijangkau",
         "automatic": "otomatis",
         "checking": "memeriksa",
-        "https:": {
-            "": {
-                "grist.example.com": "https://grist.example.com"
-            }
-        },
+        "https://grist.example.com": "https://grist.example.com",
         "not set": "belum ditetapkan",
         "set": "setel"
     },
@@ -3175,9 +3115,7 @@
         "Downgrade": "Turunkan versi",
         "Downgrade to Community Edition": "Turunkan versi ke Edisi Community",
         "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Turunkan versi ke edisi Community? Fitur Grist penuh akan dinonaktifkan setelah dimulai ulang. Tindakan ini dapat dibatalkan.",
-        "For automations, MCP server, AI assistant, OIDC": {
-            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Untuk otomatisasi, MCP server, AI assistant, dukungan OIDC/SAML, notifikasi email, kontrol admin, audit logging, dan lainnya, beralihlah ke edisi Grist penuh."
-        },
+        "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Untuk otomatisasi, MCP server, AI assistant, dukungan OIDC/SAML, notifikasi email, kontrol admin, audit logging, dan lainnya, beralihlah ke edisi Grist penuh.",
         "Free activation keys": "Free activation keys",
         "Restart Grist to apply this change.": "Mulai ulang Grist untuk menerapkan perubahan ini.",
         "Switch to Full Grist": "Beralih ke Grist Penuh",
@@ -3376,20 +3314,12 @@
         "A business or organization": "Bisnis atau organisasi",
         "A couple of quick questions — optional, and only our team sees this.": "Beberapa pertanyaan singkat—opsional dan hanya dapat dilihat oleh tim kami.",
         "AI response": "Respons AI",
-        "Conference": {
-            "event": "Konferensi/acara"
-        },
-        "Developer": {
-            "IT": "Pengembang/IT"
-        },
-        "Education": {
-            "Research Institute": "Lembaga pendidikan/penelitian"
-        },
+        "Conference/event": "Konferensi/acara",
+        "Developer/IT": "Pengembang/IT",
+        "Education/Research Institute": "Lembaga pendidikan/penelitian",
         "Email is required when subscribing to updates.": "Email diperlukan saat berlangganan pembaruan.",
         "Email:": "Email:",
-        "Friend": {
-            "colleague": "Teman/rekan kerja"
-        },
+        "Friend/colleague": "Teman/rekan kerja",
         "GitHub": "GitHub",
         "Help us improve Grist": "Bantu kami meningkatkan Grist",
         "How did you hear about Grist?": "Bagaimana Anda mengetahui Grist?",
@@ -3398,9 +3328,7 @@
         "Occasional email about new releases and important security notices.": "Email sesekali tentang rilis baru dan pemberitahuan keamanan penting.",
         "Other": "Lainnya",
         "Please enter a valid email address.": "Masukkan alamat email yang valid.",
-        "Reddit": {
-            "forum": "Reddit/forum"
-        },
+        "Reddit/forum": "Reddit/forum",
         "Search engine": "Mesin pencari",
         "Select…": "Pilih…",
         "Send me product and security updates": "Kirimkan pembaruan produk dan keamanan kepada saya",

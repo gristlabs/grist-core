@@ -1439,9 +1439,7 @@
         "Custom Widgets": "Benutzerdefinierte Widgets",
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Sie können eines unserer vorgefertigten Widgets auswählen oder Ihr eigenes einbetten, indem Sie dessen vollständige URL angeben.",
         "To make an anchor link that takes the user to a specific cell, click on a row and press {{shortcut}}.": "Um einen Ankerlink zu erstellen, der den Benutzer zu einer bestimmten Zelle führt, klicken Sie auf eine Zeile und drücken Sie {{shortcut}}.",
-        "To configure your calendar, select columns for start": {
-            "end dates and event titles. Note each column's type.": "Um Ihren Kalender zu konfigurieren, wählen Sie Spalten für das Start-/Enddatum und den Titel des Ereignisses. Beachten Sie den Typ jeder Spalte."
-        },
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Um Ihren Kalender zu konfigurieren, wählen Sie Spalten für das Start-/Enddatum und den Titel des Ereignisses. Beachten Sie den Typ jeder Spalte.",
         "Calendar": "Kalender",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Sie können die richtigen Spalten nicht finden? Klicken Sie auf \"Widget ändern\", um die Tabelle mit den Ereignisdaten auszuwählen.",
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "Eine UUID ist ein zufällig generierter String, der für eindeutige Kennungen und Linkschlüssel nützlich ist.",
@@ -2075,18 +2073,10 @@
     "markdown": {
         "The toggle is **off**": "Der Kippschalter ist **aus**",
         "The toggle is **on**": "Der Kippschalter ist **an**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Neue Markdown-Funktion\n *\n * Wir können [das übliche Markdown](https://markdownguide.org) _innerhalb*\n * eines Grainjs-Elements schreiben."
-            }
-        }
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Neue Markdown-Funktion\n *\n * Wir können [das übliche Markdown](https://markdownguide.org) _innerhalb*\n * eines Grainjs-Elements schreiben."
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
-            "": {
-                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Neue Markdown-Funktion\n *\n * Wir können [das übliche Markdown](https://markdownguide.org) _innerhalb*\n * eines Grainjs-Elements schreiben."
-            }
-        },
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Neue Markdown-Funktion\n *\n * Wir können [das übliche Markdown](https://markdownguide.org) _innerhalb*\n * eines Grainjs-Elements schreiben.",
         "The toggle is **off**": "Der Kippschalter ist **aus**",
         "The toggle is **on**": "Der Kippschalter ist **an**"
     },
@@ -2387,9 +2377,7 @@
         "Occasional email about new releases and important security notices.": "Gelegentliche Emails über neue Versionen und wichtige Sicherheitsupdates.",
         "Other": "Anderes",
         "Please enter a valid email address.": "Bitte gib eine gültige Emailadresse ein.",
-        "Reddit": {
-            "forum": "Reddit/Forum"
-        },
+        "Reddit/forum": "Reddit/Forum",
         "Search engine": "Suchmaschine",
         "Select…": "Wähle…"
     },

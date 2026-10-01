@@ -58,6 +58,9 @@ EOF
 build_version_file
 set -x
 node buildtools/sanitize_translations.js
+if [[ -d ext/assets/locales ]]; then
+  node buildtools/sanitize_translations.js ext/assets/locales
+fi
 tsc --build $PROJECT
 buildtools/update_type_info.sh app
 webpack --config $WEBPACK_CONFIG $WEBPACK_MODE

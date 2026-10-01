@@ -51,7 +51,7 @@ jobs:
       - name: Create PR and merge
         if: env.CHANGED == 'true'
         run: |
-          git add static/locales/*.json
+          git add assets/locales/*.json
           if git diff --cached --quiet; then
             echo "No translation file changes to commit"
             exit 0

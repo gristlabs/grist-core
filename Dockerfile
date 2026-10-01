@@ -49,15 +49,15 @@ COPY test/chai-as-promised.js /grist/test/chai-as-promised.js
 COPY app /grist/app
 COPY stubs /grist/stubs
 COPY buildtools /grist/buildtools
-# Copy locales files early. During build process they are validated.
-COPY static/locales /grist/static/locales
+# Copy resource files early. During build process they are validated.
+COPY assets /grist/assets
 # Channel/commit are only set on tagged releases.
 ARG GRIST_BUILD_CHANNEL=
 ARG GRIST_BUILD_COMMIT=
 RUN GRIST_BUILD_CHANNEL=${GRIST_BUILD_CHANNEL} GRIST_BUILD_COMMIT=${GRIST_BUILD_COMMIT} \
  WEBPACK_EXTRA_MODULE_PATHS=/node_modules yarn run build:prod
 # We don't need them anymore, they will by copied to the final image.
-RUN rm -rf /grist/static/locales
+RUN rm -rf /grist/assets
 
 
 # Prepare material for optional pyodide sandbox
@@ -140,6 +140,7 @@ COPY bower_components /grist/bower_components
 COPY sandbox /grist/sandbox
 COPY plugins /grist/plugins
 COPY static /grist/static
+COPY assets /grist/assets
 
 # Make optional pyodide sandbox available
 COPY --from=builder /grist/sandbox/pyodide /grist/sandbox/pyodide

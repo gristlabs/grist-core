@@ -249,7 +249,7 @@ export class FlexServer implements GristServer {
     log.info(`== Grist version is ${version.version} (commit ${version.gitcommit})`);
     this.info.push(["appRoot", this.appRoot]);
     // Initialize locales files.
-    this.i18Instance = setupLocale(this.appRoot);
+    this.i18Instance = setupLocale(this.create.getLocaleDirs());
     if (Array.isArray(this.i18Instance.options.preload)) {
       this.info.push(["i18:locale", this.i18Instance.options.preload.join(",")]);
     }
@@ -902,10 +902,18 @@ export class FlexServer implements GristServer {
       express.static(staticExtDir, serveAnyOrigin) : null;
     const staticApp = express.static(getAppPathTo(this.appRoot, "static"), serveAnyOrigin);
     const bowerApp = express.static(getAppPathTo(this.appRoot, "bower_components"), serveAnyOrigin);
-    if (process.env.GRIST_LOCALES_DIR) {
-      const locales = express.static(process.env.GRIST_LOCALES_DIR, serveAnyOrigin);
-      this.app.use("/locales", this.tagChecker.withTag(locales));
-    }
+    // Serve the merged resources the server holds in memory, rather than the files on disk.
+    // A resource is merged from several files (see app/server/localization), so no single
+    // file holds everything the client needs.
+    this.app.use("/locales/:file", this.tagChecker.withTag(expressWrap(async (req, res) => {
+      const [lng, ns] = req.params.file.replace(/\.json$/, "").split(".");
+      const bundle = lng && ns && this.i18Instance.getResourceBundle(lng.replace(/_/g, "-"), ns);
+      if (!bundle) {
+        throw new ApiError(`Unknown resource file ${req.params.file}`, 404);
+      }
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.json(bundle);
+    })));
     if (staticExtApp) { this.app.use(this.tagChecker.withTag(staticExtApp)); }
     this.app.use(this.tagChecker.withTag(staticApp));
     this.app.use(this.tagChecker.withTag(bowerApp));

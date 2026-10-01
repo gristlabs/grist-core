@@ -10,11 +10,19 @@
 const fs = require("fs");
 const path = require("path");
 const Parser = require("i18next-scanner").Parser;
-const englishKeys = require("../static/locales/en.client.json");
 const _ = require("lodash");
 
+// Where to read and write the English keys. Defaults to the core file that weblate uses;
+// ext and app pass their own file with --out.
+const outFile = readOutFile() || "assets/locales/en.client.json";
+const englishKeys = fs.existsSync(outFile) ? JSON.parse(fs.readFileSync(outFile, "utf-8")) : {};
+
+// Joins the section (file name) with the key. Any character that never appears in UI text
+// works; a real character such as "/" would split the text itself into nested keys.
+const SECTION_SEPARATOR = "\u0001";
+
 const parser = new Parser({
-  keySeparator: "/",
+  keySeparator: SECTION_SEPARATOR,
   nsSeparator: null,
 });
 
@@ -29,7 +37,7 @@ async function* walk(dirs) {
 }
 
 const customHandler = (fileName) => (key, options) => {
-  const keyWithFile = `${fileName}/${key}`;
+  const keyWithFile = `${fileName}${SECTION_SEPARATOR}${key}`;
   if (Object.keys(options).includes("count") === true) {
     const keyOne = `${keyWithFile}_one`;
     const keyOther = `${keyWithFile}_other`;
@@ -117,8 +125,9 @@ async function walkTranslation(dirs) {
   const foundKeys = _.cloneDeep(keys.en.translation);
   const newKeys = [];
   const mergeCount = merge(englishKeys, sort(keys.en.translation), newKeys);
+  await fs.promises.mkdir(path.dirname(outFile), { recursive: true });
   await fs.promises.writeFile(
-    "static/locales/en.client.json",
+    outFile,
     JSON.stringify(englishKeys, null, 4) + "\n",  // match weblate's default
     "utf-8"
   );
@@ -141,4 +150,18 @@ async function walkTranslation(dirs) {
   }
 }
 
-walkTranslation(["_build/app/client", ...process.argv.slice(2)]);
+walkTranslation(readDirs());
+
+// Reads the --out option, which says which file to update.
+function readOutFile() {
+  const index = process.argv.indexOf("--out");
+  return index === -1 ? null : process.argv[index + 1];
+}
+
+// Reads the directories to scan. The core client directory is scanned by default, but with
+// --out only the given directories are scanned.
+function readDirs() {
+  const args = process.argv.slice(2).filter((arg, i, all) =>
+    arg !== "--out" && all[i - 1] !== "--out");
+  return readOutFile() ? args : ["_build/app/client", ...args];
+}
