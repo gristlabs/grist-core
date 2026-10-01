@@ -1255,7 +1255,12 @@ describe("ActiveDoc", async function() {
 
       const uploadedFiles = await Promise.all(uploadPromises);
       const uploadId = globalUploadSet.registerUpload(uploadedFiles, tmpDir, cleanupCallback, null);
-      await doc.addAttachments(fakeTransferSession, uploadId);
+      const attIds = await doc.addAttachments(fakeTransferSession, uploadId);
+      const systemSession = makeExceptionalDocSession("system");
+      if (!doc.docData!.getTable("Files")) {
+        await doc.applyUserActions(systemSession, [["AddTable", "Files", [{ id: "Attached", type: "Attachments" }]]]);
+      }
+      await doc.applyUserActions(systemSession, [["AddRecord", "Files", null, { Attached: ["L", ...attIds] }]]);
     }
 
     async function assertArchiveContents(
@@ -1413,6 +1418,39 @@ describe("ActiveDoc", async function() {
         await activeDoc.addMissingFilesFromArchive(fakeSession, stream.Readable.from(attachmentsTar));
         const restoredFileSizes = await getFileSizes();
         assert.deepEqual(restoredFileSizes, originalFileSizes, "restored file sizes should match originals");
+      });
+
+      async function deleteAttachmentFileFromStorage(fileName: string) {
+        const attachments = activeDoc.docData!.getMetaTable("_grist_Attachments").getRecords();
+        const attachment = attachments.find(a => a.fileName === fileName)!;
+        const store = (await provider.getStore(externalStoreId))!;
+        await store.delete(
+          getDocPoolIdFromDocInfo({ id: activeDoc.docName, trunkId: undefined }),
+          attachment.fileIdent,
+        );
+      }
+
+      async function assertArchiveHasOnly(expectedFile: { name: string, contents: string }) {
+        for (const archiveType of CreatableArchiveFormats.values) {
+          const archive = await activeDoc.getAttachmentsArchive(fakeSession, archiveType);
+          const archiveMemoryStream = new MemoryWritableStream();
+          await archive.packInto(archiveMemoryStream);
+          const buffer = archiveMemoryStream.getBuffer();
+          const files = await decompress(buffer);
+          assert.lengthOf(files, 1, `${archiveType} archive should contain exactly one file`);
+          await assertArchiveContents(buffer, archiveType, [expectedFile]);
+        }
+      }
+
+      it("excludes unused attachments from the archive", async function() {
+        await deleteAttachmentFileFromStorage("Test.doc");
+        const test2 = activeDoc.docData!.getMetaTable("_grist_Attachments").getRecords()
+          .find(a => a.fileName === "Test2.txt")!;
+        await activeDoc.applyUserActions(
+          makeExceptionalDocSession("system"),
+          [["UpdateRecord", "Files", 1, { Attached: ["L", test2.id] }]],
+        );
+        await assertArchiveHasOnly(testAttachments[1]);
       });
     });
 
