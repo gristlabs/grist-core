@@ -18,7 +18,7 @@ describe("selectBy", function() {
     await doc.applyUserActions(session, [
       ["UpdateRecord", "_grist_Views_section", widgetB, { linkSrcSectionRef: widgetA }],
     ]);
-    assert.deepEqual(getSelectByOptions(doc, widgetA), [
+    assert.deepEqual(getSelectByOptions(doc.docData!, widgetA), [
       { link_from_widget_id: widgetB, link_from_column_id: null, link_to_column_id: null },
     ]);
   });

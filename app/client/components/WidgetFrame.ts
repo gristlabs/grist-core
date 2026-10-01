@@ -445,6 +445,7 @@ export class GristDocAPIImpl implements GristDocAPI {
   public async getAccessToken(options: AccessTokenOptions) {
     return this._doc.docComm.getAccessToken({
       readOnly: options.readOnly,
+      route: options.route,
     });
   }
 }

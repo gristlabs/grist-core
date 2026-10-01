@@ -1032,6 +1032,11 @@ export function assertIsDefined<T>(name: string, value: T): asserts value is Non
   }
 }
 
+export type WithRequiredFields<T, F extends keyof T> = T & Required<Pick<T, F>>;
+export function hasRequiredField<T, F extends keyof T>(obj: T, field: F): obj is WithRequiredFields<T, F> {
+  return obj[field] !== undefined;
+}
+
 /**
  * Calls function `fn`, passes any thrown errors to function `recover`, and finally calls `fn`
  * once more if `recover` doesn't throw.

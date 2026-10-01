@@ -51,6 +51,11 @@ export const GristView = t.iface([], {
 
 export const AccessTokenOptions = t.iface([], {
   "readOnly": t.opt("boolean"),
+  "route": t.opt(t.iface([], {
+    "path": "string",
+    "queryParams": t.array(t.tuple("string", "string")),
+    "method": t.lit("GET"),
+  })),
 });
 
 export const AccessTokenResult = t.iface([], {

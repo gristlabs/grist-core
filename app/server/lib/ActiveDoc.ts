@@ -1960,6 +1960,7 @@ export class ActiveDoc extends EventEmitter {
     if (!userId) { throw new Error("creating access token requires a user"); }
     const token = await tokens.sign({
       readOnly: options.readOnly,
+      route: options.route,
       userId,  // definitely do not want userId overridable by options.
       docId,   // likewise for docId.
     });

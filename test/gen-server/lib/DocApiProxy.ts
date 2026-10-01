@@ -94,12 +94,14 @@ describe("DocApiProxy", function() {
       isActive: true,
     }));
 
+    const gristServer = createDummyGristServer();
+    gristServer.getWorkerId = () => ownWorkerId;
     // create and register proxy
     const docApiProxy = new DocApiProxy(
-      docWorkerMapStub, dbManager, { getOAuthValidator() {}, getWorkerId: () => ownWorkerId } as any,
+      docWorkerMapStub, dbManager, gristServer,
     );
     app.use("/api", addRequestUser.bind(null, dbManager, getDocWorkerMap().getPermitStore("internal"),
-      { gristServer: createDummyGristServer() } as any));
+      { gristServer }));
     docApiProxy.addEndpoints(app);
     app.use("/api/docs", notProxiedSpy);
     app.use("/api", jsonErrorHandler);

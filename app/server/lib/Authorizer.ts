@@ -8,7 +8,8 @@ import { UserOptions } from "app/common/UserAPI";
 import { User } from "app/gen-server/entity/User";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { DocAuthResult, HomeDBAuth } from "app/gen-server/lib/homedb/Interfaces";
-import { AccessTokenCredential } from "app/server/lib/AccessTokenCredential";
+import { assertAccessTokenMatchesReqRoute } from "app/server/lib/AccessTokenCredential";
+import { createAccessTokenCredential } from "app/server/lib/accessTokenFactory";
 import { AuthCredential } from "app/server/lib/AuthCredential";
 import { AuthSession } from "app/server/lib/AuthSession";
 import {
@@ -259,10 +260,11 @@ export interface IdentityResult {
  * Once a method claims the request, later methods are not consulted.
  *
  * Throws ApiError on auth failures (bad key, invalid permit, etc.).
- * Does NOT check user.disabledAt — callers handle that with their own policies.
+ * Branches returning a real user leave user.disabledAt to callers' own policies;
+ * branches returning the anonymous user plus a credential must check it themselves.
  */
 export async function resolveIdentity(
-  req: IncomingMessage,
+  req: IncomingMessage | Request,
   dbManager: HomeDBAuth,
   options: {
     gristServer: GristServer;
@@ -275,20 +277,30 @@ export async function resolveIdentity(
   },
 ): Promise<IdentityResult> {
   // Access token via ?auth query parameter.
-  const url = new URL(req.url!, "http://localhost");
-  const auth = url.searchParams.get("auth");
-  if (auth) {
+  const authParam = req.url ? URL.parse(req.url, "http://localhost")?.searchParams.get("auth") : undefined;
+  if (authParam) {
     const tokens = options.gristServer.getAccessTokens();
-    const accessToken = await tokens.verify(auth);
+    const accessToken = await tokens.verify(authParam);
+    // Throws if the access token is only valid on a different route
+    assertAccessTokenMatchesReqRoute(accessToken, req);
+
     const user = await dbManager.getUser(accessToken.userId);
     if (!user) { throw new ApiError("Bad request: invalid auth param", 401); }
-    // Access tokens don't set a userId, so CSRF protection still applies
-    // (explicitAuth: false). In practice these are GET requests for
-    // attachments, but we keep the check for safety.
+
+    // This branch returns the anonymous user, so disabledAt checks elsewhere won't work correctly. Check here instead.
+    if (user.disabledAt) { throw new ApiError("User is disabled", 403); }
+
+    // Exact credential type can vary based on values set in the token (e.g. `oauth`)
+    const credential = createAccessTokenCredential(dbManager.makeFullUser(user), accessToken);
+
     return {
       user: dbManager.getAnonymousUser(),
-      credential: new AccessTokenCredential(dbManager.makeFullUser(user), accessToken),
+      credential,
       hasApiKey: false,
+      // Set explicitAuth: false. This identity uses the anonymous user, and the
+      // request still picks up altSessionId from the session cookie, which could affect
+      // access rules.
+      // The CSRF check guards against a cross-site form making that request
       explicitAuth: false,
     };
   }

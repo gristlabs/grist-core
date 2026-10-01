@@ -171,6 +171,21 @@ export function isParameterOn(parameter: any): boolean {
   return gutil.isAffirmative(parameter);
 }
 
+// Defensive guard - will refuse to compile isExpressRequest call sites
+// if Express moves away from `baseUrl` or IncomingMessage implements it.
+type IncomingMessageOrExpressRequest =
+  "baseUrl" extends keyof Request ? "baseUrl" extends keyof IncomingMessage ? never : IncomingMessage | Request : never;
+
+/**
+ * Distinguishes an express Request from the raw IncomingMessage
+ *
+ * Express sets `baseUrl` to a value on every request its router handles, and "" when not
+ * mounted on a path, and `path` via a getter on Request.
+ */
+export function isExpressRequest(req: IncomingMessageOrExpressRequest): req is Request {
+  return "baseUrl" in req && "path" in req;
+}
+
 /**
  * Get Scope from request, and make sure it has everything needed for a document.
  */

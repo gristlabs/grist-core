@@ -13,6 +13,8 @@ export const Deps = {
   MAX_SECRETS_KEPT: 3,   // Maximum number of secrets stored per doc.
 };
 
+export type AccessTokenOAuthScope = "doc:read" | "doc:write" | "doc.schema:write" | "doc:download" | "doc:webhooks";
+
 /**
  * Non-optional information embedded in an access token. Currently
  * access tokens are tied to an individual user and document. In
@@ -24,6 +26,25 @@ export const Deps = {
 export interface AccessTokenInfo extends AccessTokenOptions {
   userId: number;
   docId: string;
+  /**
+   * When set, this token will be interpreted as an OAuthCredential instead of an AccessTokenCredential,
+   * provided the Grist build supports it.
+   *
+   * This results in a token valid for use with:
+   *  - endpoints supporting OAuth
+   *  - this specific document, within the given org
+   *  - the OAuth scopes set in the token
+   *
+   * This is intended to facilitate more granular checks than standard access tokens.
+   * It is only ever set server-side (e.g. MCP signed URLs), and deliberately not part
+   * of AccessTokenOptions: it must never be accepted from callers.
+   */
+  oauth?: {
+    orgId: number;
+    // OAuth scopes to grant.
+    //  If read-only is set, this should not include any scopes other than "doc:read" and "doc:download"
+    scopes: AccessTokenOAuthScope[];
+  }
 }
 
 /**

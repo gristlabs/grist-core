@@ -168,7 +168,7 @@ export class DocWorkerApi {
     });
 
     // Add middleware that permits OAuth tokens on some endpoints (when OAuth support is present).
-    this._grist.getOAuthValidator()?.addDocApiMiddleware(this._app);
+    this._grist.create.addOAuthMiddleware(this._app, ["doc"]);
 
     // Some endpoints require the admin
     const requireInstallAdmin = this._grist.getInstallAdmin().getMiddlewareRequireAdmin();

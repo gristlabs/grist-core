@@ -245,6 +245,19 @@ export interface GristView {
 export interface AccessTokenOptions {
   /** Restrict use of token to reading only */
   readOnly?: boolean;
+  /** Restrict use of token to a specific route and specific query parameters.
+   *     E.g. /api/docs/5ajsBRv6XckXrNRJReLKhA/download/csv?tableId=Table1
+   *  For a request to match, the following must be true:
+   *   - The request's path (after middleware (e.g. /dw/ and /v/ tags stripped)) must match the token's route.
+   *   - If the token has a method, the request's method must match the token's method (e.g. GET)
+   *   - The request's query parameters match the token's query parameters exactly in order (except the auth param)
+   *     No extra parameters are permitted (except `auth`)
+  */
+  route?: {
+    path: string;
+    queryParams: [string, string][];
+    method: "GET";
+  };
 }
 
 /**

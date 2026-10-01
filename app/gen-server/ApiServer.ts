@@ -151,7 +151,7 @@ export class ApiServer {
 
   private _addEndpoints(): void {
     // Add middleware that permits OAuth tokens on some endpoints (when OAuth support is present).
-    this._gristServer.getOAuthValidator()?.addHomeApiMiddleware(this._app);
+    this._gristServer.create.addOAuthMiddleware(this._app, ["home"]);
 
     const requireInstallAdmin = this._gristServer.getInstallAdmin().getMiddlewareRequireAdmin();
 

@@ -976,6 +976,25 @@ describe("CustomWidgets", function() {
         assert.sameMembers(Object.keys(tokenResult), ["ttlMsecs", "token", "baseUrl"]);
         const result = await fetch(tokenResult.baseUrl + `/tables/Table1/records?auth=${tokenResult.token}`);
         assert.sameMembers(Object.keys(await result.json()), ["records"]);
+
+        // A token can be pinned to an API endpoint path; it then works there and nowhere else.
+        const docId: string = await driver.executeAsyncScript(
+          (done: any) => (window as any).grist.docApi.getDocName().then(done),
+        );
+        const recordsPath = `/api/docs/${docId}/tables/Table1/records`;
+        const pinnedResult: AccessTokenResult = await driver.executeAsyncScript(
+          (routePath: string, done: any) => (window as any).grist.getAccessToken({
+            route: { path: routePath, queryParams: [], method: "GET" },
+          }).then(done),
+          recordsPath,
+        );
+        const origin = new URL(tokenResult.baseUrl).origin;
+        const pinnedFetch = await fetch(`${origin}${recordsPath}?auth=${pinnedResult.token}`);
+        assert.equal(pinnedFetch.status, 200);
+        assert.sameMembers(Object.keys(await pinnedFetch.json()), ["records"]);
+        const otherFetch = await fetch(`${origin}/api/docs/${docId}/tables/Table1/columns?auth=${pinnedResult.token}`);
+        assert.equal(otherFetch.status, 403);
+        assert.match((await otherFetch.json()).error, /path does not match/);
       });
     });
   });

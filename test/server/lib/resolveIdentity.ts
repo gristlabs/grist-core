@@ -105,6 +105,37 @@ describe("resolveIdentity", function() {
       assert.isFalse(result.explicitAuth, "access token keeps CSRF enforced");
     });
 
+    it("rejects access token for a disabled user, but not for an active one", async function() {
+      const tokenInfo: AccessTokenInfo = { userId: 10, docId: "doc1", readOnly: false };
+      const gristServer: GristServer = {
+        ...createDummyGristServer(),
+        getAccessTokens: () => ({
+          verify: async () => tokenInfo,
+        } as unknown as IAccessTokens),
+      };
+      const disabled = makeUser(10, "Chimpy", { disabledAt: new Date() });
+      try {
+        await resolveIdentity(
+          makeRequest("/test?auth=tok"),
+          makeDbManager({ getUser: async () => disabled }),
+          opts({ gristServer }),
+        );
+        assert.fail("should have thrown");
+      } catch (err) {
+        assert.equal(err.status, 403);
+        assert.match(err.message, /User is disabled/);
+      }
+
+      // Control: same flow with an active user still resolves.
+      const result = await resolveIdentity(
+        makeRequest("/test?auth=tok"),
+        makeDbManager({ getUser: async () => chimpy }),
+        opts({ gristServer }),
+      );
+      assert.instanceOf(result.credential, AccessTokenCredential);
+      assert.equal(result.credential?.identifiedUser.id, tokenInfo.userId);
+    });
+
     it("access token takes priority over API key", async function() {
       const tokenInfo: AccessTokenInfo = { userId: 10, docId: "doc1", readOnly: false };
       const db = makeDbManager({ getUser: async () => chimpy });

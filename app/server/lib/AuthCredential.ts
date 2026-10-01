@@ -18,7 +18,7 @@ export interface AuthCredential {
    * and filter from the credential. (See `addCredentialScope` in
    * `app/server/lib/requestUtils`.)
    */
-  scope(req: Request): Scope | undefined;
+  scope(req: Request): AuthCredentialScopeContribution | undefined;
 
   /**
    * Returns a cached DocAuthResult for the specified urlId using the identity of the
@@ -41,3 +41,29 @@ export interface AuthCredential {
    */
   permissionMask(): PermissionSet | undefined;
 }
+
+/**
+ * Limits the scope fields that an AuthCredential can return.
+ * Ensures:
+ *   - Only fields of `Scope` that are useful can be returned (to prevent misleading the programmer)
+ *   - No additional fields of `Scope` can be returned (to prevent unintended access changes)
+ *
+ * Preventing additional fields from being added avoids errors like these:
+ * ```
+ * const authScope: AuthCredentialScopeContribution = { userId: 123, filter: myFilter, urlId: "Invalid!!!" };
+ * const scope: Scope = authScope;
+ * // scope now has urlId set unintentionally - the author didn't know urlId was present
+ * ```
+ * or
+ * ```
+ * const authScope: AuthCredentialScopeContribution = { userId: 123, filter: myFilter, urlId: "Invalid!!!" };
+ * const scope: Scope = { userId: "124", ...other values..., ...authScope } ;
+ * // scope now has urlId overwritten by authScope, despite it not being documented on AuthCredentialScopeContribution
+ * ```
+ */
+export type AuthCredentialScopeContribution =
+  & Pick<Scope, PermittedScopeFields> &
+  { [K in BannedScopeFields]?: never };
+
+type PermittedScopeFields = "userId" | "filter";
+type BannedScopeFields = Exclude<keyof Scope, PermittedScopeFields>;

@@ -108,7 +108,7 @@ export class DocApiProxy {
     // This is also added in `DocApi.addEndpoints` in `app/server/lib/DocApi`, but we also
     // add it here as a general pre-check, and so that the view access pre-check is done as
     // the OAuth user.
-    this._gristServer.getOAuthValidator()?.addDocApiMiddleware(app);
+    this._gristServer.create.addOAuthMiddleware(app, ["doc"]);
 
     // Middleware to forward a request about an existing document that user has access to.
     // We do not check whether the document has been soft-deleted; that will be checked by

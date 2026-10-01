@@ -30,7 +30,7 @@ import * as ProcessMonitor from "app/server/lib/ProcessMonitor";
 import { SqliteVariant } from "app/server/lib/SqliteCommon";
 import { ITelemetry } from "app/server/lib/Telemetry";
 
-import { Express } from "express";
+import { Application, Express } from "express";
 
 import type { SiteMetricsSource } from "app/gen-server/lib/Housekeeper";
 
@@ -121,6 +121,7 @@ export interface ICreate {
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
   startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
   createOAuthValidator(gristServer: GristServer): IOAuthValidator | undefined;
+  addOAuthMiddleware(app: Application, types: ("home" | "doc")[]): void;
   getWebSocketProxy?(gristServer: GristServer, options: IWebSocketProxyOptions): IWebSocketProxy | undefined;
 }
 
@@ -282,6 +283,7 @@ export class BaseCreate implements ICreate {
   public getSiteMetricsSource(): SiteMetricsSource | undefined { return undefined; }
   public areAdminControlsAvailable(): boolean { return false; }
   public areOAuthAppsEnabled(): boolean { return false; }
+  public addOAuthMiddleware(app: Application, types: ("home" | "doc")[]) {}
   public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined {
     return undefined;
   }
