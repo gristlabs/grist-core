@@ -8,6 +8,17 @@
         "og-title": "Grist，試算表的革命"
     },
     "access": {
-        "docNoAccess": "你沒有瀏覽這份文件的權限."
+        "docNoAccess": "您沒有權限存取這份文件。",
+        "userDisabled": "用戶已被停用（原因：{{- reason }}）",
+        "userDisabledReasonMissing": "未提供原因"
+    },
+    "admin": {
+        "emptyOrg": "找不到該管理員組織擁有者`GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "該用戶為管理員組織擁有者 `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noAdminEmail": "系統管理員帳戶尚未建立，由於 `GRIST_ADMIN_EMAIL`及 `GRIST_DEFAULT_EMAIL` 尚未被設定",
+        "accountByEmail": "系統管理員帳戶由 `GRIST_DEFAULT_EMAIL={{defaultEmail}}` 定義"
+    },
+    "DocApi": {
+        "UntitledDocument": "無標題文件"
     }
 }
