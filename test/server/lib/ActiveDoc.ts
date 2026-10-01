@@ -1225,49 +1225,60 @@ describe("ActiveDoc", async function() {
 
   describe("GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE", async function() {
     let env: EnvironmentSnapshot;
+    const INSTALLATION_UUID = "TEST-INSTALLATION-UUID";
 
-    this.beforeEach(() => {
+    beforeEach(() => {
       env = new EnvironmentSnapshot();
     });
 
-    this.afterEach(() => {
+    afterEach(() => {
       // FIXME: delete the store provider pool
       env.restore();
     });
 
     // Creates a doc with a provider that knows about the stores with the given labels.
-    async function createDocWithStores(docName: string, storeLabels: string[]) {
+    async function withActiveDoc(
+      docName: string, storeLabels: string[], cb: (activeDoc: ActiveDoc) => void | Promise<void>,
+    ) {
       const provider = new AttachmentStoreProvider(
         await Promise.all(storeLabels.map(label => makeTestingFilesystemStoreConfig(label))),
-        "TEST-INSTALLATION-UUID",
+        INSTALLATION_UUID,
       );
       const activeDoc = new ActiveDoc(docTools.getDocManager(), docName, provider);
       await activeDoc.createEmptyDoc(fakeSession);
-      return activeDoc;
+      try {
+        await cb(activeDoc);
+      } finally {
+        for (const label of storeLabels) {
+          const doc = activeDoc.doc;
+          await activeDoc.shutdown();
+          const store = await provider.getStore(provider.getStoreIdFromLabel(label));
+          await store?.removePool(getDocPoolIdFromDocInfo({
+            trunkId: doc!.trunkId,
+            id: doc!.id,
+          }));
+        }
+      }
     }
 
     it("sets the configured store on new documents when set", async function() {
       process.env.GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE = "true";
       sandbox.stub(AttachmentStoreProviderModule, "getConfiguredStandardAttachmentStore")
         .returns("test-filesystem");
-      const activeDoc = await createDocWithStores("setStoreOnCreate", ["test-filesystem"]);
-      try {
-        assert.equal(await activeDoc.getAttachmentStore(), "TEST-INSTALLATION-UUID-test-filesystem");
-      } finally {
-        await activeDoc.shutdown();
-      }
+
+      await withActiveDoc("setStoreOnCreate", ["test-filesystem"], async function(activeDoc) {
+        assert.equal(await activeDoc.getAttachmentStore(), `${INSTALLATION_UUID}-test-filesystem`);
+      });
     });
 
     it("leaves new documents on internal storage when unset", async function() {
       delete process.env.GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE;
       sandbox.stub(AttachmentStoreProviderModule, "getConfiguredStandardAttachmentStore")
         .returns("test-filesystem");
-      const activeDoc = await createDocWithStores("noStoreOnCreate", ["test-filesystem"]);
-      try {
+
+      await withActiveDoc("noStoreOnCreate", ["test-filesystem"], async function(activeDoc) {
         assert.isUndefined(await activeDoc.getAttachmentStore());
-      } finally {
-        await activeDoc.shutdown();
-      }
+      });
     });
 
     it("leaves new documents on internal storage when no store is available", async function() {
@@ -1277,12 +1288,10 @@ describe("ActiveDoc", async function() {
       process.env.GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE = "true";
       sandbox.stub(AttachmentStoreProviderModule, "getConfiguredStandardAttachmentStore")
         .returns("snapshots");
-      const activeDoc = await createDocWithStores("unavailableStoreOnCreate", []);
-      try {
+
+      await withActiveDoc("unavailableStoreOnCreate", [], async function(activeDoc) {
         assert.isUndefined(await activeDoc.getAttachmentStore());
-      } finally {
-        await activeDoc.shutdown();
-      }
+      });
     });
   });
 
