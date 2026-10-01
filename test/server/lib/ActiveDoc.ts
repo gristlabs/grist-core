@@ -1249,9 +1249,9 @@ describe("ActiveDoc", async function() {
       try {
         await cb(activeDoc);
       } finally {
+        const doc = activeDoc.doc;
+        await activeDoc.shutdown();
         for (const label of storeLabels) {
-          const doc = activeDoc.doc;
-          await activeDoc.shutdown();
           const store = await provider.getStore(provider.getStoreIdFromLabel(label));
           await store?.removePool(getDocPoolIdFromDocInfo({
             trunkId: doc!.trunkId,
