@@ -5,7 +5,8 @@ import { BoxModel, ignoreClick } from "app/client/components/Forms/Model";
 import * as css from "app/client/components/Forms/styles";
 import { stopEvent } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
-import { DocModel, refRecord } from "app/client/models/DocModel";
+import { ReferenceUtils } from "app/client/lib/ReferenceUtils";
+import { DocModel, refRecord, type ViewFieldRec } from "app/client/models/DocModel";
 import TableModel from "app/client/models/TableModel";
 import {
   FormFieldOptions,
@@ -21,8 +22,10 @@ import { autoGrow } from "app/client/ui/forms";
 import { cssCheckboxSquare, cssLabel, squareCheckbox } from "app/client/ui2018/checkbox";
 import { cssRadioInput } from "app/client/ui2018/radio";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
+import { buildDropdownConditionFilter, ChoiceItem } from "app/client/widgets/ChoiceListEditor";
 import { isBlankValue } from "app/common/gristTypes";
 import { Constructor, not } from "app/common/gutil";
+import { UIRowId } from "app/plugin/GristAPI";
 
 import {
   BindableValue,
@@ -31,6 +34,7 @@ import {
   dom,
   DomContents,
   DomElementArg,
+  fromKo,
   Holder,
   IDisposableOwner,
   IDomArgs,
@@ -43,9 +47,12 @@ import {
 } from "grainjs";
 import * as ko from "knockout";
 
-import type { ViewFieldRec } from "app/client/models/DocModel";
-
 const testId = makeTestId("test-forms-");
+
+/** Source-table row for evaluating column dropdown conditions in the form widget (matches grid editors). */
+function normalizeContextRowIdForDropdown(rid: UIRowId | null | undefined): number {
+  return typeof rid === "number" && !Number.isNaN(rid) ? rid : -1;
+}
 
 const t = makeT("Field");
 
@@ -378,18 +385,31 @@ class ChoiceModel extends Question {
 
   constructor(model: FieldModel) {
     super(model);
+    const contextRowId = fromKo(this, model.view.cursor.rowId);
     this.choices = Computed.create(this, (use) => {
-      // Read choices from field.
       const field = use(this.field);
       const choices = use(field.widgetOptionsJson.prop("choices"))?.slice() ?? [];
 
-      // Make sure it is an array of strings.
       if (!Array.isArray(choices) || choices.some(choice => typeof choice !== "string")) {
         return [];
-      } else {
-        sortChoicesInPlace(choices, item => String(item), use(this._sortOrder));
-        return choices;
       }
+      sortChoicesInPlace(choices, item => String(item), use(this._sortOrder));
+
+      const dropdownCond = use(field.dropdownCondition);
+      if (dropdownCond?.text) {
+        const compiled = use(field.dropdownConditionCompiled);
+        if (compiled?.kind !== "success") {
+          return [];
+        }
+        const filter = buildDropdownConditionFilter({
+          dropdownConditionCompiled: compiled.result,
+          gristDoc: model.view.gristDoc,
+          tableId: use(field.tableId),
+          rowId: normalizeContextRowIdForDropdown(use(contextRowId)),
+        });
+        return choices.filter(c => filter(new ChoiceItem(c, false, false)));
+      }
+      return choices;
     });
   }
 
@@ -532,6 +552,9 @@ class RefListModel extends Question {
     return use(field.widgetOptionsJson.prop("formOptionsAlignment")) ?? "vertical";
   });
 
+  private readonly _refUtils: ReferenceUtils;
+  private readonly _formContextRowId: Observable<UIRowId | null>;
+
   private _sortOrder = Computed.create<FormOptionsSortOrder | undefined>(this, (use) => {
     const field = use(this.field);
     return use(field.widgetOptionsJson.prop("formOptionsSortOrder"));
@@ -539,6 +562,8 @@ class RefListModel extends Question {
 
   constructor(model: FieldModel) {
     super(model);
+    this._refUtils = this.autoDispose(new ReferenceUtils(model.field.peek(), model.view.gristDoc));
+    this._formContextRowId = fromKo(this, model.view.cursor.rowId);
     this.options = this._getOptions();
   }
 
@@ -573,8 +598,15 @@ class RefListModel extends Question {
     const observer = this._columnObserver(this, this.model.view.gristDoc.docModel, tableId, colId);
 
     return Computed.create(this, (use) => {
-      const values = use(observer)
-        .filter(([_id, value]) => !isBlankValue(value))
+      const tuples = use(observer)
+        .filter(([_id, value]) => !isBlankValue(value));
+
+      const rowIds = tuples.map(([id]) => Number(id));
+      const allowed = this._refUtils.filterByDropdownCondition(rowIds, use(this._formContextRowId));
+      const allowedSet = new Set(allowed);
+
+      const values = tuples
+        .filter(([id]) => allowedSet.has(Number(id)))
         .map(([id, value]) => ({ label: String(value), value: String(id) }));
 
       sortChoicesInPlace(values, item => item.label, use(this._sortOrder));
