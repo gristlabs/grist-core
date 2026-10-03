@@ -1,6 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
-import { DownloadOptions, ExportColumn, exportTable } from "app/server/lib/Export";
+import { DownloadOptions, ExportColumn, exportTable, getExportHeader } from "app/server/lib/Export";
 
 import * as express from "express";
 
@@ -62,7 +62,7 @@ export async function collectTableSchemaInFrictionlessFormat(
     title: tableName,
     schema: {
       fields: columns.map(col => ({
-        name: col[header || "label"],
+        name: getExportHeader(col, header),
         ...(col.description ? { description: col.description } : {}),
         ...buildTypeField(col, settings.locale),
       })),

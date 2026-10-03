@@ -129,6 +129,22 @@ function addDownloadsTests(getCtx: () => TestContext) {
       assert.equal(csvResp.data, "AColId,B,C\na1,b1,\n");
     });
 
+  it("GET /docs/{did}/download/csv with header=colId uses the colId of Reference columns", async function() {
+    const { chimpy } = getCtx();
+    const { docUrl } = await generateDocAndUrl("csvWithColIdAsHeaderForRefs");
+    const AColRef = 2, RColRef = 6;
+    const resp = await axios.post(`${docUrl}/apply`, [
+      ["AddTable", "Table2", [{ id: "R", type: "Ref:Table1", visibleCol: AColRef }]],
+      ["SetDisplayFormula", "Table2", null, RColRef, "$R.A"],
+      ["AddRecord", "Table1", null, { A: "a1" }],
+      ["AddRecord", "Table2", null, { R: 1 }],
+    ], chimpy);
+    assert.equal(resp.status, 200);
+    const csvResp = await axios.get(`${docUrl}/download/csv?tableId=Table2&header=colId`, chimpy);
+    assert.equal(csvResp.status, 200);
+    assert.equal(csvResp.data, "R\na1\n");
+  });
+
   it("GET /docs/{did}/download/csv respects permissions", async function() {
     const { serverUrl, docIds, kiwi } = getCtx();
     // kiwi has no access to TestDoc
