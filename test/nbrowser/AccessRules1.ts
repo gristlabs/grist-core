@@ -3,7 +3,7 @@
  */
 import {
   enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet, findRuleSetColumnWait,
-  findTable, findTableWait, startEditingAccessRules, triggerAutoComplete,
+  findTable, findTableWait, revertAccessRulesIfChanged, startEditingAccessRules, triggerAutoComplete,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
@@ -30,7 +30,10 @@ describe("AccessRules1", function() {
     return docId;
   });
 
-  afterEach(() => gu.checkForErrors());
+  afterEach(async () => {
+    await revertAccessRulesIfChanged();
+    await gu.checkForErrors();
+  });
 
   const getTableNamesToAddWidget = async function(): Promise<string[]> {
     await gu.openAddWidgetToPage();

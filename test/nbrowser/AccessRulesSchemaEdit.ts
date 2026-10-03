@@ -4,7 +4,8 @@
 import { TableRecordValue } from "app/common/DocActions";
 import { UserAPI } from "app/common/UserAPI";
 import { assertChanged, assertSaved, enterRulePart,
-  findDefaultRuleSet, findTable, getRules, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+  findDefaultRuleSet, findTable, getRules, revertAccessRulesIfChanged,
+  startEditingAccessRules } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -35,7 +36,10 @@ describe("AccessRulesSchemaEdit", function() {
     return docId;
   });
 
-  afterEach(() => gu.checkForErrors());
+  afterEach(async () => {
+    await revertAccessRulesIfChanged();
+    await gu.checkForErrors();
+  });
 
   it("should allow disabling non-owner schemaEdit via checkbox", async function() {
     const mainDocApi = api.getDocAPI(docId);

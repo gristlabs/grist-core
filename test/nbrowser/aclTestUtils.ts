@@ -238,6 +238,20 @@ export async function assertChanged() {
 }
 
 /**
+ * Reset unsaved ACL edits if the Reset button is shown.
+ *
+ * Needed so a later loadDoc/reload does not hit the browser beforeunload dialog
+ * that UnsavedChange now arms for the ACL page.
+ */
+export async function revertAccessRulesIfChanged() {
+  const revert = driver.find(".test-rules-revert");
+  if (await revert.isPresent() && await revert.isDisplayed()) {
+    await revert.click();
+    await gu.waitForServer();
+  }
+}
+
+/**
  * Open the Access Rules page to start editing rules. Enables access rules first if needed.
  */
 export async function startEditingAccessRules() {

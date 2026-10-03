@@ -4,7 +4,7 @@
  */
 import { UserAPI } from "app/common/UserAPI";
 import { enterRulePart, findDefaultRuleSetWait, removeRules,
-  startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
+  revertAccessRulesIfChanged, startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -17,7 +17,10 @@ describe("AccessRulesAttrs", function() {
   let docId: string;
   let api: UserAPI;
 
-  afterEach(() => gu.checkForErrors());
+  afterEach(async () => {
+    await revertAccessRulesIfChanged();
+    await gu.checkForErrors();
+  });
 
   before(async function() {
     mainSession = await gu.session().teamSite.user("user1").login();
