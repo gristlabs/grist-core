@@ -71,6 +71,7 @@ describe("Search", function() {
     await gu.searchIsClosed();
 
     // send Mode+UP to move to the first row
+    await gu.waitAppFocus();
     await driver.find("body").sendKeys(Key.chord(await gu.modKey(), Key.UP));
 
     // set cursor on the first cell

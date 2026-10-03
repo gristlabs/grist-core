@@ -2,7 +2,7 @@
  * Test the intro screen of access rules, and how rules are first enabled and disabled.
  */
 import { UserAPI } from "app/common/UserAPI";
-import { assertChanged, assertSaved, enterRulePart, findDefaultRuleSetWait } from "test/nbrowser/aclTestUtils";
+import { assertSaved, enterRulePart, findDefaultRuleSetWait, saveRules } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -228,10 +228,3 @@ describe("AccessRulesIntro", function() {
     await assert.isFulfilled(editorApi.getDocAPI(docId).download());
   });
 });
-
-async function saveRules() {
-  await assertChanged();
-  await driver.find(".test-rules-save").click();
-  await gu.waitForServer();
-  await assertSaved();
-}

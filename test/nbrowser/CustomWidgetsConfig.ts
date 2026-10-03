@@ -277,8 +277,8 @@ describe("CustomWidgetsConfig", function() {
     await gu.reloadDoc();
 
     // Now we should see a warning placeholder that columns are not mapped.
-    assert.isTrue(await driver.find(".test-custom-widget-not-mapped").isDisplayed());
-    assert.include(await driver.findWait(".test-custom-widget-not-mapped", 2000).getText(),
+    assert.isTrue(await driver.findWait(".test-custom-widget-not-mapped", 2000).isDisplayed());
+    assert.include(await driver.find(".test-custom-widget-not-mapped").getText(),
       "Some required columns are hidden by access rules");
 
     await revert();
