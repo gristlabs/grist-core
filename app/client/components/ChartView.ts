@@ -1,6 +1,6 @@
 import BaseView from "app/client/components/BaseView";
 import { GristDoc } from "app/client/components/GristDoc";
-import { consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
+import { consolidateValues, formatPercent, sortByXValues, sortedCategories, splitValuesByIndex,
   uniqXValues } from "app/client/lib/chartUtil";
 import { Delay } from "app/client/lib/Delay";
 import { fromKoSave } from "app/client/lib/fromKoSave";
@@ -307,6 +307,17 @@ export class ChartView extends BaseView {
         const part = chartFunc(gSeries, options, dataOptions);
         part.data = plotData.data.concat(part.data);
         plotData = part;
+      }
+
+      // Line and area charts sort each series by x values. On a category axis, Plotly orders
+      // categories by their first appearance across all series, so the axis is out of order if the
+      // first series lacks some values. Tell Plotly the full order explicitly.
+      const chartType = this._chartType.peek();
+      if ((chartType === "line" || chartType === "area") &&
+        series[1].pureType && isCategoryType(series[1].pureType)) {
+        const axis = options.orientation === "h" ? "y" : "x";
+        const categoryarray = sortedCategories(plotData.data.map(d => (d as any)[axis] || []));
+        plotData.layout = defaultsDeep({ [`${axis}axis`]: { categoryorder: "array", categoryarray } }, plotData.layout);
       }
     }
 
