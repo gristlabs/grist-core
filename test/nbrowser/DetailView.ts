@@ -68,4 +68,72 @@ describe("DetailView", function() {
     await driver.sleep(100); // The double click is ignored, so wait for a bit.
     assert.equal(await driver.find(".test-widget-text-editor").isPresent(), false);
   });
+
+  it("scrolls a tall card to keep the selected field in view", async () => {
+    const colIds = Array.from({ length: 50 }, (_, i) => `F${i}`);
+    await gu.sendActions([
+      ["AddTable", "Tall", colIds.map(id => ({ id, type: "Text" }))],
+      ["AddRecord", "Tall", null, { F0: "first", F49: "last" }],
+    ]);
+    await gu.addNewPage("Card", "Tall");
+
+    await gu.getDetailCell("F0", 1).click();
+    assert.isTrue(await isCursorInView(".detailview_single"));
+
+    // Tab through to the last field, which is well below the fold. It should get scrolled into view.
+    for (let i = 1; i < colIds.length; i++) {
+      await gu.sendKeys(Key.TAB);
+    }
+    assert.equal((await gu.getCursorPosition()).col, "F49");
+    assert.equal(await gu.getActiveCell().getText(), "last");
+    assert.isTrue(await isCursorInView(".detailview_single"));
+
+    // And back up to the first.
+    for (let i = 1; i < colIds.length; i++) {
+      await gu.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
+    }
+    assert.equal((await gu.getCursorPosition()).col, "F0");
+    assert.isTrue(await isCursorInView(".detailview_single"));
+  });
+
+  it("scrolls tall cards in a card list to keep the selected field in view", async () => {
+    await gu.sendActions([
+      ["AddRecord", "Tall", null, { F0: "first2", F49: "last2" }],
+      ["AddRecord", "Tall", null, { F0: "first3", F49: "last3" }],
+    ]);
+    await gu.addNewPage("Card List", "Tall");
+
+    await gu.getDetailCell("F0", 1).click();
+    assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
+
+    for (let i = 1; i < 50; i++) {
+      await gu.sendKeys(Key.TAB);
+    }
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: "F49" });
+    assert.equal(await gu.getActiveCell().getText(), "last");
+    assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
+
+    // Moving to the next card keeps the same field, which should be in view there too.
+    await gu.sendKeys(Key.PAGE_DOWN);
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: "F49" });
+    assert.equal(await gu.getActiveCell().getText(), "last2");
+    assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
+
+    // And moving back up to the first field of that card.
+    for (let i = 1; i < 50; i++) {
+      await gu.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
+    }
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: "F0" });
+    assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
+  });
 });
+
+// Whether the selected field is entirely within the visible part of the enclosing scroll pane.
+async function isCursorInView(paneSelector: string): Promise<boolean> {
+  return driver.executeScript((cell: HTMLElement, selector: string) => {
+    const pane = cell.closest(selector)!;
+    const box = cell.getBoundingClientRect();
+    const paneBox = pane.getBoundingClientRect();
+    return box.top >= paneBox.top && box.bottom <= paneBox.bottom;
+  }, await gu.getActiveCell(), paneSelector);
+}

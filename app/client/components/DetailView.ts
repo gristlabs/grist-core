@@ -325,6 +325,10 @@ export default class DetailView extends BaseView {
       if (yesNo) {
         const layoutBox = fieldDom.closest(".layout_hbox")!;
         this.layoutBoxIdx(indexOf(layoutBox.parentElement!.childNodes, layoutBox));
+        // Keep the selected field visible in a card larger than its section.
+        if (this.viewSection.hasFocus.peek()) {
+          fieldDom.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
       }
     }));
     const fieldBuilder = this.fieldBuilders.at(field._index()!)!;
