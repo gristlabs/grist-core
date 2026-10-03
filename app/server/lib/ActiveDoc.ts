@@ -79,7 +79,7 @@ import { readOnlyError } from "app/common/ErrorWithCode";
 import { Features, Product } from "app/common/Features";
 import { isHiddenCol } from "app/common/gristTypes";
 import { commonUrls, parseUrlId } from "app/common/gristUrls";
-import { byteString, countIf, retryOnce, safeJsonParse, timeoutReached } from "app/common/gutil";
+import { byteString, countIf, isAffirmative, retryOnce, safeJsonParse, timeoutReached } from "app/common/gutil";
 import { InactivityTimer } from "app/common/InactivityTimer";
 import { Interval } from "app/common/Interval";
 import { APPROACHING_LIMIT_RATIO, getUsageRatio, LimitExceededError } from "app/common/Limits";
@@ -125,7 +125,7 @@ import {
 } from "app/server/lib/Archive";
 import { getAndRemoveAssistantStatePermit } from "app/server/lib/AssistantStatePermit";
 import { AttachmentFileManager, MismatchedFileHashError } from "app/server/lib/AttachmentFileManager";
-import { IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
+import { getConfiguredStandardAttachmentStore, IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
 import { AuditEventAction } from "app/server/lib/AuditEvent";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { Client } from "app/server/lib/Client";
@@ -2771,6 +2771,19 @@ export class ActiveDoc extends EventEmitter {
     const timezone = docSession.browserSettings?.timezone ?? DEFAULT_TIMEZONE;
     const locale = docSession.browserSettings?.locale ?? DEFAULT_LOCALE;
     const documentSettings: DocumentSettings = { locale };
+    if (isAffirmative(process.env.GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE)) {
+      const externalStoreLabel = getConfiguredStandardAttachmentStore();
+      const externalStoreId = externalStoreLabel &&
+        this._attachmentStoreProvider?.getStoreIdFromLabel(externalStoreLabel);
+      // Only point the document at the store if it is actually configured and available:
+      // a dangling store id would make every attachment upload fail.
+      if (externalStoreId && this._attachmentStoreProvider?.storeExists(externalStoreId)) {
+        documentSettings.attachmentStoreId = externalStoreId;
+      } else {
+        this._log.warn(docSession, "GRIST_EXTERNAL_ATTACHMENTS_DEFAULT_ON_CREATE is set, but no external " +
+        `attachment store is available for ${externalStoreLabel}; the new document will use internal storage`);
+      }
+    }
     documentSettings.engine = "python3";
     await this.docStorage.run("UPDATE _grist_DocInfo SET timezone = ?, documentSettings = ?",
       timezone, JSON.stringify(documentSettings));
