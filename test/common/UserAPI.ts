@@ -1,4 +1,4 @@
-import { DocAPIImpl, UserAPIImpl } from "app/common/UserAPI";
+import { compareUsersForDisplay, DocAPIImpl, UserAPIImpl } from "app/common/UserAPI";
 
 import { assert } from "chai";
 
@@ -116,6 +116,29 @@ describe("UserAPI", function() {
         assert.isNull(params.get("aclAsUser_"));
         assert.isNull(params.get("aclAsUserId_"));
       });
+    });
+  });
+
+  describe("compareUsersForDisplay", function() {
+    it("sorts by name, or by email for users without a name, ignoring case and accents", function() {
+      const users = [
+        { name: "zoe", email: "a@example.com" },
+        { name: "", email: "bob@example.com" },
+        { name: "Émile", email: "z@example.com" },
+        { name: "Alice", email: "y@example.com" },
+        { name: "eve", email: "x@example.com" },
+      ];
+      assert.deepEqual(users.sort(compareUsersForDisplay).map(u => u.name || u.email),
+        ["Alice", "bob@example.com", "Émile", "eve", "zoe"]);
+    });
+
+    it("breaks ties between identical names by email", function() {
+      const users = [
+        { name: "Sam", email: "sam2@example.com" },
+        { name: "Sam", email: "sam1@example.com" },
+      ];
+      assert.deepEqual(users.sort(compareUsersForDisplay).map(u => u.email),
+        ["sam1@example.com", "sam2@example.com"]);
     });
   });
 });
