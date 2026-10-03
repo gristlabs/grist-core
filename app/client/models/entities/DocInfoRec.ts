@@ -1,7 +1,7 @@
 import { DocModel, IRowModel } from "app/client/models/DocModel";
 import * as modelUtil from "app/client/models/modelUtil";
 import { jsonObservable } from "app/client/models/modelUtil";
-import { DocumentSettings } from "app/common/DocumentSettings";
+import { DocumentSettings, SharedChoiceList } from "app/common/DocumentSettings";
 
 import * as ko from "knockout";
 
@@ -16,11 +16,13 @@ export interface DocInfoRec extends IRowModel<"_grist_DocInfo"> {
    * client about transfer job status also).
    */
   attachmentStoreId: modelUtil.KoSaveableObservable<string | undefined>;
+  sharedChoiceLists: modelUtil.KoSaveableObservable<{ [listId: string]: SharedChoiceList } | undefined>;
 }
 
 export function createDocInfoRec(this: DocInfoRec, docModel: DocModel): void {
   this.documentSettingsJson = jsonObservable(this.documentSettings);
   this.attachmentStoreId = this.documentSettingsJson.prop("attachmentStoreId");
+  this.sharedChoiceLists = this.documentSettingsJson.prop("sharedChoiceLists");
   this.defaultViewId = this.autoDispose(ko.pureComputed(() => {
     const tab = docModel.allTabs.at(0);
     return tab ? tab.viewRef() : 0;

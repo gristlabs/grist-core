@@ -8,4 +8,5 @@ export interface WidgetOptions extends NumberFormatOptions {
   timeFormat?: string;
   widget?: "HyperLink";
   choices?: string[];
+  sharedChoiceListKey?: string;
 }
