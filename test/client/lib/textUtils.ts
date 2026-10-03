@@ -1,5 +1,5 @@
 import { stripLinks } from "app/client/lib/markdown";
-import { hashFnv32a, simpleStringHash } from "app/client/lib/textUtils";
+import { findLinks, hashFnv32a, simpleStringHash } from "app/client/lib/textUtils";
 
 import { assert } from "chai";
 
@@ -84,6 +84,59 @@ describe("textUtils", function() {
       stripLinks(markdownText),
       expected,
       `failed for ${markdownText}`,
+    ));
+  });
+
+  it("should find links in text", function() {
+    // This test checks if the function findLinks can successfully identify links in text leaving any
+    // other text intact.
+    const testData: [string, { value: string, isLink: boolean }[]][] = [
+      ["", [{ value: "", isLink: false }]],
+      ["Plain text", [{ value: "Plain text", isLink: false }]],
+      ["might.it be a link", [{ value: "might.it be a link", isLink: false }]],
+      ["Visit https://www.uk/docs now.", [
+        { value: "Visit ", isLink: false },
+        { value: "https://www.uk/docs", isLink: true },
+        { value: " now.", isLink: false },
+      ]],
+      ["Link (in http://www.uk?)", [
+        { value: "Link (in ", isLink: false },
+        { value: "http://www.uk", isLink: true },
+        { value: "?)", isLink: false },
+      ]],
+      ["http://www.uk,http://www.uk", [
+        { value: "", isLink: false },
+        { value: "http://www.uk", isLink: true },
+        { value: ",", isLink: false },
+        { value: "http://www.uk", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["https://www.uk:8080/a?b=c2", [
+        { value: "", isLink: false },
+        { value: "https://www.uk:8080/a?b=c2", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["https://www.uk/a?b==c-", [
+        { value: "", isLink: false },
+        { value: "https://www.uk/a?b==c-", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["See https://www.uk/some-page for details.", [
+        { value: "See ", isLink: false },
+        { value: "https://www.uk/some-page", isLink: true },
+        { value: " for details.", isLink: false },
+      ]],
+      ["https://127.0.0.1:8080/api", [
+        { value: "", isLink: false },
+        { value: "https://127.0.0.1:8080/api", isLink: true },
+        { value: "", isLink: false },
+      ]],
+    ];
+
+    testData.forEach(([text, expected]) => assert.deepEqual(
+      findLinks(text),
+      expected,
+      `failed for ${text}`,
     ));
   });
 });
