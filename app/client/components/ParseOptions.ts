@@ -74,12 +74,14 @@ export function buildParseOptionsForm(
     start_with_row: t("Start with row"),
     NUM_ROWS: t("Number of rows"),
     encoding: t("Character encoding. See [the supported codecs]({{link}})", { link: "https://tinyurl.com/py3codecs" }),
+    includes: t("Includes (list of tables separated by semicolon)"),
+    excludes: t("Excludes (list of tables separated by semicolon)"),
   };
 
   return [
     cssParseOptionForm(
       items.map(item => cssParseOption(
-        cssParseOptionName(markdown(labelsByName[item.name])),
+        cssParseOptionName(markdown(labelsByName[item.name] ?? item.name)),
         optionToInput(owner, item.type, optionsMap.get(item.name)!),
         testId("parseopts-opt"),
       )),
