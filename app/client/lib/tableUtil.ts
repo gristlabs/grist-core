@@ -119,6 +119,9 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
   const doc = parser.parseFromString(data, "text/html");
   const table = doc.querySelector("table")!;
   const docIdHash = table.getAttribute("data-grist-doc-id-hash");
+  // Grist tables preserve cell text exactly (they use `white-space: pre`); other applications
+  // (e.g. Excel) may fold long lines of their HTML output, which must be unfolded (see below).
+  const isGristTable = table.hasAttribute("data-grist-doc-id-hash");
 
   const cols = [...table.querySelectorAll("col")];
   const rows = [...table.querySelectorAll("tr")];
@@ -127,7 +130,10 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
       const col = cols[colIdx];
       const colType = col?.getAttribute("data-grist-col-type");
       const colRef = col && Number(col.getAttribute("data-grist-col-ref"));
-      const o: RichPasteObject = { displayValue: cell.textContent, docIdHash, colType, colRef };
+      const o: RichPasteObject = {
+        displayValue: isGristTable ? cell.textContent : getExternalCellText(cell),
+        docIdHash, colType, colRef,
+      };
 
       if (cell.hasAttribute("data-grist-raw-value")) {
         o.rawValue = safeJsonParse(cell.getAttribute("data-grist-raw-value")!,
@@ -141,6 +147,27 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
     throw new Error("Unable to parse data from text/html");
   }
   return result;
+}
+
+// Placeholder for <br> elements when extracting text from non-Grist tables, so that genuine
+// in-cell line breaks survive the unfolding of source line-wraps below.
+const BR_PLACEHOLDER = "\uE000";
+
+/**
+ * Returns the text of a table cell copied from an external application such as Excel.
+ *
+ * Excel folds long lines of its HTML clipboard output (replacing a space with a line break plus
+ * indenting spaces, see gristlabs/grist-core#2549), which DOM textContent would mistake for real
+ * cell content. Unfold such sequences back into single spaces. Genuine in-cell line breaks, which
+ * Excel encodes as <br> elements, are preserved as "\n". Bare line breaks without indenting
+ * spaces are left alone.
+ */
+function getExternalCellText(cell: Element): string {
+  cell.querySelectorAll("br").forEach(br => br.replaceWith(BR_PLACEHOLDER));
+  const brPattern = new RegExp(`${BR_PLACEHOLDER}[ \\t]*`, "g");
+  return (cell.textContent || "")
+    .replace(/\r?\n[ \t]+/g, " ")
+    .replace(brPattern, "\n");
 }
 
 // Helper function to add css style properties to an html tag
