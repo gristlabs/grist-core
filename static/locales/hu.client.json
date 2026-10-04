@@ -382,7 +382,8 @@
         "You have read-only access to this site. Currently there are no documents.": "Ehhez az oldalhoz csak olvasási jogosultságod van. Jelenleg nincsenek dokumentumok.",
         "personal site": "személyes oldal",
         "Grid view": "Rács nézet",
-        "List view": "Lista nézet"
+        "List view": "Lista nézet",
+        "Documents": "Dokumentumok"
     },
     "DocPageModel": {
         "Add empty table": "Üres tábla hozzáadása",
@@ -395,7 +396,9 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Elnézést kérünk, ehhez a dokumentumhoz nincs hozzáférése. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Megpróbálhatod a dokumentum újratöltését visszaállítási módban. Ebben a módban a dokumentumot teljeskörűen elérik a tulajdonosai, de mások számára nem hozzáférhetőek, valamint letiltja a képleteket is. [{{error}}]",
         "You do not have edit access to this document": "Nincs módosítási jogosultságod ehhez a dokumentumhoz",
-        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Kérlek, töltsd be újra a dokumentumot, és ha a hiba továbbra is fennáll, vedd fel a kapcsolatot a dokumentum tulajdonosával a dokumentum helyreállításával kapcsolatban. [{{error}}]"
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Kérlek, töltsd be újra a dokumentumot, és ha a hiba továbbra is fennáll, vedd fel a kapcsolatot a dokumentum tulajdonosával a dokumentum helyreállításával kapcsolatban. [{{error}}]",
+        "Import from {{importSource}}": "Importálás innen: {{importSource}}",
+        "Import from...": "Importálás..."
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "A dokumentumban szereplő adatokból nem lehet bemutatót létrehozni. Ellenőrizd, hogy létezik-e GristDocTour tábla Title, Body, Placement és Location oszlopokkal!",
@@ -664,7 +667,9 @@
         "go to webhook settings": "menjünk a webhook beállításaihoz",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Az új változtatásokat átmenetileg felfüggesztettük. A webhook várakozási sora megtelt. Ellenőrizd a webhook beállításait, töröld a hibás webhook-okat, és tisztítsd a várakozási sort.",
         "Import from Airtable": "Importálás Airtable-ből",
-        "{{title}} widget": "{{title}} widget"
+        "{{title}} widget": "{{title}} widget",
+        "Airtable": "Airtable",
+        "File": "Fájl"
     },
     "HomeIntro": {
         "Help Center": "Súgóközpont",
@@ -693,7 +698,8 @@
         "Create empty document": "Üres dokumentum létrehozása",
         "Get started by creating your first Grist document.": "Hozd létre az első Grist dokumentumodat!",
         "Get started by exploring templates, or creating your first Grist document.": "Fedezd fel a sablonokat, vagy hozd létre az első Grist dokumentumodat!",
-        "Get started by inviting your team and creating your first Grist document.": "Hívd meg a csapatod tagjait és hozd létre az első Grist dokumentumodat!"
+        "Get started by inviting your team and creating your first Grist document.": "Hívd meg a csapatod tagjait és hozd létre az első Grist dokumentumodat!",
+        "Create a document": "Dokumentum létrehozása"
     },
     "HomeLeftPane": {
         "Access Details": "Hozzáférés részletei",
@@ -713,7 +719,10 @@
         "Terms of service": "Szolgáltatási feltételek",
         "Grist Resources": "Grist eszközök és tudástár",
         "context menu - {{- workspaceName }}": "kontextus-menü - {{- workspaceName }}",
-        "Import from Airtable": "Importálás Airtable-ből"
+        "Import from Airtable": "Importálás Airtable-ből",
+        "Airtable": "Airtable",
+        "Import from {{importSource}}": "Importálás innen: {{importSource}}",
+        "Import from...": "Importálás..."
     },
     "Importer": {
         "Column Mapping": "Oszlopok megfeleltetése",
@@ -1192,7 +1201,8 @@
         "Attachment": "Csatolmány",
         "Search columns": "Oszlop keresése",
         "By Name": "Név szerint",
-        "By Date Modified": "Módosítás dátuma szerint"
+        "By Date Modified": "Módosítás dátuma szerint",
+        "Loading...": "Betöltés..."
     },
     "modals": {
         "Cancel": "Mégse",
@@ -1691,7 +1701,10 @@
         "Access overview": "Hozzáférés áttekintése",
         "Share it publicly": "Oszd meg nyilvánosan",
         "Verify your sensitive data before sharing publicly": "A nyilvános megosztás előtt ellenőrizd bizalmas adataidat",
-        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "A {{resourceType}} a link birtokában bárki számára elérhető lesz, akár közvetlenül osztja meg, akár egy keresőmotoron keresztül találja meg.\nMegosztás előtt győződj meg arról, hogy a {{resourceType}} nem tartalmaz bizalmas adatokat."
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "A {{resourceType}} a link birtokában bárki számára elérhető lesz, akár közvetlenül osztja meg, akár egy keresőmotoron keresztül találja meg.\nMegosztás előtt győződj meg arról, hogy a {{resourceType}} nem tartalmaz bizalmas adatokat.",
+        "Configure notifications": "Értesítések beállítása",
+        "Invitation emails are not enabled on this installation.": "Ezen a telepítésen a meghívó emailek nincsenek engedélyezve.",
+        "Invitation emails are not sent on Grist Community edition.": "A Grist Közösségi Kiadásából nem küldhetők email meghívók."
     },
     "SearchModel": {
         "Search all pages": "Keresés az összes oldalon",
@@ -1738,7 +1751,8 @@
     "buildViewSectionDom": {
         "No data": "Nincs adat",
         "No row selected in {{title}}": "Nincs sor kiválasztva itt: {{title}}",
-        "Not all data is shown": "Nem minden adat jelenik meg"
+        "Not all data is shown": "Nem minden adat jelenik meg",
+        "{{title}} widget header": "{{title}} widget fejléc"
     },
     "FloatingEditor": {
         "Collapse Editor": "Szerkesztő összecsukása"
@@ -3061,7 +3075,7 @@
         "Set up later": "Később állítom be"
     },
     "ServiceStatus": {
-        "Enter maintenance mode": "Belépés karbantaráts módba",
+        "Enter maintenance mode": "Belépés karbantartás módba",
         "Enter maintenance mode?": "Belépsz a karbantartási módba?",
         "Non-admin users will be blocked until service is restored.": "A nem rendszergazdai felhasználókat a szolgáltatás visszaállításáig letiltjuk.",
         "Non-admin users will no longer be blocked.": "A nem rendszergazdai felhasználók a továbbiakban nem lesznek letiltva.",
