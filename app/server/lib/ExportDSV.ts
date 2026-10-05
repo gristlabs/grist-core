@@ -1,7 +1,9 @@
 import { FilterColValues } from "app/common/ActiveDocAPI";
 import { ApiError } from "app/common/ApiError";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
-import { DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter } from "app/server/lib/Export";
+import {
+  DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter, getExportHeader,
+} from "app/server/lib/Export";
 import log from "app/server/lib/log";
 
 import { promisify } from "util";
@@ -136,8 +138,7 @@ function convertToDsv(data: ExportData, options: ConvertToDsvOptions) {
   // create formatters for columns
   const formatters = viewColumns.map(col => col.formatter);
   // Arrange the data into a row-indexed matrix, starting with column headers.
-  const colPropertyAsHeader = header ?? "label";
-  const csvMatrix = [viewColumns.map(col => col[colPropertyAsHeader])];
+  const csvMatrix = [viewColumns.map(col => getExportHeader(col, header))];
   // populate all the rows with values as strings
   rowIds.forEach((row) => {
     csvMatrix.push(access.map((getter, c) => formatters[c].formatAny(getter(row))));
