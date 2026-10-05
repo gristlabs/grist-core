@@ -373,7 +373,9 @@ describe("AdminPanel", function() {
     fakeServer.resume();
     // Expand and see if the toggle is off.
     await toggleItem("updates");
-    assert.isFalse(await isEnabled(autoCheckToggle()));
+    await gu.waitToPass(async () => {
+      assert.isFalse(await isEnabled(autoCheckToggle()));
+    });
   });
 
   it("shows up-to-date message", async function() {
