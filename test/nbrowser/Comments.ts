@@ -1347,6 +1347,7 @@ describe("Comments", function() {
     await assertNoPopup();
     await openCommentsWithKey();
     await waitForPopup("any");
+    await waitForInput();
     await gu.sendKeys(Key.ESCAPE);
     await assertNoPopup();
     await openCommentsWithMouse("B", 1);
