@@ -2235,7 +2235,8 @@
             }
         },
         "The toggle is **off**": "The toggle is **off**",
-        "The toggle is **on**": "The toggle is **on**"
+        "The toggle is **on**": "The toggle is **on**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element."
     },
     "markdown.d": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
@@ -2244,7 +2245,8 @@
             }
         },
         "The toggle is **off**": "The toggle is **off**",
-        "The toggle is **on**": "The toggle is **on**"
+        "The toggle is **on**": "The toggle is **on**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element."
     },
     "HomeIntroCards": {
         "3 minute video tour": "3 minute video tour",
