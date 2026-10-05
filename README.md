@@ -250,16 +250,15 @@ Note: Make sure not to set the OPENAI_API_KEY variable when using OpenRouter, as
 ## Available Docker images
 
 The default Docker image is `gristlabs/grist`. This contains all of
-the Grist Community edition features, as well as extra source-available
-code for the full edition of Grist. This
-extra code is not under a free or open-source license, though by default is completely inert
-and inactive. This code becomes active only when enabled from the
-Admin Panel.
+the Grist Community edition features, as well as extra extensions for the full edition of Grist. These
+extensions are not under a free or open-source license. These extensions becomes active only when
+the edition in the Admin Panel is set to "Full Grist", and are inert and inactive when it is set
+to "Community Grist".
 
 If you would rather use an image that contains exclusively free and
 open-source code, the `gristlabs/grist-oss` Docker image is available
-for this purpose. It is by default functionally equivalent to the
-`gristlabs/grist` image.
+for this purpose. It is functionally equivalent to the
+`gristlabs/grist` image whose edition is set to "Community Grist".
 
 ## The Admin Panel
 

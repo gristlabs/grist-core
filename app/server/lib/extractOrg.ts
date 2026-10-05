@@ -1,6 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
-import { extractOrgParts, getHostType, getSingleOrg } from "app/common/gristUrls";
+import { extractOrgParts, getHostType, getSingleOrg, isOrgInPathOnly } from "app/common/gristUrls";
 import { isAffirmative } from "app/common/gutil";
 import { Organization } from "app/gen-server/entity/Organization";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
@@ -59,7 +59,8 @@ export class Hosts {
    *
    * If Host header is something else, we query the db for an org whose host value matches.
    * If found, req.org is set appropriately, and req.isCustomHost is set to true.
-   * If not found, a 'Domain not recognized' error is thrown, showing an error page.
+   * If not found, and orgs are named in the path (GRIST_ORG_IN_PATH), the host is treated like a
+   * localhost domain. Otherwise, a 'Domain not recognized' error is thrown, showing an error page.
    */
   public get extractOrg(): RequestHandler {
     return this._extractOrg.bind(this);
@@ -107,7 +108,14 @@ export class Hosts {
         const o = await this._dbManager.connection.manager.findOne(Organization, { where: { host: hostname } });
         return o?.domain || undefined;
       });
-      if (!org) { throw new ApiError(`Domain not recognized: ${hostname}`, 404); }
+      if (!org) {
+        // With orgs named in the path, the host names no org, so an unrecognized one (such as an
+        // address servers reach each other at) is fine. See getOrgInfo for the Organization header.
+        if (isOrgInPathOnly()) {
+          return { org: parts.orgFromPath || "", url: parts.pathRemainder, isCustomHost: false };
+        }
+        throw new ApiError(`Domain not recognized: ${hostname}`, 404);
+      }
 
       // Strip any stray /o/.... that has been added to a url with a custom host.
       // TODO: it would eventually be cleaner to make sure we don't make those

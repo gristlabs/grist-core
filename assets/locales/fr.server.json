@@ -9,7 +9,9 @@
     },
     "access": {
         "docNoAccess": "Vous n'avez pas accès à ce document.",
-        "docDisabled": "Ce document est désactivé."
+        "docDisabled": "Ce document est désactivé.",
+        "userDisabled": "L'utilisateur est désactivé (Raison : {{- reason }})",
+        "userDisabledReasonMissing": "Aucune raison n'est fourni"
     },
     "admin": {
         "emptyOrg": "Aucun propriétaire trouvé dans l'organisation admin définie par `GRIST_INSTALL_ADMIN_ORG={{org}}`",

@@ -444,9 +444,15 @@ export class DocWorkerApi {
       try {
         await archive.packInto(res, { endDestStream: false });
       } catch (err) {
+        if (!res.headersSent) {
+          // Nothing streamed yet, so report a regular error response.
+          res.removeHeader("Content-Type");
+          res.removeHeader("Content-Disposition");
+          throw err;
+        }
+
         // This only behaves sensibly if the 'download' attribute is on the <a> tag.
         // Otherwise you get a poor user experience, such as:
-        // - No data written to the stream: open a new tab with a 500 error.
         // - Destroy the stream: open a new tab with a connection reset error.
         // - Return some data without res.destroy(): download shows as successful, despite being corrupt.
         // Sending headers then resetting the connection shows as 'Download failed', regardless of the

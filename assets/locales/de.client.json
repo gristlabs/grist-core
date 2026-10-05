@@ -95,7 +95,9 @@
         "Profile": "Profil",
         "Enterprise": "Enterprise",
         "OAuth apps": "OAuth Anwendungen",
-        "Accessibility": "Barrierefreiheit"
+        "Accessibility": "Barrierefreiheit",
+        "Personal site": "Persönliche Seite",
+        "Usage summary": "Zusammenfassung der Nutzung"
     },
     "AccountWidget": {
         "Access Details": "Zugangsdetails",
@@ -246,7 +248,11 @@
     "ColorSelect": {
         "Apply": "Anwenden",
         "Cancel": "Abbrechen",
-        "Default cell style": "Standard-Zellenstil"
+        "Default cell style": "Standard-Zellenstil",
+        "default": "Standard",
+        "fill": "füllen",
+        "none": "kein",
+        "text": "Text"
     },
     "ColumnFilterMenu": {
         "All": "Alles",
@@ -372,7 +378,8 @@
         "You have read-only access to this site. Currently there are no documents.": "Sie haben nur Lesezugriff auf diese Seite. Derzeit sind keine Dokumente vorhanden.",
         "personal site": "persönliche Seite",
         "Grid view": "Rasteransicht",
-        "List view": "Listenansicht"
+        "List view": "Listenansicht",
+        "Documents": "Dokumente"
     },
     "DocPageModel": {
         "Add empty table": "Leere Tabelle hinzufügen",
@@ -385,7 +392,9 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Leider wurde der Zugriff auf dieses Dokument verweigert. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Sie können versuchen, das Dokument neu zu laden oder den Wiederherstellungsmodus zu verwenden. Im Wiederherstellungsmodus wird das Dokument so geöffnet, dass es für den Besitzer vollständig zugänglich ist, für andere jedoch nicht. Außerdem werden die Formeln deaktiviert. [{{error}}]",
         "You do not have edit access to this document": "Sie haben keinen Bearbeitungszugriff auf dieses Dokument",
-        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Bitte laden Sie das Dokument erneut, und wenn der Fehler weiterhin besteht, wenden Sie sich an die Eigentümer des Dokuments, um eine Wiederherstellung des Dokuments zu versuchen. [{{error}}]"
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Bitte laden Sie das Dokument erneut, und wenn der Fehler weiterhin besteht, wenden Sie sich an die Eigentümer des Dokuments, um eine Wiederherstellung des Dokuments zu versuchen. [{{error}}]",
+        "Import from {{importSource}}": "Aus {{importSource}} importieren",
+        "Import from...": "Importieren aus..."
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Aus den Daten in diesem Dokument kann keine Dokumenttour erstellt werden. Stellen Sie sicher, dass eine Tabelle mit dem Namen GristDocTour mit den Spalten Title, Body, Placement und Location vorhanden ist.",
@@ -486,7 +495,8 @@
         "Enable suggestions": "Vorschläge aktivieren",
         "Suggestions": "Vorschläge",
         "experiment": "Experiment",
-        "Allow others to suggest changes": "Anderen erlauben Änderungen vorzuschlagen"
+        "Allow others to suggest changes": "Anderen erlauben Änderungen vorzuschlagen",
+        "For number formats": "Für Zahlenformate"
     },
     "DocumentUsage": {
         "Size of attachments": "Größe der Anhänge",
@@ -574,7 +584,9 @@
         "Grid Options": "Raster-Optionen",
         "Horizontal gridlines": "Horizontale Rasterlinien",
         "Vertical gridlines": "Vertikale Rasterlinien",
-        "Zebra stripes": "Zebra-Streifen"
+        "Zebra stripes": "Zebra-Streifen",
+        "Show": "Anzeigen",
+        "row numbers": "Zeilennummern"
     },
     "GridViewMenus": {
         "Add column": "Spalte hinzufügen",
@@ -660,7 +672,10 @@
         "Any": "Jegliche",
         "Numeric": "Numerisch",
         "Integer": "Ganze Zahl",
-        "Toggle": "Umschalten"
+        "Toggle": "Umschalten",
+        "Row numbers": "Zeilennummern",
+        "Numbers": "Zahlen",
+        "Hidden": "Ausgeblendet"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Neuer verlinkter Abschnitt zur Ansicht hinzugefügt {{viewName}}",
@@ -669,7 +684,8 @@
         "go to webhook settings": "gehen sie zu webhook Einstellungen",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Neue Änderungen werden vorübergehend ausgesetzt. Die Webhooks-Warteschlange ist übergelaufen. Bitte überprüfen Sie die Webhook-Einstellungen, entfernen Sie ungültige Webhooks und bereinigen Sie die Warteschlange.",
         "Import from Airtable": "Aus Airtable importieren",
-        "{{title}} widget": "{{title}} Widget"
+        "{{title}} widget": "{{title}} Widget",
+        "File": "Datei"
     },
     "HomeIntro": {
         ", or find an expert via our ": ", oder finden Sie einen Experten über unseren",
@@ -699,7 +715,8 @@
         "Sign in": "Anmelden",
         "To use Grist, please either sign up or sign in.": "Um Grist zu nutzen, melden Sie sich bitte an oder registrieren Sie sich.",
         "Learn more in our {{helpCenterLink}}.": "Erfahren Sie mehr in unserem {{helpCenterLink}}.",
-        "Only show documents": "Nur Dokumente anzeigen"
+        "Only show documents": "Nur Dokumente anzeigen",
+        "Create a document": "Dokument erstellen"
     },
     "HomeLeftPane": {
         "Access Details": "Zugangsdetails",
@@ -719,7 +736,9 @@
         "Terms of service": "Nutzungsbedingungen",
         "Grist Resources": "Grist Ressourcen",
         "context menu - {{- workspaceName }}": "Kontextmenü - {{- workspaceName }}",
-        "Import from Airtable": "Aus Airtable importieren"
+        "Import from Airtable": "Aus Airtable importieren",
+        "Import from {{importSource}}": "Aus {{importSource}} importieren",
+        "Import from...": "Importieren aus..."
     },
     "Importer": {
         "Merge rows that match these fields:": "Zeilen zusammenführen, die mit diesen Feldern übereinstimmen:",
@@ -796,7 +815,8 @@
         "Lines": "Linien",
         "Field Format": "Feldformat",
         "Multi line": "Mehrere Linien",
-        "Single line": "Einzelne Linie"
+        "Single line": "Einzelne Linie",
+        "Maximum characters": "Maximale Zeichenanzahl"
     },
     "NotifyUI": {
         "Ask for help": "Bitte um Hilfe",
@@ -972,7 +992,8 @@
         "Download attachments...": "Anhänge herunterladen...",
         "Download document...": "Dokument herunterladen...",
         "Suggest changes": "Änderungen vorschlagen",
-        "current version": "aktuelle Version"
+        "current version": "aktuelle Version",
+        "original": "Original"
     },
     "SiteSwitcher": {
         "Create new team site": "Neue Teamseite erstellen",
@@ -999,7 +1020,9 @@
     "ThemeConfig": {
         "Appearance ": "Aussehen ",
         "Switch appearance automatically to match system": "Aussehen automatisch an das System anpassen",
-        "Light": "Hell"
+        "Light": "Hell",
+        "Dark": "Dunkel",
+        "Light (High Contrast)": "Hell (hoher Kontrast)"
     },
     "Tools": {
         "Access Rules": "Zugriffsregeln",
@@ -1017,10 +1040,15 @@
         "API console": "API-Konsole",
         "context menu - Access Rules": "Kontextmenü - Zugriffsregeln",
         "Delete document tour": "Dokumententour löschen",
-        "Preview the tutorial": "Vorschau des Tutorials"
+        "Preview the tutorial": "Vorschau des Tutorials",
+        "Proposed changes": "Vorgeschlagene Änderungen",
+        "Suggest changes": "Änderungen vorschlagen",
+        "Suggestions": "Vorschläge"
     },
     "TopBar": {
-        "Manage team": "Team verwalten"
+        "Manage team": "Team verwalten",
+        "Redo": "Wiederherstellen",
+        "Undo": "Rückgängig"
     },
     "TriggerFormulas": {
         "(data cleaning)": "(Datenreinigung)",
@@ -1104,7 +1132,8 @@
         "Save": "Speichern",
         "Sorted by": "Sortiert nach",
         "Toggle Filter Bar": "Filterleiste ein-/ausblenden",
-        "Update Sort&Filter settings": "Sortier- und Filtereinstellungen aktualisieren"
+        "Update Sort&Filter settings": "Sortier- und Filtereinstellungen aktualisieren",
+        "Sort and filter": "Sortieren und filtern"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "Elemente können nicht in ausgeblendeten Feldern abgelegt werden",
@@ -1163,7 +1192,15 @@
         "Build your own form": "Erstellen Sie Ihr eigenes Formular",
         "Form not found": "Formular nicht gefunden",
         "Failed to log in.{{separator}}Please try again or contact support.": "Die Anmeldung ist fehlgeschlagen.{{separator}}Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
-        "Sign-in failed{{suffix}}": "Anmelden fehlgeschlagen{{suffix}}"
+        "Sign-in failed{{suffix}}": "Anmelden fehlgeschlagen{{suffix}}",
+        "Manage settings": "Einstellungen verwalten",
+        "Need Help?": "Brauchen Sie Hilfe?",
+        "There was an error": "Es gab einen Fehler",
+        "changes": "Änderungen",
+        "comments": "Kommentare",
+        "this document": "dieses Dokument",
+        "automations": "Automatisierungen",
+        "suggestions": "Vorschläge"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbeitsbereiche sind in Teamplänen verfügbar. ",
@@ -1183,7 +1220,8 @@
         "Date": "Datum",
         "Search columns": "Spalten suchen",
         "By Name": "Nach Name",
-        "By Date Modified": "Nach Änderungsdatum"
+        "By Date Modified": "Nach Änderungsdatum",
+        "Loading...": "Laden..."
     },
     "modals": {
         "Cancel": "Abbrechen",
@@ -1219,7 +1257,8 @@
         "Find Previous ": "Vorheriges finden ",
         "No results": "Keine Ergebnisse",
         "Search in document": "Suche im Dokument",
-        "Search": "Suchen"
+        "Search": "Suchen",
+        "Close search bar": "Suchleiste schließen"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Datei an Google Drive senden"
@@ -1577,12 +1616,16 @@
         "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Sprechen Sie mit mir wie mit einem Menschen. Sie müssen keine Tabellen und Spaltennamen angeben. Sie können z. B. fragen: \"Bitte berechnen Sie den Gesamtbetrag der Rechnung\"."
     },
     "GridView": {
-        "Click to insert": "Zum Einfügen klicken"
+        "Click to insert": "Zum Einfügen klicken",
+        "row {{rowNum}} {{colName}}": "Zeile {{rowNum}} {{colName}}",
+        "row {{rowNum}} {{colName}} (new row)": "Zeile {{rowNum}} {{colName}} (neue Zeile)"
     },
     "WelcomeSitePicker": {
         "Welcome back": "Willkommen zurück",
         "You can always switch sites using the account menu.": "Sie können jederzeit über das Kontomenü zwischen den Websites wechseln.",
-        "You have access to the following Grist sites.": "Sie haben Zugriff auf die folgenden Grist-Seiten."
+        "You have access to the following Grist sites.": "Sie haben Zugriff auf die folgenden Grist-Seiten.",
+        "No sites available": "Keine Seiten verfügbar",
+        "Sign in": "Anmelden"
     },
     "SupportGristNudge": {
         "Support Grist": "Grist Support",
@@ -1670,7 +1713,9 @@
         "{{collaborator}} limit exceeded": "{{collaborator}} Grenze überschritten",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "Sobald Sie Ihren eigenen Zugriff entfernt haben, können Sie ihn nicht ohne die Hilfe einer anderen Person mit ausreichendem Zugriff auf den {{resourceType}} wiederherstellen.",
         "Inherit access: ": "Zugang vererben: ",
-        "Access overview": "Zur Übersicht"
+        "Access overview": "Zur Übersicht",
+        "Share it publicly": "Öffentlich teilen",
+        "Configure notifications": "Benachrichtigungen konfigurieren"
     },
     "SearchModel": {
         "Search all pages": "Alle Seiten durchsuchen",
@@ -1762,7 +1807,8 @@
         "Maybe later": "Vielleicht später",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Während des Gesprächs nehmen wir uns die Zeit, Ihre Bedürfnisse zu verstehen und das Gespräch auf Sie zuzuschneiden. Wir können Ihnen die Grundlagen von Grist zeigen oder sofort mit Ihren Daten arbeiten, um die von Ihnen benötigten Dashboards zu erstellen.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Sie können auch {{ourWeeklyWebinars}} besuchen, um mehr über Grist zu erfahren.",
-        "our weekly webinars": "unsere wöchentlichen Webinare"
+        "our weekly webinars": "unsere wöchentlichen Webinare",
+        "Grist 101": "Grist Grundkurs"
     },
     "UnmappedFieldsConfig": {
         "Clear": "Leeren",
@@ -1785,7 +1831,10 @@
         "Field Format": "Feldformat",
         "Field Rules": "Feldregeln",
         "Horizontal": "Horizontal",
-        "Radio": "Radio"
+        "Radio": "Radio",
+        "Accept value from URL": "Wert aus der URL übernehmen",
+        "Hidden field": "Verborgenes Feld",
+        "URL parameter:\n{{colId}}=VALUE": "URL-Parameter:\n{{colId}}=WERT"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Einige erforderliche Spalten sind nicht zugeordnet",
@@ -1888,7 +1937,39 @@
         "more...": "mehr...",
         "no authentication": "keine Authentifizierung",
         "unavailable": "nicht verfügbar",
-        "disabled": "deaktiviert"
+        "disabled": "deaktiviert",
+        "{{count}} admin accounts_one": "{{count}} Administratorkonto",
+        "{{count}} admin accounts_other": "{{count}} Administratorkonten",
+        "Admin account not found": "Administratorkonto nicht gefunden",
+        "Administrative accounts": "Administrative Konten",
+        "Version {{versionNumber}}": "Version {{versionNumber}}",
+        "no admin accounts": "keine Administratorkonten",
+        "Restart": "Neustart",
+        "Restart Grist": "Grist neu starten",
+        "Restart Grist?": "Grist neu starten?",
+        "Restarting Grist...": "Grist wird neu gestartet...",
+        "error in {{provider}}: {{verdict}}": "Fehler in {{provider}}: {{verdict}}",
+        "Please restart Grist manually.": "Bitte starten Sie Grist manuell neu.",
+        "Restart unavailable": "Neustart nicht verfügbar",
+        "Maintenance": "Wartung",
+        "Service status": "Dienststatus",
+        "enabled": "aktiviert",
+        "in service": "in Dienst",
+        "Backups": "Sicherungen",
+        "Storage": "Speicher",
+        "Base URL": "Basis-URL",
+        "Edition": "Edition",
+        "Restart the Grist server": "Grist-Server neu starten",
+        "Saving...": "Wird gespeichert...",
+        "Server": "Server",
+        "Server → Edition": "Server → Edition",
+        "Installation": "Installation",
+        "Default permissions": "Standardberechtigungen",
+        "Dismiss": "Ablehnen",
+        "Dismiss changes": "Änderungen ablehnen",
+        "Dismiss pending changes?": "Ausstehende Änderungen ablehnen?",
+        "Dismissing...": "Wird abgelehnt...",
+        "Apply changes": "Änderungen anwenden"
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -1951,7 +2032,9 @@
         "Submit": "Einreichen",
         "Search": "Suchen",
         "Select...": "Wählen Sie...",
-        "Submitting…": "Einreichen…"
+        "Submitting…": "Einreichen…",
+        "Options for {{-inputLabel}}": "Optionen für {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Suchoptionen für {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Kalender",
@@ -2040,7 +2123,8 @@
         "Your subscription expired on {{date}}.": "Ihr Abonnement ist am {{date}} abgelaufen.",
         "Your instance will be in **read-only** mode in **{{days}}** day(s).": "Ihre Instanz wird in **{{days}}** Tagen in den **Nur-Lesen-Modus** versetzt.",
         "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Ein Aktivierungsschlüssel wird verwendet, um Grist Enterprise nach Ablauf einer Probezeit\n        von 30 Tagen weiter zu nutzen. Sie erhalten einen Aktivierungsschlüssel, indem Sie [sich für Grist\n        Enterprise]({{signupLink}}) anmelden. Sie brauchen keinen Aktivierungsschlüssel, um\n        Grist Core auszuführen.",
-        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Ihr Testzeitraum ist am **{{expireAt}}** abgelaufen. Um Grist Enterprise weiter nutzen zu können, müssen Sie sich\n[für Grist Enterprise anmelden]({{signupLink}}) und Ihren Aktivierungsschlüssel unten einfügen."
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "Ihr Testzeitraum ist am **{{expireAt}}** abgelaufen. Um Grist Enterprise weiter nutzen zu können, müssen Sie sich\n[für Grist Enterprise anmelden]({{signupLink}}) und Ihren Aktivierungsschlüssel unten einfügen.",
+        "Copy": "Kopieren"
     },
     "ViewLayout": {
         "Delete": "Löschen",
@@ -2185,7 +2269,9 @@
         "Edited {{at}}": "Bearbeitet {{at}}",
         "Manage users": "Benutzer verwalten",
         "context menu - {{- documentName }}": "Kontextmenü - {{- documentName }}",
-        "Documents list": "Liste der Dokumente"
+        "Documents list": "Liste der Dokumente",
+        "Download document...": "Dokument herunterladen...",
+        "Deleted {{at}}": "{{at}} gelöscht"
     },
     "RenameDocModal": {
         "Enter document name": "Geben Sie den Dokumentnamen ein",
@@ -2224,7 +2310,9 @@
         "Installation": "Installation",
         "Orgs": "Organizationen",
         "Admin area": "Verwaltungsbereich",
-        "Docs": "Dokumente"
+        "Docs": "Dokumente",
+        "Quick setup": "Schnelleinrichtung",
+        "Apply changes": "Änderungen anwenden"
     },
     "Assistant": {
         "Press Enter to apply suggested formula.": "Drücken Sie die Eingabetaste, um die vorgeschlagene Formel anzuwenden.",
@@ -2278,7 +2366,9 @@
         "You are about to disable this experimental feature: {{experiment}}": "Sie sind dabei, diese experimentelle Funktion zu deaktivieren: {{experiment}}",
         "You are about to enable this experimental feature: {{experiment}}": "Sie sind dabei, diese experimentelle Funktion zu aktivieren: {{experiment}}",
         "{{experiment}} disabled.": "{{experiment}} deaktiviert.",
-        "{{experiment}} enabled.": "{{experiment}} aktiviert."
+        "{{experiment}} enabled.": "{{experiment}} aktiviert.",
+        "Notifications": "Benachrichtigungen",
+        "OAuth apps": "OAuth-Apps"
     },
     "NewRecordButton": {
         "New card": "Neue Karte",
@@ -2289,10 +2379,13 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Widget Duplizieren",
-        "Duplicate widgets": "Widgets duplizieren"
+        "Duplicate widgets": "Widgets duplizieren",
+        "Active": "Aktiv",
+        "Create new page": "Neue Seite erstellen"
     },
     "AttachmentsWidget": {
-        "Uploading, please wait…": "Hochladen, bitte warten…"
+        "Uploading, please wait…": "Hochladen, bitte warten…",
+        "Image": "Bild"
     },
     "AttachmentsEditor": {
         "Add": "hinzufügen",
@@ -2359,7 +2452,13 @@
         "Character encoding. See [the supported codecs]({{link}})": "Zeichenkodierung. Siehe [die unterstützten Codecs]({{link}})"
     },
     "commandList": {
-        "Undo last action": "Letzte Aktion rückgängig machen"
+        "Undo last action": "Letzte Aktion rückgängig machen",
+        "Delete the currently selected columns": "Aktuell ausgewählte Spalten löschen",
+        "Delete the currently selected record(s)": "Aktuell ausgewählte(n) Datensatz/Datensätze löschen",
+        "Detach active editor": "Aktiven Editor lösen",
+        "Discard changes to a cell value": "Änderungen an einem Zellwert verwerfen",
+        "Display Grist documentation": "Grist-Dokumentation anzeigen",
+        "Duplicate the currently selected record(s)": "Aktuell ausgewählte(n) Datensatz/Datensätze duplizieren"
     },
     "GridViewMenusDateHelpers": {
         "Years until": "Jahre bis"
@@ -2383,7 +2482,9 @@
     },
     "OpenAccessibilityModal": {
         "Enable screen reader improvements (keyboard shortcut: {{shortcut}})": "Bildschirmleser-Verbesserungen aktivieren (Tastaturkürzel: {{shortcut}})",
-        " or ": " oder "
+        " or ": " oder ",
+        "Accessibility": "Barrierefreiheit",
+        "Close": "Schließen"
     },
     "ScreenReaderConfig": {
         "Enable screen reader improvements": "Bildschirmleser-Verbesserungen aktivieren",
@@ -2409,5 +2510,38 @@
     },
     "InstallationIdBlock": {
         "Installation ID copied to clipboard": "Installations-ID in die Zwischenablage kopiert"
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Kalender hinzufügen",
+        "Create new column": "Neue Spalte erstellen",
+        "Date + time": "Datum + Zeit",
+        "Date only": "Nur Datum",
+        "Dates": "Datum",
+        "End": "Ende",
+        "End (optional)": "Ende (optional)",
+        "None": "Kein",
+        "Select a column": "Spalte auswählen",
+        "Set up calendar": "Kalender einrichten",
+        "Start": "Anfang",
+        "Start and end must be the same date type.": "Anfangs- und Enddatum müssen denselben Datumstyp haben.",
+        "Title": "Titel",
+        "Title (optional)": "Titel (optional)"
+    },
+    "CalendarView": {
+        "Day": "Tag",
+        "Month": "Monat",
+        "New Event": "Neuer Termin",
+        "Today": "Heute",
+        "Week": "Woche"
+    },
+    "CalendarWrapper": {
+        "+{{count}} more_one": "+{{count}} weitere",
+        "+{{count}} more_other": "+{{count}} weitere",
+        "End Date": "Enddatum",
+        "Is All Day": "Ist ganztägig",
+        "Start Date": "Anfangsdatum",
+        "Title": "Titel",
+        "Type": "Typ",
+        "When the event starts.": "Wenn der Termin anfängt."
     }
 }

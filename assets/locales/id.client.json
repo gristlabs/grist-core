@@ -381,7 +381,8 @@
         "Any documents created in this site will appear here.": "Dokumen apa pun yang dibuat di situs ini akan muncul di sini.",
         "Create my first document": "Buat dokumen pertama saya",
         "You have read-only access to this site. Currently there are no documents.": "Anda memiliki akses baca-saja ke situs ini. Saat ini tidak ada dokumen.",
-        "personal site": "situs pribadi"
+        "personal site": "situs pribadi",
+        "Documents": "Dokumen"
     },
     "DocPageModel": {
         "Add empty table": "Tambah tabel kosong",
@@ -394,7 +395,9 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Maaf, akses ke dokumen ini telah ditolak. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Anda dapat mencoba memuat ulang dokumen, atau menggunakan mode pemulihan. Mode pemulihan akan membuka dokumen agar sepenuhnya dapat diakses oleh pemiliknya, dan tidak dapat diakses oleh orang lain. Mode ini juga menonaktifkan rumus. [{{error}}]",
         "You do not have edit access to this document": "Anda tidak memiliki akses edit ke dokumen ini",
-        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Silakan muat ulang dokumen dan jika kesalahan berlanjut, hubungi pemilik dokumen untuk mencoba pemulihan dokumen. [{{error}}]"
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Silakan muat ulang dokumen dan jika kesalahan berlanjut, hubungi pemilik dokumen untuk mencoba pemulihan dokumen. [{{error}}]",
+        "Import from {{importSource}}": "Impor dari {{importSource}}",
+        "Import from...": "Impor dari..."
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Tidak dapat membuat tur dokumen dari data dalam dokumen ini. Pastikan ada tabel bernama GristDocTour dengan kolom Judul, Isi, Penempatan, dan Lokasi.",
@@ -663,7 +666,9 @@
         "go to webhook settings": "buka pengaturan webhook",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Perubahan baru ditangguhkan sementara. Antrean webhook meluap. Harap periksa pengaturan webhook, hapus webhook yang tidak valid, dan bersihkan antrean.",
         "Import from Airtable": "Impor dari Airtable",
-        "{{title}} widget": "Widget {{title}}"
+        "{{title}} widget": "Widget {{title}}",
+        "Airtable": "Airtable",
+        "File": "Berkas"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Dokumen apa pun yang dibuat di situs ini akan muncul di sini.",
@@ -692,7 +697,8 @@
         "To use Grist, please either sign up or sign in.": "Untuk menggunakan Grist, silakan mendaftar atau masuk.",
         "Visit our {{link}} to learn more about Grist.": "Kunjungi {{link}} kami untuk mempelajari lebih lanjut tentang Grist.",
         "Learn more in our {{helpCenterLink}}.": "Pelajari lebih lanjut di {{helpCenterLink}} kami.",
-        "Only show documents": "Hanya tampilkan dokumen"
+        "Only show documents": "Hanya tampilkan dokumen",
+        "Create a document": "Buat dokumen"
     },
     "HomeLeftPane": {
         "Access Details": "Detail Akses",
@@ -712,7 +718,10 @@
         "Terms of service": "Ketentuan Layanan",
         "Grist Resources": "Sumber Daya Grist",
         "context menu - {{- workspaceName }}": "menu konteks - {{- workspaceName }}",
-        "Import from Airtable": "Impor dari Airtable"
+        "Import from Airtable": "Impor dari Airtable",
+        "Airtable": "Airtable",
+        "Import from {{importSource}}": "Impor dari {{importSource}}",
+        "Import from...": "Impor dari..."
     },
     "Importer": {
         "Merge rows that match these fields:": "Gabungkan baris yang cocok dengan bidang ini:",
@@ -1191,7 +1200,8 @@
         "Attachment": "Lampiran",
         "Search columns": "Kolom pencarian",
         "By Name": "Berdasarkan Nama",
-        "By Date Modified": "Berdasar tanggal Modifikasi"
+        "By Date Modified": "Berdasar tanggal Modifikasi",
+        "Loading...": "Memuat..."
     },
     "modals": {
         "Cancel": "Batal",
@@ -1444,7 +1454,9 @@
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Anda dapat memilih salah satu widget siap pakai kami atau menyematkan widget Anda sendiri dengan memberikan URL lengkapnya.",
         "Calendar": "Kalender",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Tidak menemukan kolom yang tepat? Klik \"Ubah Widget\" untuk memilih tabel berisi data peristiwa.",
-        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Untuk mengonfigurasi kalender Anda, pilih kolom untuk tanggal mulai/berakhir dan judul acara. Perhatikan jenis setiap kolom.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Untuk mengonfigurasi kalender Anda, pilih kolom untuk tanggal mulai/berakhir dan judul acara. Perhatikan jenis setiap kolom."
+        },
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "UUID adalah string yang dihasilkan secara acak yang berguna untuk pengenal unik dan kunci tautan.",
         "Lookups return data from related tables.": "Pencarian mengembalikan data dari tabel terkait.",
         "Use reference columns to relate data in different tables.": "Gunakan kolom referensi untuk menghubungkan data dalam tabel yang berbeda.",
@@ -1480,7 +1492,8 @@
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Jika dicentang, nilai default bidang ini dapat diisi sebelumnya dari URL menggunakan parameter kueri.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Dengan saran, pengguna membuat perubahan pada salinan pribadi tanpa memodifikasi dokumen asli, lalu mengirimkan saran ini untuk ditinjau oleh pemilik dokumen sebelum integrasi.",
         "Unpin to hide the button while keeping the filter.": "Lepaskan pin untuk menyembunyikan tombol sambil tetap menampilkan filter.",
-        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "ID baris adalah pengidentifikasi numerik yang stabil dan unik, yang digunakan oleh kolom referensi untuk mengidentifikasi data."
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "ID baris adalah pengidentifikasi numerik yang stabil dan unik, yang digunakan oleh kolom referensi untuk mengidentifikasi data.",
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "Untuk mengonfigurasi kalender Anda, pilih kolom untuk tanggal mulai/berakhir dan judul acara. Perhatikan jenis setiap kolom."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "KETERANGAN",
@@ -1699,7 +1712,8 @@
     "buildViewSectionDom": {
         "No data": "Tidak ada data",
         "No row selected in {{title}}": "Tidak ada baris yang dipilih di {{title}}",
-        "Not all data is shown": "Tidak semua data ditampilkan"
+        "Not all data is shown": "Tidak semua data ditampilkan",
+        "{{title}} widget header": "Header widget {{title}}"
     },
     "FloatingEditor": {
         "Collapse Editor": "Tutup Editor"
@@ -1985,7 +1999,9 @@
         "Week of year": "Pekan dalam setahun",
         "12-hour format": "Format 12 jam",
         "24-hour format": "Format 24 jam",
-        "AM/PM": "AM/PM",
+        "AM": {
+            "PM": "AM/PM"
+        },
         "Calendar": "Kalender",
         "Date helpers…": "Pembantu tanggal…",
         "Day": "Hari",
@@ -2014,7 +2030,8 @@
         "Time bucket": "Ember waktu",
         "Year": "Tahun",
         "Years since": "Tahun sejak",
-        "Years until": "Sampai tahun"
+        "Years until": "Sampai tahun",
+        "AM/PM": "AM/PM"
     },
     "MappedFieldsConfig": {
         "Clear": "Bersih",
@@ -2169,7 +2186,10 @@
         "Open the context menu": "Buka menu konteks",
         "Toggle the screen reader improvements": "Alihkan peningkatan pembaca layar",
         "Open the current column menu": "Buka menu kolom saat ini",
-        "Open the current row menu": "Buka menu baris saat ini"
+        "Open the current row menu": "Buka menu baris saat ini",
+        "When focused on a page panel, focus next landmark": "Saat fokus berada pada panel halaman, fokus ke penanda berikutnya",
+        "When focused on a page panel, focus previous landmark": "Saat fokus berada pada panel halaman, fokus ke penanda sebelumnya",
+        "When focused on a widget, move focus between widget and widget header": "Saat fokus berada pada widget, pindahkan fokus antara widget dan header widget"
     },
     "Columns": {
         "Remove Column": "Hapus Kolom"
@@ -2366,14 +2386,24 @@
         "Admin Panel": "Panel Admin"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs.",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs."
+            }
+        },
         "The toggle is **off**": "Tombolnya **mati**",
-        "The toggle is **on**": "Tombolnya **aktif**"
+        "The toggle is **on**": "Tombolnya **aktif**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs."
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs.",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs."
+            }
+        },
         "The toggle is **off**": "Tombolnya **mati**",
-        "The toggle is **on**": "Tombolnya **aktif**"
+        "The toggle is **on**": "Tombolnya **aktif**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Fungsi Markdown Baru\n *\n *      Kita bisa _menulis_ [Markdown biasa](https://markdownguide.org) *di dalam*\n *      elemen Grainjs."
     },
     "HomeIntroCards": {
         "3 minute video tour": "Tur video 3 menit",
@@ -2619,6 +2649,9 @@
         "It is good practice not to run Grist as the root user.": "Merupakan praktik yang baik untuk tidak menjalankan Grist sebagai pengguna root.",
         "The main page of Grist should be available.": "Halaman utama Grist seharusnya tersedia.",
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL adalah URL dasar tempat pengguna dan integrasi mengakses server Grist ini. Callback autentikasi, tautan API, dan notifikasi email semuanya bergantung pada ketepatan nilai ini.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Jika berjalan dalam container tanpa penyimpanan eksternal atau dengan database bawaan, /persist harus berupa mounted volume. Jika tidak, dokumen dan metadata Grist akan hilang saat container berhenti."
+        },
         "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Jika berjalan dalam container tanpa penyimpanan eksternal atau dengan database bawaan, /persist harus berupa mounted volume. Jika tidak, dokumen dan metadata Grist akan hilang saat container berhenti."
     },
     "FormulaTransform": {
@@ -2672,7 +2705,9 @@
         "Screen reader navigation": "Navigasi pembaca layar",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Peringatan: dukungan pembaca layar di Grist masih dalam tahap pengembangan dan terus ditingkatkan seiring waktu. Masukan sangat kami hargai!",
         "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Meskipun tidak wajib, Anda dapat mengaktifkan peningkatan pembaca layar untuk pengalaman navigasi yang lebih baik:",
-        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Kami merekomendasikan penggunaan Firefox, Chrome, atau Edge untuk menggunakan Grist dengan pembaca layar."
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Kami merekomendasikan penggunaan Firefox, Chrome, atau Edge untuk menggunakan Grist dengan pembaca layar.",
+        "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.": "Saat fokus berada pada panel, pintasan yang sama memungkinkan Anda berpindah di antara penanda yang telah ditentukan, sehingga memudahkan navigasi cepat di dalam panel tersebut.",
+        "When focus is on a widget, {{nextJumpTargetShortcut}} toggles focus between the widget and its header.": "Saat fokus berada pada widget, {{nextJumpTargetShortcut}} mengalihkan fokus antara widget dan headernya."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Perubahan yang diusulkan",
@@ -2734,10 +2769,48 @@
         "Restart required. Authentication change may affect your access": "Restart diperlukan. Perubahan otentikasi dapat memengaruhi akses Anda",
         "Revert change of admin user": "Batalkan perubahan pengguna admin",
         "See \"Restart Grist\" section on top of this page to restart.": "Lihat bagian \"Mulai Ulang Grist\" di bagian atas halaman ini untuk memulai ulang.",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "Untuk mengatur **Grist Connect**, ikuti petunjuk di [artikel dukungan Grist untuk Grist Connect](https://support.getgrist.com/install/grist-connect/).",
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "Untuk mengatur **OIDC**, ikuti petunjuk di [artikel dukungan Grist untuk OIDC](https://support.getgrist.com/install/oidc).",
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "Untuk mengatur **SAML**, ikuti petunjuk di [artikel dukungan Grist untuk SAML](https://support.getgrist.com/install/saml/).",
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "Untuk mengatur **header yang diteruskan**, ikuti petunjuk di [artikel dukungan Grist untuk header yang diteruskan](https://support.getgrist.com/install/forwarded-headers/).",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "Untuk mengatur **Grist Connect**, ikuti petunjuk di [artikel dukungan Grist untuk Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "Untuk mengatur **OIDC**, ikuti petunjuk di [artikel dukungan Grist untuk OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "Untuk mengatur **SAML**, ikuti petunjuk di [artikel dukungan Grist untuk SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "Untuk mengatur **header yang diteruskan**, ikuti petunjuk di [artikel dukungan Grist untuk header yang diteruskan](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "Saat pengguna mengakses Grist, proxy menangani otentikasi dan meneruskan informasi pengguna yang terverifikasi melalui header HTTP. Grist menggunakan header ini untuk mengidentifikasi pengguna.",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "Saat masuk, pengguna akan dialihkan ke halaman login Grist Connect tempat mereka dapat melakukan autentikasi menggunakan berbagai penyedia identitas. Setelah autentikasi, mereka akan dialihkan kembali ke server Grist Anda dan masuk.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Saat masuk, pengguna akan dialihkan ke halaman masuk penyedia identitas pilihan Anda untuk melakukan autentikasi. Setelah autentikasi berhasil, mereka akan dialihkan kembali ke server Grist Anda dan masuk sebagai pengguna yang telah diverifikasi oleh penyedia tersebut.",
@@ -2812,7 +2885,11 @@
         "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "Saat kunci Anda tiba, masukkan kunci tersebut pada bagian **Edition**, lalu beralih ke **{{name}}** di sini.",
         "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "Anda akan menerima respons melalui email, biasanya dalam 5 hari kerja. Kunci Anda akan terikat pada instalasi ini.",
         "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} aktif tetapi berada di luar konfigurasi yang didukung tanpa kunci aktivasi Grist Full. ",
-        "{{name}} requires an activation key": "{{name}} memerlukan kunci aktivasi"
+        "{{name}} requires an activation key": "{{name}} memerlukan kunci aktivasi",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "Untuk mengatur **Grist Connect**, ikuti petunjuk di [artikel dukungan Grist untuk Grist Connect](https://support.getgrist.com/install/grist-connect/).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "Untuk mengatur **OIDC**, ikuti petunjuk di [artikel dukungan Grist untuk OIDC](https://support.getgrist.com/install/oidc).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "Untuk mengatur **SAML**, ikuti petunjuk di [artikel dukungan Grist untuk SAML](https://support.getgrist.com/install/saml/).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "Untuk mengatur **header yang diteruskan**, ikuti petunjuk di [artikel dukungan Grist untuk header yang diteruskan](https://support.getgrist.com/install/forwarded-headers/)."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Baris ini tidak tersedia atau tidak ada"
@@ -2893,7 +2970,9 @@
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Jadikan email baru ini sebagai admin instalasi. Organisasi, ruang kerja, dan dokumen akan tetap dimiliki oleh {{email}}. Perubahan ini akan berlaku setelah Anda memulai ulang server Grist ini.",
         "New admin": "Admin baru",
         "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ganti {{email}} dengan email baru di seluruh teks. Email baru ini akan menjadi admin instalasi, serta pemilik semua materi yang sebelumnya dimiliki oleh you@example.com.",
-        "An account with {{email}} already exists.": "Akun dengan {{email}} sudah ada."
+        "An account with {{email}} already exists.": "Akun dengan {{email}} sudah ada.",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.": "Jadikan email baru sebagai admin instalasi. Organisasi, ruang kerja, dan dokumen akan tetap dimiliki oleh **{{email}}**. Perubahan ini akan berlaku setelah Anda memulai ulang server Grist ini.",
+        "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.": "Ganti **{{email}}** dengan email baru di seluruh bagian. Email baru akan menjadi admin instalasi sekaligus pemilik semua materi yang sebelumnya dimiliki oleh **{{email}}**."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Impor dari Airtable"
@@ -2926,6 +3005,9 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "Kunci boot sebaiknya hanya digunakan sebagai sarana autentikasi sementara sampai metode autentikasi yang lebih aman dan andal dikonfigurasi melalui Pengaturan Keamanan → Autentikasi. Kami menyarankan untuk menghapus kunci boot setelah Anda selesai menyiapkan Grist.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Pengaturan ini saat ini dikelola oleh variabel lingkungan (`GRIST_BOOT_KEY`).",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Hapus setelan variabel lingkungan untuk mengelola pengaturan ini melalui Panel Admin.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "Anda tidak akan lagi dapat mengautentikasi sebagai admin instalasi pada halaman `/boot-key`."
+        },
         "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Anda tidak akan lagi dapat mengautentikasi sebagai admin instalasi pada halaman `/boot-key`."
     },
     "BootPage": {
@@ -3007,8 +3089,14 @@
         "Local filesystem (test only)": "Sistem file lokal (khusus pengujian)",
         "Stores document snapshots on the local filesystem. For tests only, not production.": "Menyimpan snapshot dokumen pada sistem file lokal. Hanya untuk pengujian, bukan produksi.",
         "Action needed": "Tindakan diperlukan",
-        "To preserve it, mount a volume at /persist.": "Untuk mempertahankannya, mount volume di /persist.",
-        "Your data may not survive a container restart.": "Data Anda mungkin tidak bertahan setelah container dimulai ulang."
+        "To preserve it, mount a volume at ": {
+            "persist.": "Untuk mempertahankannya, mount volume di /persist."
+        },
+        "Your data may not survive a container restart.": "Data Anda mungkin tidak bertahan setelah container dimulai ulang.",
+        "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Penyimpanan apa pun yang kompatibel dengan S3 dan mendukung pembuatan versi bucket, seperti RustFS atau AWS S3.",
+        "S3-compatible": "Kompatibel dengan S3",
+        "Set these environment variables and restart Grist to enable S3-compatible storage:": "Atur variabel lingkungan berikut dan mulai ulang Grist untuk mengaktifkan penyimpanan yang kompatibel dengan S3:",
+        "To preserve it, mount a volume at /persist.": "Untuk mempertahankannya, mount volume di /persist."
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Izinkan akses anonim",
@@ -3085,9 +3173,14 @@
         "URL is reachable": "URL dapat dijangkau",
         "automatic": "otomatis",
         "checking": "memeriksa",
-        "https://grist.example.com": "https://grist.example.com",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        },
         "not set": "belum ditetapkan",
-        "set": "setel"
+        "set": "setel",
+        "https://grist.example.com": "https://grist.example.com"
     },
     "EditionSection": {
         "Choose which edition of Grist to run on this server": "Pilih edisi Grist yang akan dijalankan di server ini",
@@ -3115,7 +3208,9 @@
         "Downgrade": "Turunkan versi",
         "Downgrade to Community Edition": "Turunkan versi ke Edisi Community",
         "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Turunkan versi ke edisi Community? Fitur Grist penuh akan dinonaktifkan setelah dimulai ulang. Tindakan ini dapat dibatalkan.",
-        "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Untuk otomatisasi, MCP server, AI assistant, dukungan OIDC/SAML, notifikasi email, kontrol admin, audit logging, dan lainnya, beralihlah ke edisi Grist penuh.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Untuk otomatisasi, MCP server, AI assistant, dukungan OIDC/SAML, notifikasi email, kontrol admin, audit logging, dan lainnya, beralihlah ke edisi Grist penuh."
+        },
         "Free activation keys": "Free activation keys",
         "Restart Grist to apply this change.": "Mulai ulang Grist untuk menerapkan perubahan ini.",
         "Switch to Full Grist": "Beralih ke Grist Penuh",
@@ -3139,7 +3234,8 @@
         "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Anda dapat menurunkan versi ke edisi Community kapan saja. Data Anda tidak akan hilang dan Anda tidak perlu menginstal ulang Grist.",
         "Your server will restart automatically once finished.": "Server Anda akan dimulai ulang secara otomatis setelah proses selesai.",
         "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} tersedia bagi individu dan organisasi dengan total pendanaan tahunan di bawah US$1 juta. Untuk organisasi yang lebih besar, lihat {{pricingLink}}. Mulai uji coba gratis 30 hari Anda hari ini.",
-        "The Community edition is set via environment variable.": "Edisi Community ditetapkan melalui environment variable."
+        "The Community edition is set via environment variable.": "Edisi Community ditetapkan melalui environment variable.",
+        "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Untuk otomatisasi, MCP server, AI assistant, dukungan OIDC/SAML, notifikasi email, kontrol admin, audit logging, dan lainnya, beralihlah ke edisi Grist penuh."
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Terapkan dan Lanjutkan",
@@ -3314,12 +3410,20 @@
         "A business or organization": "Bisnis atau organisasi",
         "A couple of quick questions — optional, and only our team sees this.": "Beberapa pertanyaan singkat—opsional dan hanya dapat dilihat oleh tim kami.",
         "AI response": "Respons AI",
-        "Conference/event": "Konferensi/acara",
-        "Developer/IT": "Pengembang/IT",
-        "Education/Research Institute": "Lembaga pendidikan/penelitian",
+        "Conference": {
+            "event": "Konferensi/acara"
+        },
+        "Developer": {
+            "IT": "Pengembang/IT"
+        },
+        "Education": {
+            "Research Institute": "Lembaga pendidikan/penelitian"
+        },
         "Email is required when subscribing to updates.": "Email diperlukan saat berlangganan pembaruan.",
         "Email:": "Email:",
-        "Friend/colleague": "Teman/rekan kerja",
+        "Friend": {
+            "colleague": "Teman/rekan kerja"
+        },
         "GitHub": "GitHub",
         "Help us improve Grist": "Bantu kami meningkatkan Grist",
         "How did you hear about Grist?": "Bagaimana Anda mengetahui Grist?",
@@ -3328,12 +3432,19 @@
         "Occasional email about new releases and important security notices.": "Email sesekali tentang rilis baru dan pemberitahuan keamanan penting.",
         "Other": "Lainnya",
         "Please enter a valid email address.": "Masukkan alamat email yang valid.",
-        "Reddit/forum": "Reddit/forum",
+        "Reddit": {
+            "forum": "Reddit/forum"
+        },
         "Search engine": "Mesin pencari",
         "Select…": "Pilih…",
         "Send me product and security updates": "Kirimkan pembaruan produk dan keamanan kepada saya",
         "Social media": "Media sosial",
-        "What best describes you?": "Manakah yang paling menggambarkan Anda?"
+        "What best describes you?": "Manakah yang paling menggambarkan Anda?",
+        "Conference/event": "Konferensi/acara",
+        "Developer/IT": "Pengembang/IT",
+        "Education/Research Institute": "Lembaga pendidikan/penelitian",
+        "Friend/colleague": "Teman/rekan kerja",
+        "Reddit/forum": "Reddit/forum"
     },
     "QuickSetupApplyStep": {
         "Apply and go live!": "Terapkan dan mulai gunakan!",
@@ -3408,5 +3519,117 @@
         "You've asked for this.": "Anda telah meminta ini.",
         "{{count}} people have asked for this._one": "{{count}} orang telah meminta ini.",
         "{{count}} people have asked for this._other": "{{count}} orang telah meminta ini."
+    },
+    "AdminServersSection": {
+        "1 document": "1 dokumen",
+        "1 other server has stopped reporting that it is running.": "1 server lain telah berhenti melaporkan bahwa server tersebut sedang berjalan.",
+        "1 other server is registered but not accepting new documents.": "1 server lain terdaftar tetapi tidak menerima dokumen baru.",
+        "1 server": "1 server",
+        "Another server has the same address, so requests meant for one may reach the other.": "Server lain memiliki alamat yang sama, sehingga permintaan yang ditujukan kepada satu server dapat mencapai server lainnya.",
+        "Could not reach the server": "Tidak dapat terhubung ke server",
+        "Each document is held by one of these servers. Fleet-style routing.": "Setiap dokumen ditempatkan pada salah satu server ini. Perutean gaya fleet.",
+        "Each document is held by one of these servers. Worker-pool routing.": "Setiap dokumen ditempatkan pada salah satu server ini. Perutean kumpulan pekerja.",
+        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET telah diatur, tetapi build ini tidak dapat memproksikan dokumen antarserver, sehingga dokumen hanya dapat dijangkau melalui server yang ditetapkan untuk dokumen tersebut.",
+        "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.": "Berikan setiap server alamat yang dapat dirutekan oleh server sejawatnya dan tidak digunakan oleh server lain. Hingga saat itu, permintaan untuk dokumen pada server-server ini dapat mencapai server yang salah dan gagal.",
+        "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.": "Grist Fleet merupakan cara yang mudah dan didukung dengan baik untuk menskalakan Grist secara horizontal, sehingga kumpulan server dapat membagi beban secara cerdas berdasarkan dokumen. Dengan fitur ini, bagian ini mencantumkan setiap server, dokumen yang disimpannya, serta status apakah server tersebut sedang berjalan.",
+        "Grist Fleet is not in your activation key": "Grist Fleet tidak tercakup dalam kunci aktivasi Anda",
+        "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.": "Belum menyatakan bahwa server sedang berjalan selama waktu yang jauh lebih lama dari seharusnya. Server yang berjalan menyatakan statusnya setiap beberapa detik, baik diminta maupun tidak.",
+        "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.": "Tidak ada dokumen yang dapat dibuka hingga sebuah server terdaftar untuk menanganinya. Pastikan setidaknya satu server berjalan sebagai pekerja dokumen dan dapat terhubung ke Redis.",
+        "No servers are registered to hold documents": "Tidak ada server yang terdaftar untuk menangani dokumen",
+        "Refresh": "Muat ulang",
+        "Refreshing…": "Memuat ulang…",
+        "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.": "Terdaftar dan tetap menyimpan dokumen yang ditanganinya, tetapi tidak menerima dokumen baru. Hal ini normal saat server sedang dimatikan.",
+        "Said it is running within the last few seconds.": "Menyatakan bahwa server sedang berjalan dalam beberapa detik terakhir.",
+        "Server pool found": "Kumpulan server ditemukan",
+        "Servers": "Server",
+        "Servers have stopped reporting that they are running": "Server telah berhenti melaporkan bahwa server tersebut sedang berjalan",
+        "Set options through the environment rather than on this page, so that every server is configured the same way.": "Atur opsi melalui lingkungan, bukan pada halaman ini, agar setiap server memiliki konfigurasi yang sama.",
+        "Shares an address with {{list}}": "Berbagi alamat dengan {{list}}",
+        "Some servers share an address": "Beberapa server berbagi alamat",
+        "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.": "Proses Grist mungkin telah berhenti, tidak dapat terhubung ke Redis, atau terlalu sibuk untuk melaporkan status. Hentikan server secara permanen sebelum melakukan tindakan apa pun, karena server yang hanya sibuk dapat kembali aktif dan menulis ke dokumen yang kini ditangani oleh server lain.",
+        "The list below is from the last successful check. Press Refresh to try again.": "Daftar di bawah ini berasal dari pemeriksaan terakhir yang berhasil. Tekan Muat ulang untuk mencoba lagi.",
+        "The servers registered to hold documents": "Server yang terdaftar untuk menangani dokumen",
+        "This build does not support Grist Fleet": "Build ini tidak mendukung Grist Fleet",
+        "checking": "memeriksa",
+        "draining": "mengosongkan beban",
+        "group {{group}}": "grup {{group}}",
+        "no proxy": "tanpa proksi",
+        "no servers": "tidak ada server",
+        "not reporting": "tidak melaporkan",
+        "running": "berjalan",
+        "shared address": "alamat bersama",
+        "this server": "server ini",
+        "{{count}} documents_one": "{{count}} dokumen",
+        "{{count}} documents_other": "{{count}} dokumen",
+        "{{count}} of {{total}} not reporting_one": "{{count}} dari {{total}} tidak melaporkan",
+        "{{count}} of {{total}} not reporting_other": "{{count}} dari {{total}} tidak melaporkan",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} server lain terdaftar tetapi tidak menerima dokumen baru.",
+        "{{count}} other servers are registered but not accepting new documents._other": "{{count}} server lain terdaftar tetapi tidak menerima dokumen baru.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} server lain telah berhenti melaporkan bahwa server tersebut sedang berjalan.",
+        "{{count}} other servers have stopped reporting that they are running._other": "{{count}} server lain telah berhenti melaporkan bahwa server tersebut sedang berjalan.",
+        "{{count}} servers_one": "{{count}} server",
+        "{{count}} servers_other": "{{count}} server",
+        "{{percent}}% load": "Beban {{percent}}%"
+    },
+    "GristImportEntryPoints": {
+        "Copy data from another document": "Salin data dari dokumen lain"
+    },
+    "GristImportUI": {
+        "1 warning": "1 peringatan",
+        "Cancel": "Batal",
+        "Choose destination": "Pilih tujuan",
+        "Continue": "Lanjutkan",
+        "Copy 1 table": "Salin 1 tabel",
+        "Copy from {{docName}} in progress. Do not navigate away from this page.": "Penyalinan dari {{docName}} sedang berlangsung. Jangan tinggalkan halaman ini.",
+        "Copy tables": "Salin tabel",
+        "Copy {{count}} tables_one": "Salin {{count}} tabel",
+        "Copy {{count}} tables_other": "Salin {{count}} tabel",
+        "Copying data from another document is available in the full edition of Grist.": "Menyalin data dari dokumen lain tersedia dalam edisi lengkap Grist.",
+        "Copying data from another document is available on Business plans and above.": "Menyalin data dari dokumen lain tersedia pada paket Business dan yang lebih tinggi.",
+        "Copying tables...": "Menyalin tabel...",
+        "Destination": "Tujuan",
+        "Document": "Dokumen",
+        "Existing tables": "Tabel yang ada",
+        "Failed to fetch document tables": "Gagal mengambil tabel dokumen",
+        "New table": "Tabel baru",
+        "New table: structure only": "Tabel baru: struktur saja",
+        "No documents available in this workspace.": "Tidak ada dokumen yang tersedia di ruang kerja ini.",
+        "No workspaces available in this site.": "Tidak ada ruang kerja yang tersedia di situs ini.",
+        "Select tables to copy from {{docName}}": "Pilih tabel yang akan disalin dari {{docName}}",
+        "Select the Grist document to copy data from.": "Pilih dokumen Grist yang akan disalin datanya.",
+        "Site": "Situs",
+        "Skip": "Lewati",
+        "Source tables": "Tabel sumber",
+        "Structure only": "Struktur saja",
+        "Try for free": "Coba gratis",
+        "Try full Grist": "Coba Grist lengkap",
+        "Workspace": "Ruang kerja",
+        "loading your tables...": "memuat tabel Anda...",
+        "{{count}} warnings_one": "{{count}} peringatan",
+        "{{count}} warnings_other": "{{count}} peringatan"
+    },
+    "HomeLearningResources": {
+        "A 3 minute tour of Grist": "Tur Grist selama 3 menit",
+        "Grist Tutorial": "Tutorial Grist",
+        "Help Center": "Pusat Bantuan",
+        "Learn Grist": "Pelajari Grist",
+        "Learn the basics, step by step": "Pelajari dasar-dasarnya, langkah demi langkah",
+        "Learning resources": "Sumber belajar",
+        "Tutorials and live sessions": "Tutorial dan sesi langsung",
+        "Tutorials, docs, guides and videos": "Tutorial, dokumentasi, panduan, dan video",
+        "Video Tour": "Tur Video",
+        "Webinars": "Webinar"
+    },
+    "HomeNewDocBlock": {
+        "Blank document": "Dokumen kosong",
+        "Import file": "Impor berkas",
+        "Templates": "Templat"
+    },
+    "startDocGristImport": {
+        "Copy data from another document": "Salin data dari dokumen lain"
+    },
+    "startHomeGristImport": {
+        "Copy data from another document": "Salin data dari dokumen lain",
+        "Data can't be copied to the current workspace.": "Data tidak dapat disalin ke ruang kerja saat ini."
     }
 }

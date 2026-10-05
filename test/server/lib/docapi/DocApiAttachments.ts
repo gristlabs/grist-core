@@ -46,6 +46,15 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     return workspaces.find(w => w.name === name)!.id;
   }
 
+  async function attachToTable1(docUrl: string, attIds: number[]) {
+    const { chimpy } = getCtx();
+    const resp = await axios.post(`${docUrl}/apply`, [
+      ["AddColumn", "Table1", "Attached", { type: "Attachments" }],
+      ["AddRecord", "Table1", null, { Attached: ["L", ...attIds] }],
+    ], chimpy);
+    assert.equal(resp.status, 200);
+  }
+
   describe("attachments", function() {
     it("POST /docs/{did}/attachments adds attachments", async function() {
       const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
@@ -123,6 +132,7 @@ function addAttachmentsTests(getCtx: () => TestContext) {
     it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip", async function() {
       const { homeUrl, chimpy, getOrCreateTestDoc } = getCtx();
       const testDoc = await getOrCreateTestDoc();
+      await attachToTable1(`${homeUrl}/api/docs/${testDoc}`, [1, 2, 3]);
       const resp = await axios.get(`${homeUrl}/api/docs/${testDoc}/attachments/archive`,
         { ...chimpy, responseType: "arraybuffer" });
       assert.equal(resp.status, 200);
@@ -481,6 +491,7 @@ function addAttachmentsTests(getCtx: () => TestContext) {
           { name: "hello2.doc", contents: "foobar" },
         ], chimpy);
         assert.deepEqual(resp.data, [1, 2, 3]);
+        await attachToTable1(docUrl, [1, 2, 3]);
       });
 
       after(async () => {
@@ -590,6 +601,20 @@ function addAttachmentsTests(getCtx: () => TestContext) {
           // One attachment in the .tar is a duplicate (identical content + extension), so it won't be used
           unused: 1,
         }, "2 attachments should be added, 1 unused, no errors");
+      });
+
+      it("GET /docs/{did}/attachments/archive errors if attachment files are missing", async function() {
+        const { homeUrl, chimpy } = getCtx();
+        const docResp = await axios.get(`${docUrl}/download`, { ...chimpy, responseType: "arraybuffer" });
+        assert.equal(docResp.status, 200);
+        const docUploadForm = new FormData();
+        docUploadForm.append("upload", new File([docResp.data], "ExternalAttachmentsMissing.grist"));
+        docUploadForm.append("workspaceId", String(await getWorkspaceId("Private")));
+        const docUploadResp = await axios.post(`${homeUrl}/api/docs`, docUploadForm, chimpy);
+        assert.equal(docUploadResp.status, 200);
+
+        const resp = await axios.get(`${homeUrl}/api/docs/${docUploadResp.data}/attachments/archive`, chimpy);
+        checkError(500, /Unable to retrieve/, resp);
       });
 
       it("POST /docs/{did}/attachments/archive errors if no .tar file is found", async function() {

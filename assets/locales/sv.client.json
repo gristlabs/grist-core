@@ -629,7 +629,8 @@
         "Any documents created in this site will appear here.": "Alla dokument som skapas på denna sajt kommer att visas här.",
         "Create my first document": "Skapa mitt första dokument",
         "You have read-only access to this site. Currently there are no documents.": "Du har läsbehörighet till denna sajt. För närvarande finns inga dokument.",
-        "personal site": "personlig sajt"
+        "personal site": "personlig sajt",
+        "Documents": "Dokument"
     },
     "DocPageModel": {
         "Add empty table": "Lägg till en tom tabell",
@@ -642,7 +643,9 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Beklagar, åtkomst till detta dokument har nekats. {{error}}",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Du kan försöka ladda om dokumentet eller använda återställningsläget. Återställningsläget öppnar dokumentet för ägare med fulla rättigheter, och låser det helt för andra. Det inaktiverar också alla formler. [{{error}}]",
         "You do not have edit access to this document": "Du har inte redigeringsrättighet till detta dokument",
-        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Var god, ladda om dokumentet och om felet kvarstår, kontakta dokumentets ägare för att försöka göra en dokumenteåterställning. [{{error}}]"
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Var god, ladda om dokumentet och om felet kvarstår, kontakta dokumentets ägare för att försöka göra en dokumenteåterställning. [{{error}}]",
+        "Import from {{importSource}}": "Importera från {{importSource}}",
+        "Import from...": "Importera från..."
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Kan inte skapa en dokument guide med datan i detta dokument. Säkerställ att det finns en tabell med namnet GristDocTour med kolumnerna Title, Body, Placement och Location.",
@@ -911,7 +914,9 @@
         "go to webhook settings": "gå till webhookinställningar",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Nya ändringar är tillfälligt pausade. Wehbooks kön är överfull. Kontrollera webhooksinställningar, ta bort felaktiga webhooks och rensa kön.",
         "Import from Airtable": "Importera från Airtable",
-        "{{title}} widget": "{{title}} widget"
+        "{{title}} widget": "{{title}} widget",
+        "Airtable": "Airtable",
+        "File": "Fil"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Alla dokument som skapas på denna sajt kommer synas här.",
@@ -940,7 +945,8 @@
         "To use Grist, please either sign up or sign in.": "För att använda Grist, registrera dig eller logga in.",
         "Visit our {{link}} to learn more about Grist.": "Besök vår {{link}} för att lära dig med om Grist.",
         "Learn more in our {{helpCenterLink}}.": "Lär dig mer i vårt {{helpCenterLink}}.",
-        "Only show documents": "Visa bara dokument"
+        "Only show documents": "Visa bara dokument",
+        "Create a document": "Skapa ett dokument"
     },
     "HomeLeftPane": {
         "Access Details": "Behörighets detaljer",
@@ -960,7 +966,10 @@
         "Terms of service": "Användarvillkor",
         "Grist Resources": "Grist resurser",
         "context menu - {{- workspaceName }}": "snabbmeny - {{- workspaceName }}",
-        "Import from Airtable": "Importera från Airtable"
+        "Import from Airtable": "Importera från Airtable",
+        "Airtable": "Airtable",
+        "Import from {{importSource}}": "Importera från {{importSource}}",
+        "Import from...": "Importera från..."
     },
     "Importer": {
         "Merge rows that match these fields:": "Slå ihop rader som där dessa fällt matchar:",
@@ -1322,7 +1331,8 @@
         "Attachment": "Bilaga",
         "Search columns": "Sök kolumner",
         "By Name": "Efter namn",
-        "By Date Modified": "Efter ändringsdatum"
+        "By Date Modified": "Efter ändringsdatum",
+        "Loading...": "Laddar..."
     },
     "pages": {
         "Duplicate page": "Duplicera sida",
@@ -1528,7 +1538,9 @@
         "You can choose one of our pre-made widgets or embed your own by providing its full URL.": "Du kan välja en av våra redan skapade widgetar eller lägga in din egen genom att ange dess kompletta URL.",
         "Calendar": "Kalender",
         "Can't find the right columns? Click 'Change Widget' to select the table with events data.": "Hittar du inte rätt kolumner? Klicka på 'Ändra widget' för att välja tabellen med händelsedata.",
-        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "För att ställa in din kalender, välj columner för start/slut datum och händelsetitel. Observera respektive kolumntyp.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "För att ställa in din kalender, välj columner för start/slut datum och händelsetitel. Observera respektive kolumntyp."
+        },
         "A UUID is a randomly-generated string that is useful for unique identifiers and link keys.": "En UUID är en slupgenererad sträng som är användbar för att skapa unika referensid och länknycklar.",
         "Lookups return data from related tables.": "Uppslag hämtar data från relaterade tabeller.",
         "Use reference columns to relate data in different tables.": "Använd referenskolumner för att koppla data i olika tabeller.",
@@ -1564,7 +1576,8 @@
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "När vald, kommer detta fällts standardvärde att vara förifyllt från URLen genom dess frågeparametrar.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Med ändringsförslag kan användare göra ändringar i en egen kopia utan att ändra orginaldokumenet, sedan kan de skicka in dessa ändringsförslag för att bli granskade av dokumentägaren innan de accepteras.",
         "Unpin to hide the button while keeping the filter.": "Lossa för att dölja knappen och samtidigt behålla filtret.",
-        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Rad IDn är fasta och unika numeriska identifierare, som används av referenskolumner för att identifiera rader."
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Rad IDn är fasta och unika numeriska identifierare, som används av referenskolumner för att identifiera rader.",
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "För att ställa in din kalender, välj columner för start/slut datum och händelsetitel. Observera respektive kolumntyp."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESKRIVNING",
@@ -1628,7 +1641,8 @@
         "Create a team site": "Skapa en arbetslagssajt",
         "Sign in to see your sites": "Logga in för att se dina sajter",
         "Sign in": "Logga in",
-        "Ask an administrator to add you to a team site.": "Be administratören att lägga till dig i en arbetslagssajt."
+        "Ask an administrator to add you to a team site.": "Be administratören att lägga till dig i en arbetslagssajt.",
+        "Personal sites are turned off on this installation, and you aren't a member of any team site yet.": "Personliga sajter är avstängda på denna installation och du är inte medlem i någon arbetslagssajt ännu."
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "BESKRIVNING"
@@ -1730,7 +1744,8 @@
     "buildViewSectionDom": {
         "No data": "Ingen data",
         "No row selected in {{title}}": "Ingen rad vald i {{title}}",
-        "Not all data is shown": "Alla dara visas inte"
+        "Not all data is shown": "Alla dara visas inte",
+        "{{title}} widget header": "{{title}} widget rubrik"
     },
     "FloatingEditor": {
         "Collapse Editor": "Komprimera redigerare"
@@ -2213,14 +2228,24 @@
         "Widget URL": "Widget URL"
     },
     "markdown": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element.",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
+            }
+        },
         "The toggle is **off**": "Detta av/på-val är **av**",
-        "The toggle is **on**": "Detta av/på-val är **på**"
+        "The toggle is **on**": "Detta av/på-val är **på**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
     },
     "markdown.d": {
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element.",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
+            }
+        },
         "The toggle is **off**": "Detta av/på-val är **av**",
-        "The toggle is **on**": "Detta av/på-val är **på**"
+        "The toggle is **on**": "Detta av/på-val är **på**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Ny Markdownfunktion\n\n      Vi kan _skriva_ [vanlig Markdown](https://markdownguide.org) *inne* i\n      ett Grainjs element."
     },
     "HomeIntroCards": {
         "3 minute video tour": "3 minuters videogenomgång",
@@ -2459,6 +2484,9 @@
         "It is good practice not to run Grist as the root user.": "Det är en bra grundregel att inte köra Grist som root-användare.",
         "The main page of Grist should be available.": "Grists huvudsida borde vara tillgänglig.",
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL är den basURL som användare och integrationer når Gristserverna på. Autentiserings svar, API länkar och epostnotifieringar är beroende av att den stämmer.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Om servern körs i en kontainer utan extern lagring eller med en standard databas, ska /persist monteras som en enhetsvolym. Annars kommer Gristdokument och metadata förloras när kontainern stoppas."
+        },
         "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Om servern körs i en kontainer utan extern lagring eller med en standard databas, ska /persist monteras som en enhetsvolym. Annars kommer Gristdokument och metadata förloras när kontainern stoppas."
     },
     "FormulaTransform": {
@@ -2512,7 +2540,9 @@
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Varning: stödet för skärmläsare är ett pågående arbete i Grist och förbättras över tid. Återkoppling mottages tacksamt!",
         "While not mandatory, you can enable screen reader improvements for a better navigation experience:": "Det är inte obligatoriskt men du kan aktivera förbättringar för skärmläsare för att få en bättre navigations upplevelse:",
         "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Vi rekommenderar Firefox, Chrome eller Edge vid användning av Grist med skärmläsare.",
-        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Läs först \"Tangentbordsnavigering\" ovan för att förstå hur navigering mellan olika regioner i gränssnittet fungerar: specifika tangentbordsgenvägar behöver användas."
+        "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Läs först \"Tangentbordsnavigering\" ovan för att förstå hur navigering mellan olika regioner i gränssnittet fungerar: specifika tangentbordsgenvägar behöver användas.",
+        "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.": "När en panel är i fokus låter samma genväg dig att hoppa mellan fördefinierade landmärken, vilket gör det lättare att navigera inom den panelen.",
+        "When focus is on a widget, {{nextJumpTargetShortcut}} toggles focus between the widget and its header.": "När en widget är i fokus växlar {{nextJumpTargetShortcut}} fokus mellan en widget och dess titel."
     },
     "ProposedChangesPage": {
         "Proposed changes": "Föreslagna ändringar",
@@ -2655,12 +2685,17 @@
         "Open the context menu": "Öppna snabbmenyn",
         "Toggle the screen reader improvements": "Slå av/på förbättringar för skärmläsare",
         "Open the current column menu": "Öppna nuvarande kolumnmenyn",
-        "Open the current row menu": "Öppna nuvarande radmenyn"
+        "Open the current row menu": "Öppna nuvarande radmenyn",
+        "When focused on a page panel, focus next landmark": "När en panel är i fokus, fokuseras nästa landmärke",
+        "When focused on a page panel, focus previous landmark": "När en panel är i fokus, fokuseras föregående landmärke",
+        "When focused on a widget, move focus between widget and widget header": "När en widget är I fokus, flyttas fokus mellan widget och widget titel"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-timmarsformat",
         "24-hour format": "24-timmarsformat",
-        "AM/PM": "AM/PM",
+        "AM": {
+            "PM": "AM/PM"
+        },
         "Calendar": "Kalender",
         "Date helpers…": "Datum stöd…",
         "Day": "Dag",
@@ -2696,7 +2731,8 @@
         "Week of year": "Vecka för år",
         "Year": "År",
         "Years since": "År sedan",
-        "Years until": "År tills"
+        "Years until": "År tills",
+        "AM/PM": "AM/PM"
     },
     "selectBy": {
         "Select widget": "Välj widget"
@@ -2732,11 +2768,49 @@
         "No authentication: unrestricted sign-in as demo user": "Ingen inloggning: obegränsad inloggning som demoanvändare",
         "Restart required. Authentication change may affect your access": "Omstart krävs. Inloggningsändring kan påverka din åtkost",
         "See \"Restart Grist\" section on top of this page to restart.": "Se \"Starta om Grist\" avsnittet högst upp på denna sida för att starta om.",
-        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "För att ställa in **Grist Connect**, följe instruktionerna i [Grist supportartikeln för Grist Connect](https://support.getgrist.com/install/grist-connect/).",
-        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "För att ställa in **OIDC**, följ instruktionerna i [Grist supportartikeln för OIDC](https://support.getgrist.com/install/oidc).",
-        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "För att ställa in **SAML**, följ instruktionerna i [Grist supportartikeln för SAML](https://support.getgrist.com/install/saml/).",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "För att ställa in **Grist Connect**, följe instruktionerna i [Grist supportartikeln för Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "För att ställa in **OIDC**, följ instruktionerna i [Grist supportartikeln för OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "För att ställa in **SAML**, följ instruktionerna i [Grist supportartikeln för SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
         "**Forwarded headers** allows your Grist server to trust authentication performed by an external proxy (e.g. Traefik ForwardAuth).": "**Forwarded headers** får din Gristserver att använda inloggning genom extern proxy (till exempel Traefik ForwardAut).",
-        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "För att ställa in **forwarded headers**, följ instruktionerna i [Grist supportartikel för forwarded headers](https://support.getgrist.com/install/forwarded-headers/).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "För att ställa in **forwarded headers**, följ instruktionerna i [Grist supportartikel för forwarded headers](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        },
         "When a user accesses Grist, the proxy handles authentication and forwards verified user information through HTTP headers. Grist uses these headers to identify the user.": "När en användare använder Grist så hanterar proxyn inloggningen och vidarebefordrar verifierad användarinformation genom HTTP headers. Grist använder dessa headers för att identifiera användaren.",
         "When signing in, users will be redirected to a Grist Connect login page where they can authenticate using various identity providers. After authentication, they'll be redirected back to your Grist server and signed in.": "När användare loggar in blir de omdirigerade till Grist Connects inloggnings sida där de kan logga in genom olika identitets leverantörer. Efter inloggning kommer de att omdirigeras tillbaka till din Gristserver inloggade.",
         "When signing in, users will be redirected to your chosen identity provider's login page to authenticate. After successful authentication, they'll be redirected back to your Grist server and signed in as the user verified by the provider.": "Vid inloggning kommer användare att skickas till din vada identitets leverantörs inloggningssida för att logga in. Efter lyckad inloggning kommer de att omdirigeras tillbaka till din Gristserver, inloggade som den användare som verifierats av leverantören.",
@@ -2804,7 +2878,17 @@
         "Meanwhile, finish setting up": "Under tiden, slutför inställningar av",
         "I understand this server will run with no authentication": "Jag förstår att denna server kommer köras utan aytentisering",
         "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "Du kommer få svar per e-post, vanligtvis inom 5 arbetsdagar. Nyckeln kommer att vara knuten till denna installation.",
-        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} är aktiv men fungerar bara med komplett Grist med aktiveringsnyckel. "
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} är aktiv men fungerar bara med komplett Grist med aktiveringsnyckel. ",
+        "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Vem som helst som kan nå denna server kam komma åt all data utan att logga in. Välj en inloggningsmetod nedan.",
+        "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Vem som helst kan komma åt all data utan att logga in. Detta lämpar sig bara för privata nätverk och tillfälliga installationer.",
+        "Only your reverse proxy should be able to reach the Grist backend directly, or users could bypass sign-in.": "Enbart din omvända proxy ska kunna nå Gristmotorn direkt, annars kan användare komma runt inloggningen.",
+        "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "När du får din nyckel, fyll i den i **Variant** sektionen, växla sedan till **{{name}}** här.",
+        "Pick a supported sign-in method that works today: Sign in with getgrist.com (simple and recommended), Forwarded headers (for reverse proxy setups), or continue without authentication for now.": "Välj en tillgänglig inloggningsmetod som fungerar idag; Logga in med getgrist.com (enkelt och vår rekommendation), HTTP headers (tillsammans med omvänd proxy) eller fortsätt utan autentisering just nu.",
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Gemensam inloggning med **OIDC** eller **SAML** stöds till fullo i komplett Grist, som kräver en aktiveringsnyckel — se [priser]({{pricingLink}}). Individer och små organisationer kan ansöka om en [gratis Grist aktiveringsnyckel]({{faqLink}}).",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https://support.getgrist.com/install/grist-connect/).": "För att ställa in **Grist Connect**, följe instruktionerna i [Grist supportartikeln för Grist Connect](https://support.getgrist.com/install/grist-connect/).",
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https://support.getgrist.com/install/oidc).": "För att ställa in **OIDC**, följ instruktionerna i [Grist supportartikeln för OIDC](https://support.getgrist.com/install/oidc).",
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https://support.getgrist.com/install/saml/).": "För att ställa in **SAML**, följ instruktionerna i [Grist supportartikeln för SAML](https://support.getgrist.com/install/saml/).",
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https://support.getgrist.com/install/forwarded-headers/).": "För att ställa in **forwarded headers**, följ instruktionerna i [Grist supportartikel för forwarded headers](https://support.getgrist.com/install/forwarded-headers/)."
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Denna rad är inte tillgänglig eller finns inte"
@@ -2828,7 +2912,8 @@
         "Recommended": "Rekommenderad",
         "Use getgrist.com sign-in": "Använd inloggning via getgrist.com",
         "You can switch to OIDC, SAML, or another method at any time.": "Du kan byta till OIDC, SAML, eller annan metod när som helst.",
-        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Perfekt för test och prototypbygge. Logga in med konto på getgrist.com, utan att ställa in en identitetsleverantör."
+        "Ideal for testing and prototyping. Sign in with a getgrist.com account, with no identity provider to configure.": "Perfekt för test och prototypbygge. Logga in med konto på getgrist.com, utan att ställa in en identitetsleverantör.",
+        "Users sign in with a getgrist.com account. Simplest to configure. Also ideal for testing and prototyping.": "Användare loggar in med ett getgrist.com konto. Enklast att ställa in. Det är också idealiskt för testning och prototypbygge."
     },
     "AirtableImportUI": {
         "Back": "Tillbaka",
@@ -2879,7 +2964,9 @@
         "Enter new admin email": "Fyll i ny administratörs se-post",
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Gör den nya e-postadressen till installationens administratör. Organisationer, arbetsytor och dokument kommer fortsatt att vara ägda av {{email}}. Dessa ändringar kommer att få effekt först efter omstart av denna Gristserver.",
         "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "Ersätt {{email}} med den nya e-postadressen för allt. Den nya e-postadressen blir installationens administratör och ägare av allt material som tidigare ägdes av you@example.com.",
-        "An account with {{email}} already exists.": "Ett konto med {{email}} finns redan."
+        "An account with {{email}} already exists.": "Ett konto med {{email}} finns redan.",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.": "Gör en ny e-postadress till administratör för installationen. Organisationer, arbetsytor och dokument kommer fortsatt ägas av **{{email}}**. Dessa ändringar kommer slå igenom vid omstart av Gristservern.",
+        "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.": "Ersätt **{{email}}** med den nya e-postadress en över allt. Den nya e-postadressen kommer bli administratör för Installationen och ägare av allt som tidigare ägdes av **{{email}}**."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Importera från Airtable"
@@ -2916,8 +3003,11 @@
         "Make sure you have configured an authentication system that lets you sign in as an admin before removing the boot key.": "Säkerställ att du har ställt in ett autentiserings system som låter dig logga in som administratör före du tar bort uppstartsnyckeln.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Denna inställning styrs just nu av en miljövariabel (`GRIST_BOOT_KEY`).",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Ta bort miljövariabelen för att hantera denna inställning via Administrationspanelen.",
-        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Du kommer inte längre kunna autentisera dig som installationsadministratör på `/boot-key` sidan.",
-        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "Uppstartsnyckeln ska vara användas som en tillfällig lösning för autentisering tills en säkrare och robustare autentiseringsmetod är instaälld via Säkerhetsinställningar → Autentisering. Vi rekommenderar att uppstartsnyckeln tas bort när du satt upp Grist."
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "Du kommer inte längre kunna autentisera dig som installationsadministratör på `/boot-key` sidan."
+        },
+        "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "Uppstartsnyckeln ska vara användas som en tillfällig lösning för autentisering tills en säkrare och robustare autentiseringsmetod är instaälld via Säkerhetsinställningar → Autentisering. Vi rekommenderar att uppstartsnyckeln tas bort när du satt upp Grist.",
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Du kommer inte längre kunna autentisera dig som installationsadministratör på `/boot-key` sidan."
     },
     "BootPage": {
         "Boot key": "Uppstartsnyckel",
@@ -2984,8 +3074,14 @@
         "Stores document snapshots on the local filesystem. For tests only, not production.": "Lagrar ögonblicksbilder av dokument på det lokala filsystemet. Enbart för test, inte produktion.",
         "AWS S3 via native AWS SDK. Supports IAM roles and AWS-native auth.": "AWS S3 via AWS SDK. Stödjer IAM roller och AWS autentisering.",
         "Action needed": "Åtgärd krävs",
-        "To preserve it, mount a volume at /persist.": "För att spara det, montera en lagringsvolym på /persist.",
-        "Your data may not survive a container restart.": "Din data kan försvinna vid kontaineromstart."
+        "To preserve it, mount a volume at ": {
+            "persist.": "För att spara det, montera en lagringsvolym på /persist."
+        },
+        "Your data may not survive a container restart.": "Din data kan försvinna vid kontaineromstart.",
+        "S3-compatible": "S3-kompatibel",
+        "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Valfri S3-kompatibel lagring med versionshanterade buckets, så som RustFS eller bara AWS S3.",
+        "Set these environment variables and restart Grist to enable S3-compatible storage:": "Ställ in följande miljövariabler och starta om Grist för att använda S3-kompatibel lagring:",
+        "To preserve it, mount a volume at /persist.": "För att spara det, montera en lagringsvolym på /persist."
     },
     "QuickSetupContinueButton": {
         "Continue": "Fortsätt",
@@ -3055,7 +3151,9 @@
         "You are running the Grist Community edition.": "Du kör den öppna versionen av Grist.",
         "Downgrade to Community edition? Full Grist features are disabled after restart. This is reversible.": "Nedgradera till öppen version? Funktioner som är en del av komplett variant av Grist kommer stängas av efter omstart.",
         "{{freeKeysLink}} are available to individuals and small orgs under US $1 million total annual funding. For larger orgs, see {{pricingLink}}.": "{{freeKeysLink}} finns tillgänglig för individer och små organisationer med årlig omsättning på under 1 miljon US Dollar. För stora organisationer se {{pricingLink}}.",
-        "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC/SAML support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC/SAML support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist."
+        },
         "This server runs the full edition of Grist, with advanced security, governance, MCP server, automations, email notifications, and collaboration features.": "Denna server kör full version av Grist med, funktioner aktiverade för förbättrad säkerhet, kontroll, MCP server, automatiserade flöden, e-post notiser och funktioner för samarbete.",
         "Community Grist": "Öppen version av Grist",
         "Continue with Community edition": "Fortsätt med Öppen version",
@@ -3070,12 +3168,21 @@
         "For automations, MCP server, AI assistant, OIDC support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist.",
         "Full Grist features such as email notifications, automations, MCP server, and OIDC and SAML support will be disabled after restart. You may always upgrade to full Grist again.": "Funktioner som är den fel av komplett version av grist så som e-postnotiser, automatiserade flöden, MCPserver, AI assistent, OIDC och SAML stöd kommer att stängas av efter omstart. Du kan alltid uppgradera till komplett Grist igen.",
         "Your server will restart automatically once finished.": "Din server kommer att starta om automatiskt när det är klart.",
-        "The Community edition is set via environment variable.": "Öppen version är vald genom miljövariabel."
+        "The Community edition is set via environment variable.": "Öppen version är vald genom miljövariabel.",
+        "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Du kan nedgradera när som helst till öppen version. Du förlorar inga data och behöver inte installeraom Grist.",
+        "Grist will switch to the Community edition after restarting, disabling full Grist features. You will not lose your data or need to reinstall Grist.": "Grist kommer växla till öppen version efter omstart. Det kommer stänga alla funktioner som ingår i komplett Grist. Du kommer inte att förlora några data, ingen ominstallation behövs.",
+        "Switching to full Grist downloads the required extensions. This may take a few minutes, during which the server will be unavailable.": "När du växlar till komplett Grist laddas alla nödvändiga nya komponenter ner. Det kan ta några minuter, under tiden kommer servern vara otillgänglig.",
+        "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} finns för individer och organisationer med mindre än 1M USD i total omsättning. För större organisationer besök {{pricingLink}}. Påbörja din 30-dagars gratis provapåperiod idag.",
+        "For automations, MCP server, AI assistant, OIDC/SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "För automatiserade flöden, MCPserver, AI assistent, OIDC/SAML support, e-postnotiser, administrations sida, revisions loggning med mera byt till komplett version av Grist."
     },
     "BaseUrlSection": {
         "set": "ställ in",
         "not set": "inte inställd",
-        "https://grist.example.com": "https://grist.example.com",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        },
         "checking": "kontrollerar",
         "Testing...": "Testar...",
         "Test URL": "Test-URL",
@@ -3091,7 +3198,8 @@
         "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "Den URL som användare och integrationer når denna Grist server på. Autetiseringssvar, API länkar och epostnotifieringar beror alla på att denna är korrekt.",
         "This URL was auto-detected — confirm it is correct, then save.": "Denna URL hittades automatsikt — kontrollera att den är rätt och spara.",
         "URL is reachable": "URL är nåbar",
-        "automatic": "automatisk"
+        "automatic": "automatisk",
+        "https://grist.example.com": "https://grist.example.com"
     },
     "AdminPanelCss": {
         "Confirmed": "Bekräftaf",
@@ -3259,7 +3367,11 @@
         "Setting these up is done by whoever manages this Grist installation.": "Att ställa in dessa görs av den som hanterar denna Gristinstallation.",
         "These features need additional setup on this install.": "Dessa funktioner kräver ytterligare inställningar av denna Gristinstallation.",
         "When you share a document, new members get an email invite.": "När du delar ett dokument kommer nya medlemmar få en inbjudan per e-post.",
-        "Why do you want this? Press Enter to send.": "Varför behöver du detta? Tryck på Enter för att skicka."
+        "Why do you want this? Press Enter to send.": "Varför behöver du detta? Tryck på Enter för att skicka.",
+        "Get emailed when data changes, or when someone comments or mentions you.": "Få ett e-post när data ändras eller när någon kommenterar eller nämner dig.",
+        "React to changes in your data automatically with custom emails, webhook calls, and more.": "Reagerar på ändringar i din data automatiskt med anpassade e-post, webhook anrop, m.m.",
+        "Some of these features are ready; others need more setup on this install.": "Vissa av dessa funktioner är redo. Andra behöver mer inställningar i denna installation.",
+        "This document can run automations, send notifications, and use an AI assistant.": "Detta dokument kan köra automatiserade flöden, skicka notiser och använda AI assistenter."
     },
     "CalendarConfigModal": {
         "Add calendar": "Lägg till kalender",
@@ -3312,7 +3424,8 @@
         },
         "GitHub": "GitHub",
         "Help us improve Grist": "Hjälp oss förbättra Grist",
-        "How did you hear about Grist?": "Hur fick du kännedom om Grist?"
+        "How did you hear about Grist?": "Hur fick du kännedom om Grist?",
+        "Occasional email about new releases and important security notices.": "Enstaka e-post om nya versioner och viktig säkerhets information."
     },
     "CalendarView": {
         "Day": "Dag",
@@ -3387,6 +3500,124 @@
         "Grist is live!": "Grist är live!",
         "Back to installation": "Tillbaka till installation",
         "Apply and go live!": "Applicera och gå live!",
-        "Applying settings and restarting…": "Aplicerar Inställningar och startar om…"
+        "Applying settings and restarting…": "Aplicerar Inställningar och startar om…",
+        "Our servers may be experiencing issues. Please try again later.": "Våra servrar kan ha problem. Försök igen senare.",
+        "We couldn't save your details or subscribe you to updates.": "Vi kunde varken spara din kontaktuppgifter eller anmäla dig till uppdateringar.",
+        "We couldn't submit your details or your request to be kept up to date. Please try again.": "Vi kunde varken skicka in dina kontaktuppgifter eller din begäran om att hållas uppdaterad. Försök igen.",
+        "We saved your details, but couldn't subscribe you to updates.": "Vi spara din kontaktuppgifter, men kunde inte anmäla dig till uppdateringar.",
+        "We subscribed you for product updates, but couldn't save your other details.": "Vi har anmält dig till produkt uppdateringar, men kunde inte spara dina kontaktuppgifter.",
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställningsändringar har applicerats och servern har startats om. Grist är nu i drift och tillgänglig för anvädare."
+    },
+    "startHomeGristImport": {
+        "Copy data from another document": "Kopiera data från ett annat dokument",
+        "Data can't be copied to the current workspace.": "Data kan inte kopieras till nuvarande arbetsyta."
+    },
+    "startDocGristImport": {
+        "Copy data from another document": "Kopiera data från ett annat dokument"
+    },
+    "HomeNewDocBlock": {
+        "Templates": "Mallar",
+        "Import file": "Importera fil",
+        "Blank document": "Tomt dokument"
+    },
+    "HomeLearningResources": {
+        "Webinars": "Webbinarier",
+        "Video Tour": "Videogenomgång",
+        "Help Center": "Hjälpcenter",
+        "Learn Grist": "Lär dig Grist",
+        "Learning resources": "Lärresurser",
+        "A 3 minute tour of Grist": "En 3 minuters rundtur av Grist",
+        "Grist Tutorial": "Grist instruktionsguide",
+        "Learn the basics, step by step": "Lär dig grunderna, steg för steg",
+        "Tutorials and live sessions": "Instruktionsguider och live genomgångar",
+        "Tutorials, docs, guides and videos": "Instruktionsguider, dokumentation, guider och filmer"
+    },
+    "AdminServersSection": {
+        "Could not reach the server": "Servern kunde inte nås",
+        "1 server": "1 server",
+        "1 document": "1 dokument",
+        "{{count}} of {{total}} not reporting_other": "{{count}} av {{total}} svarar inte",
+        "{{count}} servers_one": "{{count}} servrar",
+        "{{count}} servers_other": "{{count}} servrar",
+        "{{percent}}% load": "{{percent}}% belastning",
+        "1 other server has stopped reporting that it is running.": "1 annan server har slutat att rapportera att den är i drift.",
+        "1 other server is registered but not accepting new documents.": "1 annan server är registrerad men tar inte emot inte nya dokument.",
+        "Another server has the same address, so requests meant for one may reach the other.": "En annan server har samma adress, det innebär att anrop till ena servern kan komma till den andra i stället.",
+        "Each document is held by one of these servers. Fleet-style routing.": "Varje dokument hanteras av en av dessa servrar. Fleet-style routing.",
+        "Each document is held by one of these servers. Worker-pool routing.": "Varje dokument hanteras av en av dessa servrar. Den server som har det efterfrågdade dokumentet får hantera anropet.",
+        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET är inställd, men den här installationen kan inte skicka vidare dokument mellan servrar, det innebär att dokument bara går att nå på den servrar som har just det dokumentet.",
+        "No servers are registered to hold documents": "Inga servrar är registrerade för att hantera dokument",
+        "Refresh": "Uppdatera",
+        "Refreshing…": "Uppdaterar…",
+        "Said it is running within the last few seconds.": "Meddelande att den är i drift för någon sekund sedan.",
+        "Servers": "Servrar",
+        "Servers have stopped reporting that they are running": "Servrar har slutat att rapportera att de är i drift",
+        "Shares an address with {{list}}": "Dela en adress med {{list}}",
+        "Some servers share an address": "Några serverar delar en adress",
+        "The list below is from the last successful check. Press Refresh to try again.": "Listan nedan är från den senaste lyckade kontrollen. Tryck på Uppdatera för att försöka igen.",
+        "The servers registered to hold documents": "Servrarna är registrerade för att hantera dokument",
+        "checking": "kontrollerar",
+        "group {{group}}": "grupp {{group}}",
+        "no proxy": "ingen proxy",
+        "no servers": "inga servrar",
+        "not reporting": "ingen rappotering",
+        "running": "i drift",
+        "shared address": "delad adress",
+        "this server": "denna server",
+        "{{count}} documents_one": "{{count}}dokument",
+        "{{count}} documents_other": "{{count}} dokument",
+        "{{count}} of {{total}} not reporting_one": "{{count}} av {{total}} svar ej",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
+        "{{count}} other servers are registered but not accepting new documents._other": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} andra servrar har slutat rapportera att de är i drift.",
+        "{{count}} other servers have stopped reporting that they are running._other": "{{count}} andra servrar har slutat rapportera att de är i drift.",
+        "Grist Fleet is not in your activation key": "Grist Fleet ingår inte i din aktiveringsnyckel",
+        "draining": "invallidering",
+        "This build does not support Grist Fleet": "Denna installation stödjer inte Grist Fleet",
+        "Server pool found": "Server grupp hittad",
+        "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.": "Ge varje server en adress som de andra kollade servrarna kan nå den på, en adress som inte används av de andra servrarna. Tills dess kan anrop till dokumentet på olika servrar hamna fel och misslyckas.",
+        "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.": "Grist Fleet är ett enket sätt med gott teknikt stöd skala Grist horisontellt, så att en grupp av server kan dela upp belastningen intelligent genom att dela dokumenten mellan sig. Denna sektion listar varje server, med dokument som lagras på den och om den är i drift.",
+        "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.": "Har inte meddelat att den är I drift på mycket längre tid än den borde. En server i drift meddelar detta med några få sekunders mellanrum, oavsett om någon efterfrågat det eller ej.",
+        "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.": "Inget dokument kan öppnas tills en server är registrerad för att lagra det. Kontrollera att minst en server kör som dokument handerare och att den kan nå Redis.",
+        "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.": "Registrerad och behåller de dokument som är lagrade på den, men tar inte emot nya. Normalt när en server stängs av.",
+        "Set options through the environment rather than on this page, so that every server is configured the same way.": "Ställ in inställningar genom miljövariabler i stället för denna sida, så att alla servrar ställs in på samma sätt.",
+        "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.": "Grist processen kan vara borta, eller kan inte nå Redis. Stäng av servern permanent innan arbete med att åtgärda detta påbörjas, annars kan en server som bara är upptagen med att hantera anrop komma igång igen och skriva till dokumentet som en annan server lagrar."
+    },
+    "GristImportEntryPoints": {
+        "Copy data from another document": "Kopiera data från ett annat dokument"
+    },
+    "GristImportUI": {
+        "1 warning": "1 varning",
+        "Cancel": "Avbryt",
+        "Choose destination": "Vällj mål",
+        "Continue": "Fortsätt",
+        "Copy 1 table": "Kopiera 1 tabell",
+        "Copy tables": "Kopiera tabeller",
+        "Copy {{count}} tables_one": "Kopiera {{count}} tabeller",
+        "Copy {{count}} tables_other": "Kopiera {{count}} tabeller",
+        "Copying tables...": "Kopierar tabeller...",
+        "Destination": "Mål",
+        "Document": "Dokument",
+        "Existing tables": "Tabeller som finns",
+        "New table": "Ny tabell",
+        "Site": "Sajt",
+        "Skip": "Hoppa över",
+        "Workspace": "Arbetsyta",
+        "{{count}} warnings_one": "{{count}} varningar",
+        "{{count}} warnings_other": "{{count}} varningar",
+        "Copy from {{docName}} in progress. Do not navigate away from this page.": "Kopiering från {{docName}} pågår. Lämna inte denna sida.",
+        "Copying data from another document is available in the full edition of Grist.": "Kopiering av data från ett annat dokument är tillgängligt i komplett variant av Grist.",
+        "Copying data from another document is available on Business plans and above.": "Kopiering av data från ett annat dokument är tillgängligt från Företags abonnemang och uppåt.",
+        "Failed to fetch document tables": "Kunde inte hämta dokumentets tabeller",
+        "New table: structure only": "Ny tabell: enbart struktur",
+        "No documents available in this workspace.": "Inga dokument tillgängliga på denna arbetsyta.",
+        "No workspaces available in this site.": "Inga arbetsytor är tillgängliga på denna sajt.",
+        "Select tables to copy from {{docName}}": "Välj tabeller att kopiera från {{docName}}",
+        "Select the Grist document to copy data from.": "Välj det Grist dokument som datan ska kopieras från.",
+        "Source tables": "Källtabeller",
+        "Structure only": "Enbart struktur",
+        "Try for free": "Testa gratis",
+        "Try full Grist": "Pröva komplett Grist",
+        "loading your tables...": "laddar dina tabeller..."
     }
 }

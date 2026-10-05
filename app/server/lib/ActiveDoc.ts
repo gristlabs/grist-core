@@ -1203,7 +1203,10 @@ export class ActiveDoc extends EventEmitter {
     if (!this.docData) {
       throw new Error("No doc data");
     }
-    const attachments = this.docData.getMetaTable("_grist_Attachments").getRecords();
+    const usageChanges = await this.docStorage.scanAttachmentsForUsageChanges();
+    const usedNow = new Map(usageChanges.map(c => [c.id, c.used]));
+    const attachments = this.docData.getMetaTable("_grist_Attachments").getRecords()
+      .filter(attachment => usedNow.get(attachment.id) ?? !attachment.timeDeleted);
     const attachmentFileManager = this._attachmentFileManager;
     const doc = this;
 
