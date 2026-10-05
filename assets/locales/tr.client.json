@@ -26,7 +26,7 @@
         "Add table-wide rule": "Tablo genelinde bir kural ekle",
         "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Erişim izinleri değişti. Değişimlerinizi geri sarmak ve kuralları yenilemek için Reset'e basın.",
         "All": "Hepsi",
-        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Sütün {{collId}}, tablo {{tableId}}'nin sıraya bağlı olabilen birden fazla kuralında beliriyor. Kuralları değiştirmeyi deneyebilirsiniz.",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "{{colId}} sütunu, {{tableId}} tablosunun sıraya bağımlı olabilen birden fazla kuralında kullanılmış. Kuralları değiştirmeyi deneyebilir misiniz?",
         "Columns": "Sütünlar",
         "Default resource missing in resource map": "Varsayılan kaynak, kaynak haritasında bulunmuyor",
         "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Tablo {{tableId}}'da geçersiz sütunlar: {{invalidColIds}}",

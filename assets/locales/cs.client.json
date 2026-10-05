@@ -29,7 +29,7 @@
     "Type message to display when this rule blocks an action…": "Napiš zprávu…",
     "View as": "Zobraz Jako",
     "User Attributes": "Uživatelské Atributy",
-    "When adding table rules, automatically add a rule to grant OWNER full access.": "Když přidáváš nové tabulkové pravidla, automaticky přidej pravidlo - uděl MAJITELI plné práva.",
+    "When adding table rules, automatically add a rule to grant OWNER full access.": "Když přidáváš nová tabulková pravidla, automaticky přidej pravidlo - uděl MAJITELI plná práva.",
     "Permission to edit document structure": "Povolení k editaci struktury dokumentu",
     "Seed rules": "Seed pravidla",
     "Save": "Ulož",
