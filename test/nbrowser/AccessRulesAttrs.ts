@@ -3,7 +3,7 @@
  * autocomplete suggestions and errors.
  */
 import { UserAPI } from "app/common/UserAPI";
-import { enterRulePart, findDefaultRuleSetWait, removeRules,
+import { enterRulePart, findDefaultRuleSetWait, removeRules, revertAccessRules,
   startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -114,6 +114,8 @@ describe("AccessRulesAttrs", function() {
       await checkNoCompletions();
     });
     await driver.sendKeys(Key.ESCAPE);
+
+    await revertAccessRules();
   });
 
   it("should show errors for invalid attributes", async function() {
@@ -134,6 +136,8 @@ describe("AccessRulesAttrs", function() {
     // Valid
     await enterRulePart(ruleSet, 1, "$SomeText.lower() == user.Email.upper()", "Allow all");
     await checkError(ruleSet, 1, null);
+
+    await revertAccessRules();
   });
 
   it("should show toast on actions when rule does not apply", async function() {

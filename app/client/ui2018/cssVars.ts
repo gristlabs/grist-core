@@ -11,9 +11,9 @@
  * CSS variables described below consume those variables.
  */
 import { getOrCreateStyleElement } from "app/client/lib/getOrCreateStyleElement";
-import { urlState } from "app/client/models/gristUrlState";
 import { getTheme, ProductFlavor } from "app/client/ui/CustomThemes";
 import { CssCustomProp as CustomProp } from "app/common/CssCustomProp";
+import { InterfaceStyle } from "app/common/gristUrls";
 import { components, tokens } from "app/common/ThemePrefs";
 
 import { DomElementMethod, makeTestId, Observable, styled, TestId } from "grainjs";
@@ -321,7 +321,11 @@ export function attachCssBaseStyles(varsOnly: boolean = false) {
 /**
  * Attaches the global css properties to the document's root to make them available in the page.
  */
-export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolean = false) {
+export function attachCssRootVars(
+  productFlavor: ProductFlavor,
+  varsOnly: boolean = false,
+  interfaceStyle: InterfaceStyle = "full",
+) {
   attachCssBaseStyles(varsOnly);
   document.documentElement.classList.add(cssRootLayout.className);
   document.body.classList.add(cssBody.className);
@@ -329,7 +333,6 @@ export function attachCssRootVars(productFlavor: ProductFlavor, varsOnly: boolea
   if (customTheme.bodyClassName) {
     document.body.classList.add(customTheme.bodyClassName);
   }
-  const interfaceStyle = urlState().state.get().params?.style || "full";
   document.body.classList.add(`interface-${interfaceStyle}`);
 }
 

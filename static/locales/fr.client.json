@@ -161,7 +161,11 @@
         "Memory Error": "Erreur mémoire",
         "Translators: please translate this only when your language is ready to be offered to users": "Traducteurs : merci de ne traduire ceci que lorsque votre langue sera prête à être proposée aux utilisateurs",
         "Disabled screen reader improvements": "Désactivé : améliorations pour lecteurs d'écran",
-        "Enabled screen reader improvements": "Activé : améliorations pour lecteurs d'écran"
+        "Enabled screen reader improvements": "Activé : améliorations pour lecteurs d'écran",
+        "Exit without saving": "Quitter sans enregistrer",
+        "Stay on the page": "Rester sur la page",
+        "Unsaved changes": "Modifications en cours",
+        "You have unsaved changes. If you leave now, your changes will be lost.": "Vous avez des modifications en cours. Si vous quittez maintenant, vos modifications seront perdues."
     },
     "AppHeader": {
         "Home page": "Page d’accueil",
