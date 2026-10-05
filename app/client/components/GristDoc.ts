@@ -51,6 +51,7 @@ import { DocHistory } from "app/client/ui/DocHistory";
 import { startDocTour } from "app/client/ui/DocTour";
 import { DocTutorial } from "app/client/ui/DocTutorial";
 import { DocSettingsPage } from "app/client/ui/DocumentSettings";
+import { IAssistantPopup } from "app/client/ui/IAssistantPopup";
 import { isTourActive, isTourActiveObs } from "app/client/ui/OnBoardingPopups";
 import { DefaultPageWidget, IPageWidget, toPageWidget } from "app/client/ui/PageWidgetPicker";
 import { ProposedChangesPage } from "app/client/ui/ProposedChangesPage";
@@ -184,6 +185,7 @@ export interface GristDoc extends DisposableWithEvents {
   rightPanelTool: Observable<IExtraTool | null>;
   isReadonly: Observable<boolean>;
   isReadonlyKo: IKnockoutObservable<boolean>;
+  assistantPopup: IAssistantPopup | null;
   readonly comparison: DocStateComparison | null;
   cursorMonitor: CursorMonitor;
   editorMonitor?: EditorMonitor;
@@ -328,6 +330,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public currentUser: Observable<ExtendedUser | null>;
   public latestActionState: Observable<DocState | null>;
 
+  public assistantPopup = buildAssistantPopup(this);
+
   private _actionLog: ActionLog;
   private _actionCounter: ActionCounter;
   private _undoStack: UndoStack;
@@ -347,7 +351,6 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private _disableAutoStartingTours: boolean = false;
   private _isShowingPopupSection = false;
   private _prevSectionId: number | null = null;
-  private _assistantPopup = buildAssistantPopup(this);
   private _diffModels: Record<string, DataTableModelWithDiff> = {};
   private _showAllRowsInComparison: boolean = false;
 
@@ -695,7 +698,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       setCursor: this.onSetCursorPos.bind(this),
       createForm: this._onCreateForm.bind(this),
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
-      activateAssistant: () => this._assistantPopup?.open(),
+      activateAssistant: () => this.assistantPopup?.open(),
     }, this, true));
 
     this.userPresenceModel.initialize().catch(reportError);
@@ -828,8 +831,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       const assistantState = await this.docComm.getAssistantState(params.assistantState);
       if (this.isDisposed() || !assistantState) { return; }
 
-      this._assistantPopup?.setState(assistantState);
-      this._assistantPopup?.open();
+      this.assistantPopup?.setState(assistantState);
+      this.assistantPopup?.open();
     }));
   }
 

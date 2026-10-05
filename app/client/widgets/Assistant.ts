@@ -140,6 +140,8 @@ export class Assistant extends Disposable {
   }
 
   public async send(message: string): Promise<void> {
+    if (this._conversation.thinking.get()) { return; }
+
     this._conversation.addQuestion(message);
     this._userInput.set("");
     await this._doAsk(message);
