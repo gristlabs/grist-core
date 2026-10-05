@@ -79,6 +79,12 @@ describe("localization", function() {
     assert.isUndefined(instance.getResourceBundle("pl", "client"));
   });
 
+  it("keeps an incomplete language when offerAllLanguages is set", function() {
+    write(saasDir, "pl.client.json", { Saas: { Hi: "Czesc" } });
+    const instance = setupLocale([coreDir, saasDir], { offerAllLanguages: true });
+    assert.deepEqual(instance.getResourceBundle("pl", "client"), { Saas: { Hi: "Czesc" } });
+  });
+
   it("skips directories that do not exist, except the core one", function() {
     const instance = setupLocale([coreDir, extDir, saasDir]);
     assert.deepEqual(instance.getResourceBundle("en", "client").Core, { Hello: "Hello" });

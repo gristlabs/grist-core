@@ -17,3 +17,4 @@
 !ext
 **/_build
 /sandbox/pyodide/worker/node_modules
+static/locales
