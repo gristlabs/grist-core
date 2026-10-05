@@ -1337,7 +1337,11 @@
         "Users from table": "Utilisateurs de la table d'appairage",
         "View as": "Voir en tant que",
         "Other users from table": "Autres utilisateurs de la table",
-        "Shared users": "Utilisateurs partagés"
+        "Shared users": "Utilisateurs partagés",
+        "Search users": "Rechercher",
+        "Filter by name or email": "Filtrer par nom ou e-mail",
+        "Clear filter": "Effacer le filtre",
+        "No matching users": "Aucun utilisateur correspondant"
     },
     "ConditionalStyle": {
         "Add conditional style": "Ajouter un style conditionnel",
