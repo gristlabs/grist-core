@@ -80,7 +80,8 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public docData: DocData;
   public isReadonly = Observable.create(this, true);
   public isReadonlyKo = toKo(ko, this.isReadonly);
-  public assistantPopup = null;
+  public assistantPanel = null;
+  public innerLeftPanel = null;
   // Currently we don't support this feature.
   public maximizedSectionId = Observable.create(this, null);
   public externalSectionId = Observable.create(this, null);

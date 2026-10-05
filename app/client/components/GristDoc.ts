@@ -51,8 +51,9 @@ import { DocHistory } from "app/client/ui/DocHistory";
 import { startDocTour } from "app/client/ui/DocTour";
 import { DocTutorial } from "app/client/ui/DocTutorial";
 import { DocSettingsPage } from "app/client/ui/DocumentSettings";
-import { IAssistantPopup } from "app/client/ui/IAssistantPopup";
+import { IAssistantPanel } from "app/client/ui/IAssistantPanel";
 import { isTourActive, isTourActiveObs } from "app/client/ui/OnBoardingPopups";
+import { IInnerLeftPanel } from "app/client/ui/PagePanels";
 import { DefaultPageWidget, IPageWidget, toPageWidget } from "app/client/ui/PageWidgetPicker";
 import { ProposedChangesPage } from "app/client/ui/ProposedChangesPage";
 import { linkFromId, NoLink, selectBy } from "app/client/ui/selectBy";
@@ -65,7 +66,7 @@ import { isNarrowScreen, mediaSmall, mediaXSmall, testId, theme } from "app/clie
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { invokePrompt } from "app/client/ui2018/modals";
-import { buildAssistantPopup } from "app/client/widgets/AssistantPopup";
+import { buildAssistantPanel } from "app/client/widgets/AssistantPanel";
 import { CommentMonitor, DiscussionPanel } from "app/client/widgets/DiscussionEditor";
 import { FieldEditor } from "app/client/widgets/FieldEditor";
 import { MinimalActionGroup } from "app/common/ActionGroup";
@@ -185,7 +186,8 @@ export interface GristDoc extends DisposableWithEvents {
   rightPanelTool: Observable<IExtraTool | null>;
   isReadonly: Observable<boolean>;
   isReadonlyKo: IKnockoutObservable<boolean>;
-  assistantPopup: IAssistantPopup | null;
+  assistantPanel: IAssistantPanel | null;
+  readonly innerLeftPanel: IInnerLeftPanel | null;
   readonly comparison: DocStateComparison | null;
   cursorMonitor: CursorMonitor;
   editorMonitor?: EditorMonitor;
@@ -330,7 +332,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public currentUser: Observable<ExtendedUser | null>;
   public latestActionState: Observable<DocState | null>;
 
-  public assistantPopup = buildAssistantPopup(this);
+  public assistantPanel = buildAssistantPanel(this);
+  public get innerLeftPanel() { return this.assistantPanel; }
 
   private _actionLog: ActionLog;
   private _actionCounter: ActionCounter;
@@ -698,8 +701,14 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       setCursor: this.onSetCursorPos.bind(this),
       createForm: this._onCreateForm.bind(this),
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
-      activateAssistant: () => this.assistantPopup?.open(),
     }, this, true));
+
+    const assistantPanel = this.assistantPanel;
+    if (assistantPanel) {
+      this.autoDispose(commands.createGroup({
+        toggleAssistant: () => assistantPanel.toggle(),
+      }, this, true));
+    }
 
     this.userPresenceModel.initialize().catch(reportError);
 
@@ -831,8 +840,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       const assistantState = await this.docComm.getAssistantState(params.assistantState);
       if (this.isDisposed() || !assistantState) { return; }
 
-      this.assistantPopup?.setState(assistantState);
-      this.assistantPopup?.open();
+      this.assistantPanel?.setState(assistantState);
+      this.assistantPanel?.open();
     }));
   }
 

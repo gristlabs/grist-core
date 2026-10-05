@@ -32,6 +32,8 @@ export type CommandName =
   "expandSection" |
   "leftPanelOpen" |
   "rightPanelOpen" |
+  "innerLeftPanelOpen" |
+  "innerLeftPanelClose" |
   "cursorDown" |
   "cursorUp" |
   "cursorRight" |
@@ -126,7 +128,8 @@ export type CommandName =
   "transformUpdate" |
   "clearCopySelection" |
   "detachEditor" |
-  "activateAssistant" |
+  "openFormulaAssistant" |
+  "toggleAssistant" |
   "viewAsCard" |
   "openContextMenu" |
   "openColumnMenu" |
@@ -316,9 +319,24 @@ export const groups: CommendGroupDef[] = [{
       desc: () => t("Shortcut to open the right panel"),
     },
     {
-      name: "activateAssistant",
+      name: "innerLeftPanelOpen",
       keys: [],
-      desc: () => t("Activate assistant"),
+      desc: () => t("Shortcut to open the inner left panel"),
+    },
+    {
+      name: "innerLeftPanelClose",
+      keys: [],
+      desc: () => t("Shortcut to close the inner left panel"),
+    },
+    {
+      name: "openFormulaAssistant",
+      keys: [],
+      desc: () => t("Open the formula assistant"),
+    },
+    {
+      name: "toggleAssistant",
+      keys: ["Mod+K"],
+      desc: () => t("Toggle the assistant"),
     },
     {
       name: "showPopup",

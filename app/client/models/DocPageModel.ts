@@ -3,6 +3,7 @@ import { IUndoState } from "app/client/components/UndoStack";
 import { UnsavedChange } from "app/client/components/UnsavedChanges";
 import { loadGristDoc } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
+import { createSessionObs, isBoolean } from "app/client/lib/sessionObs";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { AppModel, getOrgNameOrGuest, reportError } from "app/client/models/AppModel";
 import { getDoc } from "app/client/models/gristConfigCache";
@@ -116,6 +117,8 @@ export interface DocPageModel {
 
   gristDoc: Observable<GristDoc | null>;             // Instance of GristDoc once it exists.
 
+  innerLeftPanelOpen: Observable<boolean>;
+
   /** List of users with access to the document, null if not initialized. */
   docUsers: Observable<PermissionData | null>;
 
@@ -196,6 +199,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly undoState: Observable<IUndoState | null> = Observable.create(this, null);
 
   public readonly docUsers = Observable.create<PermissionData | null>(this, null);
+
+  public readonly innerLeftPanelOpen = createSessionObs<boolean>(this, "innerLeftPanelOpen", false, isBoolean);
 
   private readonly _docUsersData = new MapWithTTL<"users", Promise<PermissionData>>(60 * 1000);
 

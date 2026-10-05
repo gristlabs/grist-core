@@ -12,6 +12,10 @@ import { Disposable, Emitter } from "grainjs";
 
 const SLOW_NOTIFICATION_TIMEOUT_MS = 1000; // applies to user actions only
 
+const NO_SLOW_NOTIFICATION: ReadonlySet<keyof ActiveDocAPI> = new Set([
+  "getAssistance",
+]);
+
 /**
  * The type of data.methods object created by openDoc() in app/client/components/Comm.js.
  * This is used in much of client-side code, and exposed firstly as GristDoc.docComm.
@@ -176,7 +180,9 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   }
 
   private async _callMethod(name: keyof ActiveDocAPI, ...args: any[]): Promise<any> {
-    return this._notifier.slowNotification(this._doCallMethod(name, ...args), SLOW_NOTIFICATION_TIMEOUT_MS);
+    const promise = this._doCallMethod(name, ...args);
+    if (NO_SLOW_NOTIFICATION.has(name)) { return promise; }
+    return this._notifier.slowNotification(promise, SLOW_NOTIFICATION_TIMEOUT_MS);
   }
 
   private async _doCallMethod(name: keyof ActiveDocAPI, ...args: any[]): Promise<any> {
