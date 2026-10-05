@@ -904,7 +904,9 @@
         "Renew": "Продлить",
         "Go to your free personal site": "Перейдите на свой бесплатный личный сайт",
         "Upgrade Plan": "Обновить тариф",
-        "Manage billing": "Управление платежами"
+        "Manage billing": "Управление платежами",
+        "How you could gain access": "Как получить доступ",
+        "What's blocking you": "Что вам мешает"
     },
     "OpenVideoTour": {
         "Grist Video Tour": "Видео-тур по Grist",
@@ -1953,7 +1955,29 @@
         "Changes have been saved. Restart Grist to apply them.": "Изменения были сохранены. Перезагрузите Grist чтобы их применить.",
         "Edition": "Издание",
         "Its controls have moved to {{editionLink}} above.": "Элементы управления перемещены в {{editionLink}} выше.",
-        "Restart the Grist server": "Перезагрузи сервер Grist"
+        "Restart the Grist server": "Перезагрузи сервер Grist",
+        "Saving...": "Сохранение...",
+        "Server": "Сервер",
+        "Server → Edition": "Сервер → Издание",
+        "The URL where users and integrations reach this Grist server": "URL-адрес, по которому пользователи и интеграции обращаются к этому серверу Grist",
+        "What used to be called \"Grist Enterprise\" is now called \"Full Grist\".": "То, что раньше называлось «Grist Enterprise», теперь называется «Full Grist».",
+        "moved to Edition": "перенесено в раздел «Издание»",
+        "Installation": "Установка",
+        "Default permissions": "Разрешения по умолчанию",
+        "Who can create sites, log in, and use the playground": "Кто может создавать сайты, входить в систему и пользоваться песочницей",
+        "Any pending changes will be cleared.": "Все ожидающие изменения будут сброшены.",
+        "Dismiss": "Сбросить",
+        "Dismiss changes": "Сбросить изменения",
+        "Dismiss pending changes?": "Сбросить ожидающие изменения?",
+        "Dismissing...": "Сброс изменений...",
+        "How user actions can reach the outside world": "Как действия пользователей могут передаваться во внешние системы",
+        "Outgoing requests": "Исходящие запросы",
+        "full Edition": "полное издание",
+        "Apply changes": "Применить изменения",
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist работает в среде, которая не поддерживает перезапуск из панели администратора. Ваше изменение будет сохранено сейчас и вступит в силу при следующем ручном перезапуске Grist.",
+        "Switch to Community edition?": "Переключиться на Community Edition?",
+        "Switch to full Grist?": "Переключиться на полную версию Grist?",
+        "This will also apply your other pending changes:": "Это действие также применит другие ожидающие изменения:"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
@@ -2030,7 +2054,10 @@
         "Select...": "Выбрать...",
         "Submit": "Отправить",
         "Submitting…": "Отправка…",
-        "Clear selection for: {{-inputLabel}}": "Очистить выбор для: {{-inputLabel}}"
+        "Clear selection for: {{-inputLabel}}": "Очистить выбор для: {{-inputLabel}}",
+        "Options for {{-inputLabel}}": "Варианты для {{-inputLabel}}",
+        "Search options for {{-inputLabel}}": "Поиск вариантов для {{-inputLabel}}",
+        "Are you sure you want to reset your form?": "Вы уверены, что хотите сбросить форму?"
     },
     "DocTutorial": {
         "Click to expand": "Нажмите, чтобы развернуть",
@@ -2430,5 +2457,24 @@
         "You are currently **not using** the high contrast theme.": "В настоящее время вы **не используете** тему высокой контрастности.",
         "You are currently using the high contrast theme.": "В настоящее время вы используете тему высокой контрастности.",
         "profile settings": "настройки профиля"
+    },
+    "CalendarConfigModal": {
+        "Add calendar": "Добавить календарь",
+        "Create new column": "Создать новый столбец",
+        "Date + time": "Дата + время",
+        "Date only": "Только дата",
+        "Dates": "Даты",
+        "End": "Окончание",
+        "End (optional)": "Окончание (необязательно)",
+        "Pick the columns that hold your event dates and titles, or create new ones.": "Выберите столбцы, содержащие даты и названия событий, или создайте новые.",
+        "Select a column": "Выберите столбец",
+        "Set up calendar": "Настроить календарь",
+        "Start": "Начало",
+        "Start and end must be the same date type.": "Начальная и конечная даты должны иметь один и тот же тип данных.",
+        "None": "Нет",
+        "This summary table has no date column. Add a formula column such as MIN($group.Date) first.": "В этой сводной таблице нет столбца с датой. Сначала добавьте столбец формулы, например MIN($group.Date).",
+        "This summary table has no text column. Events will show without labels.": "В этой сводной таблице нет текстового столбца. События будут отображаться без названий.",
+        "Title": "Название",
+        "Title (optional)": "Название (необязательно)"
     }
 }

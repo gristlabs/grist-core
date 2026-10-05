@@ -8,7 +8,8 @@
     "Add column rule": "Kolomregel toevoegen",
     "Add table rules": "Tabelregels toevoegen",
     "Add user attributes": "Voeg gebruikerskenmerken toe",
-    "Add Default Rule": "Standaardregel Toevoegen"
+    "Add Default Rule": "Standaardregel Toevoegen",
+    "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Laat iedereen toe het volledige document te kopiëren, of volledig te bekijken in fiddle modus.\nNuttig voor voorbeelden en sjablonen, maar niet voor gevoelige data."
   },
   "RightPanelUtils": {
     "series_one": "Serie",
@@ -17,5 +18,8 @@
     "columns_other": "Kolommen",
     "fields_one": "Velden",
     "fields_other": "Velden"
+  },
+  "SupportGristButton": {
+    "Close": "Sluiten"
   }
 }
