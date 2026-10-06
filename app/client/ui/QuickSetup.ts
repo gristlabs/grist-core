@@ -33,7 +33,8 @@ interface Step {
 
 export class QuickSetup extends Disposable {
   private _activeStep = Observable.create<number>(this, 0);
-  private _checks = new AdminChecks(this, new InstallAPIImpl(getHomeUrl()));
+  private _installAPI = new InstallAPIImpl(getHomeUrl());
+  private _checks = new AdminChecks(this, this._installAPI);
   // True once `_checks.fetchAvailableChecks()` has settled. Prevents a flash
   // of the access-denied card while probes are still `[]` from initialization.
   private _checksLoaded = Observable.create<boolean>(this, false);
@@ -177,7 +178,10 @@ export class QuickSetup extends Disposable {
 
   private _buildBackupsStep(): DomContents {
     return dom.create((owner) => {
-      const section = BackupsSection.create(owner, { checks: this._checks });
+      const section = BackupsSection.create(owner, {
+        checks: this._checks,
+        installAPI: this._installAPI,
+      });
       return dom("div",
         section.buildDom(),
         quickSetupContinueButton(section, () => this._advanceStep(), testId("backups-continue")),

@@ -63,6 +63,70 @@ export interface BackupsBootProbeDetails {
 }
 
 /**
+ * Whether storage backing a path survives a restart. "unknown" means we
+ * couldn't tell, e.g. we're not on Linux, not that anything is wrong.
+ */
+export type Durability = "durable" | "ephemeral" | "unknown";
+
+/**
+ * Why a store was classified as ephemeral, with the evidence behind it. The
+ * client picks its advice off `kind` -- what to do about a RAM filesystem is
+ * quite different from what to do about a missing Docker volume.
+ */
+export type StorageDurabilityReason =
+  // The mount containing the path is a RAM filesystem (tmpfs, ramfs).
+  { kind: "ram-filesystem", fsType: string, mountPoint: string } |
+  // The path sits on the root mount, and GRIST_DATA_DIR is the one the
+  // official Docker image sets, so `/` is probably a throwaway image layer.
+  { kind: "image-root-heuristic", fsType: string, mountPoint: string };
+
+export interface StorageClassification {
+  durability: Durability;
+  // Set only when durability is "ephemeral".
+  reason?: StorageDurabilityReason;
+}
+
+export interface PersistDataBootProbeDetails {
+  // Raw value of GRIST_DATA_DIR; null when unset.
+  dataDir: string | null;
+  // Raw value of TYPEORM_DATABASE; null when unset.
+  homeDb: string | null;
+  // Set when documents live in external storage, making `docs` durable
+  // regardless of the local filesystem.
+  externalStorageActive: boolean;
+  // Likewise for the home database and `home`.
+  usesPostgres: boolean;
+  docs: StorageClassification;
+  home: StorageClassification;
+}
+
+/**
+ * A stable fingerprint of the ephemeral-storage fault reported by the
+ * "persist-data" probe, or null when neither store looks ephemeral.
+ *
+ * The admin panel remembers which fault an admin confirmed, keyed by this
+ * value: the same fault stays confirmed across restarts, while a *different*
+ * fault (a new path, a new reason, a different mount) produces a different key
+ * and so surfaces the warning again.
+ */
+export function getPersistenceFaultKey(details: PersistDataBootProbeDetails): string | null {
+  const stores: [string, string | null, StorageClassification][] = [
+    ["docs", details.dataDir, details.docs],
+    ["home", details.homeDb, details.home],
+  ];
+  const parts = stores
+    .filter(([, , store]) => store.durability === "ephemeral")
+    .map(([name, target, store]) => [
+      name,
+      target ?? "",
+      store.reason?.kind ?? "",
+      store.reason?.fsType ?? "",
+      store.reason?.mountPoint ?? "",
+    ].join(":"));
+  return parts.length > 0 ? parts.join("|") : null;
+}
+
+/**
  * Authoritative state of a single outgoing-request feature as reported
  * by the probe. The client renders these verbatim; it does not recompute.
  */
