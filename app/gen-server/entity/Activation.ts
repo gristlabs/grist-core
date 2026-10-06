@@ -90,6 +90,10 @@ export class Activation extends BaseEntity {
         this.prefs.onRestartReplaceEmailWithAdmin = props.prefs.onRestartReplaceEmailWithAdmin;
       }
 
+      if (props.prefs.persistenceAck !== undefined) {
+        this.prefs.persistenceAck = props.prefs.persistenceAck;
+      }
+
       if (props.prefs.onRestartClearSessions !== undefined) {
         this.prefs.onRestartClearSessions = props.prefs.onRestartClearSessions;
       }
