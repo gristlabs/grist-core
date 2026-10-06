@@ -2,8 +2,8 @@ import { ApiError } from "app/common/ApiError";
 import {
   BootProbeIds,
   BootProbeResult,
+  getStorageRisks,
   PersistDataBootProbeDetails,
-  StorageClassification,
   summarizeOutgoingRequests,
 } from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
@@ -20,7 +20,7 @@ import {
   isRequestFunctionEnabled,
 } from "app/server/lib/outgoingRequests";
 import { getProxyAgentConfiguration, isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
-import { classifyStorage } from "app/server/lib/storageDurability";
+import { mountFor, readMounts } from "app/server/lib/storageDurability";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -460,89 +460,51 @@ const _sandboxProvidersProbe: Probe = {
   },
 };
 
-// Heuristic: the official Docker image sets GRIST_DATA_DIR to this and expects a
-// volume at /persist. We use it to guess we're in that image, where `/` is a
-// throwaway layer — the filesystem alone can't tell us that.
-const IMAGE_DATA_DIR = "/persist/docs";
-
 /**
- * Composes the fault verdict for the persist-data probe: one hedged sentence
- * per ephemeral store, or undefined when neither looks ephemeral. Hedged
- * because the mount table only hints at durability — it can't prove a volume
- * is missing — so we never state data loss as fact, and never assume the
- * official Docker image's /persist layout unless the heuristic said so.
+ * The fault verdict for the persist-data probe, or undefined when no store looks at risk.
+ * Hedged, since the facts only hint at whether storage survives a restart.
  */
 export function _persistDataVerdict(details: PersistDataBootProbeDetails): string | undefined {
+  const risks = getStorageRisks(details);
   const stores = [
-    { envVar: "GRIST_DATA_DIR", target: details.dataDir, store: details.docs },
-    { envVar: "TYPEORM_DATABASE", target: details.homeDb, store: details.home },
+    { envVar: "GRIST_DATA_DIR", target: details.dataDir, risk: risks.docs },
+    { envVar: "TYPEORM_DATABASE", target: details.homeDb, risk: risks.home },
   ];
-  const sentences: string[] = [];
-  let saidImageRoot = false;
-  for (const { envVar, target, store } of stores) {
-    if (store.durability !== "ephemeral") { continue; }
-    const reason = store.reason;
-    if (reason?.kind === "ram-filesystem") {
-      sentences.push(
-        `${envVar} (${target}) appears to be on a temporary filesystem (${reason.fsType}); ` +
-        "anything stored there is likely to be lost when Grist restarts.");
-    } else if (reason?.kind === "image-root-heuristic") {
-      // Both stores can sit on the same root mount; the advice only bears saying once.
-      if (saidImageRoot) { continue; }
-      saidImageRoot = true;
-      sentences.push(
-        "Grist appears to be running in the official Docker image without a persistent volume " +
-        "mounted at /persist; data is likely to be lost when the container is recreated.");
-    } else {
-      // Shouldn't happen — ephemeral always carries a reason — but a fault
-      // without a verdict reads to the client as a failed probe request.
-      sentences.push(
-        `${envVar} (${target}) appears to be on storage that is likely to be lost when ` +
-        "Grist restarts.");
-    }
+  // A set, since both stores can get the same advice.
+  const sentences = new Set<string>();
+  for (const { envVar, target, risk } of stores) {
+    if (!risk) { continue; }
+    sentences.add(risk === "in-memory" ?
+      `${envVar} (${target}) appears to be in memory, so anything stored there would be lost ` +
+      "when the server or container restarts." :
+      "Grist appears to be running in the official Docker image without a volume mounted at " +
+      "/persist, so data would be lost when the container is recreated.");
   }
-  return sentences.length > 0 ? sentences.join(" ") : undefined;
+  return sentences.size > 0 ? [...sentences].join(" ") : undefined;
 }
 
-/**
- * Warns when Grist's data looks like it would be lost on restart — i.e. it sits
- * on a RAM filesystem or on the container's own root layer rather than a mounted
- * volume or external storage. Reports the structured reason for each store in
- * `details`, so the admin panel can give advice that fits the deployment.
- */
 export const _dataPersistsProbe: Probe = {
   id: "persist-data",
   name: "Does data persist across restarts",
   apply: async () => {
-    const dataDir = process.env.GRIST_DATA_DIR;
-    const homeDb = process.env.TYPEORM_DATABASE;
-    // We can't truly detect ephemeral storage, so treat the official image's DATA_DIR as the signal.
-    const rootMayBeEphemeral = (dataDir === IMAGE_DATA_DIR);
-
-    // Unset reads as inactive, as it did when this was only used as a condition.
-    const externalStorageActive = appSettings.section("externalStorage").flag("active").getAsBool() ?? false;
+    const dataDir = process.env.GRIST_DATA_DIR ?? null;
+    const homeDb = process.env.TYPEORM_DATABASE ?? null;
     const usesPostgres = (process.env.TYPEORM_TYPE === "postgres");
-
-    const docs: StorageClassification = externalStorageActive ?
-      { durability: "durable" } :
-      await classifyStorage(dataDir, rootMayBeEphemeral);
-    const home: StorageClassification = usesPostgres ?
-      { durability: "durable" } :
-      await classifyStorage(homeDb, rootMayBeEphemeral);
-
+    const externalStorageActive = appSettings.section("externalStorage").flag("active").getAsBool() ?? false;
+    const mounts = await readMounts();
+    const mountOf = (target: string | null) => (target && mounts && mountFor(target, mounts)) || null;
     const details: PersistDataBootProbeDetails = {
-      dataDir: dataDir ?? null,
-      homeDb: homeDb ?? null,
+      dataDir,
+      dataDirMount: mountOf(dataDir),
+      homeDb,
+      // For Postgres, homeDb is a database name rather than a path.
+      homeDbMount: usesPostgres ? null : mountOf(homeDb),
       externalStorageActive,
       usesPostgres,
-      docs,
-      home,
     };
     const verdict = _persistDataVerdict(details);
     if (verdict) { return { status: "fault", verdict, details }; }
-    // Claim success only when both stores are positively durable; otherwise we
-    // couldn't fully verify and stay neutral.
-    const verified = docs.durability === "durable" && home.durability === "durable";
-    return { status: verified ? "success" : "none", details };
+    // Only claim success when nothing depends on local disk; otherwise stay neutral.
+    return { status: externalStorageActive && usesPostgres ? "success" : "none", details };
   },
 };

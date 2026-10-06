@@ -1,10 +1,8 @@
-import {
-  OutgoingRequestsProbeDetails,
-  PersistDataBootProbeDetails,
-  StorageClassification,
-} from "app/common/BootProbe";
+import { MountInfo, OutgoingRequestsProbeDetails, PersistDataBootProbeDetails } from "app/common/BootProbe";
+import { appSettings } from "app/server/lib/AppSettings";
 import { _dataPersistsProbe, _outgoingRequestsProbe, _persistDataVerdict } from "app/server/lib/BootProbes";
 import { OUTGOING_REQUEST_ENV_VARS } from "app/server/lib/outgoingRequests";
+import { mountFor } from "app/server/lib/storageDurability";
 import { configForUser } from "test/gen-server/testUtils";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
 import { TestServer } from "test/server/lib/helpers/TestServer";
@@ -173,32 +171,24 @@ describe("BootProbes with external storage", function() {
     assert.equal(resp.data.details.backend, "filesystem");
   });
 
-  it("treats documents as durable when a storage backend is active", async function() {
+  it("reports external storage as active when a storage backend is active", async function() {
     const resp = await axios.get(`${server.serverUrl}/api/probes/persist-data`, chimpy);
     assert.equal(resp.status, 200);
-    assert.equal(resp.data.details.docs.durability, "durable");
+    assert.isTrue(resp.data.details.externalStorageActive);
   });
 });
 
-const UNKNOWN: StorageClassification = { durability: "unknown" };
-const DURABLE: StorageClassification = { durability: "durable" };
-const ON_TMPFS: StorageClassification = {
-  durability: "ephemeral",
-  reason: { kind: "ram-filesystem", fsType: "tmpfs", mountPoint: "/persist" },
-};
-const ON_IMAGE_ROOT: StorageClassification = {
-  durability: "ephemeral",
-  reason: { kind: "image-root-heuristic", fsType: "overlay", mountPoint: "/" },
-};
+const TMPFS: MountInfo = { mountPoint: "/persist", fsType: "tmpfs" };
+const ROOT: MountInfo = { mountPoint: "/", fsType: "overlay" };
 
 function details(over: Partial<PersistDataBootProbeDetails> = {}): PersistDataBootProbeDetails {
   return {
     dataDir: "/persist/docs",
+    dataDirMount: null,
     homeDb: "/persist/home.sqlite3",
+    homeDbMount: null,
     externalStorageActive: false,
     usesPostgres: false,
-    docs: UNKNOWN,
-    home: UNKNOWN,
     ...over,
   };
 }
@@ -215,80 +205,71 @@ describe("BootProbes persist-data", () => {
     env.restore();
   });
 
+  describe("mounts", () => {
+    it("finds the mount a path is on", () => {
+      const persistent = { mountPoint: "/persistent", fsType: "ext4" };
+      const mounts = [ROOT, TMPFS, persistent];
+      assert.deepEqual(mountFor("/persist/docs", mounts), TMPFS);
+      assert.deepEqual(mountFor("/persistent/docs", mounts), persistent);
+      assert.deepEqual(mountFor("/home/grist", mounts), ROOT);
+    });
+  });
+
   describe("verdict", () => {
-    it("is absent when neither store is ephemeral", () => {
+    it("is absent when no store looks at risk", () => {
       assert.isUndefined(_persistDataVerdict(details()));
-      assert.isUndefined(_persistDataVerdict(details({ docs: DURABLE, home: DURABLE })));
     });
 
-    it("names the env var, path and filesystem for a RAM filesystem", () => {
-      assert.equal(_persistDataVerdict(details({ docs: ON_TMPFS })),
-        "GRIST_DATA_DIR (/persist/docs) appears to be on a temporary filesystem (tmpfs); " +
-        "anything stored there is likely to be lost when Grist restarts.");
-      assert.equal(_persistDataVerdict(details({ home: ON_TMPFS })),
-        "TYPEORM_DATABASE (/persist/home.sqlite3) appears to be on a temporary filesystem " +
-        "(tmpfs); anything stored there is likely to be lost when Grist restarts.");
+    it("names the env var and path for a store in memory", () => {
+      assert.equal(_persistDataVerdict(details({ homeDbMount: TMPFS })),
+        "TYPEORM_DATABASE (/persist/home.sqlite3) appears to be in memory, so anything stored " +
+        "there would be lost when the server or container restarts.");
     });
 
-    it("gives the volume advice only for the official-image heuristic", () => {
-      assert.equal(_persistDataVerdict(details({ docs: ON_IMAGE_ROOT })),
-        "Grist appears to be running in the official Docker image without a persistent volume " +
-        "mounted at /persist; data is likely to be lost when the container is recreated.");
+    it("joins a sentence for each kind of problem", () => {
+      assert.equal(_persistDataVerdict(details({ dataDirMount: TMPFS, homeDbMount: ROOT })),
+        "GRIST_DATA_DIR (/persist/docs) appears to be in memory, so anything stored there would " +
+        "be lost when the server or container restarts. Grist appears to be running in the " +
+        "official Docker image without a volume mounted at /persist, so data would be lost when " +
+        "the container is recreated.");
     });
 
-    it("states the official-image advice once even when both stores hit it", () => {
-      const verdict = _persistDataVerdict(details({ docs: ON_IMAGE_ROOT, home: ON_IMAGE_ROOT }));
-      assert.equal(verdict?.match(/mounted at \/persist/g)?.length, 1);
-    });
-
-    it("joins one sentence per store when the reasons differ", () => {
-      const verdict = _persistDataVerdict(details({ docs: ON_TMPFS, home: ON_IMAGE_ROOT })) || "";
-      assert.match(verdict, /^GRIST_DATA_DIR \(\/persist\/docs\) appears to be on a temporary/);
-      assert.include(verdict, " Grist appears to be running in the official Docker image");
-    });
-
-    it("hedges rather than asserting data loss", () => {
-      for (const verdict of [
-        _persistDataVerdict(details({ docs: ON_TMPFS })),
-        _persistDataVerdict(details({ home: ON_IMAGE_ROOT })),
-      ]) {
-        assert.include(verdict || "", "appears to");
-        assert.include(verdict || "", "likely to be lost");
-        assert.notInclude(verdict || "", "will be lost");
-      }
-    });
-
-    it("still produces a verdict if an ephemeral store carries no reason", () => {
-      // A fault without a verdict reads to the client as a failed probe request.
-      const verdict = _persistDataVerdict(details({ docs: { durability: "ephemeral" } }));
-      assert.match(verdict || "", /^GRIST_DATA_DIR \(\/persist\/docs\) appears to be on storage/);
+    it("gives the volume advice once for the official image", () => {
+      assert.equal(_persistDataVerdict(details({ dataDirMount: ROOT, homeDbMount: ROOT })),
+        "Grist appears to be running in the official Docker image without a volume mounted at " +
+        "/persist, so data would be lost when the container is recreated.");
     });
   });
 
   describe("probe", () => {
+    // Any server started in this process sets this flag, which the probe reads.
+    const externalStorageActive = appSettings.section("externalStorage").flag("active");
+    let activeBefore: any;
+    beforeEach(() => { activeBefore = externalStorageActive.get(); externalStorageActive.set(false); });
+    afterEach(() => externalStorageActive.set(activeBefore));
+
     async function runPersistProbe() {
       const result = await _dataPersistsProbe.apply(undefined as any, undefined as any);
       return { result, details: result.details as PersistDataBootProbeDetails };
     }
 
-    it("stays neutral, with null paths, when neither store is configured", async () => {
+    it("stays neutral, with nothing to report, when neither store is configured", async () => {
       const { result, details: d } = await runPersistProbe();
       assert.equal(result.status, "none");
       assert.isUndefined(result.verdict);
-      assert.isNull(d.dataDir);
-      assert.isNull(d.homeDb);
-      assert.deepEqual(d.docs, UNKNOWN);
-      assert.deepEqual(d.home, UNKNOWN);
+      assert.deepEqual(d, {
+        dataDir: null, dataDirMount: null, homeDb: null, homeDbMount: null,
+        externalStorageActive: false, usesPostgres: false,
+      });
     });
 
-    it("treats a Postgres home database as durable without inspecting mounts", async () => {
+    it("doesn't look up a mount for a Postgres home database", async () => {
       process.env.TYPEORM_TYPE = "postgres";
       process.env.TYPEORM_DATABASE = "grist";
       const { result, details: d } = await runPersistProbe();
       assert.equal(result.status, "none");
       assert.isTrue(d.usesPostgres);
-      assert.deepEqual(d.home, DURABLE);
-      assert.equal(d.homeDb, "grist");
+      assert.isNull(d.homeDbMount);
     });
   });
 });

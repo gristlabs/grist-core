@@ -3114,14 +3114,12 @@
         "Local filesystem (test only)": "Local filesystem (test only)",
         "Stores document snapshots on the local filesystem. For tests only, not production.": "Stores document snapshots on the local filesystem. For tests only, not production.",
         "Action needed": "Action needed",
+        "To preserve it, mount a volume at ": {
+            "persist.": "To preserve it, mount a volume at /persist."
+        },
+        "Your data may not survive a container restart.": "Your data may not survive a container restart.",
         "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.",
-        "Confirm": "Confirm",
-        "Confirm anyway": "Confirm anyway",
-        "Confirm storage to continue": "Confirm storage to continue",
-        "Check that your data is stored safely.": "Check that your data is stored safely.",
-        "Grist can't verify on its own that its storage will survive a restart. Please check that GRIST_DATA_DIR ({{- dataDir}}) and TYPEORM_DATABASE ({{- homeDb}}) point at persistent storage, then confirm.": "Grist can't verify on its own that its storage will survive a restart. Please check that GRIST_DATA_DIR ({{- dataDir}}) and TYPEORM_DATABASE ({{- homeDb}}) point at persistent storage, then confirm.",
-        "Your data may be lost when Grist restarts.": "Your data may be lost when Grist restarts.",
-        "not set (using defaults)": "not set (using defaults)"
+        "To preserve it, mount a volume at /persist.": "To preserve it, mount a volume at /persist."
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Allow anonymous access",

@@ -82,16 +82,16 @@ export class Activation extends BaseEntity {
         this.prefs.checkForLatestVersion = props.prefs.checkForLatestVersion;
       }
 
+      if (props.prefs.persistenceConfirmed !== undefined) {
+        this.prefs.persistenceConfirmed = props.prefs.persistenceConfirmed;
+      }
+
       if (props.prefs.onRestartSetAdminEmail !== undefined) {
         this.prefs.onRestartSetAdminEmail = props.prefs.onRestartSetAdminEmail;
       }
 
       if (props.prefs.onRestartReplaceEmailWithAdmin !== undefined) {
         this.prefs.onRestartReplaceEmailWithAdmin = props.prefs.onRestartReplaceEmailWithAdmin;
-      }
-
-      if (props.prefs.persistenceAck !== undefined) {
-        this.prefs.persistenceAck = props.prefs.persistenceAck;
       }
 
       if (props.prefs.onRestartClearSessions !== undefined) {

@@ -2,12 +2,14 @@ import {
   countServerHealth,
   describeServerHealth,
   diagnoseMultiServer,
+  getStorageRisks,
   isMultiServerInstallation,
   judgeSituation,
   knownServerCount,
   MultiServerBootProbeDetails,
   MultiServerDescription,
   MultiServerEntry,
+  PersistDataBootProbeDetails,
 } from "app/common/BootProbe";
 
 import { assert } from "chai";
@@ -236,6 +238,45 @@ describe("BootProbe", function() {
         assert.equal(isMultiServerInstallation(shown), knownServerCount(shown) > 1,
           `disagreed about ${shown.situation}`);
       }
+    });
+  });
+
+  describe("getStorageRisks", function() {
+    const TMPFS = { mountPoint: "/persist", fsType: "tmpfs" };
+    const ROOT = { mountPoint: "/", fsType: "overlay" };
+    const VOLUME = { mountPoint: "/persist", fsType: "ext4" };
+
+    function details(over: Partial<PersistDataBootProbeDetails>): PersistDataBootProbeDetails {
+      return {
+        dataDir: "/persist/docs", dataDirMount: VOLUME, homeDb: "/persist/home.sqlite3", homeDbMount: VOLUME,
+        externalStorageActive: false, usesPostgres: false, ...over,
+      };
+    }
+
+    it("finds no risk on a mount of its own", function() {
+      assert.deepEqual(getStorageRisks(details({})), { docs: undefined, home: undefined });
+    });
+
+    it("calls a store on a RAM filesystem in memory", function() {
+      assert.equal(getStorageRisks(details({ dataDirMount: TMPFS })).docs, "in-memory");
+      assert.equal(getStorageRisks(details({ homeDbMount: { ...TMPFS, fsType: "ramfs" } })).home, "in-memory");
+    });
+
+    it("calls the root mount a missing volume only in the official image", function() {
+      assert.equal(getStorageRisks(details({ homeDbMount: ROOT })).home, "no-volume");
+      assert.isUndefined(getStorageRisks(details({ dataDir: "/data/docs", dataDirMount: ROOT })).docs);
+    });
+
+    it("ignores local disk for external storage and Postgres", function() {
+      const risks = getStorageRisks(details({
+        dataDirMount: TMPFS, homeDbMount: TMPFS, externalStorageActive: true, usesPostgres: true,
+      }));
+      assert.deepEqual(risks, { docs: undefined, home: undefined });
+    });
+
+    it("finds no risk without a mount", function() {
+      assert.deepEqual(getStorageRisks(details({ dataDirMount: null, homeDbMount: null })),
+        { docs: undefined, home: undefined });
     });
   });
 });

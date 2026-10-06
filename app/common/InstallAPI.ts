@@ -1,7 +1,7 @@
 import { BaseAPI, IOptions } from "app/common/BaseAPI";
 import { BootProbeInfo, BootProbeResult } from "app/common/BootProbe";
 import { LatestVersionAvailable } from "app/common/gristUrls";
-import { InstallPrefs, PendingChanges, PersistenceAckPrefs } from "app/common/Install";
+import { InstallPrefs, PendingChanges } from "app/common/Install";
 import { TelemetryLevel } from "app/common/Telemetry";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
 
@@ -17,7 +17,7 @@ export interface InstallPrefsWithSources extends PendingChanges {
   },
   checkForLatestVersion: boolean;
   envVars?: Record<string, any>;
-  persistenceAck?: PersistenceAckPrefs;
+  persistenceConfirmed?: boolean;
 }
 
 export type TelemetryPrefsWithSources = InstallPrefsWithSources["telemetry"];

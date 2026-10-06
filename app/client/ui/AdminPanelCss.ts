@@ -258,12 +258,15 @@ const cssSectionSkippedPill = styled("span", `
  * @param options.skipped - if set and true, renders the skipped pill instead
  *   of the "Confirmed" pill
  * @param options.skippedLabel - text for the skipped pill (default: "For later")
+ * @param options.confirmedLabel - text for the confirmed pill (default: "Confirmed")
  * @param options.testPrefix - prefix for test IDs
  */
 export function buildConfirmedRow(
   confirmed: Observable<boolean>,
   onEdit: () => void,
-  options: { skipped?: Observable<boolean>; skippedLabel?: string; testPrefix?: string } = {},
+  options: {
+    skipped?: Observable<boolean>; skippedLabel?: string; confirmedLabel?: string; testPrefix?: string;
+  } = {},
 ) {
   const tid = options.testPrefix ? (id: string) => testId(`${options.testPrefix}-${id}`) : testId;
   return dom.domComputed((use) => {
@@ -272,7 +275,7 @@ export function buildConfirmedRow(
     return cssSectionConfirmedRow(
       isSkipped ?
         cssSectionSkippedPill(options.skippedLabel || t("For later")) :
-        cssSectionConfirmedPill(t("Confirmed")),
+        cssSectionConfirmedPill(options.confirmedLabel || t("Confirmed")),
       textButton(
         icon("Pencil"),
         dom.on("click", onEdit),
