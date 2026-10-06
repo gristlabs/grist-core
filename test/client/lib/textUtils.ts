@@ -116,15 +116,20 @@ describe("textUtils", function() {
         { value: "https://www.uk:8080/a?b=c2", isLink: true },
         { value: "", isLink: false },
       ]],
-      ["https://www.uk/a?b==c-", [
+      ["https://www.uk/a?b=c-", [
         { value: "", isLink: false },
-        { value: "https://www.uk/a?b==c-", isLink: true },
+        { value: "https://www.uk/a?b=c-", isLink: true },
         { value: "", isLink: false },
       ]],
-      ["See https://www.uk/some-page for details.", [
+      ["See https://www.uk/some-page- for details.", [
         { value: "See ", isLink: false },
-        { value: "https://www.uk/some-page", isLink: true },
+        { value: "https://www.uk/some-page-", isLink: true },
         { value: " for details.", isLink: false },
+      ]],
+      ["See https://www.uk- for details.", [
+        { value: "See ", isLink: false },
+        { value: "https://www.uk", isLink: true },
+        { value: "- for details.", isLink: false },
       ]],
       ["https://127.0.0.1:8080/api", [
         { value: "", isLink: false },
