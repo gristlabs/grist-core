@@ -129,7 +129,9 @@
         "Sign up": "Registrera",
         "Use This Template": "Använd denna mall",
         "Site settings": "SajtInställningar",
-        "Account settings": "Kontoinställningar"
+        "Account settings": "Kontoinställningar",
+        "Audit Logs": "Revisionsloggar",
+        "New": "Ny"
     },
     "ViewAsDropdown": {
         "View as": "Visa som",
@@ -1311,7 +1313,11 @@
         "suggestions": "ändringsförslag",
         "automations": "automatiserade flöden",
         "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Du kommer inte fortsätta få epostnotifieringar om {{automations}} i {{docName}} till {{email}}.",
-        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Din prenumeration på automatiserings notifieringar för {{docName}} är avslutad. Du kan uppdatera dina inställningar när som helst under dokumentinställningar."
+        "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Din prenumeration på automatiserings notifieringar för {{docName}} är avslutad. Du kan uppdatera dina inställningar när som helst under dokumentinställningar.",
+        "You have been unsubscribed from notifications about any comments in {{docName}}, including mentions of you and replies to your comments. You can update your preferences anytime in the document settings.": "Du har blivit borttagen från prenumeration på notiser om kommentar till {{docName}}, inklusive när du är omnämnd och vid svar på dina kommentarer. Du kan uppdatera dina val när som helst i dokumentinställningarna.",
+        "You have been unsubscribed from notifications about changes to {{docName}}. You can update your preferences anytime in the document settings.": "Du har blivit borttagen från prenumeration på notiser om ändringarna av {{docName}}. Du kan uppdatera dina val när som helst i dokumentetinställningar.",
+        "You have been unsubscribed from notifications about comments in {{docName}}, except for mentions of you and replies to your comments. You can update your preferences anytime in the document settings.": "Du har blivit borttagen från prenumeration på notiser om kommentar till {{docName}}, för utom när du är omnämnd och vid svar på dina kommentarer. Du kan uppdatera dina val när som helst i dokumentinställningarna.",
+        "You have been unsubscribed from notifications about suggestions to {{docName}}. You can update your preferences anytime in the document settings.": "Du har blivit borttagen från prenumeration på notiser för ändringsförslag i {{docName}}. Du kan uppdatera dina val när som helst i dokumentinställningarna."
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Arbetsytor är tillgängliga i arbetslagsprenumerationer. ",
@@ -1488,7 +1494,8 @@
         "convert to card view, select data, and more.": "konvertera till kortvy, välj data med mera.",
         "creator panel": "designpanel",
         "template library": "mallbibliotek",
-        "AI Assistant": "AI assistent"
+        "AI Assistant": "AI assistent",
+        "Understand, modify and work with your data and formulas with the help of Grist's AI Assistant!": "Förstå, ändra och jobba med din data formler med hjälp av Grists AIassistent!"
     },
     "LanguageMenu": {
         "Language": "Språk"
@@ -3081,7 +3088,8 @@
         "S3-compatible": "S3-kompatibel",
         "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Valfri S3-kompatibel lagring med versionshanterade buckets, så som RustFS eller bara AWS S3.",
         "Set these environment variables and restart Grist to enable S3-compatible storage:": "Ställ in följande miljövariabler och starta om Grist för att använda S3-kompatibel lagring:",
-        "To preserve it, mount a volume at /persist.": "För att spara det, montera en lagringsvolym på /persist."
+        "To preserve it, mount a volume at /persist.": "För att spara det, montera en lagringsvolym på /persist.",
+        "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Spara säkerhetskopior av dokumentet på en extern tjänst så som S3 eller Azure. Detta skyddar mot daraförlust om serverns hårddisk havererar."
     },
     "QuickSetupContinueButton": {
         "Continue": "Fortsätt",
@@ -3223,7 +3231,12 @@
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "Använder macOS inbyggda sandbox. God isolation för lokalt användande på Mac.",
         "macOS sandbox": "maxOS snadbox",
         "Sandbox": "Sandbox",
-        "Revert": "Ångra"
+        "Revert": "Ångra",
+        "Formulas run in WebAssembly, fully compatible but slower than gVisor. Works on any platform.": "Formler körs i WebAssembly, helt kompatibelt med gVisor men långsammare. Fungerar på alla plattformar.",
+        "The fastest and most battle-tested sandbox. Each document's formulas run in their own isolated container.": "Den snabbaste och mest beprövade isoleringen. Varje dokuments formler körs i sins egna isolerade miljöer.",
+        "Formulas have full system access. Only appropriate when you trust every document and its authors.": "Formler har tillgång till hela systemet. Enbart lämpligt när du litar på alla dokument och användare.",
+        "Grist runs user formulas as Python code. Sandboxing isolates this execution to protect your server. Without it, document formulas can access the full system.": "Grist kör användarnas formler som Pythonkod. Isolera denna exekvering för att skydda din server. Utan isolering kan dokumentens formler komma åt hela systemet.",
+        "Sandbox type is set via the GRIST_SANDBOX_FLAVOR environment variable and cannot be changed here. Remove the variable and restart to configure via this wizard.": "Isoleringstyp är vald via miljövariabeln GRIST_SANDBOX_FLAVOR och kan inte ändras här. Ta bort miljövariabeln och starta om för att ställa in via denna guide."
     },
     "ServiceStatus": {
         "Enter maintenance mode": "Starta underhållsläge",
@@ -3425,7 +3438,12 @@
         "GitHub": "GitHub",
         "Help us improve Grist": "Hjälp oss förbättra Grist",
         "How did you hear about Grist?": "Hur fick du kännedom om Grist?",
-        "Occasional email about new releases and important security notices.": "Enstaka e-post om nya versioner och viktig säkerhets information."
+        "Occasional email about new releases and important security notices.": "Enstaka e-post om nya versioner och viktig säkerhets information.",
+        "Conference/event": "Konferens/aktivitet",
+        "Developer/IT": "Utvecklare/IT",
+        "Education/Research Institute": "Utbildning/Forskningsinstitut",
+        "Friend/colleague": "Vänn/kollega",
+        "Reddit/forum": "Reddit/forum"
     },
     "CalendarView": {
         "Day": "Dag",
