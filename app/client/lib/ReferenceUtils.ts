@@ -1,5 +1,5 @@
 import { GristDoc } from "app/client/components/GristDoc";
-import { ACIndex, ACResults } from "app/client/lib/ACIndex";
+import { ACIndex, ACResults, normalizeText } from "app/client/lib/ACIndex";
 import { makeT } from "app/client/lib/localization";
 import { ICellItem } from "app/client/models/ColumnACIndexes";
 import { ColumnCache } from "app/client/models/ColumnCache";
@@ -9,6 +9,7 @@ import { TableData } from "app/client/models/TableData";
 import { getReferencedTableId, isRefListType } from "app/common/gristTypes";
 import { EmptyRecordView } from "app/common/RecordView";
 import { BaseFormatter } from "app/common/ValueFormatter";
+import { UIRowId } from "app/plugin/GristAPI";
 
 import { Disposable, dom, Observable } from "grainjs";
 
@@ -85,6 +86,33 @@ export class ReferenceUtils extends Disposable {
       );
     }
     return acIndex.search(text);
+  }
+
+  /**
+   * Keeps only referenced-record row ids that satisfy the column's dropdown condition for the
+   * given row of the source table (the table containing this reference column).
+   */
+  public filterByDropdownCondition(
+    rowIds: number[],
+    contextRowId: UIRowId | null | undefined,
+  ): number[] {
+    if (!this.hasDropdownCondition) { return rowIds; }
+    const ctx =
+      typeof contextRowId === "number" && !Number.isNaN(contextRowId) ? contextRowId : -1;
+    try {
+      const filter = this._buildDropdownConditionACFilter(ctx);
+      return rowIds.filter((id) => {
+        const text = this.idToText(id);
+        const item: ICellItem = {
+          rowId: id,
+          text,
+          cleanText: normalizeText(text),
+        };
+        return filter(item);
+      });
+    } catch {
+      return [];
+    }
   }
 
   public buildNoItemsMessage() {
