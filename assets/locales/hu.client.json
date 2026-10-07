@@ -129,7 +129,9 @@
         "Support Grist": "A Grist támogatása",
         "Upgrade Plan": "Előfizetés",
         "Site settings": "Oldal beállítások",
-        "Account settings": "Fiókbeállítások"
+        "Account settings": "Fiókbeállítások",
+        "Audit Logs": "Audit naplók",
+        "New": "Új"
     },
     "ViewAsDropdown": {
         "View as": "Megjelenítés mint",
@@ -1181,7 +1183,11 @@
         "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Nem kapsz a továbbiakban email értesítést {{email}} emailcímre {{docName}} dokumentum kapcsán {{automations}} témában.",
         "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Leiratkoztál az automatizmusok értesítéseiről {{docName}} dokumentumban. Bármikor frissítheted a beállításaidat a dokumentum beállításai között.",
         "automations": "automatizált műveletek",
-        "suggestions": "javaslatok"
+        "suggestions": "javaslatok",
+        "You have been unsubscribed from notifications about any comments in {{docName}}, including mentions of you and replies to your comments. You can update your preferences anytime in the document settings.": "Leiratkoztál a(z) {{docName}} dokumentumhoz fűzött hozzászólásokkal kapcsolatos értesítésekről, beleértve a rád vonatkozó említéseket és a hozzászólásaidra adott válaszokat is. A beállításaidat bármikor frissítheted a dokumentum beállításaiban.",
+        "You have been unsubscribed from notifications about changes to {{docName}}. You can update your preferences anytime in the document settings.": "Leiratkoztál a(z) {{docName}} dokumentum változásaival kapcsolatos értesítésekről. A beállításaidat bármikor frissítheted a dokumentum beállításaiban.",
+        "You have been unsubscribed from notifications about comments in {{docName}}, except for mentions of you and replies to your comments. You can update your preferences anytime in the document settings.": "Leiratkoztál a(z) {{docName}} dokumentum hozzászólásaival kapcsolatos értesítésekről, kivéve a rád vonatkozó említéseket és a hozzászólásaidra adott válaszokat. A beállításaidat bármikor frissítheted a dokumentum beállításaiban.",
+        "You have been unsubscribed from notifications about suggestions to {{docName}}. You can update your preferences anytime in the document settings.": "Leiratkoztál a(z) {{docName}} dokumentumhoz kapcsolódó javaslatok értesítéseiről. A beállításaidat bármikor frissítheted a dokumentum beállításaiban."
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* A munkaterületek csoport-előfizetésekben érhetők el. ",
@@ -1405,7 +1411,8 @@
         "convert to card view, select data, and more.": "kártya nézetre alakításhoz, adatok kiválasztásához és hasonlókhoz.",
         "creator panel": "alkotó panel",
         "template library": "sablonkönyvtárt",
-        "AI Assistant": "MI-segéd"
+        "AI Assistant": "MI-segéd",
+        "Understand, modify and work with your data and formulas with the help of Grist's AI Assistant!": "Érsd meg, módosítsd és dolgozz az adataiddal és képleteiddel a Grist AI Asszisztens segítségével!"
     },
     "LanguageMenu": {
         "Language": "Nyelv"
@@ -1491,7 +1498,10 @@
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Ha be van jelölve, ennek a mezőnek az alapértelmezett értéke előre kitölthető az URL-ből lekérdezési paraméterek segítségével.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "A javaslatok használatával a felhasználók az eredeti dokumentum módosítása nélkül módosítanak egy személyes másolatot, majd a javaslatokat beküldve a dokumentum tulajdonosa át tudja ezeket vizsgálni, és dönthet, hogy befogadja-e a javasolt változtatásokat az eredeti dokumentumba.",
         "Unpin to hide the button while keeping the filter.": "Oldd ki a rögzítést a gomb elrejtéséhez a szűrő megtartásával.",
-        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "A sorazonosítók stabil és egyedi numerikus azonosítók, amelyeket a hivatkozási oszlopok használnak a rekordok azonosítására."
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "A sorazonosítók stabil és egyedi numerikus azonosítók, amelyeket a hivatkozási oszlopok használnak a rekordok azonosítására.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "A naptár beállításához válaszd ki a kezdő- és záró dátumok, valamint az eseménycímek oszlopait. Jegyezd meg az egyes oszlopok típusát."
+        }
     },
     "AdminAccessDeniedCard": {
         "Administrator Panel Unavailable": "A rendszergazdai panel nem elérhető",
@@ -2235,12 +2245,22 @@
     "markdown": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is.",
         "The toggle is **off**": "A kapcsoló **kikapcsolva**",
-        "The toggle is **on**": "A kapcsoló **bekapcsolva**"
+        "The toggle is **on**": "A kapcsoló **bekapcsolva**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is."
+            }
+        }
     },
     "markdown.d": {
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is.",
         "The toggle is **off**": "A kapcsoló **kikapcsolva**",
-        "The toggle is **on**": "A kapcsoló **bekapcsolva**"
+        "The toggle is **on**": "A kapcsoló **bekapcsolva**",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Új Markdown funkció\n *\n *      Már _írhatsz_ [a szokásos Markdown jelöléssel](https://markdownguide.org)\n *      Grainjs elemen *belül* is."
+            }
+        }
     },
     "HomeIntroCards": {
         "3 minute video tour": "3 perces videós túra",
@@ -2501,7 +2521,10 @@
         "It is good practice not to run Grist as the root user.": "Jó gyakorlat, ha nem root felhasználóként futtatod a Gristet.",
         "The main page of Grist should be available.": "A Grist főoldalának elérhetőnek kell lennie.",
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "Az APP_HOME_URL az alap URL, ahol a felhasználók és az integrációk elérik ezt a Grist-kiszolgálót. A hitelesítési callback-ek (visszahívások), az API-hivatkozások és az e-mailes értesítések mind attól függnek, hogy ez helyes-e.",
-        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Ha egy külső tároló nélküli konténerben vagy az alapértelmezett adatbázissal fut, a /persist kötetnek felcsatolt kötetnek kell lennie, különben a Grist dokumentumok és metaadatok elvesznek, amikor a konténer leáll."
+        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Ha egy külső tároló nélküli konténerben vagy az alapértelmezett adatbázissal fut, a /persist kötetnek felcsatolt kötetnek kell lennie, különben a Grist dokumentumok és metaadatok elvesznek, amikor a konténer leáll.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Ha külső tároló nélküli konténerben, vagy az alapértelemzett adatbázissal fut a rendszer, a /persist útvonalnak felcsatolt kötetnek kell lennie. Ellenkező esetben a Grist dokumentumok és metaadatok elvesznek, ha a konténer leáll."
+        }
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+ {{count}} további",
@@ -2563,7 +2586,9 @@
         "Please first read the \"Keyboard navigation\" section above to understand how to navigate across the interface's regions: specific keyboard shortcuts need to be used.": "Kérjük, először olvasd el a fenti „Billentyűzet navigáció” részt, hogy megértsd, hogyan navigálhatsz a kezelőfelület régiói között: meghatározott billentyűparancsokat kell használni.",
         "Screen reader navigation": "Képernyőolvasó navigáció",
         "Warning: screen reader support is a work-in-progress in Grist and is improving over time. Feedback is greatly appreciated!": "Figyelem: a képernyőolvasó támogatása a Gristben folyamatban lévő feladat, idővel javulni fog. A visszajelzéseket nagyra értékeljük!",
-        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Javasoljuk a Firefox, a Chrome vagy az Edge böngészőt a Grist képernyőolvasóval való használatához."
+        "We recommend using Firefox, Chrome or Edge in order to use Grist with a screen reader.": "Javasoljuk a Firefox, a Chrome vagy az Edge böngészőt a Grist képernyőolvasóval való használatához.",
+        "When focus is on a panel, the same shortcut lets you jump between predefined landmarks, making it easier to quickly navigate inside that panel.": "Ha a fókusz egy panelen van, ugyanazzal a gyorsbillentyűvel előre meghatározott pontok között ugorhatsz, ami megkönnyíti a gyors navigációt a panelen belül.",
+        "When focus is on a widget, {{nextJumpTargetShortcut}} toggles focus between the widget and its header.": "Ha a fókusz egy widget-en van, a(z) {{nextJumpTargetShortcut}} váltogatja a fókuszt a widget és annak fejlése között."
     },
     "commandList": {
         "Toggle the screen reader improvements": "Képernyőolvasó-kiegészítések kapcsolása",
@@ -2680,7 +2705,10 @@
         "Filter this column by just this cell's value": "Oszlop szűrése csak ennek a cellának az értéke alapján",
         "Open the context menu": "Helyi menü megnyitása",
         "Open the current column menu": "Aktuális oszlopmenü megnyitása",
-        "Open the current row menu": "Aktuális sor menüjének megnyitása"
+        "Open the current row menu": "Aktuális sor menüjének megnyitása",
+        "When focused on a page panel, focus next landmark": "Ha egy oldal panelje van fókuszban, a következő tájékozódási pontra ugrik",
+        "When focused on a page panel, focus previous landmark": "Ha egy oldal panelje van fókuszban, az előző tájékozódási pontra ugrik",
+        "When focused on a widget, move focus between widget and widget header": "Ha egy widget van fókuszban, a widget és annak fejléce között mozgatja a fókuszt"
     },
     "ProposedChangesPage": {
         "Proposed changes": "Javasolt változtatások",
@@ -2747,7 +2775,10 @@
         "Week of year": "Hét az évben",
         "Year": "Év",
         "Years since": "Eltelt évek",
-        "Years until": "Hátralévő évek"
+        "Years until": "Hátralévő évek",
+        "AM": {
+            "PM": "DE/DU"
+        }
     },
     "selectBy": {
         "Select widget": "Válassz widgetet"
@@ -2861,7 +2892,49 @@
         "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Az OIDC vagy SAML alapú egyszeri bejelentkezést (Single Sign-On, SSO) a teljes Grist kiadás hivatalosan támogatja, és ehhez aktiválási kulcs szükséges – lásd az [árképzést]({{pricingLink}}). Magánszemélyek és kisebb szervezetek [ingyenes Grist aktiválási kulcsot]({{faqLink}}) is igényelhetnek.",
         "When your key arrives, enter it in the **Edition** section, then switch to **{{name}}** here.": "Amikor megkapja a kulcsot, írd be az **Edition** szakaszba, majd itt váltson át a **{{name}}** menüpontra.",
         "You will receive an email response, typically within 5 business days. Your key will be tied to this installation.": "Általában 5 munkanapon belül várható e-mailben egy válasz. A kulcs ehhez a telepítéshez lesz hozzárendelve.",
-        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} aktív, de támogatás nélkül, mivel nincs „Full Grist” aktiválási kulcsa. "
+        "{{name}} is active but is outside the supported set without a Full Grist activation key. ": "{{name}} aktív, de támogatás nélkül, mivel nincs „Full Grist” aktiválási kulcsa. ",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "A **Grist Connect** beállításához kövesd [a Grist Connect-ről szóló támogató cikk](https://support.getgrist.com/install/grist-connect/) utasításait."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "Az **OIDC** beállításához kövesd [az OIDC-ről szóló támogató cikk](https://support.getgrist.com/install/oidc) utasításait."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "Az **SAML** beállításához kövesd [az SAML-ről szóló támogató cikk](https://support.getgrist.com/install/saml/) utasításait."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "A **fejléc-továbbítás** beállításához kövesd [a fejléc-továbbításról szóló támogató cikk](https://support.getgrist.com/install/forwarded-headers/) utasításait."
+                        }
+                    }
+                }
+            }
+        }
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Ez a sor nem elérhető vagy nem létezik"
@@ -2942,7 +3015,9 @@
         "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by {{email}}. These changes will take effect after you restart this Grist server.": "Legyen az új e-mail a telepítés adminisztrátora. A szervezetek, munkaterületek és dokumentumok {{email}} tulajdonában maradnak. Ezek a változtatások a Grist-kiszolgáló újraindítása után lépnek életbe.",
         "New admin": "Új rendszergazda",
         "Replace {{email}} with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by you@example.com.": "{{email}} cím lecserélése az új e-mail címre. Az új e-mail cím lesz a telepítés adminisztrátora, valamint a korábban a you@example.com tulajdonában lévő összes anyag tulajdonosa.",
-        "An account with {{email}} already exists.": "Már létezik egy fiók a következővel: {{email}}."
+        "An account with {{email}} already exists.": "Már létezik egy fiók a következővel: {{email}}.",
+        "Make the new email the installation admin. Orgs, workspaces, and documents will remain owned by **{{email}}**. These changes will take effect after you restart this Grist server.": "Legyen az új email a telepítési adminisztrátor. A szervezetek, munkaterületek és dokumentumok tulajdonosa továbbra is **{{email}}** marad. Ezek a változtatások a Grist kiszolgáló újraindításával lépnek hatályba.",
+        "Replace **{{email}}** with the new email throughout. The new email will become the installation admin, as well as the owner of all materials previously owned by **{{email}}**.": "Cseréljük **{{email}}** címet az új emailcímmel mindenhol. Az új email lesz a telepítési adminisztrátor, valamint minden olyan dolog tulajdonosa is, ami előzőleg **{{email}}** tulajdona volt."
     },
     "startDocAirtableImport": {
         "Import from Airtable": "Importálás az Airtable-ból"
