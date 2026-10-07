@@ -33,7 +33,7 @@ describe("StartupWorkerCleanup", function() {
     for (const [id, url] of [["old", "http://0.0.0.0:8484/v/old/"], ["peer", "http://10.0.0.9:8484/v/x/"]]) {
       await workers.addWorker({ id, publicUrl: url, internalUrl: url });
     }
-    server = await TestServer.startServer("home,docs,static", setup.testDir, "cleanup", {});
+    server = await TestServer.startServer("home,docs,static", setup.testDir, "boot", {});
     const ids = (await workers.getRegisteredWorkers()).map(r => r.info.id);
     assert.notInclude(ids, "old");
     assert.include(ids, "peer");

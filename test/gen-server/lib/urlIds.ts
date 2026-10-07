@@ -125,6 +125,20 @@ describe("urlIds", function() {
     assert.equal((await api2.getDoc("urlid-common")).name, "testdoc2-updated");
   });
 
+  it(`drops urlIds of a doc moved to another org`, async function() {
+    let api = await home.createHomeApi("chimpy", "docs", true);
+    await api.newOrg({ name: "urlid-mover", domain: "urlid-mover" });
+    api = await home.createHomeApi("chimpy", "urlid-mover", true);
+    const srcWs = await api.newWorkspace({ name: "src" }, "current");
+    const docId = await api.newDoc({ name: "mover", urlId: "urlid-mover" }, srcWs);
+    const nasaApi = await home.createHomeApi("chimpy", "nasa");
+    const dstWs = await getAnyWorkspace(nasaApi);
+    await api.moveDoc(docId, dstWs);
+    // Any urlIds left behind for the old org would block deleting it.
+    await api.deleteOrg("urlid-mover");
+    await nasaApi.deleteDoc(docId);
+  });
+
   async function getAnyWorkspace(api: UserAPI) {
     const workspaces = await api.getOrgWorkspaces("current");
     return workspaces[0].id;

@@ -2794,7 +2794,7 @@ export class HomeDBManager implements HomeDBAuth {
       // no conflict.  Be careful about the merged personal org.
       if (oldWs.org.id !== doc.workspace.org.id) {
         doc.urlId = null;
-        await manager.delete(Alias, { doc: doc.id });
+        await manager.delete(Alias, { docId: doc.id });
       }
       // Forcibly remove the aliases relation from the document object, so that TypeORM
       // doesn't try to save it.  It isn't safe to do that because it was filtered by
