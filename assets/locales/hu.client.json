@@ -3050,7 +3050,10 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "A rendszerindító kulcsot csak ideiglenes hitelesítési eszközként szabad használni, amíg egy biztonságosabb és robusztusabb hitelesítési módszert nem állítasz be a Biztonsági beállítások → Hitelesítés menüpontban. Javasoljuk, hogy a Grist beállításának befejezése után távolítsd el a rendszerindító kulcsot.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Ezt a beállítást jelenleg egy környezeti változó (`GRIST_BOOT_KEY`) kezeli.",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Töröld a környezeti változó beállítását, hogy ezt a beállítást a Rendszergazda panelen keresztül kezelhesd.",
-        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "A továbbiakban nem fogsz tudni belépni telepítési adminisztrátorként a `/boot-key' oldalon."
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "A továbbiakban nem fogsz tudni belépni telepítési adminisztrátorként a `/boot-key' oldalon.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "A továbbiakban nem tudod magad telepítési adminisztrátorként azonosítani a `/boot-key`oldalon."
+        }
     },
     "BootPage": {
         "Administrator email": "Rendszergazda e-mail",
@@ -3132,7 +3135,14 @@
         "Stores document snapshots on the local filesystem. For tests only, not production.": "A dokumentum pillanatképeit a helyi fájlrendszeren tárolja. Csak tesztelésre való, éles rendszerben ne használd!",
         "Action needed": "Tennivaló",
         "To preserve it, mount a volume at /persist.": "A megőrzéshez csatolj fel egy kötetet a /persist helyre.",
-        "Your data may not survive a container restart.": "Lehet, hogy az adataid nem élik túl a konténer újraindítását."
+        "Your data may not survive a container restart.": "Lehet, hogy az adataid nem élik túl a konténer újraindítását.",
+        "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Bármilyen S3-kompatibilis, verziózásra képes tároló, mint például a RustFS vagy maga az AWS S3.",
+        "S3-compatible": "S3-kompatibilis",
+        "Set these environment variables and restart Grist to enable S3-compatible storage:": "Az S3-kompatibilis tároló engedélyezéséhez ezeket a környezeti változókat állítsd be, és inítsd újra a Grist-et:",
+        "To preserve it, mount a volume at ": {
+            "persist.": "Hogy megőrizd, csatolj fel egy kötetet a /persist útvonalra."
+        },
+        "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Dokumentumok mentésének tárolása külső szolgáltatás igénybevételével, mint az S3 vagy az Azura. Védelmet ad adatvesztés ellen, vagy a kiszolgáló lemezhibája esetén."
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Anonim hozzáférés engedélyezése",
@@ -3182,7 +3192,12 @@
         "Uses the built-in macOS sandbox. Good isolation for local use on a Mac.": "A beépített macOS sandboxot használja. Mac-en helyi használatra jó elszigetelést biztosít.",
         "macOS sandbox": "macOS sandbox",
         "Sandbox": "Sandbox",
-        "Revert": "Visszaállítás"
+        "Revert": "Visszaállítás",
+        "Formulas have full system access. Only appropriate when you trust every document and its authors.": "A képleteknek teljes rendszerhozzáférése van! Csak akkor alkalmazd, ha minden dokumentumban és ezek szerzőiben is megbízol!",
+        "Formulas run in WebAssembly, fully compatible but slower than gVisor. Works on any platform.": "A képletek WebAssembly-ben futnak, ami teljesen kompatibilis a gVisot-ral, de lassabb annál. Minden platformon működik.",
+        "Grist runs user formulas as Python code. Sandboxing isolates this execution to protect your server. Without it, document formulas can access the full system.": "A Grist a képleteket Python kódként futtatja. A sandboxozás izolálja ezt a futtatást a kiszolgáló védelme érdekében. Enélkül a dokumentumok képleteinek teljes rendszerhozzáférése van.",
+        "Sandbox type is set via the GRIST_SANDBOX_FLAVOR environment variable and cannot be changed here. Remove the variable and restart to configure via this wizard.": "A sandbox típusát a GRIST_SANDBOX_FLAVOR környezeti változó állítja be, ezt itt nem lehet megváltoztatni. Távolítsd el ezt a környezeti változót, majd kezdd újra a beállításokat ezzel a varázslóval!",
+        "The fastest and most battle-tested sandbox. Each document's formulas run in their own isolated container.": "A leggyorsabb és a legtöbb próbát kiállt sandbox. Minden dokumentum képlete a saját izolált környezetében fut."
     },
     "AdminPanelCss": {
         "Confirmed": "Megerősítve",
@@ -3207,7 +3222,12 @@
         "checking": "ellenőrzés",
         "https://grist.example.com": "https://grist.example.com",
         "not set": "nincs beállítva",
-        "set": "beállítva"
+        "set": "beállítva",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        }
     },
     "EditionSection": {
         "Choose which edition of Grist to run on this server": "Válaszd ki, hogy a Grist melyik kiadása fusson ezen a szerveren",
@@ -3257,7 +3277,10 @@
         "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Bármikor visszaléphetsz a közösségi kiadásra. Nem veszítesz adatokat, és nem kell újratelepítened a Grist-et.",
         "Your server will restart automatically once finished.": "A szerver automatikusan újraindul, amint befejeződött.",
         "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} elérhetőek magánszemélyek és 1m USD éves finanszírozás alatti szervezetk számára. Nagyobb szervezetek esetén lásd {{pricingLink}}. Kezdd el a 30 napos próbaidőszakot ma!",
-        "The Community edition is set via environment variable.": "A Community edition környezeti változóként állítható be."
+        "The Community edition is set via environment variable.": "A Community edition környezeti változóként állítható be.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Automatizáláshoz, MCP kiszolgálóhoz, AI asszisztenshez, OIDC/SAML támogatáshoz, email értesítésekhez, admin ellenőrzéshez, audit naplózáshoz válts a Grist teljes kiadására."
+        }
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Alkalmazás és folytatás",
@@ -3457,7 +3480,12 @@
         "Send me product and security updates": "Kérek termék és biztonsági hírleveleket!",
         "How did you hear about Grist?": "Honnan hallott a Grist-ről?",
         "A couple of quick questions — optional, and only our team sees this.": "Pár gyors kérdés - nem kötelezők, és csak a mi csapatunk látja ezt.",
-        "Occasional email about new releases and important security notices.": "Időnkénti e-mailek az új kiadásokról és a fontos biztonsági értesítésekről."
+        "Occasional email about new releases and important security notices.": "Időnkénti e-mailek az új kiadásokról és a fontos biztonsági értesítésekről.",
+        "Conference/event": "Konferencia/esemény",
+        "Developer/IT": "Fejlesző/IT",
+        "Education/Research Institute": "Oktatás/Kutatóintézet",
+        "Friend/colleague": "Barát/kolléga",
+        "Reddit/forum": "Reddit/fórumok"
     },
     "RowNumbersMenu": {
         "Hidden": "Elrejtve",
@@ -3484,5 +3512,27 @@
         "AI Assistant": "MI segéd",
         "Automations": "Automatizált műveletek",
         "Change & comment notifications": "Értesítések megváltoztatása"
+    },
+    "AskTheAdmin": {
+        "1 person has asked for this.": "1 személy kérte.",
+        "Add a note": "Jegyzet hozzáadása",
+        "Ask the admin for this": "Kérd az admintól",
+        "Note sent.": "Jegyzet elküldve.",
+        "Why do you want this? Press Enter to send.": "Miért szeretnéd ezt? Nyomj Enter-t a küldéshez.",
+        "You and 1 other have asked for this.": "Te és 1 másik személy kérte ezt.",
+        "You and {{count}} others have asked for this._one": "Te és {{count}} másik személy kérte ezt.",
+        "You and {{count}} others have asked for this._other": "Te és még {{count}} másik személy kérte ezt.",
+        "You've asked for this.": "Te kérted ezt.",
+        "{{count}} people have asked for this._one": "{{count}} személy kérte ezt.",
+        "{{count}} people have asked for this._other": "{{count}} személy kérte ezt."
+    },
+    "AdminServersSection": {
+        "1 document": "1 dokumentum",
+        "1 other server has stopped reporting that it is running.": "1 másik kiszolgáló jelentette a futás leállását.",
+        "1 other server is registered but not accepting new documents.": "1 másik kiszolgáló regisztrált, de nem fogad új dokumentumokat.",
+        "1 server": "1 kiszolgáló",
+        "Another server has the same address, so requests meant for one may reach the other.": "Egy másik kiszolgálónak ugyanez a címe, így az egyiknek szánt kérések a másiknál köthetnek ki.",
+        "Could not reach the server": "A kiszolgáló nem elérhető",
+        "Each document is held by one of these servers. Fleet-style routing.": "Minden dokumentumot ezek közül az egyik kiszolgáló tárol. Flotta-jellegű útválasztás."
     }
 }
