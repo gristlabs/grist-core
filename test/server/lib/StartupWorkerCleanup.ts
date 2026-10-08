@@ -27,7 +27,7 @@ describe("StartupWorkerCleanup", function() {
   });
 
   it("removes workers registered at 0.0.0.0 when it starts", async function() {
-    const setup = await prepareRedisTest(this, "StartupWorkerCleanup");
+    const setup = await prepareRedisTest(this, "StartupCleanup");
     oldEnv = setup.oldEnv;
     workers = new DocWorkerMap([createClient(process.env.TEST_REDIS_URL)]);
     for (const [id, url] of [["old", "http://0.0.0.0:8484/v/old/"], ["peer", "http://10.0.0.9:8484/v/x/"]]) {
