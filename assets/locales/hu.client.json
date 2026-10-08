@@ -3533,6 +3533,8 @@
         "1 server": "1 kiszolgáló",
         "Another server has the same address, so requests meant for one may reach the other.": "Egy másik kiszolgálónak ugyanez a címe, így az egyiknek szánt kérések a másiknál köthetnek ki.",
         "Could not reach the server": "A kiszolgáló nem elérhető",
-        "Each document is held by one of these servers. Fleet-style routing.": "Minden dokumentumot ezek közül az egyik kiszolgáló tárol. Flotta-jellegű útválasztás."
+        "Each document is held by one of these servers. Fleet-style routing.": "Minden dokumentumot ezek közül az egyik kiszolgáló tárol. Flotta-jellegű útválasztás.",
+        "Each document is held by one of these servers. Worker-pool routing.": "Minden dokumentumot egyetlen kiszolgáló tárol ezek közül. Feladathoz kötődő útválasztás.",
+        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET be van állítva, de ez a kiadás nem tudja a kiszolgálók között közvetíteni a dokumentumokat, a dokumentumok csak a hozzájuk rendelt kiszolgálón érhetőek el."
     }
 }
