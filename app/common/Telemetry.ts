@@ -422,52 +422,12 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  "beaconArticleViewed": {
-    category: "HelpCenter",
-    description: "Triggered when an article is opened in HelpScout Beacon.",
-    minimumTelemetryLevel: Level.full,
-    retentionPeriod: "indefinitely",
-    metadataContracts: {
-      articleId: {
-        description: "The id of the article.",
-        dataType: "string",
-      },
-      userId: {
-        description: "The id of the user that triggered this event.",
-        dataType: "number",
-      },
-      altSessionId: {
-        description: "A random, session-based identifier for the user that triggered this event.",
-        dataType: "string",
-      },
-    },
-  },
   "beaconEmailSent": {
     category: "HelpCenter",
     description: "Triggered when an email is sent in HelpScout Beacon.",
     minimumTelemetryLevel: Level.full,
     retentionPeriod: "indefinitely",
     metadataContracts: {
-      userId: {
-        description: "The id of the user that triggered this event.",
-        dataType: "number",
-      },
-      altSessionId: {
-        description: "A random, session-based identifier for the user that triggered this event.",
-        dataType: "string",
-      },
-    },
-  },
-  "beaconSearch": {
-    category: "HelpCenter",
-    description: "Triggered when a search is made in HelpScout Beacon.",
-    minimumTelemetryLevel: Level.full,
-    retentionPeriod: "indefinitely",
-    metadataContracts: {
-      searchQuery: {
-        description: "The search query.",
-        dataType: "string",
-      },
       userId: {
         description: "The id of the user that triggered this event.",
         dataType: "number",
@@ -2056,9 +2016,7 @@ export const TelemetryEvents = StringUnion(
   "assistantClose",
   "assistantStartDocument",
   "beaconOpen",
-  "beaconArticleViewed",
   "beaconEmailSent",
-  "beaconSearch",
   "ratedHelpCenterArticle",
   "documentCreated",
   "documentForked",

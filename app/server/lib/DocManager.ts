@@ -697,6 +697,8 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         return { title: basename, id: doc.docName };
       }
     } catch (err) {
+      // Errors that already explain what the user should do aren't worth reporting.
+      if (err instanceof ApiError) { throw err; }
       throw new ApiError(err.message, err.status || 400, {
         tips: [{ action: "ask-for-help", message: "Ask for help" }],
       });

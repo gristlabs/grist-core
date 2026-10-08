@@ -185,7 +185,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
             ),
           ) : null
         ),
-        createHelpTools(home.app),
+        createHelpTools(),
         createAccessibilityTools(home.app),
         (commonUrls.termsOfService ?
           cssPageEntry(

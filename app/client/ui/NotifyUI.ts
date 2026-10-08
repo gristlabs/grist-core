@@ -12,7 +12,7 @@ import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
 import { Memo, MemoKind } from "app/common/ACLPermissions";
-import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
+import { commonUrls } from "app/common/gristUrls";
 
 import { dom, makeTestId, styled } from "grainjs";
 import { cssMenu, defaultMenuOptions, IOpenController, setPopupToCreateDom } from "popweasel";
@@ -191,13 +191,6 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
     cssDropdownContent(
       cssDropdownHeader(
         cssDropdownHeaderTitle(t("Notifications")),
-        !isFeatureEnabled("helpCenter") ? null :
-          cssDropdownFeedbackLink(
-            cssDropdownFeedbackIcon("Feedback"),
-            t("Give feedback"),
-            dom.on("click", () => beaconOpenMessage({ appModel, onOpen: () => ctl.close(), route: "/ask/message/" })),
-            testId("feedback"),
-          ),
       ),
       dom.maybe(disconnectMsg, msg =>
         cssDropdownStatus(
@@ -259,21 +252,6 @@ const cssDropdownHeader = styled("div", `
 const cssDropdownHeaderTitle = styled("span", `
   color: ${theme.text};
   font-weight: bold;
-`);
-
-const cssDropdownFeedbackLink = styled("div", `
-  display: flex;
-  color: ${theme.controlFg};
-  cursor: pointer;
-  user-select: none;
-  &:hover {
-    text-decoration: underline;
-  }
-`);
-
-const cssDropdownFeedbackIcon = styled(icon, `
-  background-color: ${theme.controlFg};
-  margin-right: 4px;
 `);
 
 const cssDropdownStatus = styled("div", `
