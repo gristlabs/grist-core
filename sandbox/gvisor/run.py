@@ -74,9 +74,12 @@ mounts = [             # These will be filled in more fully programmatically bel
 ]
 binds = []
 preserved = set()
+
+sandbox_path = os.environ.get("GVISOR_SANDBOX_PATH", "/usr/local/bin:/usr/bin:/bin")
+sandbox_ld_library_path = os.environ.get("GVISOR_SANDBOX_LD_LIBRARY_PATH", "/usr/local/lib")
 env = [
-  "PATH=/usr/local/bin:/usr/bin:/bin",
-  "LD_LIBRARY_PATH=/usr/local/lib"      # Assumes python version in /usr/local
+  f"PATH={sandbox_path}",
+  f"LD_LIBRARY_PATH={sandbox_ld_library_path}"      # Assumes python version in /usr/local
 ] + (args.env or [])
 settings = {
   "ociVersion": "1.0.0",
@@ -139,12 +142,14 @@ if memory_limit:
   })
 
 # Helper for preparing a mount.
-def preserve(*locations, short_failure=False):
+def preserve(*locations, short_failure=False, fail_if_not_exists=True):
   for location in locations:
     # Check the requested directory is visible on the host, and that there hasn't been a
     # muddle.  For Grist, this could happen if a parent directory of a temporary import
     # directory hasn't been made available to the container this code runs in, for example.
     if not os.path.exists(location):
+      if not fail_if_not_exists:
+          continue
       if short_failure:
         raise Exception('cannot find: ' + location)
       raise Exception('cannot find: ' + location + ' ' +
@@ -158,16 +163,29 @@ def preserve(*locations, short_failure=False):
     preserved.add(location)
 
 # Prepare the file system - blank out everything that need not be shared.
-exceptions = ["/lib", "/lib64"]   # to be shared (read-only)
-exceptions += ["/proc", "/sys"]   # already virtualized
 
-# retain /bin and /usr/bin for utilities
+exceptions = ["/proc", "/sys"]   # already virtualized
 start = args.start
-if include_bash or start:
-  exceptions.append("/bin")
 
-preserve("/usr/bin")
-preserve("/usr/local/lib")
+if not os.environ.get("GVISOR_NO_DEFAULT_FHS_DIR") == "1":
+    exceptions += ["/lib", "/lib64"]   # to be shared (read-only)
+    # retain /bin and /usr/bin for utilities
+    if include_bash or start:
+      preserve("/bin")
+    
+    preserve("/usr/bin")
+    preserve("/usr/local/lib")
+    
+    # Do not attempt to include symlink directories, they are not supported
+    # and will cause obscure failures. On debian bookworm /lib64 is a
+    # symlink and we do not appear to need it, relative to debian buster
+    # where it is a real directory.
+    if os.path.exists('/lib64') and not os.path.islink('/lib64'):
+      preserve("/lib64")
+    if os.path.exists('/usr/lib64'):
+      preserve("/usr/lib64")
+    preserve("/usr/lib")
+
 
 # Support user-specific extra directories. This is handy if Python is
 # somewhere weird and there is a maze of soft links to get
@@ -176,31 +194,24 @@ extra_dirs = os.environ.get('GVISOR_EXTRA_DIRS')
 if extra_dirs:
   preserve(*extra_dirs.split(':'))
 
-# Do not attempt to include symlink directories, they are not supported
-# and will cause obscure failures. On debian bookworm /lib64 is a
-# symlink and we do not appear to need it, relative to debian buster
-# where it is a real directory.
-if os.path.exists('/lib64') and not os.path.islink('/lib64'):
-  preserve("/lib64")
-if os.path.exists('/usr/lib64'):
-  preserve("/usr/lib64")
-preserve("/usr/lib")
+def which_glob(pattern, path):
+    """
+    Similar to shutil.which but accepting glob-style pattern
+    """
+    for p in path.split(os.pathsep):
+        for exe in glob.glob(f"{p}/{pattern}"):
+            if os.path.exists(exe):
+                yield exe
 
-# include python3 for bash and python3
-best_python_executable = None
-# We expect python3 in /usr/bin or /usr/local/bin.
-candidates = [
-  path
-  # Pick the most generic python if not matching python3.11.
-  # Sorry this is delicate because of restores, mounts, symlinks.
-  for pattern in ['python3.11', 'python3.10', 'python3.9', 'python3', 'python3*']
-  for root in ['/usr/local', '/usr']
-  for path in glob.glob(f'{root}/bin/{pattern}')
-  if os.path.exists(path)
-]
-if not candidates:
+# Look up for python executables in the sandbox path
+# Pick the most generic python if not matching python3.11.
+# Sorry this is delicate because of restores, mounts, symlinks.
+for pattern in ['python3.11', 'python3.10', 'python3.9', 'python3', 'python3*']:
+    if candidate := next(which_glob(pattern, path = sandbox_path), None):
+        break
+if not candidate:
   raise Exception('could not find python3')
-best_python_executable = os.path.realpath(candidates[0])
+best_python_executable = os.path.realpath(candidate)
 
 # Set up any specific shares requested.
 if args.mount:
@@ -227,12 +238,12 @@ settings['mounts'] = sorted(tmpfs_mounts, key=lambda mount: mount["destination"]
 # because gvisor is written in Go and doesn't use the standard library that faketime
 # tweaks.
 if args.faketime:
-  preserve('/usr/lib/x86_64-linux-gnu/faketime')
   cmd_args.append('faketime')
   cmd_args.append('-f')
   cmd_args.append('2020-01-01 00:00:00' if args.faketime == 'default' else args.faketime)
-  preserve('/usr/bin/faketime')
-  preserve('/bin/date')
+  preserve('/usr/lib/x86_64-linux-gnu/faketime', fail_if_not_exists=False)
+  preserve('/usr/bin/faketime', fail_if_not_exists=False)
+  preserve('/bin/date', fail_if_not_exists=False)
 
 # Pick and set an initial entry point (bash or python).
 if start:
