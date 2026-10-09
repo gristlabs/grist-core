@@ -2,7 +2,7 @@
  * Test of the UI for Granular Access Control, part 3.
  */
 import { ITestingHooks } from "app/server/lib/ITestingHooks";
-import { assertChanged, assertSaved, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import { assertChanged, assertSaved, saveRules, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -130,9 +130,8 @@ describe("AccessRules4", function() {
     await gu.findOpenMenu();
     await driver.sendKeys("Email", Key.ENTER);
     await assertChanged();
-    await driver.find(".test-rules-save").click();
+    await saveRules();
     await gu.checkForErrors();
-    await gu.waitForServer();
     await assertSaved();
     await gu.openPage("Users");
 
@@ -179,7 +178,7 @@ describe("AccessRules4", function() {
     // Now make the public editor.
     await driver.find(".test-tb-share").click();
     await driver.findContentWait(".test-tb-share-option", /Manage users/, 100).doClick();
-    await driver.findWait(".test-um-public-member .test-um-member-role", 100).click();
+    await driver.findWait(".test-um-public-member .test-um-member-role", 3000).click();
     await driver.findContentWait(".test-um-role-option", /Editor/, 100).click();
     await gu.saveAcls();
     await gu.openPage("Table1");

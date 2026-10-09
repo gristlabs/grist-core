@@ -132,7 +132,7 @@ describe("DocTour", function() {
     await driver.find(".test-onboarding-close").click();
     await driver.find(".test-user-icon").click();
     await driver.findContentWait(".test-usermenu-other-email", /chimpy@getgrist.com/, 1000).click();
-    await driver.wait(async () => (await gu.getEmail() === "chimpy@getgrist.com"), 500);
+    await driver.wait(async () => (await gu.getEmail(1000) === "chimpy@getgrist.com"), 1000);
     await driver.findWait(".test-onboarding-close", 1000).click();
     await driver.find(".test-tools-remove-doctour").click();
     await driver.find(".test-modal-confirm").click();

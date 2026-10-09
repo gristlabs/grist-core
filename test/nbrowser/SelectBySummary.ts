@@ -1,4 +1,4 @@
-import { enterRulePart, findDefaultRuleSetWait, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import { enterRulePart, findDefaultRuleSetWait, saveRules, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -191,8 +191,7 @@ describe("SelectBySummary", function() {
     await gu.findOpenMenuItem("li", /Table1/, 3000).click();
     const ruleSet = findDefaultRuleSetWait(/Table1/);
     await enterRulePart(ruleSet, 1, null, "Deny all");
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
 
     // Go back to the main page.
     await gu.getPageItem("Table1").click();

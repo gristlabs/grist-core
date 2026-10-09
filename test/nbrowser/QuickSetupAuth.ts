@@ -514,12 +514,16 @@ describe("QuickSetupAuth", function() {
         await driver.findWait(".test-modal-confirm", 2000).click();
         await gu.waitForServer();
 
-        const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
+        const continueBtnSelector = ".test-quick-setup-auth-continue";
         await gu.waitToPass(async () => {
-          assert.match(await continueBtn.getText(), /Apply and Continue/i);
+          assert.match(
+            await driver.find(continueBtnSelector).getText(),
+            /Apply and Continue/i);
         }, 2000);
 
-        await continueBtn.click();
+        await gu.waitToPass(async () => {
+          await driver.find(continueBtnSelector).click();
+        }, 2000);
         await driver.wait(async () => (await driver.getCurrentUrl()).startsWith(oidc.url), 30000);
         assert.match(await driver.getPageSource(), /oidc-mock-authorize/);
       });

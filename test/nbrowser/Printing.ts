@@ -59,7 +59,7 @@ describe("Printing", function() {
   });
 
   it("should include all rows when printing card list", async function() {
-    await gu.getPageItem("Cards and Chart").click();
+    await gu.openPage("Cards and Chart");
     await checkPrintSection("COUNTRIES Card List", async () => {
       // Only the selected cards are displayed.
       assert.isTrue(await driver.findContent(".print-all-rows .field_clip", /Aruba/).isDisplayed());
@@ -77,7 +77,7 @@ describe("Printing", function() {
   });
 
   it("should display charts when printing", async function() {
-    await gu.getPageItem("Cards and Chart").click();
+    await gu.openPage("Cards and Chart");
     await checkPrintSection("COUNTRIES [By Continent] Chart", async () => {
       await gu.waitToPass(async () => {
         // Expect to see all Continents listed, by population, excluding the filtered-out Antarctica.
@@ -88,7 +88,7 @@ describe("Printing", function() {
   });
 
   it("should not display link icon when printing", async function() {
-    await gu.getPageItem("Countries").click();
+    await gu.openPage("Countries");
     await gu.getCell(0, 1).click();
     await gu.enterCell("http://getgrist.com");
     await gu.waitForServer();
@@ -108,7 +108,7 @@ describe("Printing", function() {
   });
 
   it("should render markdown cells when printing", async function() {
-    await gu.getPageItem("Countries").click();
+    await gu.openPage("Countries");
     await gu.openColumnPanel("Name");
     await gu.setFieldWidgetType("Markdown");
     await gu.getCell({ rowNum: 1, col: "Name" }).click();
