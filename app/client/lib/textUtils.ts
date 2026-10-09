@@ -1,61 +1,28 @@
-// There are many regex for matching URL, but non seem to be the correct solution.
-// Here we will use very fast and simple one.
-// Tested most of the regex solutions mentioned in this post
-// https://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links.
-// The best one was http://alexcorvi.github.io/anchorme.js/, which still wasn't perfect.
-// The best non regex solution was https://github.com/Hypercontext/linkifyjs, but it feels a little too heavy.
-// Some examples why this is better or worse from other solution:
-/**
+import LinkifyIt from "linkify-it";
 
-For 'http://www.uk,http://www.uk'
-'OurRegex' [ 'http://www.uk', 'http://www.uk' ]
-'Anchrome' [ 'http://www.uk,http://www.uk' ]
-'linkify' [ 'http://www.uk,http://www.uk' ]
-'url-regex' [ 'http://www.uk', 'http://www.uk' ]
-
-For 'might.it be a link'
-'OurRegex' []
-'Anchrome' [ 'might.it' ]
-'linkify' [ 'http://might.it' ]
-'url-regex' []
-
-For 'Is this correct.No it is not'
-'OurRegex' []
-'Anchrome' [ 'correct.No' ]
-'linkify' [ 'http://correct.No' ]
-'url-regex' []
-
-For 'Link (in http://www.uk?)'
-'OurRegex' [ 'http://www.uk' ]
-'Anchrome' [ 'http://www.uk' ]
-'linkify' [ 'http://www.uk' ]
-'url-regex' [ 'http://www.uk?)' ]
-*/
+// Markdown cells also use linkify-it, so links end in the same place in both. Here we only
+// recognize explicit http(s) links, not bare domains like "might.it", emails, or other schemas.
+const linkify = new LinkifyIt({}, { fuzzyLink: false, fuzzyEmail: false, fuzzyIP: false });
+const linkSchemas = new Set(["http:", "https:"]);
 
 /**
- * Match http or https then a domain with an optional port and a path ending in a letter,
- * number, slash, or hyphen.
- */
-function createUrlRegex(): RegExp {
-  const protocol = "https?:\\/\\/";
-  const domain = "[A-Za-z\\d][A-Za-z\\d-.]*(?!\\.)";
-  const port = "(?::\\d+)?";
-  const pathEndingInWord = "(?:\\/[^\\s]*)?[\\w\\d/]";
-  const pathEndingInHyphen = "\\/[^\\s]*-(?![\\w-])";
-  const path = `(?:${pathEndingInHyphen}|${pathEndingInWord})`;
-
-  return new RegExp(`(${protocol}${domain}${port}${path})`);
-}
-
-/**
- * Detects URLs in a text and returns list of tokens { value, isLink }
+ * Detects URLs in a text and returns list of tokens { value, isLink }. Links will be at
+ * odd-number indices.
  */
 export function findLinks(text: string): { value: string, isLink: boolean }[] {
   if (!text) {
     return [{ value: text, isLink: false }];
   }
-  // urls will be at odd-number indices
-  return text.split(createUrlRegex()).map((value, i) => ({ value, isLink: (i % 2) === 1 }));
+  const tokens = [];
+  let pos = 0;
+  for (const match of linkify.match(text) || []) {
+    if (!linkSchemas.has(match.schema)) { continue; }
+    tokens.push({ value: text.slice(pos, match.index), isLink: false });
+    tokens.push({ value: match.raw, isLink: true });
+    pos = match.lastIndex;
+  }
+  tokens.push({ value: text.slice(pos), isLink: false });
+  return tokens;
 }
 
 /**

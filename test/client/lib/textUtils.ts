@@ -88,8 +88,6 @@ describe("textUtils", function() {
   });
 
   it("should find links in text", function() {
-    // This test checks if the function findLinks can successfully identify links in text leaving any
-    // other text intact.
     const testData: [string, { value: string, isLink: boolean }[]][] = [
       ["", [{ value: "", isLink: false }]],
       ["Plain text", [{ value: "Plain text", isLink: false }]],
@@ -136,10 +134,40 @@ describe("textUtils", function() {
         { value: "https://www.uk/s-o-m-e-p-a-g-e", isLink: true },
         { value: " for details.", isLink: false },
       ]],
+      // A hostname can't end in a dash, so this isn't a link.
       ["See https://www.uk- for details.", [
-        { value: "See ", isLink: false },
-        { value: "https://www.uk", isLink: true },
-        { value: "- for details.", isLink: false },
+        { value: "See https://www.uk- for details.", isLink: false },
+      ]],
+      ["https://en.wikipedia.org/wiki/Saint-%C3%89tienne", [
+        { value: "", isLink: false },
+        { value: "https://en.wikipedia.org/wiki/Saint-%C3%89tienne", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["https://www.uk/a-/b and https://www.uk/page-?q=1", [
+        { value: "", isLink: false },
+        { value: "https://www.uk/a-/b", isLink: true },
+        { value: " and ", isLink: false },
+        { value: "https://www.uk/page-?q=1", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["(see https://www.uk/page)-", [
+        { value: "(see ", isLink: false },
+        { value: "https://www.uk/page", isLink: true },
+        { value: ")-", isLink: false },
+      ]],
+      ["Wiki https://en.wikipedia.org/wiki/Grist_(disambiguation).", [
+        { value: "Wiki ", isLink: false },
+        { value: "https://en.wikipedia.org/wiki/Grist_(disambiguation)", isLink: true },
+        { value: ".", isLink: false },
+      ]],
+      // Only http(s) links are recognized.
+      ["mailto:me@www.uk ftp://www.uk //www.uk me@www.uk", [
+        { value: "mailto:me@www.uk ftp://www.uk //www.uk me@www.uk", isLink: false },
+      ]],
+      ["HTTPS://WWW.UK/DOCS", [
+        { value: "", isLink: false },
+        { value: "HTTPS://WWW.UK/DOCS", isLink: true },
+        { value: "", isLink: false },
       ]],
       ["https://127.0.0.1:8080/api", [
         { value: "", isLink: false },
