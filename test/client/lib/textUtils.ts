@@ -126,6 +126,16 @@ describe("textUtils", function() {
         { value: "https://www.uk/some-page-", isLink: true },
         { value: " for details.", isLink: false },
       ]],
+      ["See https://www.uk/some-page for details.", [
+        { value: "See ", isLink: false },
+        { value: "https://www.uk/some-page", isLink: true },
+        { value: " for details.", isLink: false },
+      ]],
+      ["See https://www.uk/s-o-m-e-p-a-g-e for details.", [
+        { value: "See ", isLink: false },
+        { value: "https://www.uk/s-o-m-e-p-a-g-e", isLink: true },
+        { value: " for details.", isLink: false },
+      ]],
       ["See https://www.uk- for details.", [
         { value: "See ", isLink: false },
         { value: "https://www.uk", isLink: true },
