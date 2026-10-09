@@ -1,7 +1,7 @@
 import { UserAPI } from "app/common/UserAPI";
 import { addYAxis, checkAxisConfig, checkAxisRange, findYAxis, getAxisTitle, getChartData,
   removeYAxis, selectChartType, selectXAxis,
-  setSplitSeries } from "test/nbrowser/chartViewTestUtils";
+  setSplitSeries, setYAxis } from "test/nbrowser/chartViewTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -58,6 +58,38 @@ describe("ChartView1", function() {
     await gu.waitForServer();
     assert.deepEqual((await layout()).yaxis.type, "category");
     assert.deepEqual((await layout()).xaxis.type, "linear");
+
+    await revert();
+    await gu.toggleSidePanel("right", "close");
+  });
+
+  it("should order categories on the x-axis of multiseries line charts", async function() {
+    // The first series lacks "D2", which used to push "D2" to the end of the x-axis
+    // (https://github.com/gristlabs/grist-core/issues/387).
+    const revert = await gu.begin();
+    await gu.sendActions([
+      ["AddTable", "Scores", [
+        { id: "Person", type: "Text" },
+        { id: "Test", type: "Text" },
+        { id: "Score", type: "Int" },
+      ]],
+      ["BulkAddRecord", "Scores", [1, 2, 3, 4, 5], {
+        Person: ["John", "John", "Paul", "Paul", "Paul"],
+        Test: ["D1", "D3", "D1", "D2", "D3"],
+        Score: [1, 3, 1, 2, 3],
+      }],
+    ]);
+    await gu.openPage("Scores");
+    await gu.addNewSection("Chart", "Scores");
+    await gu.toggleSidePanel("right", "open");
+    await selectChartType("Line chart");
+    await selectXAxis("Test");
+    await setSplitSeries("Person");
+    await setYAxis(["Score"]);
+
+    const { layout } = await getChartData();
+    assert.equal(layout.xaxis.categoryorder, "array");
+    assert.deepEqual(layout.xaxis.categoryarray, ["D1", "D2", "D3"]);
 
     await revert();
     await gu.toggleSidePanel("right", "close");
