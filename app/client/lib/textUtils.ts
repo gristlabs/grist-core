@@ -32,8 +32,20 @@ For 'Link (in http://www.uk?)'
 'url-regex' [ 'http://www.uk?)' ]
 */
 
-// Match http or https then domain name (with optional port) then any text that ends with letter or number.
-export const urlRegex = /(https?:\/\/[A-Za-z\d][A-Za-z\d-.]*(?!\.)(?::\d+)?(?:\/[^\s]*)?[\w\d/])/;
+/**
+ * Match http or https then a domain with an optional port and a path ending in a letter,
+ * number, slash, or hyphen.
+ */
+function createUrlRegex(): RegExp {
+  const protocol = "https?:\\/\\/";
+  const domain = "[A-Za-z\\d][A-Za-z\\d-.]*(?!\\.)";
+  const port = "(?::\\d+)?";
+  const pathEndingInWord = "(?:\\/[^\\s]*)?[\\w\\d/]";
+  const pathEndingInHyphen = "\\/[^\\s]*-(?![\\w-])";
+  const path = `(?:${pathEndingInHyphen}|${pathEndingInWord})`;
+
+  return new RegExp(`(${protocol}${domain}${port}${path})`);
+}
 
 /**
  * Detects URLs in a text and returns list of tokens { value, isLink }
@@ -43,7 +55,7 @@ export function findLinks(text: string): { value: string, isLink: boolean }[] {
     return [{ value: text, isLink: false }];
   }
   // urls will be at odd-number indices
-  return text.split(urlRegex).map((value, i) => ({ value, isLink: (i % 2) === 1 }));
+  return text.split(createUrlRegex()).map((value, i) => ({ value, isLink: (i % 2) === 1 }));
 }
 
 /**
