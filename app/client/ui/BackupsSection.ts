@@ -1,15 +1,19 @@
 import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
-import { cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
+import { getHomeUrl } from "app/client/models/AppModel";
+import { reportError } from "app/client/models/errors";
+import { buildConfirmedRow, cssDangerText, cssErrorText, cssHappyText } from "app/client/ui/AdminPanelCss";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { cssValueLabel } from "app/client/ui/SettingsLayout";
-import { buildBadge, buildHeroCard, buildItemCard, cssItemsContainer } from "app/client/ui/SetupCard";
+import { buildBadge, buildHeroCard, buildItemCard, cssHeroActions, cssItemsContainer } from "app/client/ui/SetupCard";
+import { basicButton } from "app/client/ui2018/buttons";
 import { testId } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
-import { BackupsBootProbeDetails } from "app/common/BootProbe";
+import { BackupsBootProbeDetails, getStorageRisks, PersistDataBootProbeDetails } from "app/common/BootProbe";
 import { StorageBackendName } from "app/common/ExternalStorage";
 import { commonUrls } from "app/common/gristUrls";
+import { InstallAPIImpl } from "app/common/InstallAPI";
 import { StringUnion } from "app/common/StringUnion";
 import { components, tokens } from "app/common/ThemePrefs";
 
@@ -69,6 +73,9 @@ export interface BackupsSectionProps {
  * complete the steps to enable a particular backend based on the instructions shown. Typically, this involves
  * setting some environment variables and restarting the Grist server for them to take effect.
  *
+ * Renders the storage-persistence card above the backend list, which asks the operator to confirm
+ * that Grist's data survives a restart, and shows in red when the "persist-data" probe reports a fault.
+ *
  * This component is shared by both AdminPanel and QuickSetup.
  */
 export class BackupsSection extends Disposable {
@@ -92,17 +99,66 @@ export class BackupsSection extends Disposable {
     return req ? use(req.result) : undefined;
   });
 
+  private readonly _installAPI = new InstallAPIImpl(getHomeUrl());
+  private readonly _prefsLoaded = Observable.create<boolean>(this, false);
+  private readonly _adminConfirmed = Observable.create<boolean>(this, false);
+  private readonly _checkingLater = Observable.create<boolean>(this, false);
+
+  /**
+   * What the persistence card and the Continue button need, derived in plain code in one place.
+   * (A chain of computeds that read their inputs conditionally can see stale values in grainjs.)
+   * `card` is what to show, if any: a row with the answer ("answered"), or a red ("fault") or
+   * grey ("ask") card.
+   */
+  private readonly _persist = Computed.create(this, (use) => {
+    // A failed check request has only an error in its details, so no facts and no risks.
+    const details = use(this._persistResult)?.details as PersistDataBootProbeDetails | undefined;
+    const risks = details ? getStorageRisks(details) : {};
+    const fault = Boolean(risks.docs || risks.home);
+    const inMemory = risks.docs === "in-memory" || risks.home === "in-memory";
+    // Documents in external storage and a Postgres home database leave nothing on local disk.
+    const byConfig = Boolean(details?.externalStorageActive && details?.usesPostgres);
+    const confirmed = byConfig || use(this._adminConfirmed);
+    // The initial probe value is `{status: "none"}` with no details, so details arriving is
+    // what tells us the probe actually ran.
+    const loading = !use(this._prefsLoaded) || !details;
+    const answered = confirmed || use(this._checkingLater);
+    const card = loading || byConfig ? null : answered ? "answered" : fault ? "fault" : "ask";
+    return { card, answered, confirmed, fault, inMemory };
+  });
+
+  private readonly _persistAnswered = Computed.create(this, use => use(this._persist).answered);
+
   constructor(private _props: BackupsSectionProps) {
     super();
 
-    this.canProceed = Computed.create(this, this._selectedBackend, (_use, backend) => !!backend);
+    this.canProceed = Computed.create(this, use =>
+      Boolean(use(this._selectedBackend)) && use(this._persist).answered,
+    );
+
+    this._installAPI.getInstallPrefs()
+      .then((prefs) => {
+        if (this.isDisposed()) { return; }
+        this._adminConfirmed.set(Boolean(prefs.persistenceConfirmed));
+        this._prefsLoaded.set(true);
+      })
+      .catch((err) => {
+        reportError(err as Error);
+        if (this.isDisposed()) { return; }
+        this._prefsLoaded.set(true);
+      });
+  }
+
+  /** Nag shown on the QuickSetup continue button while persistence is unconfirmed. */
+  public customLabel(use: UseCBOwner): string | null {
+    if (!use(this._selectedBackend)) { return null; }
+    return use(this._persist).answered ? null : t("Check storage to continue");
   }
 
   public async apply(): Promise<void> { /* no-op */ }
 
   public buildDom() {
     return cssSection(
-      this._buildPersistWarning(),
       this._props.inAdminPanel ? cssDescription(
         t("Store document backups on an external service like S3 or Azure. \
           This protects against data loss if the server's disk fails."),
@@ -112,12 +168,25 @@ export class BackupsSection extends Disposable {
         description: t("Store document backups on an external service like S3 or Azure. " +
           "This protects against data loss if the server's disk fails."),
       }),
+      this._buildPersistenceCard(),
       this._buildBackendCards(),
     );
   }
 
   public buildStatusDisplay() {
     return dom.domComputed((use) => {
+      // Storage that isn't known to be persistent matters more than which backup backend is set.
+      const { card, confirmed, fault } = use(this._persist);
+      if (card && !confirmed) {
+        const verdict = use(this._persistResult)?.verdict;
+        return fault ?
+          cssValueLabel(
+            cssErrorText(t("at risk")),
+            verdict ? { title: verdict } : undefined,
+            testId("admin-panel-value-label-error"),
+          ) :
+          cssValueLabel(cssDangerText(t("unconfirmed")), testId("admin-panel-value-label-danger"));
+      }
       const backend = use(this._activeBackend);
       if (backend) {
         return cssValueLabel(cssHappyText(STORAGE_BACKENDS[backend].label));
@@ -127,19 +196,72 @@ export class BackupsSection extends Disposable {
     });
   }
 
-  private _buildPersistWarning() {
-    return dom.maybe(this._persistResult, result =>
-      // Require a verdict — a failed check request faults without one, which isn't data loss.
-      result?.status === "fault" && result.verdict ?
+  /**
+   * The persistence card: red when the probe finds a likely problem, otherwise grey, asking
+   * whether storage is persistent (we can never be certain it is). Either answer replaces the
+   * card with a row whose pencil brings it back.
+   */
+  private _buildPersistenceCard() {
+    return dom.domComputed(use => use(this._persist).card, (card) => {
+      if (!card) { return null; }
+      if (card === "answered") {
+        return buildConfirmedRow(
+          this._persistAnswered,
+          () => this._reopenQuestion(),
+          {
+            skipped: this._checkingLater,
+            skippedLabel: t("Will check storage later"),
+            confirmedLabel: t("Persistent storage confirmed"),
+            testPrefix: "backups-persist",
+          },
+        );
+      }
+      const buttons = cssHeroActions(
+        basicButton(
+          t("My storage is persistent"),
+          dom.on("click", () => this._setConfirmed(true)),
+          testId("backups-persist-confirm"),
+        ),
+        basicButton(
+          t("I will check later"),
+          dom.on("click", () => this._checkingLater.set(true)),
+          testId("backups-persist-later"),
+        ),
+      );
+      return card === "fault" ?
         buildHeroCard({
-          indicator: "warning",
-          header: t("Your data may not survive a container restart."),
-          text: t("To preserve it, mount a volume at /persist."),
-          badges: buildBadge(t("Action needed"), "warning"),
-          args: [dom.attr("title", result.verdict), testId("backups-persist-warning")],
+          indicator: "error",
+          header: t("Your data may be lost."),
+          // Memory is the more urgent of the two risks.
+          text: use => use(this._persist).inMemory ?
+            t("Grist is storing data in memory. Move it to a disk or volume.") :
+            t("Mount a volume at /persist to keep your data."),
+          extra: buttons,
+          args: [testId("backups-persist-warning")],
         }) :
-        null,
-    );
+        buildHeroCard({
+          header: t("Is your data on persistent storage?"),
+          text: t("Grist can't check this for itself."),
+          extra: buttons,
+          args: [testId("backups-persist-verify")],
+        });
+    });
+  }
+
+  private _reopenQuestion() {
+    this._checkingLater.set(false);
+    if (this._adminConfirmed.get()) { void this._setConfirmed(false); }
+  }
+
+  private async _setConfirmed(confirmed: boolean) {
+    try {
+      await this._installAPI.updateInstallPrefs({ persistenceConfirmed: confirmed });
+    } catch (err) {
+      reportError(err as Error);
+      return;
+    }
+    if (this.isDisposed()) { return; }
+    this._adminConfirmed.set(confirmed);
   }
 
   private _buildBackendCards() {

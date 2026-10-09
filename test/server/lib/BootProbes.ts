@@ -1,6 +1,8 @@
-import { OutgoingRequestsProbeDetails } from "app/common/BootProbe";
-import { _outgoingRequestsProbe } from "app/server/lib/BootProbes";
+import { MountInfo, OutgoingRequestsProbeDetails, PersistDataBootProbeDetails } from "app/common/BootProbe";
+import { appSettings } from "app/server/lib/AppSettings";
+import { _dataPersistsProbe, _outgoingRequestsProbe, _persistDataVerdict } from "app/server/lib/BootProbes";
 import { OUTGOING_REQUEST_ENV_VARS } from "app/server/lib/outgoingRequests";
+import { mountFor } from "app/server/lib/storageDurability";
 import { configForUser } from "test/gen-server/testUtils";
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
 import { TestServer } from "test/server/lib/helpers/TestServer";
@@ -169,9 +171,105 @@ describe("BootProbes with external storage", function() {
     assert.equal(resp.data.details.backend, "filesystem");
   });
 
-  it("treats documents as durable when a storage backend is active", async function() {
+  it("reports external storage as active when a storage backend is active", async function() {
     const resp = await axios.get(`${server.serverUrl}/api/probes/persist-data`, chimpy);
     assert.equal(resp.status, 200);
-    assert.equal(resp.data.details.docs, "durable");
+    assert.isTrue(resp.data.details.externalStorageActive);
+  });
+});
+
+const TMPFS: MountInfo = { mountPoint: "/persist", fsType: "tmpfs" };
+const ROOT: MountInfo = { mountPoint: "/", fsType: "overlay" };
+
+function details(over: Partial<PersistDataBootProbeDetails> = {}): PersistDataBootProbeDetails {
+  return {
+    dataDir: "/persist/docs",
+    dataDirMount: null,
+    homeDb: "/persist/home.sqlite3",
+    homeDbMount: null,
+    externalStorageActive: false,
+    usesPostgres: false,
+    ...over,
+  };
+}
+
+describe("BootProbes persist-data", () => {
+  let env: EnvironmentSnapshot;
+
+  beforeEach(() => {
+    env = new EnvironmentSnapshot();
+    ["GRIST_DATA_DIR", "TYPEORM_DATABASE", "TYPEORM_TYPE"].forEach((v) => { delete process.env[v]; });
+  });
+
+  afterEach(() => {
+    env.restore();
+  });
+
+  describe("mounts", () => {
+    it("finds the mount a path is on", () => {
+      const persistent = { mountPoint: "/persistent", fsType: "ext4" };
+      const mounts = [ROOT, TMPFS, persistent];
+      assert.deepEqual(mountFor("/persist/docs", mounts), TMPFS);
+      assert.deepEqual(mountFor("/persistent/docs", mounts), persistent);
+      assert.deepEqual(mountFor("/home/grist", mounts), ROOT);
+    });
+  });
+
+  describe("verdict", () => {
+    it("is absent when no store looks at risk", () => {
+      assert.isUndefined(_persistDataVerdict(details()));
+    });
+
+    it("names the env var and path for a store in memory", () => {
+      assert.equal(_persistDataVerdict(details({ homeDbMount: TMPFS })),
+        "TYPEORM_DATABASE (/persist/home.sqlite3) appears to be in memory, so anything stored " +
+        "there would be lost when the server or container restarts.");
+    });
+
+    it("joins a sentence for each kind of problem", () => {
+      assert.equal(_persistDataVerdict(details({ dataDirMount: TMPFS, homeDbMount: ROOT })),
+        "GRIST_DATA_DIR (/persist/docs) appears to be in memory, so anything stored there would " +
+        "be lost when the server or container restarts. Grist appears to be running in the " +
+        "official Docker image without a volume mounted at /persist, so data would be lost when " +
+        "the container is recreated.");
+    });
+
+    it("gives the volume advice once for the official image", () => {
+      assert.equal(_persistDataVerdict(details({ dataDirMount: ROOT, homeDbMount: ROOT })),
+        "Grist appears to be running in the official Docker image without a volume mounted at " +
+        "/persist, so data would be lost when the container is recreated.");
+    });
+  });
+
+  describe("probe", () => {
+    // Any server started in this process sets this flag, which the probe reads.
+    const externalStorageActive = appSettings.section("externalStorage").flag("active");
+    let activeBefore: any;
+    beforeEach(() => { activeBefore = externalStorageActive.get(); externalStorageActive.set(false); });
+    afterEach(() => externalStorageActive.set(activeBefore));
+
+    async function runPersistProbe() {
+      const result = await _dataPersistsProbe.apply(undefined as any, undefined as any);
+      return { result, details: result.details as PersistDataBootProbeDetails };
+    }
+
+    it("stays neutral, with nothing to report, when neither store is configured", async () => {
+      const { result, details: d } = await runPersistProbe();
+      assert.equal(result.status, "none");
+      assert.isUndefined(result.verdict);
+      assert.deepEqual(d, {
+        dataDir: null, dataDirMount: null, homeDb: null, homeDbMount: null,
+        externalStorageActive: false, usesPostgres: false,
+      });
+    });
+
+    it("doesn't look up a mount for a Postgres home database", async () => {
+      process.env.TYPEORM_TYPE = "postgres";
+      process.env.TYPEORM_DATABASE = "grist";
+      const { result, details: d } = await runPersistProbe();
+      assert.equal(result.status, "none");
+      assert.isTrue(d.usesPostgres);
+      assert.isNull(d.homeDbMount);
+    });
   });
 });
