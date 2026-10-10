@@ -3540,15 +3540,15 @@
         "running": "running",
         "shared address": "shared address",
         "this server": "this server",
-        "{{count}} documents_one": "{{count}} documents",
+        "{{count}} documents_one": "{{count}} document",
         "{{count}} documents_other": "{{count}} documents",
         "{{count}} of {{total}} not reporting_one": "{{count}} of {{total}} not reporting",
         "{{count}} of {{total}} not reporting_other": "{{count}} of {{total}} not reporting",
-        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} other servers are registered but not accepting new documents.",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} other server is registered but not accepting new documents.",
         "{{count}} other servers are registered but not accepting new documents._other": "{{count}} other servers are registered but not accepting new documents.",
-        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} other servers have stopped reporting that they are running.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} other server has stopped reporting that it is running.",
         "{{count}} other servers have stopped reporting that they are running._other": "{{count}} other servers have stopped reporting that they are running.",
-        "{{count}} servers_one": "{{count}} servers",
+        "{{count}} servers_one": "{{count}} server",
         "{{count}} servers_other": "{{count}} servers",
         "{{percent}}% load": "{{percent}}% load"
     },
@@ -3612,5 +3612,13 @@
     "startHomeGristImport": {
         "Copy data from another document": "Copy data from another document",
         "Data can't be copied to the current workspace.": "Data can't be copied to the current workspace."
+    },
+    "TopProblems": {
+        "{{count}} problems need attention_one": "{{count}} problem needs attention",
+        "{{count}} problems need attention_other": "{{count}} problems need attention",
+        "{{count}} warnings_one": "{{count}} warning",
+        "{{count}} warnings_other": "{{count}} warnings",
+        "{{count}} dismissed_one": "{{count}} dismissed",
+        "{{count}} dismissed_other": "{{count}} dismissed"
     }
 }

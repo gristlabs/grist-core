@@ -1,13 +1,25 @@
 import { makeT } from "app/client/lib/localization";
 import { textarea } from "app/client/ui/inputs";
-import { cssSettingsPage } from "app/client/ui/SettingsLayout";
+import { cssSettingsPage, cssValueLabel } from "app/client/ui/SettingsLayout";
 import { textButton } from "app/client/ui2018/buttons";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { toggleSwitch } from "app/client/ui2018/toggleSwitch";
 import { components, tokens } from "app/common/ThemePrefs";
 
-import { dom, IDisposableOwner, keyframes, Observable, styled } from "grainjs";
+import {
+  BindableValue,
+  dom,
+  DomContents,
+  DomElementArg,
+  IDisposableOwner,
+  keyframes,
+  makeTestId,
+  Observable,
+  styled,
+} from "grainjs";
+
+import type { TopProblem } from "app/client/ui/TopProblems";
 
 export function HidableToggle(
   owner: IDisposableOwner,
@@ -41,6 +53,68 @@ export const cssErrorText = styled("span", `
 export const cssDangerText = styled("div", `
   color: ${theme.dangerText};
 `);
+
+/** Grey text for status values that are not set up. */
+const cssGrayedText = styled("div", `
+  color: ${theme.lightText};
+`);
+
+/** Status of a row: its pill on the right and its problem. Drawn by buildStatusPill. */
+export interface RowStatus {
+  // Text of the pill.
+  label: string;
+  // Color of the text. Without it, the text has the default color.
+  level?: "success" | "warning" | "error" | "grayed";
+  // Shown when hovering the pill, e.g. the error from the check.
+  tooltip?: string;
+  // The problem to list on top, if any.
+  problem?: TopProblem;
+}
+
+// Names used by tests of the admin panel to read the color of a pill.
+const pillTestId = makeTestId("test-admin-panel-value-label-");
+
+export function buildStatusPill(
+  status: BindableValue<RowStatus>,
+  ...args: DomElementArg[]
+) {
+  return dom.domComputed(status, s => [
+    cssValueLabel(
+      pillText(s),
+      s.tooltip ? { title: s.tooltip } : null,
+      pillTestId(pillKind(s)),
+      ...args,
+    ),
+  ]);
+}
+
+function pillKind(s: RowStatus): "error" | "danger" | "success" | "neutral" {
+  switch (s.level) {
+    case "error":
+      return "error";
+    case "warning":
+      return "danger";
+    case "success":
+      return "success";
+    default:
+      return "neutral";
+  }
+}
+
+function pillText(s: RowStatus): DomContents {
+  switch (s.level) {
+    case "error":
+      return cssErrorText(s.label);
+    case "warning":
+      return cssDangerText(s.label);
+    case "success":
+      return cssHappyText(s.label);
+    case "grayed":
+      return cssGrayedText(s.label);
+    default:
+      return s.label;
+  }
+}
 
 export const cssTextArea = styled(textarea, `
   color: ${theme.inputFg};
