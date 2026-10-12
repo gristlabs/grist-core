@@ -1,10 +1,11 @@
+import { lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { UserPresenceModel } from "app/client/models/UserPresenceModel";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
 import { cssHideForNarrowScreen } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { menu } from "app/client/ui2018/menus";
+import { cssMenuElem, gristFloatingMenuClass } from "app/client/ui2018/menus";
 import { VisibleUserProfile } from "app/common/ActiveDocAPI";
 import { nativeCompare } from "app/common/gutil";
 import { components, tokens } from "app/common/ThemePrefs";
@@ -13,12 +14,16 @@ import { getGristConfig } from "app/common/urlUtils";
 import {
   Computed,
   dom,
-  domComputed,
   DomElementArg, IDisposableOwner,
   makeTestId,
   Observable,
   styled,
 } from "grainjs";
+import {
+  defaultMenuOptions,
+  IOpenController,
+  setPopupToCreateDom,
+} from "popweasel";
 
 const t = makeT("ActiveUserList");
 const testId = makeTestId("test-aul-");
@@ -116,25 +121,35 @@ function createRemainingUsersIndicator(
       cssUserImage.cls("-medium"),
       dom.style("font-size", "12px"),
     ),
-    menu(
-      (ctl) => {
+    (elem) => {
+      setPopupToCreateDom(elem, (ctl) => {
         isRemainingUsersMenuOpen.set(true);
         ctl.onDispose(() => isRemainingUsersMenuOpen.set(false));
-
-        return domComputed(usersObs, users => users.map(user => remainingUsersMenuItem(
-          createUserImage(user, "medium", { "aria-hidden": "true" }),
-          dom("div", createUsername(user.name), createEmail(user.email)),
-          testId("user-list-user"),
-        )));
-      },
-      {
-        // Avoids an issue where the menu code will infinitely loop trying to find the
-        // next selectable option, when using keyboard navigation, due to having none.
-        allowNothingSelected: true,
-      },
-    ),
+        return buildRemainingUsersList(ctl, usersObs);
+      }, defaultMenuOptions);
+    },
     { "aria-label": t("open full active user list") },
+    dom.attr("aria-expanded", use => use(isRemainingUsersMenuOpen) ? "true" : "false"),
     testId("all-users-button"),
+  );
+}
+
+function buildRemainingUsersList(
+  ctl: IOpenController,
+  usersObs: Observable<VisibleUserProfile[]>,
+) {
+  return cssMenuElem(
+    { role: "list" },
+    dom.cls(gristFloatingMenuClass),
+    lockFocusUntilRemoved(ctl),
+    dom.onKeyDown({ Escape: () => ctl.close() }),
+    dom.domComputed(usersObs, users => users.map(user =>
+      cssRemainingUsersMenuItem(
+        createUserImage(user, "medium", { "aria-hidden": "true" }),
+        dom("div", createUsername(user.name), createEmail(user.email)),
+        testId("user-list-user"),
+      ),
+    )),
   );
 }
 
@@ -224,7 +239,7 @@ const cssRemainingUsersButton = styled("button", `
   appearance: button;
 `);
 
-export const remainingUsersMenuItem = styled(`div`, `
+export const cssRemainingUsersMenuItem = styled("li", `
   display: flex;
   justify-content: flex-start;
   padding: var(--weaseljs-menu-item-padding, 8px 24px);
