@@ -1,13 +1,14 @@
+import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { reportError } from "app/client/models/errors";
 import { withInfoTooltip } from "app/client/ui/tooltips";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { IOptionFull, menuItem, menuSubHeader } from "app/client/ui2018/menus";
+import { IOptionFull, menuGroup, menuItem } from "app/client/ui2018/menus";
 import { RowNumbersMode } from "app/common/widgetTypes";
 
-import { DomElementArg, styled } from "grainjs";
+import { DomElementArg, onKeyDown, styled } from "grainjs";
 import * as weasel from "popweasel";
 
 // rowNumbersMenu used to be exported from GridViewMenus.ts.
@@ -19,7 +20,11 @@ const t = makeT("GridViewMenus");
  * from the widget panel's "Show [row numbers]" link (which omits the Hidden mode — the panel's
  * checkbox covers hiding). The active mode is marked with a green tick.
  */
-export function rowNumbersMenu(viewSection: ViewSectionRec, { includeHidden = true } = {}): DomElementArg[] {
+export function rowNumbersMenu(
+  viewSection: ViewSectionRec,
+  ctl: weasel.IOpenController,
+  { includeHidden = true } = {},
+): DomElementArg[] {
   const modes: IOptionFull<RowNumbersMode>[] = [
     { value: "number", label: t("Numbers") },
     { value: "rowId", label: t("Row IDs") },
@@ -32,11 +37,21 @@ export function rowNumbersMenu(viewSection: ViewSectionRec, { includeHidden = tr
     }
   };
   return [
-    menuSubHeader(t("Row numbers")),
-    ...modes.map(({ value, label }) => menuItem(() => setMode(value),
-      cssTickSlot(options.peek().rowNumbers === value ? icon("Tick", testId("row-numbers-selected")) : null),
-      value === "rowId" ? withInfoTooltip(label, "rowIds", { variant: "hover" }) : label,
-    )),
+    (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
+    menuGroup(
+      t("Row numbers"),
+      ...modes.map(({ value, label }) => menuItem(
+        () => setMode(value),
+        onKeyDown({
+          " $": (ev) => {
+            ev.preventDefault();
+            setMode(value);
+          },
+        }),
+        cssTickSlot(options.peek().rowNumbers === value ? icon("Tick", testId("row-numbers-selected")) : null),
+        value === "rowId" ? withInfoTooltip(label, "rowIds", { variant: "hover" }) : label,
+      )),
+    ),
   ];
 }
 
