@@ -1,4 +1,3 @@
-import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -6,7 +5,7 @@ import { createUserImage } from "app/client/ui/UserImage";
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
   cssMemberSecondary, cssMemberText } from "app/client/ui/UserItem";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
-import { gristFloatingMenuClass, menu, menuCssClass, menuItemLink } from "app/client/ui2018/menus";
+import { gristFloatingMenuClass, menu, menuCssClass, menuGroup, menuItemLink } from "app/client/ui2018/menus";
 import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
 import { IGristUrlState, userOverrideParams } from "app/common/gristUrls";
 import { waitGrainObs } from "app/common/gutil";
@@ -17,7 +16,7 @@ import { getUserRoleText } from "app/common/UserAPI";
 
 import { Disposable, dom, Observable, styled } from "grainjs";
 import noop from "lodash/noop";
-import { cssMenu, cssMenuWrap, defaultMenuOptions, IMenuOptions, IPopupOptions, setPopupToCreateDom } from "popweasel";
+import { IMenuOptions } from "popweasel";
 
 const t = makeT("ACLUsers");
 const userT = makeT("UserManagerModel");
@@ -71,42 +70,34 @@ export class ACLUsersPopup extends Disposable {
 
   // Optionally have document page reverts to the default page upon activation of the view as mode
   // by setting `options.resetDocPage` to true.
-  public attachPopup(elem: Element, options: IPopupOptions & { resetDocPage?: boolean }) {
-    setPopupToCreateDom(elem, (ctl) => {
+  public attachPopup(elem: HTMLElement, options: IMenuOptions & { resetDocPage?: boolean }) {
+    const { resetDocPage, ...menuOptions } = options;
+    menu(() => {
       const buildRow =
-        (user: UserAccessData) => this._buildUserRow(user, options);
+        (user: UserAccessData) => this._buildUserRow(user, { resetDocPage });
       const buildExampleUserRow =
-        (user: UserAccessData) => this._buildUserRow(user, { isExampleUser: true, ...options });
-      return cssMenuWrap(cssMenu(
-        (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
-        // We use the popweasel "menu" <ul> through cssMenu(), but we only use it for styling purposes.
-        // "generic" role removes the list semantics
-        { role: "generic" },
-        dom.cls(menuCssClass),
-        dom.cls(gristFloatingMenuClass),
-        cssUsers.cls(""),
-        this._shareUsers.length > 0 ? dom("div",
-          { "role": "group", "aria-labelledby": "shared-users-header" },
-          cssHeader(t("Shared users"), { id: "shared-users-header" }),
+        (user: UserAccessData) => this._buildUserRow(user, { isExampleUser: true, resetDocPage });
+      return [
+        this._shareUsers.length > 0 ? menuGroup(
+          t("Shared users"),
           dom.forEach(this._shareUsers, buildRow),
         ) : null,
-        (this._attributeTableUsers.length > 0) ? dom("div",
-          { "role": "group", "aria-labelledby": "other-users-table-header" },
-          cssHeader(t("Other users from table"), { id: "other-users-table-header" }),
+        this._attributeTableUsers.length > 0 ? menuGroup(
+          t("Other users from table"),
           dom.forEach(this._attributeTableUsers, buildExampleUserRow),
         ) : null,
         // Include example users only if there are not many "real" users.
         // It might be better to have an expandable section with these users, collapsed
         // by default, but that's beyond my UI ken.
-        this._showExampleUsers() && this._exampleUsers.length > 0 ? dom("div",
-          { "role": "group", "aria-labelledby": "example-users-header" },
-          cssHeader(t("Example Users"), { id: "example-users-header" }),
+        this._showExampleUsers() && this._exampleUsers.length > 0 ? menuGroup(
+          t("Example Users"),
           dom.forEach(this._exampleUsers, buildExampleUserRow),
         ) : null,
-        (el) => { setTimeout(() => el.focus(), 0); },
-        dom.onKeyDown({ Escape: () => ctl.close() }),
-      ));
-    }, { ...defaultMenuOptions, ...options });
+      ];
+    }, {
+      ...menuOptions,
+      menuCssClass: `${menuCssClass} ${gristFloatingMenuClass} ${cssUsers.className}`,
+    })(elem);
   }
 
   // See 'attachPopup' for more info on the 'resetDocPage' option.
@@ -135,8 +126,8 @@ export class ACLUsersPopup extends Disposable {
   }
 
   private _buildUserRow(user: UserAccessData, opt: { isExampleUser?: boolean, resetDocPage?: boolean } = {}) {
-    return dom("a",
-      { class: cssMemberListItem.className + " " + cssUserItem.className },
+    return menuItemLink(
+      cssUserItem.cls(""),
       cssMemberImage(
         createUserImage(opt.isExampleUser ? "exampleUser" : user, "large"),
       ),
@@ -183,25 +174,11 @@ const cssUserItem = styled(cssMemberListItem, `
   width: auto;
   padding: 8px 16px;
   align-items: center;
-  &:hover {
-    background-color: ${theme.lightHover};
-  }
-  &, &:hover, &:focus {
-    text-decoration: none;
-  }
 `);
 
 const cssRole = styled("span", `
   margin: 0 8px;
   font-weight: normal;
-`);
-
-const cssHeader = styled("div", `
-  margin: 11px 24px 14px 24px;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: ${vars.xsmallFontSize};
-  color: ${theme.darkText};
 `);
 
 const cssMenuHeader = styled("div", `
