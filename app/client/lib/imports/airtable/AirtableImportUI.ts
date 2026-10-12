@@ -57,9 +57,9 @@ import { loadingSpinner } from "app/client/ui2018/loaders";
 import {
   menu,
   menuDivider,
+  menuGroup,
   menuIcon,
   menuItem,
-  menuSubHeader,
   menuText,
   selectMenu,
   selectOption,
@@ -530,36 +530,40 @@ Your token is never sent to Grist's servers, and is only used to make API calls 
     };
 
     return [
-      menuSubHeader(t("Choose destination")),
-      selectOption(
-        () => setDestination(IMPORT_TABLE_AND_DATA),
-        t("New table"),
-        "Plus",
-        cssAccentIconColor.cls(""),
-      ),
-      selectOption(
-        () => setDestination({ type: "new-table", structureOnly: true }),
-        t("New table: structure only"),
-        "Plus",
-        cssAccentIconColor.cls(""),
-      ),
-      selectOption(
-        () => {
-          mapping.destination.set(null);
-        },
-        t("Skip"),
-        "CrossBig",
-        cssAccentIconColor.cls(""),
+      menuGroup(
+        t("Choose destination"),
+        selectOption(
+          () => setDestination(IMPORT_TABLE_AND_DATA),
+          t("New table"),
+          "Plus",
+          cssAccentIconColor.cls(""),
+        ),
+        selectOption(
+          () => setDestination({ type: "new-table", structureOnly: true }),
+          t("New table: structure only"),
+          "Plus",
+          cssAccentIconColor.cls(""),
+        ),
+        selectOption(
+          () => {
+            mapping.destination.set(null);
+          },
+          t("Skip"),
+          "CrossBig",
+          cssAccentIconColor.cls(""),
+        ),
       ),
       dom.domComputed(this._existingTables, existingTables => existingTables && existingTables.length > 0 ? [
         menuDivider(),
-        menuSubHeader(t("Existing tables")),
-        existingTables.map(({ id, name }) =>
-          selectOption(
-            () => setDestination({ type: "existing-table", tableId: id }),
-            name || id,
-            "FieldTable",
-            cssAccentIconColor.cls(""),
+        menuGroup(
+          t("Existing tables"),
+          existingTables.map(({ id, name }) =>
+            selectOption(
+              () => setDestination({ type: "existing-table", tableId: id }),
+              name || id,
+              "FieldTable",
+              cssAccentIconColor.cls(""),
+            ),
           ),
         ),
       ] : null),
