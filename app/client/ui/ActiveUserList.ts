@@ -5,7 +5,6 @@ import { createUserImage, cssUserImage } from "app/client/ui/UserImage";
 import { cssHideForNarrowScreen } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu } from "app/client/ui2018/menus";
-import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { VisibleUserProfile } from "app/common/ActiveDocAPI";
 import { nativeCompare } from "app/common/gutil";
 import { components, tokens } from "app/common/ThemePrefs";
@@ -123,7 +122,7 @@ function createRemainingUsersIndicator(
         ctl.onDispose(() => isRemainingUsersMenuOpen.set(false));
 
         return domComputed(usersObs, users => users.map(user => remainingUsersMenuItem(
-          createUserImage(user, "medium"),
+          createUserImage(user, "medium", { "aria-hidden": "true" }),
           dom("div", createUsername(user.name), createEmail(user.email)),
           testId("user-list-user"),
         )));
@@ -144,14 +143,14 @@ const createTooltipContent = (user: VisibleUserProfile) => {
 };
 
 function createUsername(name: string) {
-  return cssUsername(visuallyHidden("Name: "), dom("span", testId("user-name"), name));
+  return cssUsername(dom("span", testId("user-name"), name));
 }
 
 function createEmail(email?: string) {
   if (!email) {
     return null;
   }
-  return cssEmail(visuallyHidden("Email: "), dom("span", testId("user-email"), email));
+  return cssEmail(dom("span", testId("user-email"), email));
 }
 
 const cssUsername = styled("div", `
