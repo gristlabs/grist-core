@@ -1070,7 +1070,8 @@
         "Cancel": "Cancel",
         "Close": "Close",
         "Current field ": "Current field ",
-        "OK": "OK"
+        "OK": "OK",
+        "Select fields": "Select fields"
     },
     "TypeTransformation": {
         "Apply": "Apply",

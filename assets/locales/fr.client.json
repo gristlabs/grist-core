@@ -1016,7 +1016,8 @@
         "Current field ": "Champ actif ",
         "OK": "OK",
         "Cancel": "Annuler",
-        "Close": "Fermer"
+        "Close": "Fermer",
+        "Select fields": "Sélectionner les champs"
     },
     "TypeTransform": {
         "Apply": "Appliquer",
