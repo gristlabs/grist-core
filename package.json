@@ -7,8 +7,8 @@
   "repository": "git://github.com/gristlabs/grist-core.git",
   "scripts": {
     "start": "sandbox/watch.sh",
-    "start:debug": "NODE_INSPECT=--inspect sandbox/watch.sh",
-    "start:debug-brk": "NODE_INSPECT=--inspect-brk sandbox/watch.sh",
+    "start:debug": "NODE_INSPECT=--inspect GRIST_RESTART_SHELL=0 sandbox/watch.sh",
+    "start:debug-brk": "NODE_INSPECT=--inspect-brk GRIST_RESTART_SHELL=0 sandbox/watch.sh",
     "install:python": "buildtools/prepare_python.sh",
     "set-community-edition": "echo community > grist-edition && yarn install",
     "set-full-edition": "echo full > grist-edition && yarn install",
