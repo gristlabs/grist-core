@@ -116,7 +116,7 @@ export const cssFlexSpace = styled("div", `
   flex: 1 1 0;
 `);
 
-export const cssFadeUp = keyframes(`
+const cssFadeUp = keyframes(`
   from {
     opacity: 0;
     transform: translateY(12px);
@@ -128,31 +128,48 @@ export const cssFadeUp = keyframes(`
   }
 `);
 
+/**
+ * Styles that fade an element up into place after `delay`, unless the user prefers reduced motion.
+ * Put these last in a styled() block: they include a nested rule, and grainjs treats everything
+ * after the first nested rule as nested.
+ */
+export function fadeUp(delay = "0s") {
+  return `
+    animation: ${cssFadeUp} 0.5s ease ${delay} both;
+
+    @media (prefers-reduced-motion: reduce) {
+      & {
+        animation: none;
+      }
+    }
+  `;
+}
+
 export const cssFadeUpGristLogo = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease both;
   background-image: var(--icon-GristLogo);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   height: 48px;
+  ${fadeUp()}
 `);
 
 export const cssFadeUpHeading = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease 0.08s both;
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.5px;
   margin: 16px 0px 8px 0px;
   text-align: center;
+  ${fadeUp("0.08s")}
 `);
 
 export const cssFadeUpSubHeading = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease 0.16s both;
   color: ${tokens.body};
   font-size: 15px;
   line-height: 1.5;
   margin-bottom: 24px;
   text-align: center;
+  ${fadeUp("0.16s")}
 `);
 
 // --- Shared styles for section components (BaseUrlSection, EditionSection, etc.) ---
