@@ -618,7 +618,7 @@ const menuTextAutoDescription = (...args: IDomArgs<HTMLDivElement>) => dom(
   ...args,
 );
 
-export const menuText = styled(menuTextAutoDescription, `
+const menuTextStyle = `
   display: flex;
   align-items: center;
   font-size: ${vars.smallFontSize};
@@ -626,7 +626,20 @@ export const menuText = styled(menuTextAutoDescription, `
   padding: 8px 24px 4px 24px;
   max-width: 250px;
   cursor: default;
-`);
+`;
+
+/**
+ * A menu text element that automatically adds itself as the menu's aria-describedby attribute,
+ * so that the text gets vocalized by screen readers when opening the menu.
+ */
+export const menuText = styled(menuTextAutoDescription, menuTextStyle);
+
+/**
+ * A menu text element that just shows text, without impacting menu's aria-describedby attribute.
+ * This should be manually tied to something with aria-describedby attribute, such as a menu item,
+ * as screen reader users can't access the text directly.
+ */
+export const bareMenuText = styled("div", menuTextStyle);
 
 export const menuItem = styled(weasel.menuItem, menuItemStyle);
 
