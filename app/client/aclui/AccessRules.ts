@@ -491,7 +491,9 @@ export class AccessRules extends Disposable {
               // synchronously, which prevents the menu from closing on click.
               menuItemAsync(() => this._addTableRules(tableId),
                 this.getTableTitle(tableId),
-                dom.cls("disabled", use => use(this._tableRules).some(tr => tr.tableId === tableId)),
+                dom.attr("aria-disabled", use =>
+                  use(this._tableRules).some(tr => tr.tableId === tableId) ? "true" : "false",
+                ),
               ),
             ),
           ),

@@ -30,7 +30,8 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     menuItemCmd(allCommands.deleteRecords,
       t("Delete record"),
       testId("section-delete-card"),
-      dom.cls("disabled", isReadonly || isAddRow)),
+      dom.attr("aria-disabled", (isReadonly || isAddRow) ? "true" : "false"),
+    ),
     menuItemCmd(allCommands.copyLink,
       t("Copy anchor link"),
       testId("section-card-link"),
@@ -91,7 +92,9 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       t("Download as XLSX"), testId("download-section")),
     dom.maybe(use => ["detail", "single"].includes(use(viewSection.parentKey)), () =>
       menuItemCmd(allCommands.editLayout, t("Edit card layout"),
-        dom.cls("disabled", isReadonly))),
+        dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+      ),
+    ),
 
     dom.maybe(!isSinglePage, () => [
       menuDivider(),
@@ -107,14 +110,14 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
         testId("section-open-configuration")),
     ),
     menuItemCmd(allCommands.collapseSection, t("Collapse widget"),
-      dom.cls("disabled", dontCollapseSection()),
+      dom.attr("aria-disabled", dontCollapseSection() ? "true" : "false"),
       dom.hide(viewSection.isRecordCard),
       testId("section-collapse")),
     menuItemCmd(allCommands.duplicateSection, t("Duplicate widget"),
-      dom.cls("disabled", dontDuplicateSection),
+      dom.attr("aria-disabled", use => dontDuplicateSection(use) ? "true" : "false"),
       testId("duplicate-section")),
     menuItemCmd(allCommands.deleteSection, t("Delete widget"),
-      dom.cls("disabled", dontRemoveSection()),
+      dom.attr("aria-disabled", dontRemoveSection() ? "true" : "false"),
       dom.hide(viewSection.isRecordCard),
       testId("section-delete")),
   ];
@@ -141,10 +144,10 @@ export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: G
     ),
     menuDivider(),
     menuItemCmd(allCommands.restoreSection, t("Add to page"),
-      dom.cls("disabled", isReadonly),
+      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
       testId("section-expand")),
     menuItemCmd(allCommands.deleteCollapsedSection, t("Delete widget"),
-      dom.cls("disabled", isReadonly),
+      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
       testId("section-delete")),
   ];
 }

@@ -845,18 +845,22 @@ class Comment extends Disposable {
         menuItem(
           () => this.props.cell.resolve(comment),
           t("Resolve"),
-          dom.cls("disabled", (use) => {
+          dom.attr("aria-disabled", (use) => {
             // Thread author or owner can resolve
-            return use(this.props.gristDoc.isReadonly) || (use(this._start.userRef) !== currentUser && !isDocOwner);
+            return (
+              use(this.props.gristDoc.isReadonly) || (use(this._start.userRef) !== currentUser && !isDocOwner)
+            ) ? "true" : "false";
           }),
         ),
       !openVisible ? null :
         menuItem(
           () => this.props.cell.open(comment),
           t("Open"),
-          dom.cls("disabled", (use) => {
+          dom.attr("aria-disabled", (use) => {
             // Thread author or owner can open
-            return use(this.props.gristDoc.isReadonly) || (use(this._start.userRef) !== currentUser && !isDocOwner);
+            return (
+              use(this.props.gristDoc.isReadonly) || (use(this._start.userRef) !== currentUser && !isDocOwner)
+            ) ? "true" : "false";
           }),
         ),
       menuItem(
@@ -864,18 +868,20 @@ class Comment extends Disposable {
           return this.props.cell.remove(comment);
         },
         comment.root.peek() ? t("Remove thread") : t("Remove"),
-        dom.cls("disabled", (use) => {
+        dom.attr("aria-disabled", (use) => {
           // Comment author or owner can delete
-          return (currentUser !== use(comment.userRef) && !isDocOwner) || use(this.props.gristDoc.isReadonly);
+          return (
+            (currentUser !== use(comment.userRef) && !isDocOwner) || use(this.props.gristDoc.isReadonly)
+          ) ? "true" : "false";
         }),
       ),
       // If comment is resolved, we can't edit it.
       !editVisible ? null : menuItem(
         () => this.setEditing(true),
         t("Edit"),
-        dom.cls("disabled", (use) => {
+        dom.attr("aria-disabled", (use) => {
           // Only comment author can edit
-          return currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly);
+          return (currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly)) ? "true" : "false";
         }),
       ),
     ];

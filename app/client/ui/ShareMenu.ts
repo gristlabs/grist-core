@@ -190,7 +190,7 @@ function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
     menuItem(() => manageUsers(doc, pageModel),
       roles.canEditAccess(doc.access) ? t("Manage users") : t("Access Details"),
-      dom.cls("disabled", doc.isFork),
+      dom.attr("aria-disabled", doc.isFork ? "true" : "false"),
       testId("tb-share-option"),
     ),
     menuDivider(),
@@ -261,7 +261,7 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
     menuItem(replaceOriginal, t("Replace {{termToUse}}...", { termToUse }),
       // Disable if original is not writable, and also when comparing snapshots (since it's
       // unclear which of the versions to use).
-      dom.cls("disabled", !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
+      dom.attr("aria-disabled", !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots ? "true" : "false"),
       testId("replace-original"),
     ),
     isTutorialFork ?
@@ -500,7 +500,7 @@ const cssMenuIconLink = styled("span", `
     --icon-color: ${theme.menuItemIconSelectedFg};
   }
 
-  &.${cssMenuItem.className}.disabled {
+  &.${cssMenuItem.className}[aria-disabled="true"] {
     --icon-color: ${theme.menuItemDisabledFg};
   }
 `);

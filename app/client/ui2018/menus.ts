@@ -208,7 +208,7 @@ export const menuItemStyle = `
     color: ${theme.menuItemSelectedFg};
     --icon-color: ${theme.menuItemSelectedFg};
   }
-  &.disabled {
+  &.disabled, &.disabled:hover, &[aria-disabled="true"], &[aria-disabled="true"]:hover {
     cursor: default;
     color: ${theme.menuItemDisabledFg};
     --icon-color: ${theme.menuItemDisabledFg};
@@ -562,7 +562,9 @@ export function listOfMenuItems(items: () => DomElementArg[]) {
       menuWrapCssClass: cssMenuWrapElem.className,
       stretchToSelector: `.${cssSelectBtn.className}`,
       trigger: [(triggerElem, ctl) => {
-        const isDisabled = () => triggerElem.classList.contains("disabled");
+        const isDisabled = () => (
+          triggerElem.classList.contains("disabled") || triggerElem.getAttribute("aria-disabled") === "true"
+        );
         dom.onElem(triggerElem, "click", () => isDisabled() || ctl.toggle());
         dom.onKeyElem(triggerElem as HTMLElement, "keydown", {
           ArrowDown: () => isDisabled() || ctl.open(),
@@ -777,6 +779,7 @@ export const cssOptionRowIcon = styled(icon, `
     background-color: ${theme.menuItemSelectedFg};
   }
 
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] &,
   .${weasel.cssMenuItem.className}.disabled & {
     background-color: ${theme.menuItemDisabledFg};
   }
@@ -799,6 +802,7 @@ export const cssOptionLabel = styled("div", `
     background-color: ${theme.menuItemSelectedBg};
   }
 
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] &,
   .${weasel.cssMenuItem.className}.disabled & {
     color: var(--grist-option-label-color-disabled);
   }
@@ -829,6 +833,7 @@ export const cssMenuItemCmd = styled("div", `
     --icon-color: ${theme.menuItemSelectedFg};
   }
 
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] &,
   .${weasel.cssMenuItem.className}.disabled & {
     --icon-color: ${theme.menuItemDisabledFg};
   }
@@ -843,6 +848,7 @@ export const cssCmdKey = styled("span", `
     color: ${theme.menuItemIconSelectedFg};
   }
 
+  .${weasel.cssMenuItem.className}[aria-disabled="true"],
   .${weasel.cssMenuItem.className}.disabled & {
     color: ${theme.menuItemDisabledFg};
   }
@@ -906,7 +912,7 @@ const cssMenuItemSubmenu = styled("div", `
     color: ${theme.menuItemSelectedFg};
     --icon-color: ${theme.menuItemSelectedFg};
   }
-  &.disabled {
+  &.disabled, &.disabled:hover, &[aria-disabled="true"], &[aria-disabled="true"]:hover {
     cursor: default;
     color: ${theme.menuItemDisabledFg};
     --icon-color: ${theme.menuItemDisabledFg};
@@ -992,7 +998,7 @@ export function* buildMenuItems(current: MenuItem[]): IterableIterator<Element> 
       item.icon && menuIcon(item.icon),
       item.label,
       item.shortcut && cssCmdKey(item.shortcut),
-      item.disabled ? dom.cls("disabled", item.disabled) : null,
+      item.disabled ? dom.attr("aria-disabled", "true") : null,
     );
   }
 }

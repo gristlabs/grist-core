@@ -208,11 +208,11 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
 
   return [
     menuItem(() => newDocMethods.createDocAndOpen(home), menuIcon("Page"), t("Create empty document"),
-      dom.cls("disabled", !home.newDocWorkspace.get()),
+      dom.attr("aria-disabled", !home.newDocWorkspace.get() ? "true" : "false"),
       testId("dm-new-doc"),
     ),
     menuItem(() => newDocMethods.importDocAndOpen(home), menuIcon("Import"), t("Import document"),
-      dom.cls("disabled", !home.newDocWorkspace.get()),
+      dom.attr("aria-disabled", !home.newDocWorkspace.get() ? "true" : "false"),
       testId("dm-import"),
     ),
     domComputed(home.importSources, importSources =>
@@ -221,7 +221,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
     upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon("Folder"), t("Create workspace"),
-      dom.cls("disabled", use => !roles.canEdit(orgAccess) || !use(home.available)),
+      dom.attr("aria-disabled", use => (!roles.canEdit(orgAccess) || !use(home.available)) ? "true" : "false"),
       testId("dm-new-workspace"),
     ),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
@@ -264,7 +264,7 @@ function buildImportMenu(home: HomeModel, importSources: HomeImportSource[]): Do
     return menuItem(importSource.action,
       menuIcon("Import"),
       t("Import from {{importSource}}", { importSource: importSource.label }),
-      dom.cls("disabled", !home.newDocWorkspace.get()),
+      dom.attr("aria-disabled", !home.newDocWorkspace.get() ? "true" : "false"),
       importSource.testId,
     );
   }
@@ -273,7 +273,7 @@ function buildImportMenu(home: HomeModel, importSources: HomeImportSource[]): Do
       ...importSources.map(importSource =>
         menuItem(importSource.action,
           importSource.label,
-          dom.cls("disabled", !home.newDocWorkspace.get()),
+          dom.attr("aria-disabled", !home.newDocWorkspace.get() ? "true" : "false"),
           importSource.testId,
         ),
       ),
@@ -325,10 +325,10 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
 
   return [
     upgradableMenuItem(needUpgrade, () => renaming.set(ws), t("Rename"),
-      dom.cls("disabled", !roles.canEdit(ws.access)),
+      dom.attr("aria-disabled", !roles.canEdit(ws.access) ? "true" : "false"),
       testId("dm-rename-workspace")),
     upgradableMenuItem(needUpgrade, deleteWorkspace, t("Delete"),
-      dom.cls("disabled", user => !roles.canEdit(ws.access)),
+      dom.attr("aria-disabled", !roles.canEdit(ws.access) ? "true" : "false"),
       testId("dm-delete-workspace")),
     // TODO: Personal plans can't currently share workspaces, but that restriction
     // should formally be documented and defined in `Features`, with this check updated

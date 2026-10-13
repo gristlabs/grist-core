@@ -19,7 +19,11 @@ export function FieldSettingsMenu(useColOptions: boolean, disableSeparate: boole
       { id: "field-settings-menu-header", role: "presentation" },
     ),
     { "aria-describedby": "field-settings-menu-header" },
-    useColOptions ? menuItem(actions.useSeparate, t("Use separate settings"), dom.cls("disabled", disableSeparate)) : [
+    useColOptions ? menuItem(
+      actions.useSeparate,
+      t("Use separate settings"),
+      dom.attr("aria-disabled", disableSeparate ? "true" : "false"),
+    ) : [
       menuItem(actions.saveAsCommon, t("Save as common settings")),
       menuItem(actions.revertToCommon, t("Revert to common settings")),
     ],

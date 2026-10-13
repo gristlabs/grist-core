@@ -746,12 +746,14 @@ export function calcFieldsCondition(
 export function buildColumnContextMenu(options: IColumnContextMenu) {
   const { disableModify, filterOpenFunc, colRowId, sortSpec, isReadonly } = options;
 
-  const disableForReadonlyColumn = dom.cls("disabled", Boolean(disableModify) || isReadonly);
+  const disableForReadonlyColumn = dom.attr("aria-disabled",
+    Boolean(disableModify) || isReadonly ? "true" : "false",
+  );
 
   const addToSortLabel = getAddToSortLabel(sortSpec, colRowId);
 
   const isVirtual = typeof colRowId === "string";
-  const disabledForVirtual = dom.cls("disabled", isVirtual);
+  const disabledForVirtual = dom.attr("aria-disabled", isVirtual ? "true" : "false");
 
   return [
     !isVirtual ? menuItemCmd(allCommands.fieldTabOpen, t("Column Options")) : null,
@@ -822,8 +824,10 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
  * makes sense.
  */
 export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
-  const disableForReadonlyColumn = dom.cls("disabled", Boolean(options.disableModify) || options.isReadonly);
-  const disableForReadonlyView = dom.cls("disabled", options.isReadonly);
+  const disableForReadonlyColumn = dom.attr("aria-disabled",
+    Boolean(options.disableModify) || options.isReadonly ? "true" : "false",
+  );
+  const disableForReadonlyView = dom.attr("aria-disabled", options.isReadonly ? "true" : "false");
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
     t("Reset {{count}} entire columns", { count: num }) :
