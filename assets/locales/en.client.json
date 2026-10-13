@@ -1003,7 +1003,8 @@
         "Download document...": "Download document...",
         "Suggest changes": "Suggest changes",
         "current version": "current version",
-        "original": "original"
+        "original": "original",
+        "Return to {{termToUse}} (new tab)": "Return to {{termToUse}} (new tab)"
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
