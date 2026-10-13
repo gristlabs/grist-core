@@ -6,9 +6,9 @@ import {
   cssMenuItemCmd,
   ISubMenuOptions,
   menuDivider,
+  menuGroup,
   menuItem,
   menuItemSubmenu,
-  menuSubHeader,
 } from "app/client/ui2018/menus";
 import { RecalcWhen } from "app/common/gristTypes";
 import { removePrefix } from "app/common/gutil";
@@ -621,12 +621,11 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
   // Main renderer of a section from the configuration we have.
   const processSection = (section: Section, col: ColumnRec, needsDivider: boolean, current: moment.Moment) => {
     const items: Element[] = [];
+    const groupItems: Element[] = [];
 
     if (needsDivider) {
       items.push(menuDivider());
     }
-
-    items.push(menuSubHeader(section.header));
 
     const isDateTime = col.pureType() === "DateTime";
 
@@ -650,7 +649,7 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
         if (defaultItem) {
           options.action = handler(defaultItem, col);
         }
-        items.push(
+        groupItems.push(
           menuItemSubmenu(
             () => filteredItems.map(option =>
               dom.update(
@@ -669,13 +668,15 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
         if (!isDateTime && item.type.startsWith("DateTime")) {
           continue;
         }
-        items.push(dom.update(
+        groupItems.push(dom.update(
           createMenuItem(item, col, current),
           itemTestId(section.header(), item.label()),
         ));
       }
     }
+    console.log({ groupItems });
 
+    items.push(menuGroup(section.header, ...groupItems));
     return items;
   };
 
