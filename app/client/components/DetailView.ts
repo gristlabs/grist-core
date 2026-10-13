@@ -325,10 +325,7 @@ export default class DetailView extends BaseView {
       if (yesNo) {
         const layoutBox = fieldDom.closest(".layout_hbox")!;
         this.layoutBoxIdx(indexOf(layoutBox.parentElement!.childNodes, layoutBox));
-        // Keep the selected field visible in a card larger than its section.
-        if (this.viewSection.hasFocus.peek()) {
-          fieldDom.scrollIntoView({ block: "nearest", inline: "nearest" });
-        }
+        this._scrollFieldIntoView(fieldDom);
       }
     }));
     const fieldBuilder = this.fieldBuilders.at(field._index()!)!;
@@ -376,7 +373,8 @@ export default class DetailView extends BaseView {
             // selected field out of view, so bring the field back into view afterwards.
             kd.makeBinding(this.cursor.rowIndex, (elem: HTMLElement, index: number | null) => {
               kd.doScrollChildIntoView(elem, index)
-                .then(() => this._scrollSelectedFieldIntoView(elem))
+                .then(() => this._scrollFieldIntoView(
+                  elem.querySelector(".selected_cursor")?.closest(".g_record_detail_el")))
                 .catch(reportError);
             }),
             dom.onDispose(() => {
@@ -582,10 +580,13 @@ export default class DetailView extends BaseView {
     );
   }
 
-  private _scrollSelectedFieldIntoView(scrollPane: HTMLElement) {
-    if (!this.viewSection.hasFocus.peek()) { return; }
-    const fieldDom = scrollPane.querySelector(".selected_cursor")?.closest(".g_record_detail_el");
-    fieldDom?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  /**
+   * Keeps the selected field visible in a card larger than its section.
+   */
+  protected _scrollFieldIntoView(fieldDom: Element | null | undefined) {
+    if (this.viewSection.hasFocus.peek()) {
+      fieldDom?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
   }
 
   protected _clearSelection() {

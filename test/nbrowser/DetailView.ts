@@ -76,23 +76,17 @@ describe("DetailView", function() {
       ["AddRecord", "Tall", null, { F0: "first", F49: "last" }],
     ]);
     await gu.addNewPage("Card", "Tall");
-
     await gu.getDetailCell("F0", 1).click();
-    assert.isTrue(await isCursorInView(".detailview_single"));
 
-    // Tab through to the last field, which is well below the fold. It should get scrolled into view.
-    for (let i = 1; i < colIds.length; i++) {
-      await gu.sendKeys(Key.TAB);
-    }
+    // The last field is well below the fold.
+    await gu.sendKeys(Key.END);
     assert.equal((await gu.getCursorPosition()).col, "F49");
     assert.equal(await gu.getActiveCell().getText(), "last");
     assert.isTrue(await isCursorInView(".detailview_single"));
 
-    // And back up to the first.
-    for (let i = 1; i < colIds.length; i++) {
-      await gu.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
-    }
+    await gu.sendKeys(Key.HOME);
     assert.equal((await gu.getCursorPosition()).col, "F0");
+    assert.equal(await gu.getActiveCell().getText(), "first");
     assert.isTrue(await isCursorInView(".detailview_single"));
   });
 
@@ -102,32 +96,25 @@ describe("DetailView", function() {
       ["AddRecord", "Tall", null, { F0: "first3", F49: "last3" }],
     ]);
     await gu.addNewPage("Card List", "Tall");
-
     await gu.getDetailCell("F0", 1).click();
-    assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
 
-    for (let i = 1; i < 50; i++) {
-      await gu.sendKeys(Key.TAB);
-    }
+    await gu.sendKeys(Key.END);
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 1, col: "F49" });
     assert.equal(await gu.getActiveCell().getText(), "last");
     assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
 
-    // Moving to the next card keeps the same field, which should be in view there too.
+    // Moving to another card scrolls that card into view, which must not hide the selected field,
+    // whether it is at the bottom of the card or the top.
     await gu.sendKeys(Key.PAGE_DOWN);
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: "F49" });
     assert.equal(await gu.getActiveCell().getText(), "last2");
     assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
 
-    // And moving back up to the first field of that card.
-    for (let i = 1; i < 50; i++) {
-      await gu.sendKeys(Key.chord(Key.SHIFT, Key.TAB));
-    }
+    await gu.sendKeys(Key.HOME);
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: "F0" });
+    assert.equal(await gu.getActiveCell().getText(), "first2");
     assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
 
-    // Moving between cards from the first field should keep that field in view too, rather than
-    // the bottom of the card.
     await gu.sendKeys(Key.PAGE_DOWN);
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 3, col: "F0" });
     assert.equal(await gu.getActiveCell().getText(), "first3");
