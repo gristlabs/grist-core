@@ -372,7 +372,13 @@ export default class DetailView extends BaseView {
       dom.maybe(use => !use(this.recordLayout.isEditingLayout), () => {
         if (!this._isSingle) {
           return this.scrollPane = dom("div.detailview_scroll_pane.flexitem",
-            kd.scrollChildIntoView(this.cursor.rowIndex),
+            // Keep the cursor's card in view. For a card taller than the pane, that may scroll the
+            // selected field out of view, so bring the field back into view afterwards.
+            kd.makeBinding(this.cursor.rowIndex, (elem: HTMLElement, index: number | null) => {
+              kd.doScrollChildIntoView(elem, index)
+                .then(() => this._scrollSelectedFieldIntoView(elem))
+                .catch(reportError);
+            }),
             dom.onDispose(() => {
               // Save the previous scroll values to the section.
               if (this.scrolly()) {
@@ -574,6 +580,12 @@ export default class DetailView extends BaseView {
       `Hide fields ${actions.map(a => a[1]).join(", ")} ` +
       `from ${this.tableModel.tableData.tableId}.`,
     );
+  }
+
+  private _scrollSelectedFieldIntoView(scrollPane: HTMLElement) {
+    if (!this.viewSection.hasFocus.peek()) { return; }
+    const fieldDom = scrollPane.querySelector(".selected_cursor")?.closest(".g_record_detail_el");
+    fieldDom?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }
 
   protected _clearSelection() {

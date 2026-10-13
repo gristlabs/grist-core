@@ -125,6 +125,18 @@ describe("DetailView", function() {
     }
     assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: "F0" });
     assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
+
+    // Moving between cards from the first field should keep that field in view too, rather than
+    // the bottom of the card.
+    await gu.sendKeys(Key.PAGE_DOWN);
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 3, col: "F0" });
+    assert.equal(await gu.getActiveCell().getText(), "first3");
+    assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
+
+    await gu.sendKeys(Key.PAGE_UP);
+    assert.deepEqual(await gu.getCursorPosition(), { rowNum: 2, col: "F0" });
+    assert.equal(await gu.getActiveCell().getText(), "first2");
+    assert.isTrue(await isCursorInView(".detailview_scroll_pane"));
   });
 });
 
