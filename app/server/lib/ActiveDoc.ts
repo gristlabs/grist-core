@@ -4,7 +4,7 @@
  * change events.
  */
 
-import { ACLRuleCollection } from "app/common/ACLRuleCollection";
+import { ACLRuleCollection, getAclFacts } from "app/common/ACLRuleCollection";
 import {
   getEnvContent,
   LocalActionBundle,
@@ -190,6 +190,7 @@ import imageSize from "image-size";
 import { Cancelable } from "lodash";
 import cloneDeep from "lodash/cloneDeep";
 import flatten from "lodash/flatten";
+import isEqual from "lodash/isEqual";
 import merge from "lodash/merge";
 import pick from "lodash/pick";
 import sum from "lodash/sum";
@@ -920,7 +921,7 @@ export class ActiveDoc extends EventEmitter {
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, this.docStorage, this.docClients, (query) => {
       return this._fetchQueryFromDB(query, false);
-    }, this.recoveryMode, this.getHomeDbManager(), this.docName);
+    }, this.recoveryMode, this.getHomeDbManager(), this.docName, () => this._updateAclFacts());
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory, this._modificationLock);
     // Make sure there is at least one item in action history. The document will be perfectly
@@ -2837,6 +2838,22 @@ export class ActiveDoc extends EventEmitter {
     if (broadcastUsageToClients) {
       await this._broadcastDocUsageToClients();
     }
+  }
+
+  /**
+   * Caches in usage some facts about this document's access rules, so that the sharing dialog
+   * can tell if Editors can bypass them without opening the document. Called whenever the rules
+   * are reloaded.
+   */
+  private async _updateAclFacts() {
+    if (this.isFork || this._isSnapshot) { return; }
+    const rules = new ACLRuleCollection();
+    await rules.update(this.docData!, { log, pullOutSchemaEdit: true });
+    const acl = getAclFacts(rules);
+    if (isEqual(this._docUsage?.acl, acl)) { return; }
+    this._docUsage = { ...this._docUsage, acl };
+    // Sync soon: a stale value could hide the warning from an Owner choosing roles.
+    this._syncDocUsageToDatabase(true);
   }
 
   private _syncDocUsageToDatabase(minimizeDelay = false) {

@@ -4,7 +4,9 @@ import { mapGetOrSet, mapSetOrClear, MapWithTTL } from "app/common/AsyncCreate";
 import { ConfigKey, ConfigValue } from "app/common/Config";
 import { getDataLimitInfo } from "app/common/DocLimits";
 import { DocStateComparison } from "app/common/DocState";
-import { createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary } from "app/common/DocUsage";
+import {
+  createEmptyOrgUsageSummary, DocumentUsage, editorsBypassRules, OrgUsageSummary,
+} from "app/common/DocUsage";
 import { normalizeEmail } from "app/common/emails";
 import {
   ANONYMOUS_PLAN,
@@ -2717,12 +2719,17 @@ export class HomeDBManager implements HomeDBAuth {
       }
     }
 
+    // Owners get to know if Editors can bypass access rules, judging by what the doc worker
+    // last cached about them.
+    const bypass = roles.canEditAccess(docRealAccess) && editorsBypassRules(doc.usage?.acl);
+
     return {
       status: 200,
       data: {
         ...personalMetadata,
         maxInheritedRole: maxInheritedRole,
         users,
+        ...(bypass ? { editorsBypassRules: true as const } : {}),
       },
     };
   }

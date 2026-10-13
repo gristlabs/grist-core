@@ -6,6 +6,7 @@ import { AVAILABLE_BITS_COLUMNS, AVAILABLE_BITS_TABLES, trimPermissions } from "
 import { ACLRulesReader } from "app/common/ACLRulesReader";
 import { AclRuleProblem } from "app/common/ActiveDocAPI";
 import { DocData } from "app/common/DocData";
+import { AclFacts } from "app/common/DocUsage";
 import { RulePart, RuleSet, UserAttributeRule } from "app/common/GranularAccessClause";
 import { getSetMapValue, isNonNullish } from "app/common/gutil";
 import { CompiledPredicateFormula, ParsedPredicateFormula } from "app/common/PredicateFormula";
@@ -187,6 +188,73 @@ export const SPECIAL_RULE_SPECS: Record<SpecialRuleName, SpecialRuleSpec> = {
   },
 };
 
+/**
+ * Rule that says explicitly that editors may change tables, columns and formulas. Dismissing the
+ * warning about structure editing saves it; it counts the same as having no SchemaEdit rule.
+ */
+export const SCHEMA_EDIT_ALLOW_EDITORS: Pick<SpecialRuleSpec, "permissions" | "formula"> = {
+  permissions: "+S",
+  formula: "user.Access == EDITOR",
+};
+
+/**
+ * The parts of a rule needed to say whether editors can bypass rules on data. The Access Rules
+ * page builds these from rules being edited, and other places from rules as saved.
+ */
+export interface RulePartSummary {
+  aclFormula: string;
+  permissionsText: string;
+  /** True for rules Grist supplies itself, rather than rules stored in the document. */
+  builtIn: boolean;
+}
+
+/**
+ * Whether editors can change tables, columns and formulas, judging by the parts of the
+ * SchemaEdit special rule. This is the state of the structure checkbox on the Access Rules page.
+ */
+export function editorsCanEditStructure(schemaEditParts: RulePartSummary[]): boolean {
+  return schemaEditParts.every(part => part.builtIn ||
+    (!part.aclFormula && !part.permissionsText) ||
+    (part.aclFormula === SCHEMA_EDIT_ALLOW_EDITORS.formula &&
+      part.permissionsText === SCHEMA_EDIT_ALLOW_EDITORS.permissions));
+}
+
+/**
+ * Whether any rule stored in the document denies reading or changing data. Rule conditions
+ * aren't checked, so a rule counts even if it only applies to Viewers.
+ */
+function rulesDenyData(parts: RulePartSummary[]): boolean {
+  return parts.some((part) => {
+    if (part.builtIn) { return false; }
+    const permissions = parsePermissions(part.permissionsText);
+    return AVAILABLE_BITS_TABLES.some(bit => permissions[bit] === "deny");
+  });
+}
+
+/**
+ * Works out the facts about the rules that are cached as document usage. See AclFacts.
+ * Only call this with rules read using the pullOutSchemaEdit option.
+ */
+export function getAclFacts(rules: ACLRuleCollection): AclFacts {
+  const summarize = (part: RulePart): RulePartSummary => ({
+    aclFormula: part.aclFormula,
+    permissionsText: part.permissionsText,
+    builtIn: !part.origRecord?.id,
+  });
+  const schemaEditParts = rules.getColumnRuleSet(SPECIAL_RULES_TABLE_ID, "SchemaEdit")?.body || [];
+  const dataRuleSets = [
+    rules.getDocDefaultRuleSet(),
+    ...rules.getAllTableIds().flatMap(tableId => [
+      ...rules.getAllColumnRuleSets(tableId),
+      rules.getTableDefaultRuleSet(tableId),
+    ]),
+  ].filter(isNonNullish);
+  return {
+    hasDenyingDataRules: rulesDenyData(dataRuleSets.flatMap(ruleSet => ruleSet.body.map(summarize))),
+    hasSchemaEditRestriction: !editorsCanEditStructure(schemaEditParts.map(summarize)),
+  };
+}
+
 export class ACLRuleCollection {
   // Store error if one occurs while reading rules.  Rules are replaced with emergency rules
   // in this case.
@@ -309,8 +377,8 @@ export class ACLRuleCollection {
         }
       } else if (options.pullOutSchemaEdit && ruleSet.tableId === "*" && ruleSet.colIds === "*") {
         // If pullOutSchemaEdit is requested, we move out rules with SchemaEdit permissions from
-        // the default resource into the ficticious "*SPECIAL:SchemaEdit" resource. This is used
-        // in the frontend only, to present those rules in a separate section.
+        // the default resource into the fictitious "*SPECIAL:SchemaEdit" resource. The Access
+        // Rules page uses this to present those rules in a separate section.
         const schemaParts = ruleSet.body.map(part => splitSchemaEditRulePart(part).schemaEdit).filter(isNonNullish);
 
         if (schemaParts.length > 0) {
@@ -622,8 +690,9 @@ export interface ReadAclOptions {
   enrichRulesForImplementation?: boolean;
 
   // If true, rules with 'schemaEdit' permission are moved out of the '*:*' resource into a
-  // fictitious '*SPECIAL:SchemaEdit' resource. This is used only on the client, to present
-  // schemaEdit as a separate checkbox. Such rules are saved back to the '*:*' resource.
+  // fictitious '*SPECIAL:SchemaEdit' resource. The Access Rules page uses this to present
+  // schemaEdit as a separate checkbox, and saves such rules back to the '*:*' resource.
+  // getAclFacts relies on it too.
   pullOutSchemaEdit?: boolean;
 
   // If true, replace rules with the emergency rule set.
