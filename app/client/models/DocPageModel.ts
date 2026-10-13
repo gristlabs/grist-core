@@ -595,18 +595,18 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addNewPage(val).catch(reportError),
         { isNewPage: true, buttonLabel: t("Add page") }),
       menuIcon("Page"), t("Add page"), testId("dp-add-new-page"),
-      dom.cls("disabled", isReadonly),
+      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
     ),
     menuItem(
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addWidgetToPage(val).catch(reportError),
         { isNewPage: false, selectBy }),
       menuIcon("Widget"), t("Add widget to page"), testId("dp-add-widget-to-page"),
       // disable for readonly doc and all special views
-      dom.cls("disabled", use => typeof use(gristDoc.activeViewId) !== "number" || isReadonly),
+      dom.attr("aria-disabled", use => typeof use(gristDoc.activeViewId) !== "number" || isReadonly ? "true" : "false"),
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
       menuIcon("TypeTable"), t("Add empty table"), testId("dp-empty-table"),
-      dom.cls("disabled", isReadonly),
+      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
     ),
     menuDivider(),
     buildImportMenu(importSources, isReadonly),
@@ -626,7 +626,7 @@ function buildImportMenu(importSources: ImportSource[], isReadonly: boolean): Do
       menuIcon("Import"),
       t("Import from {{importSource}}", { importSource: importSource.label }),
       testId("dp-import-option"),
-      dom.cls("disabled", isReadonly),
+      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
     );
   }
   return menuItemSubmenu(
@@ -635,7 +635,7 @@ function buildImportMenu(importSources: ImportSource[], isReadonly: boolean): Do
         menuItem(importSource.action,
           importSource.label,
           testId(`dp-import-option`),
-          dom.cls("disabled", isReadonly),
+          dom.attr("aria-disabled", isReadonly ? "true" : "false"),
         ),
       ),
       testId("dp-import-menu-items"),
@@ -643,7 +643,7 @@ function buildImportMenu(importSources: ImportSource[], isReadonly: boolean): Do
     {},
     menuIcon("Import"), t("Import from..."),
     testId("dp-import-menu"),
-    dom.cls("disabled", isReadonly),
+    dom.attr("aria-disabled", isReadonly ? "true" : "false"),
   );
 }
 

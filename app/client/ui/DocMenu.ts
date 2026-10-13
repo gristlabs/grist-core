@@ -362,11 +362,11 @@ export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, worksp
 
   return [
     menuItem(() => home.restoreDoc(doc), t("Restore"),
-      dom.cls("disabled", !roles.isOwner(doc) || !!workspace.removedAt),
+      dom.attr("aria-disabled", !roles.isOwner(doc) || !!workspace.removedAt ? "true" : "false"),
       testId("doc-restore"),
     ),
     menuItem(hardDeleteDoc, t("Delete Forever"),
-      dom.cls("disabled", !roles.isOwner(doc)),
+      dom.attr("aria-disabled", !roles.isOwner(doc) ? "true" : "false"),
       testId("doc-delete-forever"),
     ),
     (workspace.removedAt ?
@@ -379,11 +379,11 @@ export function makeRemovedDocOptionsMenu(home: HomeModel, doc: Document, worksp
 function makeRemovedWsOptionsMenu(home: HomeModel, ws: Workspace) {
   return [
     menuItem(() => home.restoreWorkspace(ws), t("Restore"),
-      dom.cls("disabled", !roles.canDelete(ws.access)),
+      dom.attr("aria-disabled", !roles.canDelete(ws.access) ? "true" : "false"),
       testId("ws-restore"),
     ),
     menuItem(() => home.deleteWorkspace(ws.id, true), t("Delete Forever"),
-      dom.cls("disabled", !roles.canDelete(ws.access) || ws.docs.length > 0),
+      dom.attr("aria-disabled", !roles.canDelete(ws.access) || ws.docs.length > 0 ? "true" : "false"),
       testId("ws-delete-forever"),
     ),
     (ws.docs.length > 0 ?

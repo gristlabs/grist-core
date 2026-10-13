@@ -244,7 +244,7 @@ export class AccountWidget extends Disposable {
       // TODO weasel menus should support disabling menuItemLink.
       (canViewBillingPage ?
         menuItemLink(urlState().setLinkUrl({ billing: "billing" }), t("Billing account")) :
-        menuItem(() => null, t("Billing account"), dom.cls("disabled", true))
+        menuItem(() => null, t("Billing account"), dom.attr("aria-disabled", "true"))
       ) :
       menuItem(() => this._appModel.showUpgradeModal(), t("Upgrade Plan"));
   }

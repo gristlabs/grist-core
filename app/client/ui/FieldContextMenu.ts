@@ -16,10 +16,10 @@ export interface IFieldContextMenu {
 
 export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
   const { disableModify, isReadonly, field, isAddRow } = fieldOptions;
-  const disableForReadonlyColumn = dom.cls("disabled", disableModify || isReadonly);
+  const disableForReadonlyColumn = dom.attr("aria-disabled", (disableModify || isReadonly) ? "true" : "false");
 
   const isVirtual = typeof field.colRef.peek() === "string";
-  const disabledForVirtual = dom.cls("disabled", isVirtual);
+  const disabledForVirtual = dom.attr("aria-disabled", isVirtual ? "true" : "false");
 
   return [
     menuItemCmd(allCommands.contextMenuCut, t("Cut"), disableForReadonlyColumn),
@@ -29,7 +29,9 @@ export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
     menuItemCmd(allCommands.clearValues, t("Clear field"), disableForReadonlyColumn),
     menuItemCmd(allCommands.hideCardFields, t("Hide field"), disableForReadonlyColumn),
     menuDivider(),
-    menuItemCmd(allCommands.openDiscussion, t("Comment"), dom.cls("disabled", isReadonly || isVirtual || isAddRow)),
+    menuItemCmd(allCommands.openDiscussion, t("Comment"), dom.attr("aria-disabled",
+      (isReadonly || isVirtual || isAddRow) ? "true" : "false"),
+    ),
     menuItemCmd(allCommands.copyLink, t("Copy anchor link"), disabledForVirtual),
   ];
 }

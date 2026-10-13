@@ -1469,7 +1469,7 @@ namespace gristUtils {
     cancel?: boolean,
   } = { }) {
     await openPageMenu(name);
-    assert.equal(await driver.findWait(".test-docpage-remove", 100).matches(".disabled"), false);
+    assert.equal(await driver.findWait(".test-docpage-remove", 100).matches('[aria-disabled="true"]'), false);
     await driver.find(".test-docpage-remove").click();
     const popups = await driver.findAll(".test-removepage-popup");
     if (options.expectPrompt === true) {
@@ -1498,7 +1498,7 @@ namespace gristUtils {
  */
   export async function canRemovePage(name: string | RegExp) {
     await openPageMenu(name);
-    const isDisabled = await driver.find(".test-docpage-remove").matches(".disabled");
+    const isDisabled = await driver.find(".test-docpage-remove").matches('[aria-disabled="true"]');
     await driver.sendKeys(Key.ESCAPE);
     return !isDisabled;
   }
@@ -1638,7 +1638,7 @@ namespace gristUtils {
   }
 
   export async function redoAll() {
-    const isActive = () => driver.find(".test-redo").matches('[class*="disabled"]').then(v => !v);
+    const isActive = () => driver.find(".test-redo").matches('[aria-disabled="true"]').then(v => !v);
     while (await isActive()) {
       await redo();
     }
@@ -3280,7 +3280,7 @@ namespace gristUtils {
   export async function getEnabledOptions(): Promise<SortOption[]> {
     const options: SortOption[] = [];
     for (const option of SortOptions) {
-      const list = await driver.findAll(`.test-sort-config-option-${option}:not(.disabled)`);
+      const list = await driver.findAll(`.test-sort-config-option-${option}:not([aria-disabled="true"])`);
       if (list.length) {
         options.push(option);
       }

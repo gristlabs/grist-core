@@ -34,7 +34,7 @@ export function buildHomeGristImportMenuItem(home: HomeModel): DomContents {
     },
     menuIcon("Import"), t("Copy data from another document"),
     dom.show(isGristImportVisible()),
-    dom.cls("disabled", !home.newDocWorkspace.get()),
+    dom.attr("aria-disabled", !home.newDocWorkspace.get() ? "true" : "false"),
   );
 }
 
@@ -56,6 +56,6 @@ export function buildDocGristImportMenuItem(gristDoc: GristDoc, isReadonly: bool
     },
     menuIcon("Import"), t("Copy data from another document"),
     dom.show(isGristImportVisible()),
-    dom.cls("disabled", isReadonly),
+    dom.attr("aria-disabled", isReadonly ? "true" : "false"),
   );
 }

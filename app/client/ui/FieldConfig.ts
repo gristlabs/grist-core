@@ -220,7 +220,7 @@ export function buildFormulaConfig(
   const convertToDataAll = () => selectOption(
     () => convertIsFormula(selectedColumnIds(), { toFormula: false, noRecalc: true }),
     "Convert columns to data", "Database",
-    dom.cls("disabled", isSummaryTable),
+    dom.attr("aria-disabled", isSummaryTable ? "true" : "false"),
   );
 
   // Menu helper that will show normal menu with some default options
@@ -279,7 +279,7 @@ export function buildFormulaConfig(
   const convertToDataOption = () => selectOption(
     convertToData,
     t("Convert column to data"), "Database",
-    dom.cls("disabled", isSummaryTable),
+    dom.attr("aria-disabled", isSummaryTable ? "true" : "false"),
   );
 
   // Clears the column

@@ -28,7 +28,7 @@ describe("ColumnTransform", function() {
     await gu.findOpenMenu();
 
     // The 'Rename' option should be disabled.
-    assert.isTrue(await driver.findContentWait("li", /Rename column/, 1000).matches(".disabled"));
+    assert.isTrue(await driver.findContentWait("li", /Rename column/, 1000).matches('[aria-disabled="true"]'));
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
 

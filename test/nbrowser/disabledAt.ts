@@ -84,16 +84,16 @@ describe("disabledAt", function() {
       "Disabled doc should have -no-access css class");
 
     await enabledDoc.findWait(".test-dm-doc-options", 500).click();
-    assert.isFalse(await gu.findOpenMenuItem("li", /Move/).matches("[class*=disabled]"));
-    assert.isFalse(await gu.findOpenMenuItem("li", /Rename/).matches("[class*=disabled]"));
-    assert.isFalse(await gu.findOpenMenuItem("li", /Download/).matches("[class*=disabled]"));
+    assert.isFalse(await gu.findOpenMenuItem("li", /Move/).matches('[aria-disabled="true"]'));
+    assert.isFalse(await gu.findOpenMenuItem("li", /Rename/).matches('[aria-disabled="true"]'));
+    assert.isFalse(await gu.findOpenMenuItem("li", /Download/).matches('[aria-disabled="true"]'));
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
 
     await disabledDoc.findWait(".test-dm-doc-options", 500).click();
-    assert.isTrue(await gu.findOpenMenuItem("li", /Move/).matches("[class*=disabled]"));
-    assert.isTrue(await gu.findOpenMenuItem("li", /Rename/).matches("[class*=disabled]"));
-    assert.isTrue(await gu.findOpenMenuItem("li", /Download/).matches("[class*=disabled]"));
+    assert.isTrue(await gu.findOpenMenuItem("li", /Move/).matches('[aria-disabled="true"]'));
+    assert.isTrue(await gu.findOpenMenuItem("li", /Rename/).matches('[aria-disabled="true"]'));
+    assert.isTrue(await gu.findOpenMenuItem("li", /Download/).matches('[aria-disabled="true"]'));
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
   });
@@ -126,9 +126,9 @@ describe("disabledAt", function() {
     await ownerSession.loadDocMenu("/");
     const reEnabledDoc = await driver.find(".test-dm-doc");
     await reEnabledDoc.findWait(".test-dm-doc-options", 500).click();
-    assert.isFalse(await gu.findOpenMenuItem("li", /Move/).matches("[class*=disabled]"));
-    assert.isFalse(await gu.findOpenMenuItem("li", /Rename/).matches("[class*=disabled]"));
-    assert.isFalse(await gu.findOpenMenuItem("li", /Download/).matches("[class*=disabled]"));
+    assert.isFalse(await gu.findOpenMenuItem("li", /Move/).matches('[aria-disabled="true"]'));
+    assert.isFalse(await gu.findOpenMenuItem("li", /Rename/).matches('[aria-disabled="true"]'));
+    assert.isFalse(await gu.findOpenMenuItem("li", /Download/).matches('[aria-disabled="true"]'));
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
 

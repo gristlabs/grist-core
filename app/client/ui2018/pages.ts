@@ -57,19 +57,19 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     menuItem(
       () => isRenaming.set(true),
       t("Rename"),
-      dom.cls("disabled", isReadonly),
+      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
       testId("rename"),
     ),
     menuItem(
       onRemove,
       t("Remove"),
-      dom.cls("disabled", use => use(isReadonly) || isRemoveDisabled()),
+      dom.attr("aria-disabled", use => use(isReadonly) || isRemoveDisabled() ? "true" : "false"),
       testId("remove"),
     ),
     menuItem(
       onDuplicate,
       t("Duplicate page"),
-      dom.cls("disabled", isReadonly),
+      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
       testId("duplicate"),
     ),
     dom.maybe(hasSubPages(), () => [
@@ -82,7 +82,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
             () => t("(default)"),
           ),
         }),
-        dom.cls("disabled", use => !use(isCollapsed)),
+        dom.attr("aria-disabled", use => !use(isCollapsed) ? "true" : "false"),
         testId("expand"),
       ),
       menuItemAsync(
@@ -90,7 +90,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
         t("Collapse {{maybeDefault}}", {
           maybeDefault: dom.maybe(isCollapsedByDefault, () => t("(default)")),
         }),
-        dom.cls("disabled", isCollapsed),
+        dom.attr("aria-disabled", isCollapsed ? "true" : "false"),
         testId("collapse"),
       ),
       menuItemAsync(

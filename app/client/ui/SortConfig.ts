@@ -208,7 +208,6 @@ export class SortConfig extends Disposable {
                 label,
                 dom.prop("disabled", !enabled),
               ),
-              dom.cls("disabled", !enabled),
               dom.attr("aria-disabled", !enabled ? "true" : "false"),
               testId("option"),
               testId(`option-${flag}`),

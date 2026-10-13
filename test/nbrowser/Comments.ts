@@ -1115,10 +1115,10 @@ describe("Comments", function() {
   it("should disable Comment option on add-row", async function() {
     await gu.openPage("Table2");
     await gu.rightClick(await gu.getCell("B", 2));
-    assert.equal(await gu.findOpenMenuItem("li", /Comment/).matches(".disabled"), false);
+    assert.equal(await gu.findOpenMenuItem("li", /Comment/).matches('[aria-disabled="true"]'), false);
     await gu.sendKeys(Key.ESCAPE);
     await gu.rightClick(await gu.getCell("B", 4));
-    assert.equal(await gu.findOpenMenuItem("li", /Comment/).matches(".disabled"), true);
+    assert.equal(await gu.findOpenMenuItem("li", /Comment/).matches('[aria-disabled="true"]'), true);
   });
 
   it("should offer menu option to copy anchor link", async function() {
@@ -1910,7 +1910,7 @@ async function menuOptions() {
  */
 async function disabledMenuOptions() {
   const menuItems = await gu.findOpenMenuAllItems("li", async e =>
-    await e.matches(".disabled") ? await e.getText() : "",
+    await e.matches('[aria-disabled="true"]') ? await e.getText() : "",
   );
   return menuItems.filter(Boolean);
 }

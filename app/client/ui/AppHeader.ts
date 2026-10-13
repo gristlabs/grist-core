@@ -158,7 +158,7 @@ export class AppHeader extends Disposable {
             (!this._docPageModel && this._currentOrg && !this._currentOrg.owner ?
               menuItem(() => manageTeamUsersApp({ app: this._appModel }),
                 t("Manage team"), testId("orgmenu-manage-team"),
-                dom.cls("disabled", !roles.canEditAccess(this._currentOrg.access))) :
+                dom.attr("aria-disabled", !roles.canEditAccess(this._currentOrg.access) ? "true" : "false")) :
               // Don't show on doc pages, or for personal orgs.
               null),
 
@@ -199,7 +199,7 @@ export class AppHeader extends Disposable {
         menuItem(
           () => null,
           t("Billing account"),
-          dom.cls("disabled", true),
+          dom.attr("aria-disabled", "true"),
           testId("orgmenu-billing"),
         )
       ) :
