@@ -239,6 +239,16 @@ describe("BootProbes persist-data", () => {
         "Grist appears to be running in the official Docker image without a volume mounted at " +
         "/persist, so data would be lost when the container is recreated.");
     });
+
+    it("names each path at risk outside the official image", () => {
+      assert.equal(_persistDataVerdict(details({
+        dataDir: "/data/docs", dataDirMount: ROOT, homeDb: "/data/home.sqlite3", homeDbMount: ROOT,
+      })),
+      "GRIST_DATA_DIR (/data/docs) appears to be in the container's own filesystem, so anything " +
+      "stored there would be lost when the container is recreated. TYPEORM_DATABASE " +
+      "(/data/home.sqlite3) appears to be in the container's own filesystem, so anything stored " +
+      "there would be lost when the container is recreated.");
+    });
   });
 
   describe("probe", () => {

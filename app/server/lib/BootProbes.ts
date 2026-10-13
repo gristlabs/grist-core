@@ -2,6 +2,7 @@ import { ApiError } from "app/common/ApiError";
 import {
   BootProbeIds,
   BootProbeResult,
+  getPathsNeedingVolume,
   getStorageRisks,
   PersistDataBootProbeDetails,
   summarizeOutgoingRequests,
@@ -466,6 +467,8 @@ const _sandboxProvidersProbe: Probe = {
  */
 export function _persistDataVerdict(details: PersistDataBootProbeDetails): string | undefined {
   const risks = getStorageRisks(details);
+  // Just "/persist", rather than the stores' own paths, when one volume there would cover them all.
+  const volumePaths = getPathsNeedingVolume(details);
   const stores = [
     { envVar: "GRIST_DATA_DIR", target: details.dataDir, risk: risks.docs },
     { envVar: "TYPEORM_DATABASE", target: details.homeDb, risk: risks.home },
@@ -477,8 +480,11 @@ export function _persistDataVerdict(details: PersistDataBootProbeDetails): strin
     sentences.add(risk === "in-memory" ?
       `${envVar} (${target}) appears to be in memory, so anything stored there would be lost ` +
       "when the server or container restarts." :
-      "Grist appears to be running in the official Docker image without a volume mounted at " +
-      "/persist, so data would be lost when the container is recreated.");
+      target && volumePaths.includes(target) ?
+        `${envVar} (${target}) appears to be in the container's own filesystem, so anything ` +
+        "stored there would be lost when the container is recreated." :
+        "Grist appears to be running in the official Docker image without a volume mounted at " +
+        "/persist, so data would be lost when the container is recreated.");
   }
   return sentences.size > 0 ? [...sentences].join(" ") : undefined;
 }

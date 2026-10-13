@@ -96,7 +96,7 @@ describe("QuickSetupBackups", function() {
     it("lets Quick Setup continue on \"I will check later\", until the page reloads", async function() {
       await driver.find(".test-backups-persist-later").click();
       await gu.waitToPass(async () => assert.equal(
-        await driver.find(".test-backups-persist-confirmed-row").getText(), "Will check storage later"));
+        await driver.find(".test-backups-persist-confirmed-row").getText(), "You'll check storage later"));
       assert.isFalse(await driver.find(".test-backups-persist-verify").isPresent());
       await assertContinue(true);
       assert.isUndefined(await getAnswer());

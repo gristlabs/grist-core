@@ -10,7 +10,13 @@ import { basicButton } from "app/client/ui2018/buttons";
 import { testId } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
 import { loadingSpinner } from "app/client/ui2018/loaders";
-import { BackupsBootProbeDetails, getStorageRisks, PersistDataBootProbeDetails } from "app/common/BootProbe";
+import {
+  BackupsBootProbeDetails,
+  getPathsNeedingVolume,
+  getStorageRisks,
+  IMAGE_VOLUME,
+  PersistDataBootProbeDetails,
+} from "app/common/BootProbe";
 import { StorageBackendName } from "app/common/ExternalStorage";
 import { commonUrls } from "app/common/gristUrls";
 import { InstallAPIImpl } from "app/common/InstallAPI";
@@ -23,6 +29,9 @@ const t = makeT("BackupsSection");
 
 const BackendName = StringUnion(...StorageBackendName.values, "none");
 type BackendName = typeof BackendName.type;
+
+// The persistence card to show: a row with the answer, or a red ("fault") or grey ("ask") card.
+type PersistCard = "answered" | "fault" | "ask";
 
 interface BackendInfo {
   label: () => string;
@@ -106,9 +115,8 @@ export class BackupsSection extends Disposable {
 
   /**
    * What the persistence card and the Continue button need, derived in plain code in one place.
-   * (A chain of computeds that read their inputs conditionally can see stale values in grainjs.)
-   * `card` is what to show, if any: a row with the answer ("answered"), or a red ("fault") or
-   * grey ("ask") card.
+   * Don't split it into a chain of computeds: grainjs orders a computed by what it read last
+   * time, so one that reads its inputs conditionally can see stale values.
    */
   private readonly _persist = Computed.create(this, (use) => {
     // A failed check request has only an error in its details, so no facts and no risks.
@@ -116,15 +124,16 @@ export class BackupsSection extends Disposable {
     const risks = details ? getStorageRisks(details) : {};
     const fault = Boolean(risks.docs || risks.home);
     const inMemory = risks.docs === "in-memory" || risks.home === "in-memory";
-    // Documents in external storage and a Postgres home database leave nothing on local disk.
-    const byConfig = Boolean(details?.externalStorageActive && details?.usesPostgres);
-    const confirmed = byConfig || use(this._adminConfirmed);
+    const nothingOnLocalDisk = Boolean(details?.externalStorageActive && details?.usesPostgres);
+    const confirmed = nothingOnLocalDisk || use(this._adminConfirmed);
     // The initial probe value is `{status: "none"}` with no details, so details arriving is
     // what tells us the probe actually ran.
     const loading = !use(this._prefsLoaded) || !details;
     const answered = confirmed || use(this._checkingLater);
-    const card = loading || byConfig ? null : answered ? "answered" : fault ? "fault" : "ask";
-    return { card, answered, confirmed, fault, inMemory };
+    const cardToShow: PersistCard | null =
+      loading || nothingOnLocalDisk ? null : answered ? "answered" : fault ? "fault" : "ask";
+    const volumePaths = details ? getPathsNeedingVolume(details) : [];
+    return { cardToShow, answered, confirmed, fault, inMemory, volumePaths };
   });
 
   private readonly _persistAnswered = Computed.create(this, use => use(this._persist).answered);
@@ -176,8 +185,8 @@ export class BackupsSection extends Disposable {
   public buildStatusDisplay() {
     return dom.domComputed((use) => {
       // Storage that isn't known to be persistent matters more than which backup backend is set.
-      const { card, confirmed, fault } = use(this._persist);
-      if (card && !confirmed) {
+      const { cardToShow, confirmed, fault } = use(this._persist);
+      if (cardToShow && !confirmed) {
         const verdict = use(this._persistResult)?.verdict;
         return fault ?
           cssValueLabel(
@@ -202,7 +211,7 @@ export class BackupsSection extends Disposable {
    * card with a row whose pencil brings it back.
    */
   private _buildPersistenceCard() {
-    return dom.domComputed(use => use(this._persist).card, (card) => {
+    return dom.domComputed(use => use(this._persist).cardToShow, (card) => {
       if (!card) { return null; }
       if (card === "answered") {
         return buildConfirmedRow(
@@ -210,7 +219,7 @@ export class BackupsSection extends Disposable {
           () => this._reopenQuestion(),
           {
             skipped: this._checkingLater,
-            skippedLabel: t("Will check storage later"),
+            skippedLabel: t("You'll check storage later"),
             confirmedLabel: t("Persistent storage confirmed"),
             testPrefix: "backups-persist",
           },
@@ -233,9 +242,15 @@ export class BackupsSection extends Disposable {
           indicator: "error",
           header: t("Your data may be lost."),
           // Memory is the more urgent of the two risks.
-          text: use => use(this._persist).inMemory ?
-            t("Grist is storing data in memory. Move it to a disk or volume.") :
-            t("Mount a volume at /persist to keep your data."),
+          text: (use) => {
+            const { inMemory, volumePaths } = use(this._persist);
+            return inMemory ? t("Grist is storing data in memory. Move it to a disk or volume.") :
+              volumePaths.length === 1 && volumePaths[0] === IMAGE_VOLUME ?
+                t("Mount a volume at /persist to keep your data.") :
+                t("Keep {{paths}} on a mounted volume so your data survives.", {
+                  paths: volumePaths.join(", "),
+                });
+          },
           extra: buttons,
           args: [testId("backups-persist-warning")],
         }) :

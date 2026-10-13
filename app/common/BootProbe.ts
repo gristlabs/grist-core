@@ -89,8 +89,9 @@ export type StorageRisk = "in-memory" | "no-volume";
 // Filesystems that live in RAM and so never survive a restart.
 const RAM_FILESYSTEMS = ["tmpfs", "ramfs"];
 
-// The official Docker image sets GRIST_DATA_DIR to this and expects a volume at /persist.
+// The official Docker image sets GRIST_DATA_DIR to this and expects a volume at IMAGE_VOLUME.
 const IMAGE_DATA_DIR = "/persist/docs";
+export const IMAGE_VOLUME = "/persist";
 
 /**
  * The likely risk to documents and to the home database, read from the persist-data facts.
@@ -100,17 +101,33 @@ const IMAGE_DATA_DIR = "/persist/docs";
 export function getStorageRisks(details: PersistDataBootProbeDetails): {
   docs?: StorageRisk; home?: StorageRisk;
 } {
-  // In the official image, the root mount is probably a throwaway image layer.
+  // A root mount is probably a throwaway container layer if it is an overlay (as Docker and
+  // containerd use by default), or if we're in the official image, whatever its storage driver.
   const inOfficialImage = details.dataDir === IMAGE_DATA_DIR;
   const risk = (mount: MountInfo | null): StorageRisk | undefined =>
     !mount ? undefined :
       RAM_FILESYSTEMS.includes(mount.fsType) ? "in-memory" :
-        mount.mountPoint === "/" && inOfficialImage ? "no-volume" :
+        mount.mountPoint === "/" && (inOfficialImage || mount.fsType === "overlay") ? "no-volume" :
           undefined;
   return {
     docs: details.externalStorageActive ? undefined : risk(details.dataDirMount),
     home: details.usesPostgres ? undefined : risk(details.homeDbMount),
   };
+}
+
+/**
+ * The paths of stores that need a volume (a "no-volume" risk). In the official image, when they
+ * are all under IMAGE_VOLUME, one volume there covers them, so this returns just IMAGE_VOLUME.
+ */
+export function getPathsNeedingVolume(details: PersistDataBootProbeDetails): string[] {
+  const risks = getStorageRisks(details);
+  const paths = [
+    risks.docs === "no-volume" ? details.dataDir : null,
+    risks.home === "no-volume" ? details.homeDb : null,
+  ].filter((p): p is string => Boolean(p));
+  const inImageVolume = (p: string) => p.startsWith(IMAGE_VOLUME + "/");
+  return details.dataDir === IMAGE_DATA_DIR && paths.length > 0 && paths.every(inImageVolume) ?
+    [IMAGE_VOLUME] : paths;
 }
 
 /**
