@@ -211,7 +211,7 @@ describe("ColumnOps.ntest", function() {
     // delete shortcut should delete all selected columns
     await gu.selectGridArea([1, 0], [1, 1]);
     await gu.sendKeys([$.ALT, "-"]);
-    await gu.waitForServer();
+    await gu.confirmColumnDeletionIfPrompted();
     assert.deepEqual(await gu.getGridLabels("Country"),
       ["Continent", "Region", "SurfaceArea", "IndepYear", "Population", "LifeExpectancy",
         "GNP", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
@@ -221,7 +221,7 @@ describe("ColumnOps.ntest", function() {
     // delete menu item should delete all selected columns
     await gu.selectGridArea([1, 2], [1, 8]);
     await gu.clickColumnMenuItem("SurfaceArea", "Delete", true);
-    await gu.waitForServer();
+    await gu.confirmColumnDeletionIfPrompted();
     assert.deepEqual(await gu.getGridLabels("Country"),
       ["Code", "Name", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
     // Undo to restore changes
