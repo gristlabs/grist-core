@@ -602,7 +602,9 @@ describe("CalendarView setup modal", function() {
   // Picks an option (matched by text) in one of the modal's slot selects.
   async function pickSlot(slot: string, label: RegExp) {
     await driver.find(`.test-calendar-setup-${slot} .test-select-open`).click();
-    await driver.findContentWait(".test-select-row", label, 1000).click();
+    // Look inside the open menu: the select button shows its current value as a .test-select-row
+    // too, and clicking that toggles the menu closed after a delay instead of picking an option.
+    await gu.findOpenMenuItem(".test-select-row", label, 1000).click();
   }
 
   async function getViewName(): Promise<string> {
