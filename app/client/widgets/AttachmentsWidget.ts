@@ -124,7 +124,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       height.setAndSave(inputRange.value).catch(reportError);
     });
     return cssRow(
-      cssSizeLabel("Size"),
+      cssSizeLabel(t("Size")),
       inputRange,
     );
   }

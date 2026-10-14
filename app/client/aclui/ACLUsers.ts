@@ -102,9 +102,9 @@ export class ACLUsersPopup extends Disposable {
     return menu(() => {
       this.load().catch(noop);
       return [
-        cssMenuHeader("view as"),
+        cssMenuHeader(t("View as")),
         dom.forEach(this.allUsers, user => menuItemLink(
-          `${user.name || user.email} (${getUserRoleText(user)})`,
+          `${user.name || user.email} (${userT(getUserRoleText(user))})`,
           testId("acl-user-access"),
           this._viewAs(user),
         )),

@@ -19,10 +19,10 @@ export async function buildDuplicatePageDialog(gristDoc: GristDoc, pageId: numbe
   // The suggested name is meant to be typed over, so it has to arrive selected.
   onceAttached(inputEl, () => { inputEl.focus(); inputEl.select(); });
 
-  confirmModal("Duplicate page", "Save", () => duplicatePage(gristDoc, pageId, inputEl.value), {
+  confirmModal(t("Duplicate page"), t("Save"), () => duplicatePage(gristDoc, pageId, inputEl.value), {
     explanation: dom("div", [
       cssField(
-        cssLabel("Name"),
+        cssLabel(t("Name")),
         inputEl,
       ),
       t("Note that this does not copy data, but creates another view of the same data."),
