@@ -2209,10 +2209,11 @@ namespace gristUtils {
   /**
  * Opens the row menu for the row with the given row number (1-based, as in row headers).
  */
-  export function openRowMenu(rowNum: number) {
+  export async function openRowMenu(rowNum: number) {
+    await waitForPendingOps("testNumPendingScrolls", "the grid to scroll", 2000);
     const row = driver.findContent(".active_section .gridview_data_row_num", String(rowNum));
-    return driver.withActions(actions => actions.contextClick(row))
-      .then(() => findOpenMenu(1000));
+    await driver.withActions(actions => actions.contextClick(row));
+    return findOpenMenu(1000);
   }
 
   export async function removeRow(rowNum: number) {
