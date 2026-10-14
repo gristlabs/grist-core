@@ -207,7 +207,7 @@ describe("Authorizer", function() {
     const cli = await openClient(server, "charon@getgrist.com", "nasa");
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, "clientConnect");
-    const openDoc = await cli.openDocOnConnect("sampledocid_2");
+    const openDoc = await cli.send("openDoc", "sampledocid_2");
     assert.equal(openDoc.error, undefined);
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
@@ -226,7 +226,7 @@ describe("Authorizer", function() {
     const cli = await openClient(server, "chimpy@getgrist.com", "nasa");
     cli.ignoreTrivialActions();
     assert.equal((await cli.readMessage()).type, "clientConnect");
-    const openDoc = await cli.openDocOnConnect("sampledocid_2");
+    const openDoc = await cli.send("openDoc", "sampledocid_2");
     assert.equal(openDoc.error, undefined);
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
