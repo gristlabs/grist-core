@@ -127,7 +127,7 @@ describe("AccessRules4", function() {
     await userAttrRule.find(".test-rule-userattr-table").click();
     await gu.findOpenMenuItem("li", "Users").click();
     await userAttrRule.find(".test-rule-userattr-col").click();
-    await gu.findOpenMenu();
+    await gu.waitForMenuFocus();
     await driver.sendKeys("Email", Key.ENTER);
     await assertChanged();
     await driver.find(".test-rules-save").click();

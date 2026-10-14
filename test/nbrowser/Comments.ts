@@ -1116,6 +1116,7 @@ describe("Comments", function() {
     await gu.openPage("Table2");
     await gu.rightClick(await gu.getCell("B", 2));
     assert.equal(await gu.findOpenMenuItem("li", /Comment/).matches(".disabled"), false);
+    await gu.waitForMenuFocus();
     await gu.sendKeys(Key.ESCAPE);
     await gu.rightClick(await gu.getCell("B", 4));
     assert.equal(await gu.findOpenMenuItem("li", /Comment/).matches(".disabled"), true);

@@ -59,6 +59,7 @@ async function assertShortcutWorks(shortcut: string, menuItemToTest: string) {
   await pressShortcut(shortcut);
   assert.isTrue(await gu.findOpenMenu().isDisplayed());
   await gu.findOpenMenuItem("li", menuItemToTest);
+  await gu.waitForMenuFocus();
   await gu.sendKeys(Key.ESCAPE);
   await gu.waitForMenuToClose();
 }

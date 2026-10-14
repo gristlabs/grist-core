@@ -222,6 +222,7 @@ describe("AccessRules2", function() {
     await ruleSet.findContent(".test-acl-column", "Last_Name").find(".test-acl-col-remove").click();
     await ruleSet.find(".test-rule-resource .test-select-open").click();
     assert.equal(await gu.findOpenMenuItem("li", "Last_Name").isPresent(), true);
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);    // Close menu.
     await gu.waitForMenuToClose();
     await driver.sendKeys(Key.ESCAPE);    // Close editing of columns.

@@ -108,6 +108,7 @@ describe("RawData", function() {
     assert.equal(await gu.findOpenMenuItem("li", /Collapse widget/).matches(".disabled"), true);
     assert.equal(await gu.findOpenMenuItem("li", /Duplicate widget/).matches(".disabled"), true);
     assert.equal(await gu.findOpenMenuItem("li", /Delete widget/).matches(".disabled"), true);
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);    // Close the menu
     await driver.wait(async () => !await driver.find(".grist-floating-menu").isPresent());
     await driver.sendKeys(Key.ESCAPE);    // Close the preview popup
@@ -748,6 +749,7 @@ describe("RawData", function() {
     // the Raw Data page, even with the keyboard shortcut.
     await gu.openPage("Country");
     await (await gu.openRowMenu(1)).findContent("li.disabled", /View as card/);
+    await gu.waitForMenuFocus();
     await gu.sendKeys(Key.ESCAPE, Key.SPACE);
     assert.isFalse(await driver.find(".test-record-card-popup-overlay").isPresent());
 

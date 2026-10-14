@@ -82,12 +82,14 @@ describe("DuplicateDocument", function() {
     await driver.find(".test-copy-dest-org .test-select-open").click();
     assert.includeMembers(await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Personal", "Test Grist", "Test2 Grist"]);
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);
 
     // Check the list of workspaces in org
     await driver.findWait(".test-copy-dest-workspace .test-select-open", 1000).click();
     assert.includeMembers(await gu.findOpenMenuAllItems("li", el => el.getText()),
       ["Home", "Test Workspace"]);
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);
 
     // Switch the org and check that workspaces get updated.

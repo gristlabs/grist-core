@@ -87,6 +87,7 @@ describe("disabledAt", function() {
     assert.isFalse(await gu.findOpenMenuItem("li", /Move/).matches("[class*=disabled]"));
     assert.isFalse(await gu.findOpenMenuItem("li", /Rename/).matches("[class*=disabled]"));
     assert.isFalse(await gu.findOpenMenuItem("li", /Download/).matches("[class*=disabled]"));
+    await gu.waitForMenuFocus();
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
 
@@ -94,6 +95,7 @@ describe("disabledAt", function() {
     assert.isTrue(await gu.findOpenMenuItem("li", /Move/).matches("[class*=disabled]"));
     assert.isTrue(await gu.findOpenMenuItem("li", /Rename/).matches("[class*=disabled]"));
     assert.isTrue(await gu.findOpenMenuItem("li", /Download/).matches("[class*=disabled]"));
+    await gu.waitForMenuFocus();
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
   });
@@ -129,6 +131,7 @@ describe("disabledAt", function() {
     assert.isFalse(await gu.findOpenMenuItem("li", /Move/).matches("[class*=disabled]"));
     assert.isFalse(await gu.findOpenMenuItem("li", /Rename/).matches("[class*=disabled]"));
     assert.isFalse(await gu.findOpenMenuItem("li", /Download/).matches("[class*=disabled]"));
+    await gu.waitForMenuFocus();
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
 

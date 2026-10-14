@@ -144,6 +144,7 @@ describe("RowNumbers", function() {
     await trigger.click();
     menu = await gu.findOpenMenu(1000);
     assert.equal(await menu.find(".test-row-numbers-selected").findClosest("li").getText(), "Numbers");
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);
   });
 

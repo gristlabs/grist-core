@@ -85,6 +85,7 @@ describe("BehavioralPrompts", function() {
     await driver.find(".test-fbuilder-type-select").click();
     await gu.findOpenMenu();
     await assertPromptTitle(null);
+    await gu.waitForMenuFocus();
     await gu.sendKeys(Key.ESCAPE);
   });
 

@@ -446,6 +446,7 @@ describe("AccessRules1", function() {
     assert.includeMembers(await driver.findAll(".test-dp-add-new-menu > li.disabled", imp => imp.getText()), [
       "Add widget to page",
     ]);
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitAppFocus();
   });

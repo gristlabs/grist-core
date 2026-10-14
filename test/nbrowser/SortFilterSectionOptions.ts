@@ -365,6 +365,7 @@ describe("SortFilterSectionOptions", function() {
     assert.equal(await menu.find(".test-filter-config-filter").getText(), "Name");
 
     // Close the menu.
+    await gu.waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);
 
     // Undo to unhide the column.

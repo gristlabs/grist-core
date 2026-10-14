@@ -1960,6 +1960,7 @@ async function getCsvHref(sectionTitle: string) {
   await gu.openSectionMenu("viewLayout", "JOBS");
   const href = await driver.findContentWait(".test-download-section", /Download as CSV/, 1000)
     .getAttribute("href");
+  await gu.waitForMenuFocus();
   await driver.sendKeys(Key.ESCAPE);
   return href;
 }
