@@ -3,7 +3,7 @@
  * autocomplete suggestions and errors.
  */
 import { UserAPI } from "app/common/UserAPI";
-import { enterRulePart, findDefaultRuleSetWait, removeRules,
+import { enterRulePart, findDefaultRuleSetWait, removeRules, saveRules,
   startEditingAccessRules, triggerAutoComplete } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -53,8 +53,7 @@ describe("AccessRulesAttrs", function() {
     await enterRulePart(ruleSet, 1, '$SomeText == "foo"', "Allow all");
     await ruleSet.find(".test-rule-extra-add .test-rule-add").click();
     await enterRulePart(ruleSet, 2, null, "Deny all");
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
 
     // Check API results with the new rule.
     assert.deepEqual(await api.getDocAPI(docId).getRecords("TableFoo"), [
@@ -64,8 +63,7 @@ describe("AccessRulesAttrs", function() {
     // Now try a rule that lowercases the text value.
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
     await enterRulePart(ruleSet, 1, '$SomeText.lower() == "foo"', "Allow all");
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
     assert.deepEqual(await api.getDocAPI(docId).getRecords("TableFoo"), [
       { id: 1, fields: { SomeText: "foo", SomeDate: null } },
       { id: 2, fields: { SomeText: "FoO", SomeDate: null } },
@@ -74,8 +72,7 @@ describe("AccessRulesAttrs", function() {
     // Try uppercase, with no matches.
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
     await enterRulePart(ruleSet, 1, '$SomeText.upper() == "foo"', "Allow all");
-    await driver.findWait(".test-rules-save", 500).click();
-    await gu.waitForServer();
+    await saveRules();
     assert.deepEqual(await api.getDocAPI(docId).getRecords("TableFoo"), []);
   });
 
@@ -148,8 +145,7 @@ describe("AccessRulesAttrs", function() {
     let ruleSet = findDefaultRuleSetWait(/TableFoo/);
     if (await ruleSet.isPresent()) {
       await removeRules(ruleSet);
-      await driver.find(".test-rules-save").click();
-      await gu.waitForServer();
+      await saveRules();
     }
 
     // While this column is Text, we can use "lower()" method, and everything works.
@@ -160,8 +156,7 @@ describe("AccessRulesAttrs", function() {
     await enterRulePart(ruleSet, 1, 'newRec.OtherText.lower() == "blah"', { U: "deny", C: "deny" });
     await ruleSet.find(".test-rule-extra-add .test-rule-add").click();
     await enterRulePart(ruleSet, 2, null, "Allow all");
-    await driver.find(".test-rules-save").click();
-    await gu.waitForServer();
+    await saveRules();
 
     // The table looks normal (no rules restricting access).
     await mainSession.loadDoc(`/doc/${docId}`);

@@ -3,8 +3,8 @@
  */
 import { TableRecordValue } from "app/common/DocActions";
 import { UserAPI } from "app/common/UserAPI";
-import { assertChanged, assertSaved, enterRulePart,
-  findDefaultRuleSet, findTable, getRules, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import { assertChanged, enterRulePart,
+  findDefaultRuleSet, findTable, getRules, saveRules, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -87,8 +87,7 @@ describe("AccessRulesSchemaEdit", function() {
 
     // Save the changes. We happen to end up back on the intro page, since access rules now look
     // like they've never been enabled. (This isn't a very intentional behavior but acceptable.)
-    await getSaveButton().click();
-    await gu.waitForServer();
+    await saveRules();
 
     // Now an editor CAN make structure changes.
     await assert.isFulfilled(editorApi.applyUserActions(docId, [["RenameTable", "Renamed1", "Table1"]]));
@@ -217,14 +216,6 @@ function getSchemaEditCheckbox() {
 }
 function getSchemaEditRuleSet() {
   return driver.find(".test-rule-special-SchemaEdit .test-rule-set");
-}
-function getSaveButton() {
-  return driver.find(".test-rules-save");
-}
-async function saveRules() {
-  await getSaveButton().click();
-  await gu.waitForServer();
-  await assertSaved();
 }
 async function loadAccessRulesPage(session: gu.Session, docId: string) {
   await session.loadRelPath(`/doc/${docId}/p/acl`);
