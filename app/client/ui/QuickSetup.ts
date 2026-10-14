@@ -4,7 +4,7 @@ import { AppModel } from "app/client/models/AppModel";
 import { reportError } from "app/client/models/errors";
 import { getHomeUrl } from "app/client/models/homeUrl";
 import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard";
-import { cssFadeUp, cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading } from "app/client/ui/AdminPanelCss";
+import { cssFadeUpGristLogo, cssFadeUpHeading, cssFadeUpSubHeading, fadeUp } from "app/client/ui/AdminPanelCss";
 import { AuthenticationSection } from "app/client/ui/AuthenticationSection";
 import { BackupsSection } from "app/client/ui/BackupsSection";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
@@ -200,12 +200,10 @@ const cssMainContent = styled("div", `
   width: 100%;
 `);
 
-const cssStepper = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease 0.24s both;
-`);
+const cssStepper = styled("div", fadeUp("0.24s"));
 
 const cssStepContent = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease 0.24s both;
   margin: 24px auto;
   max-width: 520px;
+  ${fadeUp("0.24s")}
 `);
