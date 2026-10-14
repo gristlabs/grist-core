@@ -75,7 +75,10 @@
         "Permission to access the document in full by unrestricted users": "Permission to access the document in full by unrestricted users",
         "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.",
         "Special rules for templates": "Special rules for templates",
-        "This options should be off if Editors' access is to be limited. ": "This options should be off if Editors' access is to be limited. "
+        "This options should be off if Editors' access is to be limited. ": "This options should be off if Editors' access is to be limited. ",
+        "Name": "Name",
+        "[Select Table]": "[Select Table]",
+        "[Select Column]": "[Select Column]"
     },
     "AccountPage": {
         "API": "API",
@@ -324,7 +327,10 @@
         "Pin filter": "Pin filter",
         "Sort alphabetically (current: sorted by number of occurrences)": "Sort alphabetically (current: sorted by number of occurrences)",
         "Sort by number of occurrences (current: sorted alphabetically)": "Sort by number of occurrences (current: sorted alphabetically)",
-        "Unpin filter": "Unpin filter"
+        "Unpin filter": "Unpin filter",
+        "More": "More",
+        "Close": "Close",
+        "Cancel": "Cancel"
     },
     "CustomSectionConfig": {
         " (optional)": " (optional)",
@@ -367,7 +373,9 @@
         "Record Card Disabled": "Record Card Disabled",
         "Remove table": "Remove table",
         "Rename table": "Rename table",
-        "{{action}} Record Card": "{{action}} Record Card"
+        "{{action}} Record Card": "{{action}} Record Card",
+        "Table ID: ": "Table ID: ",
+        "Rows: ": "Rows: "
     },
     "DocHistory": {
         "Activity": "Activity",
@@ -562,7 +570,9 @@
         "Copy all data in addition to the table structure.": "Copy all data in addition to the table structure.",
         "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}": "Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
         "Name for new table": "Name for new table",
-        "Only the document default access rules will apply to the copy.": "Only the document default access rules will apply to the copy."
+        "Only the document default access rules will apply to the copy.": "Only the document default access rules will apply to the copy.",
+        "Duplicate Table": "Duplicate Table",
+        "Read More.": "Read More."
     },
     "ExampleInfo": {
         "Afterschool Program": "Afterschool Program",
@@ -711,7 +721,12 @@
         "Import from Airtable": "Import from Airtable",
         "{{title}} widget": "{{title}} widget",
         "Airtable": "Airtable",
-        "File": "File"
+        "File": "File",
+        "Link copied to clipboard": "Link copied to clipboard",
+        "Document History": "Document History",
+        "Table name": "Table name",
+        "Create": "Create",
+        "Default table name": "Default table name"
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Any documents created in this site will appear here.",
@@ -787,7 +802,8 @@
         "Source column": "Source column",
         "Import options": "Import options",
         "Cancel": "Cancel",
-        "Import": "Import"
+        "Import": "Import",
+        "Apply Formula": "Apply Formula"
     },
     "LeftPanelCommon": {
         "Help Center": "Help Center",
@@ -883,7 +899,10 @@
     "PermissionsWidget": {
         "Allow all": "Allow all",
         "Deny all": "Deny all",
-        "Read only": "Read only"
+        "Read only": "Read only",
+        "No Effect": "No Effect",
+        "Clear": "Clear",
+        "Custom": "Custom"
     },
     "PluginScreen": {
         "Import failed: ": "Import failed: "
@@ -969,7 +988,9 @@
         "Use as table headers": "Use as table headers"
     },
     "SelectionSummary": {
-        "Copied to clipboard": "Copied to clipboard"
+        "Copied to clipboard": "Copied to clipboard",
+        "Sum": "Sum",
+        "Count": "Count"
     },
     "ShareMenu": {
         "Access Details": "Access Details",
@@ -1070,7 +1091,9 @@
         "Cancel": "Cancel",
         "Close": "Close",
         "Current field ": "Current field ",
-        "OK": "OK"
+        "OK": "OK",
+        "(data cleaning)": "(data cleaning)",
+        "(except formulas)": "(except formulas)"
     },
     "TypeTransformation": {
         "Apply": "Apply",
@@ -1087,7 +1110,8 @@
         "Owner": "Owner",
         "View & edit": "View & edit",
         "View only": "View only",
-        "Viewer": "Viewer"
+        "Viewer": "Viewer",
+        "no access": "no access"
     },
     "ValidationPanel": {
         "Rule {{length}}": "Rule {{length}}",
@@ -1177,7 +1201,10 @@
     },
     "duplicatePage": {
         "Duplicate page {{pageName}}": "Duplicate page {{pageName}}",
-        "Note that this does not copy data, but creates another view of the same data.": "Note that this does not copy data, but creates another view of the same data."
+        "Note that this does not copy data, but creates another view of the same data.": "Note that this does not copy data, but creates another view of the same data.",
+        "Duplicate page": "Duplicate page",
+        "Save": "Save",
+        "Name": "Name"
     },
     "errorPages": {
         "Access denied{{suffix}}": "Access denied{{suffix}}",
@@ -1530,7 +1557,8 @@
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION",
-        "Set description": "Set description"
+        "Set description": "Set description",
+        "Enter description": "Enter description"
     },
     "PagePanels": {
         "Close Creator Panel": "Close Creator Panel",
@@ -1821,7 +1849,8 @@
         "Unmapped fields": "Unmapped fields",
         "Header": "Header",
         "New question": "New question",
-        "More": "More"
+        "More": "More",
+        "Hide": "Hide"
     },
     "UnmappedFieldsConfig": {
         "Clear": "Clear",
@@ -2470,7 +2499,8 @@
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Uploading, please wait…",
-        "Image": "Image"
+        "Image": "Image",
+        "Size": "Size"
     },
     "AttachmentsEditor": {
         "Add": "Add",
@@ -3612,5 +3642,32 @@
     "startHomeGristImport": {
         "Copy data from another document": "Copy data from another document",
         "Data can't be copied to the current workspace.": "Data can't be copied to the current workspace."
+    },
+    "ACLColumnList": {
+        "[Add Column]": "[Add Column]"
+    },
+    "Submit": {
+        "Submit": "Submit"
+    },
+    "DateTextBox": {
+        "Mixed format": "Mixed format",
+        "Date Format": "Date Format"
+    },
+    "DateTimeTextBox": {
+        "Mixed format": "Mixed format",
+        "Time Format": "Time Format",
+        "Timezone": "Timezone"
+    },
+    "ColumnFilterCalendarView": {
+        "← List view": "← List view",
+        "Today": "Today"
+    },
+    "MultiUserManager": {
+        "Invite Users": "Invite Users",
+        "Access:": "Access:",
+        "Confirm": "Confirm",
+        "Cancel": "Cancel",
+        "Enter email addresses, one per line or separated by commas": "Enter email addresses, one per line or separated by commas",
+        "At least one email is invalid": "At least one email is invalid"
     }
 }

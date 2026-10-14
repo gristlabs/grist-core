@@ -3,10 +3,13 @@
  * add a new column, and allows removing already-added columns.
  */
 import { aclSelect, cssSelect } from "app/client/aclui/ACLSelect";
+import { makeT } from "app/client/lib/localization";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 
 import { Computed, dom, Observable, styled } from "grainjs";
+
+const t = makeT("ACLColumnList");
 
 export function aclColumnList(colIds: Observable<string[]>, validColIds: string[]) {
   // Define some helpers functions.
@@ -62,7 +65,7 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
     ),
     cssNewColItem(
       dom.update(
-        selectBox = aclSelect(newColId, unusedColIds, { defaultLabel: "[Add Column]" }),
+        selectBox = aclSelect(newColId, unusedColIds, { defaultLabel: t("[Add Column]") }),
         cssSelect.cls("-active"),
         dom.on("blur", onBlur),
         dom.onKeyDown({ Escape: onBlur }),

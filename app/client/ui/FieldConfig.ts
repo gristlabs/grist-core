@@ -202,7 +202,7 @@ export function buildFormulaConfig(
     () => Promise.all([
       gristDoc.docModel.clearColumns(selectedColumnIds()),
     ]),
-    "Clear and reset", "CrossSmall",
+    t("Clear and reset"), "CrossSmall",
   );
 
   // Convert the given columns to data, saving the calculated values and unsetting the formulas.

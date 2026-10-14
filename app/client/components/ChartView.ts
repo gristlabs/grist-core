@@ -530,7 +530,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   // The list of available columns for the group data picker.
   private _groupDataOptions = Computed.create<IOption<string>[]>(this, use => [
-    { value: "", label: "Pick a column" },
+    { value: "", label: t("Pick a column") },
     ...use(this._columnsOptions),
   ]);
 

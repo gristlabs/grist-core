@@ -42,7 +42,7 @@ export function duplicateTable(
   saveModal((_ctl, owner) => {
     const duplicateTableModal = DuplicateTableModal.create(owner, gristDoc, tableId);
     return {
-      title: "Duplicate Table",
+      title: t("Duplicate Table"),
       body: duplicateTableModal.buildDom(),
       saveFunc: async () =>  {
         const response = await duplicateTableModal.save();
@@ -85,7 +85,7 @@ class DuplicateTableModal extends Disposable {
       cssWarning(
         cssWarningIcon("Warning"),
         dom("div", t("Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
-          { link: cssLink({ href: commonUrls.helpLinkingWidgets, target: "_blank" }, "Read More.") },
+          { link: cssLink({ href: commonUrls.helpLinkingWidgets, target: "_blank" }, t("Read More.")) },
         )),
       ),
       cssField(
