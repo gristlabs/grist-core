@@ -63,7 +63,7 @@ function readDetails(result: BootProbeResult | undefined): OutgoingRequestsProbe
  * admin panel.
  */
 export function buildOutgoingRequestsSummary(result: BootProbeResult | undefined): DomContents {
-  if (!result) { return cssValueLabel(t("checking")); }
+  if (!result || result.status === "none") { return cssValueLabel(t("checking")); }
   // Render the probe's posture verbatim; never recompute from status/proxy.
   switch (readDetails(result)?.posture ?? "inactive") {
     case "filtered": return cssValueLabel(cssHappyText(t("filtered")));
@@ -79,7 +79,7 @@ export function buildOutgoingRequestsSummary(result: BootProbeResult | undefined
  * Settings section. Also used by Storybook with synthetic probe fixtures.
  */
 export function buildOutgoingRequestsPanel(result: BootProbeResult | undefined): DomContents {
-  if (!result) { return dom("p", t("Checking…")); }
+  if (!result || result.status === "none") { return dom("p", t("Checking…")); }
   const details = readDetails(result);
   const checks = details?.checks || [];
 
