@@ -25,11 +25,11 @@
         "Enter formula": "Введіть формулу",
         "Formula columns_one": "Стовпець формули",
         "Formula columns_other": "Стовпці формул",
-        "Mixed Behavior": "Змішане поводження",
+        "Mixed Behavior": "Змішана поведінка",
         "Set formula": "Задайте формулу",
         "Set trigger formula": "Задайте трігерну формулу",
         "TRIGGER FORMULA": "ТРІГЕРНА ФОРМУЛА",
-        "COLUMN BEHAVIOR": "ПОВОДЖЕННЯ СТОВПЦІВ",
+        "COLUMN BEHAVIOR": "ПОВЕДІНКА СТОВПЦЯ",
         "Convert to trigger formula": "Перетворити на тригерну формулу",
         "Column options are limited in summary tables.": "Налаштування стовпців у підсумкових таблицях обмежені.",
         "Convert column to data": "Перетворити стовпець у дані",
@@ -285,7 +285,7 @@
     "VisibleFieldsConfig": {
         "Clear": "Очистити",
         "Cannot drop items into Hidden Fields": "Неможливо перенести елементи у приховані поля",
-        "Hidden Fields cannot be reordered": "Приховані поля не можна перевпорядкувати",
+        "Hidden Fields cannot be reordered": "Неможливо змінити порядок прихованих полів",
         "Select all": "Виділити всі",
         "Show {{label}}": "Показати {{label}}",
         "Visible {{label}}": "Видимі {{label}}",
@@ -299,7 +299,7 @@
         "Apply on record changes": "Застосувати до змінених записів",
         "Any field": "Будь-яке поле",
         "Apply on changes to:": "Застосовувати при змінах в:",
-        "Cancel": "Відмінити",
+        "Cancel": "Скасувати",
         "Close": "Закрити",
         "Current field ": "Поточне поле ",
         "OK": "ОК"
@@ -307,19 +307,19 @@
     "TypeTransformation": {
         "Update formula (Shift+Enter)": "Оновити формулу (Shift+Enter)",
         "Apply": "Застосувати",
-        "Cancel": "Відмінити",
+        "Cancel": "Скасувати",
         "Preview": "Попередній перегляд",
-        "Revise": "Переглянути'"
+        "Revise": "Переглянути"
     },
     "CodeEditorPanel": {
-        "Code View is available only when you have full document access.": "Перегляд коду доступний тільки при наявності повного доступу до документа.",
+        "Code View is available only when you have full document access.": "Перегляд коду доступний тільки за наявності повного доступу до документа.",
         "Access denied": "Доступ заборонено"
     },
     "ChartView": {
         "Pick a column": "Виберіть стовпець",
         "selected new group data columns": "вибрана нова група стовпців даних",
         "Create separate series for each value of the selected column.": "Створіть окремі серії для кожного значення вибраного стовпця.",
-        "Toggle chart aggregation": "Перемикання створення діаграм",
+        "Toggle chart aggregation": "Перемикання агрегації діаграм",
         "Each Y series is followed by a series for the length of error bars.": "За кожною серією Y слідує серія для довжини стовпців помилок.",
         "Each Y series is followed by two series, for top and bottom error bars.": "За кожною серією Y слідують дві серії - для верхніх та нижніх стовпців помилок.",
         "LABEL": "Назва",
@@ -363,17 +363,17 @@
         "Min": "Мінімум",
         "All except": "Все, крім",
         "All shown": "Все показане",
-        "Filter by Range": "Фільтрувати по діапазону",
+        "Filter by Range": "Фільтрувати за діапазоном",
         "Start": "Початок",
         "End": "Кінець",
-        "Other Matching": "Інші співпадіння",
-        "Other Non-Matching": "Інші неспівпадіння",
+        "Other Matching": "Інші відповідності",
+        "Other Non-Matching": "Інші невідповідності",
         "Future values": "Майбутні значення",
         "None": "Ні",
         "Other values": "Інші значення",
         "Others": "Інші",
         "Search values": "Пошук значень",
-        "No matching values": "Немає співпадаючих значень",
+        "No matching values": "Немає відповідних значень",
         "Clear search": "Очистити пошук",
         "Pin filter": "Фільтр Pin",
         "Sort alphabetically (current: sorted by number of occurrences)": "Сортувати за алфавітом (поточне: відсортовано за кількістю входжень)",
@@ -383,7 +383,7 @@
     "CustomSectionConfig": {
         "Pick a {{columnType}} column": "Виберіть {{columnType}} стовпець",
         "Read selected table": "Прочитати обрану таблицю",
-        " (optional)": " (опціонально)",
+        " (optional)": " (необов'язково)",
         "Add": "Додати",
         "Enter Custom URL": "Введіть користувацький URL",
         "Full document access": "Повний доступ до документа",
@@ -395,7 +395,7 @@
         "Widget needs {{fullAccess}} to this document.": "Віджету необхідний {{fullAccess}} до цього документа.",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_one": "{{wrongTypeCount}} не-{{columnType}} стовпець не відображається",
         "{{wrongTypeCount}} non-{{columnType}} columns are not shown_other": "{{wrongTypeCount}} не-{{columnType}} стовпці не відображаються",
-        "Widget does not require any permissions.": "Віджет не вимагає ніяких дозволів.",
+        "Widget does not require any permissions.": "Віджет не вимагає жодних дозволів.",
         "Widget needs to {{read}} the current table.": "Віджету необхідно {{read}} поточну таблицю.",
         "No {{columnType}} columns in table.": "У таблиці немає стовпців типу {{columnType}}.",
         "Clear selection": "Очистити вибір",
@@ -532,7 +532,7 @@
     "ActionLog": {
         "Action Log failed to load": "Не вдалося завантажити журнал дій",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблиця {{tableId}} згодом була видалена під час події #{{actionNum}}",
-        "This row was subsequently removed in action {{action.actionNum}}": "Ця строка згодом була видалена під час події {{action.actionNum}}",
+        "This row was subsequently removed in action {{action.actionNum}}": "Цей рядок згодом було видалено під час події {{action.actionNum}}",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Колонка {{colId}} згодом була видалена під час події #{{action.actionNum}}",
         "All tables": "Всі таблиці",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Колонку {{colId}} згодом було видалено в дії №{{actionNum}}",
@@ -597,15 +597,15 @@
     },
     "ColorSelect": {
         "Apply": "Застосовувати",
-        "Cancel": "Відмінити",
+        "Cancel": "Скасувати",
         "Default cell style": "Стиль комірки за замовчуванням"
     },
     "DataTables": {
-        "Click to copy": "Натисніть для копіювання",
+        "Click to copy": "Натисніть, щоб скопіювати",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "Видалити дані {{formattedTableName}} та видалити їх з усіх сторінок?",
         "Duplicate table": "Дублювати таблицю",
         "Raw Data Tables": "Таблиці необроблених даних",
-        "Table ID copied to clipboard": "Ідентифікатор таблиці скопійовано в буфер",
+        "Table ID copied to clipboard": "ID таблиці скопійовано в буфер обміну",
         "You do not have edit access to this document": "У вас немає доступу до редагування цього документа",
         "Edit record card": "Редагувати картку запису",
         "Record Card": "Картка запису",
@@ -627,16 +627,16 @@
     "DocMenu": {
         "Access Details": "Параметри доступу",
         "All documents": "Всі документи",
-        "By Date Modified": "По даті редагування",
-        "By Name": "По імені",
+        "By Date Modified": "За датою зміни",
+        "By Name": "За ім'ям",
         "Current workspace": "Поточний робочий простір",
         "Delete": "Видалити",
         "Delete Forever": "Видалити назавжди",
         "Delete {{name}}": "Видалити {{name}}",
         "Discover More Templates": "Знайти більше шаблонів",
         "Document will be moved to Trash.": "Документ буде переміщено в кошик.",
-        "Document will be permanently deleted.": "Документ буде видалений назавжди.",
-        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Документи зберігаються в кошику протягом 30 днів, після чого видаляються назавжди.",
+        "Document will be permanently deleted.": "Документ буде остаточно видалено.",
+        "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Документи зберігаються в кошику протягом 30 днів, після чого видаляються остаточно.",
         "Edited {{at}}": "Відредаговано {{at}}",
         "Examples & Templates": "Приклади та шаблони",
         "Examples and Templates": "Приклади та шаблони",
@@ -657,13 +657,13 @@
         "Trash": "Кошик",
         "Trash is empty.": "Кошик порожній.",
         "Unpin Document": "Відкріпити документ",
-        "You are on your personal site. You also have access to the following sites:": "Ви знаходитесь на своєму особистому сайті. Також ви маєте доступ до наступних сайтів:",
+        "You are on your personal site. You also have access to the following sites:": "Ви перебуваєте на своєму особистому сайті. Також ви маєте доступ до наступних сайтів:",
         "You may delete a workspace forever once it has no documents in it.": "Ви можете назавжди видалити робочий простір, якщо в ньому немає документів.",
         "(The organization needs a paid plan)": "(Організації потрібен платний тариф)",
-        "Deleted {{at}}": "Видалити {{at}}",
+        "Deleted {{at}}": "Видалено {{at}}",
         "Other Sites": "Інші сайти",
-        "Workspace not found": "Робочий простір не знайдений",
-        "You are on the {{siteName}} site. You also have access to the following sites:": "Ви знаходитесь на сайті {{siteName}}. Також ви маєте доступ до наступних сайтів:",
+        "Workspace not found": "Робочий простір не знайдено",
+        "You are on the {{siteName}} site. You also have access to the following sites:": "Ви перебуваєте на сайті {{siteName}}. Також ви маєте доступ до наступних сайтів:",
         "Any documents created in this site will appear here.": "Будь-які документи, створені на цьому сайті, з'являться тут.",
         "Create my first document": "Створіть мій перший документ",
         "You have read-only access to this site. Currently there are no documents.": "Ви маєте доступ лише для читання на цей сайт. Наразі документів немає.",
@@ -902,7 +902,7 @@
         "Create new field": "Створити нове поле",
         "Show field {{- label}}": "Показати поле {{- label}}",
         "Save layout": "Зберегти макет",
-        "Cancel": "Відмінити"
+        "Cancel": "Скасувати"
     },
     "RefSelect": {
         "Add column": "Додати стовпеця",
@@ -1057,13 +1057,13 @@
         "Duplicate widget": "Дублікат віджета"
     },
     "AppModel": {
-        "This team site is suspended. Documents can be read, but not modified.": "Цей сайт команди обмежений. Документи можна читати, але редагування не доступне."
+        "This team site is suspended. Documents can be read, but not modified.": "Цей сайт команди призупинено. Документи можна читати, але не змінювати."
     },
     "WidgetTitle": {
-        "Cancel": "Відмінити",
+        "Cancel": "Скасувати",
         "DATA TABLE NAME": "ІМ'Я ТАБЛИЦІ ДАНИХ",
         "Override widget title": "Перевизначити назву віджета",
-        "Provide a table name": "Вкажіть ім'я таблиці",
+        "Provide a table name": "Вкажіть назву таблиці",
         "Save": "Зберегти",
         "WIDGET TITLE": "НАЗВА ВІДЖЕТА",
         "WIDGET DESCRIPTION": "ОПИС ВІДЖЕТУ"
@@ -1089,10 +1089,10 @@
         "Contact support": "Зв'язатись зі службою підтримки",
         "Error{{suffix}}": "Помилка{{suffix}}",
         "Go to main page": "Перейти на головну сторінку",
-        "Page not found{{suffix}}": "Сторінка не знайдена {{suffix}}",
-        "Sign in": "Увійти в систему",
+        "Page not found{{suffix}}": "Сторінку не знайдено{{suffix}}",
+        "Sign in": "Увійти",
         "Sign in again": "Увійдіть ще раз",
-        "Signed out{{suffix}}": "Ви вийшли з системи {{suffix}}",
+        "Signed out{{suffix}}": "Ви вийшли з системи{{suffix}}",
         "Something went wrong": "Щось пішло не так",
         "There was an error: {{message}}": "Сталася помилка: {{message}}",
         "There was an unknown error.": "Виникла невідома помилка.",
@@ -1145,7 +1145,7 @@
         "By Date Modified": "За датою змін"
     },
     "modals": {
-        "Cancel": "Відмінити",
+        "Cancel": "Скасувати",
         "Ok": "ОК",
         "Save": "Зберегти",
         "Are you sure you want to delete these records?": "Ви впевнені, що хочете видалити ці записи?",
@@ -1202,9 +1202,9 @@
     "TypeTransform": {
         "Apply": "Застосувати",
         "Preview": "Попередній перегляд",
-        "Revise": "Переглянути'",
+        "Revise": "Переглянути",
         "Update formula (Shift+Enter)": "Оновити формулу (Shift+Enter)",
-        "Cancel": "Відмінити"
+        "Cancel": "Скасувати"
     },
     "CellStyle": {
         "CELL STYLE": "СТИЛЬ КЛІТИНКИ",
@@ -1226,7 +1226,7 @@
     "ColumnInfo": {
         "COLUMN DESCRIPTION": "ОПИС СТОВПЦЯ",
         "COLUMN ID: ": "ІДЕНТИФІКАТОР СТОВПЦЯ: ",
-        "Cancel": "Відмінити",
+        "Cancel": "Скасувати",
         "Save": "Зберегти",
         "COLUMN LABEL": "ІМ'Я СТОВПЦЯ"
     },
@@ -1257,7 +1257,7 @@
         "Started discussion": "Розпочато обговорення",
         "Write a comment": "Написати коментар",
         "Comment": "Коментар",
-        "Cancel": "Відмінити",
+        "Cancel": "Скасувати",
         "Reply to a comment": "Відповісти на коментар",
         "Only my threads": "Тільки мої теми",
         "Remove thread": "Вилучити нитку",

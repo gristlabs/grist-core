@@ -101,7 +101,8 @@
         "Profile": "Perfil",
         "Enterprise": "Empresarial",
         "OAuth apps": "Aplicativos OAuth",
-        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Os aplicativos OAuth permitem que você conecte integrações externas a este servidor Grist com mais segurança e conveniência do que ao usar chaves API.\n\nOs aplicativos OAuth estão disponíveis com a [versão completa de Grist]({{fullGrist}})."
+        "OAuth apps let you connect external integrations to this Grist server with more security and convenience than when using API keys.\n\nOAuth apps are available with the [full version of Grist]({{fullGrist}}).": "Os aplicativos OAuth permitem que você conecte integrações externas a este servidor Grist com mais segurança e conveniência do que ao usar chaves API.\n\nOs aplicativos OAuth estão disponíveis com a [versão completa de Grist]({{fullGrist}}).",
+        "Accessibility": "Acessibilidade"
     },
     "AccountWidget": {
         "Access Details": "Detalhes de Acesso",
@@ -151,7 +152,9 @@
         "Description": "Descrição",
         "Key": "Chave",
         "Memory Error": "Erro de Memória",
-        "Translators: please translate this only when your language is ready to be offered to users": "Tradutores: por favor, traduzam isso apenas quando seu idioma estiver pronto para ser oferecido aos usuários"
+        "Translators: please translate this only when your language is ready to be offered to users": "Tradutores: por favor, traduzam isso apenas quando seu idioma estiver pronto para ser oferecido aos usuários",
+        "Disabled screen reader improvements": "Melhorias para leitor de tela desabilitadas",
+        "Enabled screen reader improvements": "Melhorias para leitor de tela habilitadas"
     },
     "AppHeader": {
         "Home page": "Página inicial",
@@ -250,7 +253,11 @@
     "ColorSelect": {
         "Apply": "Aplicar",
         "Cancel": "Cancelar",
-        "Default cell style": "Estilo de célula padrão"
+        "Default cell style": "Estilo de célula padrão",
+        "default": "padrão",
+        "fill": "preenchimento",
+        "none": "nenhuma",
+        "text": "texto"
     },
     "ColumnFilterMenu": {
         "All": "Todos",
