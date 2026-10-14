@@ -37,6 +37,58 @@ describe("ToggleColumns", function() {
     await gu.addNewSection("Table", "Items", { selectBy: /Src/i });
   });
 
+  it("should show a visible style for unchecked checkboxes", async function() {
+    await gu.getCell({ section: "Src", col: "A", rowNum: 1 }).click();
+    const cell = gu.getCell({ section: "Items", col: "Chk", rowNum: 1 });
+    const checkbox = cell.find(".widget_checkbox");
+    assert.equal(await gu.isChecked(cell), false);
+    assert.equal(await checkbox.matches(".widget_checkbox-unchecked"), true);
+    assert.equal(await checkbox.getCssValue("border-top-width"), "1px");
+    const uncheckedRect = await checkbox.getRect();
+
+    // Checking the box removes the unchecked style, without changing the checkbox size.
+    await cell.click();
+    await gu.waitForServer();
+    assert.equal(await gu.isChecked(cell), true);
+    assert.equal(await checkbox.matches(".widget_checkbox-unchecked"), false);
+    assert.equal(await checkbox.getCssValue("border-top-width"), "0px");
+    const checkedRect = await checkbox.getRect();
+    assert.deepEqual([checkedRect.width, checkedRect.height], [uncheckedRect.width, uncheckedRect.height]);
+
+    // Unchecking it again restores the style. The border is hidden while the cell has the cursor,
+    // which already outlines the checkbox.
+    await gu.undo();
+    assert.equal(await gu.isChecked(cell), false);
+    assert.equal(await checkbox.matches(".widget_checkbox-unchecked"), true);
+    assert.equal(await checkbox.getCssValue("border-top-width"), "0px");
+
+    // The border comes back once the cursor moves away.
+    await gu.getCell({ section: "Src", col: "A", rowNum: 1 }).click();
+    assert.equal(await checkbox.getCssValue("border-top-width"), "1px");
+  });
+
+  it("should use theme colors for unchecked checkboxes", async function() {
+    const getBorderColor = () => gu.getCell({ section: "Items", col: "Chk", rowNum: 1 })
+      .find(".widget_checkbox").getCssValue("border-top-color");
+
+    await gu.getCell({ section: "Src", col: "A", rowNum: 1 }).click();
+    assert.equal(await getBorderColor(), "rgba(146, 146, 153, 1)");
+
+    await gu.setGristTheme({ themeName: "GristDark", syncWithOS: false });
+    await driver.navigate().back();
+    await gu.waitForDocToLoad();
+    await gu.getCell({ section: "Src", col: "A", rowNum: 1 }).click();
+    assert.equal(await getBorderColor(), "rgba(164, 164, 177, 1)");
+
+    // Restore the default preferences (light theme, synced with OS) for other suites.
+    await gu.setGristTheme({ themeName: "GristLight", syncWithOS: false });
+    await gu.setGristTheme({ themeName: "GristLight", syncWithOS: true, skipOpenSettingsPage: true });
+    await driver.navigate().back();
+    await gu.waitForDocToLoad();
+    await gu.getCell({ section: "Src", col: "A", rowNum: 1 }).click();
+    assert.equal(await getBorderColor(), "rgba(146, 146, 153, 1)");
+  });
+
   it("should fill in values determined by linking when checkbox is clicked", async function() {
     // Test the behavior with a checkbox.
     await verifyToggleBehavior();

@@ -569,6 +569,8 @@ export const componentsCssMapping = {
   switchHoverShadow: "switch-hover-shadow",
   scrollShadow: "scroll-shadow",
   toggleCheckboxFg: "toggle-checkbox-fg",
+  toggleCheckboxUncheckedBg: "toggle-checkbox-unchecked-bg",
+  toggleCheckboxUncheckedBorder: "toggle-checkbox-unchecked-border",
   numericSpinnerFg: "numeric-spinner-fg",
   widgetGalleryBorder: "widget-gallery-border",
   widgetGalleryBorderSelected: "widget-gallery-border-selected",
@@ -1330,6 +1332,8 @@ export interface BaseThemeTokens {
     switchActiveSlider: Token;
     switchActivePill: Token;
     switchHoverShadow: Token;
+    toggleCheckboxUncheckedBg: Token;
+    toggleCheckboxUncheckedBorder: Token;
   };
 }
 
