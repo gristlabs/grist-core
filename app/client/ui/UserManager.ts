@@ -339,7 +339,7 @@ export class UserManager extends Disposable {
                 menuItem(() => publicMember.access.set(roles.VIEWER), t("On"), testId(`um-public-option`)),
                 menuItem(() => publicMember.access.set(null), t("Off"),
                   // Disable null access if anonymous access is inherited.
-                  dom.cls("disabled", use => use(publicMember.inheritedAccess) !== null),
+                  dom.attr("aria-disabled", use => use(publicMember.inheritedAccess) !== null ? "true" : "false"),
                   testId(`um-public-option`),
                 ),
                 // If the 'Off' setting is disabled, show an explanation.
@@ -592,8 +592,8 @@ export class UserManager extends Disposable {
             dom.text(use => use(inherited) && (use(inherited) === _role.value) &&
               !isActiveUser ? " (inherited)" : ""),
             // Disable everything providing less access than the inherited access
-            dom.cls("disabled", use =>
-              roles.getStrongestRole(_role.value, use(inherited)) !== _role.value),
+            dom.attr("aria-disabled", use =>
+              roles.getStrongestRole(_role.value, use(inherited)) !== _role.value ? "true" : "false"),
             testId(`um-role-option`),
           ),
         ),

@@ -949,7 +949,8 @@
         "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est possible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer.",
         "Suggest changes": "Suggérer des modifications",
         "current version": "version actuelle",
-        "original": "original"
+        "original": "original",
+        "Return to {{termToUse}} (new tab)": "Revenir à {{termToUse}} (nouvel onglet)"
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -1016,7 +1017,8 @@
         "Current field ": "Champ actif ",
         "OK": "OK",
         "Cancel": "Annuler",
-        "Close": "Fermer"
+        "Close": "Fermer",
+        "Select fields": "Sélectionner les champs"
     },
     "TypeTransform": {
         "Apply": "Appliquer",

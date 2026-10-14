@@ -283,7 +283,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
     menuItem(
       () => showRenameDocModal({ home, doc }),
       t("Rename and set icon"),
-      dom.cls("disabled", doc.disabledAt !== undefined || !roles.isOwner(doc)),
+      dom.attr("aria-disabled", doc.disabledAt !== undefined || !roles.isOwner(doc) ? "true" : "false"),
       testId("rename-doc"),
     ),
     menuItem(
@@ -296,19 +296,19 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       // Having ACL edit access on the doc means the user is also powerful enough to remove
       // the doc, so this is the only access check required to move the doc out of this workspace.
       // The user must also have edit access on the destination, however, for the move to work.
-      dom.cls("disabled", doc.disabledAt !== undefined || !roles.canEditAccess(doc.access)),
+      dom.attr("aria-disabled", doc.disabledAt !== undefined || !roles.canEditAccess(doc.access) ? "true" : "false"),
       testId("move-doc"),
     ),
     menuItem(
       deleteDoc,
       t("Delete"),
-      dom.cls("disabled", !roles.isOwner(doc)),
+      dom.attr("aria-disabled", !roles.isOwner(doc) ? "true" : "false"),
       testId("delete-doc"),
     ),
     menuItem(
       () => home.pinUnpinDoc(doc.id, !doc.isPinned).catch(reportError),
       doc.isPinned ? t("Unpin") : t("Pin"),
-      dom.cls("disabled", !roles.canEdit(orgAccess)),
+      dom.attr("aria-disabled", !roles.canEdit(orgAccess) ? "true" : "false"),
       testId("pin-doc"),
     ),
     menuItem(
@@ -324,7 +324,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       menuItem(
         () => downloadDocModal(doc, home.app),
         menuIcon("Download"), t("Download document..."),
-        dom.cls("disabled", doc.disabledAt !== undefined),
+        dom.attr("aria-disabled", doc.disabledAt !== undefined ? "true" : "false"),
         testId("tb-share-option"))
     ),
   ];

@@ -722,7 +722,7 @@ describe("ViewLayoutCollapse", function() {
 
     // The last section is INVESTMENTS, which can't be collapsed.
     await gu.openSectionMenu("viewLayout", INVESTMENTS);
-    assert.equal(await driver.find(".test-section-collapse").matches("[class*=disabled]"), true);
+    assert.equal(await driver.find(".test-section-collapse").matches('[aria-disabled="true"]'), true);
     await driver.sendKeys(Key.ESCAPE);
 
     // Now expand them one by one and test.
@@ -950,9 +950,9 @@ describe("ViewLayoutCollapse", function() {
     // Make sure we see proper items in the menu.
     await gu.openSectionMenu("viewLayout", COMPANIES);
     // Collapse widget menu item is disabled.
-    assert.equal(await driver.find(".test-section-collapse").matches("[class*=disabled]"), true);
+    assert.equal(await driver.find(".test-section-collapse").matches('[aria-disabled="true"]'), true);
     // Delete widget is enabled.
-    assert.equal(await driver.find(".test-section-delete").matches("[class*=disabled]"), false);
+    assert.equal(await driver.find(".test-section-delete").matches('[aria-disabled="true"]'), false);
     await driver.sendKeys(Key.ESCAPE);
     // Expand button is not visible
     assert.lengthOf(await driver.findAll(".active_section .test-section-menu-expandSection"), 0);

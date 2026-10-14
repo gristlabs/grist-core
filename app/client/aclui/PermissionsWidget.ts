@@ -57,7 +57,7 @@ export function permissionsWidget(
       const isCustom = [allowAll, denyAll, readOnly, empty].every(ps => !isEqual(ps, pset.get()));
       return [
         (isCustom ?
-          cssMenuItem(() => null, dom.cls("disabled"), menuIcon("Tick"),
+          cssMenuItem(() => null, dom.attr("aria-disabled", "true"), menuIcon("Tick"),
             cssMenuItemContent(
               "Custom",
               cssMenuItemDetails(dom.text(use => psetDescription(use(pset)))),
@@ -67,19 +67,19 @@ export function permissionsWidget(
         ),
         // If the set matches any recognized pattern, mark that item with a tick (checkmark).
         cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), t("Allow all"),
-          dom.cls("disabled", options.disabled),
+          dom.attr("aria-disabled", options.disabled ? "true" : "false"),
         ),
         cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), t("Deny all"),
-          dom.cls("disabled", options.disabled),
+          dom.attr("aria-disabled", options.disabled ? "true" : "false"),
         ),
         cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), t("Read only"),
-          dom.cls("disabled", options.disabled),
+          dom.attr("aria-disabled", options.disabled ? "true" : "false"),
         ),
         cssMenuItem(() => setPermissions(empty),
           // For the empty permission set, it seems clearer to describe it as "No Effect", but to
           // all it "Clear" when offering to the user as the action.
           isEqual(pset.get(), empty) ? [tick(true), "No Effect"] : [tick(false), "Clear"],
-          dom.cls("disabled", options.disabled),
+          dom.attr("aria-disabled", options.disabled ? "true" : "false"),
         ),
       ];
     })),
@@ -106,7 +106,7 @@ function makePermissionSet(bits: PermissionKey[], makeValue: (bit: PermissionKey
 
 // Helper for a tick (checkmark) icon, replacing it with an equivalent space when not shown.
 function tick(show: boolean) {
-  return show ? menuIcon("Tick") : cssMenuIconSpace();
+  return show ? menuIcon("Tick", { "aria-label": t("Checked") }) : cssMenuIconSpace();
 }
 
 // Human-readable summary of the permission set. E.g. "Allow Read. Deny Update, Create.".
@@ -183,7 +183,7 @@ const cssMenuIconSpace = styled("div", `
 // Don't make disabled item too hard to see here.
 const cssMenuItem = styled(menuItem, `
   align-items: start;
-  &.disabled {
+  &[aria-disabled="true"] {
     opacity: unset;
   }
 `);

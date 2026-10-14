@@ -168,26 +168,26 @@ export class DataTables extends Disposable {
       menuItem(
         () => { isEditingName.set(true); },
         t("Rename table"),
-        dom.cls("disabled", use => use(isReadonly) || use(table.summarySourceTable) !== 0),
+        dom.attr("aria-disabled", use => use(isReadonly) || use(table.summarySourceTable) !== 0 ? "true" : "false"),
         testId("menu-rename-table"),
       ),
       menuItem(
         () => this._duplicateTable(table),
         t("Duplicate table"),
-        dom.cls("disabled", use =>
-          use(isReadonly) ||
-          use(table.isHidden) ||
-          use(table.summarySourceTable) !== 0,
+        dom.attr("aria-disabled", use =>
+          (use(isReadonly) ||
+            use(table.isHidden) ||
+            use(table.summarySourceTable) !== 0) ? "true" : "false",
         ),
         testId("menu-duplicate-table"),
       ),
       menuItem(
         () => this._removeTable(table),
         t("Remove table"),
-        dom.cls("disabled", use => use(isReadonly) || (
+        dom.attr("aria-disabled", use => use(isReadonly) || (
           // Can't delete last visible table, unless it is a hidden table.
           use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
-        )),
+        ) ? "true" : "false"),
         testId("menu-remove-table"),
       ),
       dom.maybe(use => use(table.summarySourceTable) === 0, () => [
@@ -196,7 +196,7 @@ export class DataTables extends Disposable {
           () => this._editRecordCard(table),
           cssMenuItemIcon("TypeCard"),
           t("Edit record card"),
-          dom.cls("disabled", use => use(isReadonly)),
+          dom.attr("aria-disabled", use => use(isReadonly) ? "true" : "false"),
           testId("menu-edit-record-card"),
         ),
         dom.domComputed(use => use(use(table.recordCardViewSection).disabled), (isDisabled) => {
@@ -209,7 +209,7 @@ export class DataTables extends Disposable {
               }
             },
             t("{{action}} Record Card", { action: isDisabled ? "Enable" : "Disable" }),
-            dom.cls("disabled", use => use(isReadonly)),
+            dom.attr("aria-disabled", use => use(isReadonly) ? "true" : "false"),
             testId(`menu-${isDisabled ? "enable" : "disable"}-record-card`),
           );
         }),
@@ -278,7 +278,7 @@ const cssMenuItemIcon = styled(menuIcon, `
     --icon-color: ${css.theme.menuItemSelectedFg};
   }
 
-  .${weasel.cssMenuItem.className}.disabled & {
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] & {
     --icon-color: ${css.theme.menuItemDisabledFg};
   }
 `);

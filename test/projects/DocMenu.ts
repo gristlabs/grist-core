@@ -380,8 +380,8 @@ describe("DocMenu", function() {
 
     // Open the Add menu; Create/Import options should be disabled, and not work.
     await openAddNew();
-    assert.include((await driver.find(".test-dm-new-doc").getAttribute("className")).split(/\s+/), "disabled");
-    assert.include((await driver.find(".test-dm-import").getAttribute("className")).split(/\s+/), "disabled");
+    assert(await driver.find(".test-dm-new-doc").matches('[aria-disabled="true"]'));
+    assert(await driver.find(".test-dm-import").matches('[aria-disabled="true"]'));
     const docs1 = await getDocNames();
     await driver.find(".test-dm-new-doc").click();
     assert.deepEqual(await getDocNames(), docs1);
@@ -395,8 +395,8 @@ describe("DocMenu", function() {
     // Open the Add menu; the Create/Import option should be enabled, and should create a doc.
     await openAddNew();
     await gu.findOpenMenu();
-    assert.notInclude((await driver.find(".test-dm-new-doc").getAttribute("className")).split(/\s+/), "disabled");
-    assert.notInclude((await driver.find(".test-dm-import").getAttribute("className")).split(/\s+/), "disabled");
+    assert(await driver.find(".test-dm-new-doc").matches('[aria-disabled="false"]'));
+    assert(await driver.find(".test-dm-import").matches('[aria-disabled="false"]'));
     assert.deepEqual(await getDocNames(), ["Doc22", "Doc23"]);
     await driver.find(".test-dm-new-doc").click();
     assert.deepEqual(await getDocNames(), ["Doc22", "Doc23", "Untitled document"]);

@@ -23,24 +23,24 @@ export function CardContextMenu({
   if (isViewSorted) {
     result.push(
       menuItemCmd(allCommands.insertRecordAfter, t("Insert card"),
-        dom.cls("disabled", disableInsert)),
+        dom.attr("aria-disabled", disableInsert ? "true" : "false")),
     );
   } else {
     result.push(
       menuItemCmd(allCommands.insertRecordBefore, t("Insert card above"),
-        dom.cls("disabled", disableInsert)),
+        dom.attr("aria-disabled", disableInsert ? "true" : "false")),
       menuItemCmd(allCommands.insertRecordAfter, t("Insert card below"),
-        dom.cls("disabled", disableInsert)),
+        dom.attr("aria-disabled", disableInsert ? "true" : "false")),
     );
   }
   result.push(
     menuItemCmd(allCommands.duplicateRows, t("Duplicate card"),
-      dom.cls("disabled", disableInsert || numRows === 0)),
+      dom.attr("aria-disabled", disableInsert || numRows === 0 ? "true" : "false")),
   );
   result.push(
     menuDivider(),
     menuItemCmd(allCommands.deleteRecords, t("Delete card"),
-      dom.cls("disabled", disableDelete)),
+      dom.attr("aria-disabled", disableDelete ? "true" : "false")),
   );
   result.push(
     menuDivider(),

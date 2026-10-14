@@ -22,8 +22,8 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
 
   // disableModify is true if the column is a summary column or is being transformed.
   // isReadonly is true for readonly mode.
-  const disableForReadonlyColumn = dom.cls("disabled", Boolean(disableModify) || isReadonly);
-  const disableForReadonlyView = dom.cls("disabled", isReadonly);
+  const disableForReadonlyColumn = dom.attr("aria-disabled", (Boolean(disableModify) || isReadonly) ? "true" : "false");
+  const disableForReadonlyView = dom.attr("aria-disabled", isReadonly ? "true" : "false");
 
   const nameClearColumns = isFiltered ?
     t("Reset {{count}} entire columns", { count: numColumns }) :
@@ -52,13 +52,13 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
         menuDivider(),
         menuItemCmd(allCommands.copyLink,
           t("Copy anchor link"),
-          dom.cls("disabled", cellOptions.disableAnchorLink ?? false),
+          dom.attr("aria-disabled", (cellOptions.disableAnchorLink ?? false) ? "true" : "false"),
         ),
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, t("Filter by this value")),
-        menuItemCmd(allCommands.openDiscussion, t("Comment"), dom.cls("disabled", (
+        menuItemCmd(allCommands.openDiscussion, t("Comment"), dom.attr("aria-disabled", (
           isReadonly || numRows === 0 || numColumns === 0 || onlyAddRowSelected
-        ))),
+        ) ? "true" : "false")),
       ]
     ),
 
@@ -71,15 +71,15 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
         // bottom. It could be very confusing for users who might expect the record to stay above or
         // below the active row. Thus in this case we show a single `insert row` command.
         [menuItemCmd(allCommands.insertRecordAfter, t("Insert row"),
-          dom.cls("disabled", disableInsert))] :
+          dom.attr("aria-disabled", disableInsert ? "true" : "false"))] :
 
         [menuItemCmd(allCommands.insertRecordBefore, t("Insert row above"),
-          dom.cls("disabled", disableInsert)),
+          dom.attr("aria-disabled", disableInsert ? "true" : "false")),
         menuItemCmd(allCommands.insertRecordAfter, t("Insert row below"),
-          dom.cls("disabled", disableInsert))]
+          dom.attr("aria-disabled", disableInsert ? "true" : "false"))]
     ),
     menuItemCmd(allCommands.duplicateRows, t("Duplicate rows", { count: numRows }),
-      dom.cls("disabled", disableInsert || numRows === 0)),
+      dom.attr("aria-disabled", (disableInsert || numRows === 0) ? "true" : "false")),
     menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"),
       disableForReadonlyView),
     menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"),
@@ -88,7 +88,7 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
     menuDivider(),
 
     // deletes
-    menuItemCmd(allCommands.deleteRecords, nameDeleteRows, dom.cls("disabled", disableDelete)),
+    menuItemCmd(allCommands.deleteRecords, nameDeleteRows, dom.attr("aria-disabled", disableDelete ? "true" : "false")),
 
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
