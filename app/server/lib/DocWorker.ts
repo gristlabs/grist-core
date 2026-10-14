@@ -245,7 +245,8 @@ function activeDocMethod(tracker: DocApiUsageTracker | undefined,
         // acquire + method call are in the same try so release runs even if acquire throws
         // (acquire increments the parallel counter before checking limits).
         try {
-          tracker.acquire(activeDoc.docName, getDailyMax(cachedDoc), getOrgUsageLimit(cachedDoc));
+          tracker.acquire(activeDoc.docName, getDailyMax(cachedDoc), getOrgUsageLimit(cachedDoc),
+            { requestOrSession: docSession, doc: cachedDoc });
           return await (activeDoc as any)[methodName](docSession, ...args);
         } finally {
           tracker.release(activeDoc.docName);

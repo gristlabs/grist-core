@@ -12,6 +12,7 @@
 import { UserAPI } from "app/common/UserAPI";
 import { BillingAccount } from "app/gen-server/entity/BillingAccount";
 import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
+import { Telemetry } from "app/server/lib/Telemetry";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser } from "test/gen-server/testUtils";
 import { createTmpDir } from "test/server/docTools";
@@ -430,13 +431,24 @@ describe("DocApiBugsAndFixes", function() {
     );
 
     it("counts api key requests", async function() {
+      // A limit of two, so that a request below it is seen as well as the one that uses it up.
       sandbox.stub(BillingAccount.prototype, "getEffectiveFeatures")
-        .returns({ maxApiCallsPerOrgMonth: 1 });
+        .returns({ maxApiCallsPerOrgMonth: 2 });
+      const logged: any[] = [];
+      sandbox.stub(Telemetry.prototype, "logEvent").callsFake((_req, event, metadata) => {
+        if (event === "limitStatusChanged") { logged.push(metadata?.full); }
+      });
+      assert.equal((await snapshots(chimpy)).status, 200);
+      assert.deepEqual(logged, []);
       assert.equal((await snapshots(chimpy)).status, 200);
 
       const resp = await snapshots(chimpy);
       assert.equal(resp.status, 429);
       assert.match(resp.data.error, /Exceeded monthly API limit/);
+
+      assert.lengthOf(logged, 1);
+      assert.include(logged[0], { feature: "apiCalls", status: "exceeded" });
+      assert.isNumber(logged[0].siteId);
     });
 
     it("does not count requests made by the web client", async function() {

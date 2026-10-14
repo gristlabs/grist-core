@@ -150,6 +150,7 @@ export class DocWorkerApi {
     private _grist: GristServer, tracker?: DocApiUsageTracker) {
     this._tracker = tracker ?? new DocApiUsageTracker({
       getRedisClient: () => this._docWorkerMap.getRedisClient(),
+      telemetry: this._grist.getTelemetry(),
     });
   }
 

@@ -7,6 +7,7 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { domAsync } from "app/client/lib/domAsync";
 import { makeT } from "app/client/lib/localization";
 import { sessionStorageBoolObs } from "app/client/lib/localStorageObs";
+import { logUpgradeClicked, logUpsellShown } from "app/client/lib/upsellTelemetry";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
 import { ChatHistory, ChatMessage } from "app/client/models/ChatHistory";
 import { constructUrl, urlState } from "app/client/models/gristUrlState";
@@ -253,6 +254,7 @@ export class Assistant extends Disposable {
       return t("For higher limits, contact the site owner.");
     }
 
+    logUpsellShown(this._appModel, "assistantBanner", this._gristDoc.docId());
     return t("For higher limits, {{upgradeNudge}}.", {
       upgradeNudge: cssBannerLink(
         canUpgradeSite ?
@@ -260,8 +262,9 @@ export class Assistant extends Disposable {
           t("upgrade your plan"),
         dom.on("click", async () => {
           if (canUpgradeSite) {
-            this._gristDoc.appModel.showUpgradeModal().catch(reportError);
+            this._gristDoc.appModel.showUpgradeModal("assistantBanner").catch(reportError);
           } else {
+            logUpgradeClicked(this._appModel, "assistantBanner");
             await urlState().pushUrl({ billing: "billing" });
           }
         }),

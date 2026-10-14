@@ -1,5 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
+import { logUpsellShown } from "app/client/lib/upsellTelemetry";
 import { AppModel } from "app/client/models/AppModel";
 import { bigPrimaryButton, bigPrimaryButtonLink } from "app/client/ui2018/buttons";
 import { mediaSmall, theme } from "app/client/ui2018/cssVars";
@@ -14,9 +15,10 @@ const testId = makeTestId("test-automations-");
 
 const t = makeT("TriggersPageUpsell");
 
-export function buildAutomationsUpsell(appModel: AppModel): DomContents {
+export function buildAutomationsUpsell(appModel: AppModel, docId: string): DomContents {
   const { deploymentType } = getGristConfig();
   const canUpgrade = deploymentType === "saas" && appModel.isOwner() && appModel.isBillingManager();
+  if (canUpgrade) { logUpsellShown(appModel, "automationsPage", docId); }
 
   return cssIntroSection({ tabIndex: "-1" },
     cssNestedLinks(markdown(`\
@@ -28,7 +30,7 @@ ${t("Trigger automations based on data changes, and design actions such as custo
  and webhook integrations.")} [${t("Learn more.")}](${commonUrls.helpAutomations})`),
     ),
     (canUpgrade ?
-      bigPrimaryButton(t("Try for free"), dom.on("click", () => appModel.showUpgradeModal())) :
+      bigPrimaryButton(t("Try for free"), dom.on("click", () => appModel.showUpgradeModal("automationsPage"))) :
       bigPrimaryButtonLink(
         deploymentType === "core" ? t("Try full Grist") : t("Try for free"),
         { href: commonUrls.plans, target: "_blank" },

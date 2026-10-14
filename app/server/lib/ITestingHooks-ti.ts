@@ -10,6 +10,12 @@ export const ClientJsonMemoryLimits = t.iface([], {
   "maxReservationSize": t.opt(t.union("number", "null")),
 });
 
+export const CapturedLogEntry = t.iface([], {
+  "level": "string",
+  "msg": "string",
+  "meta": "any",
+});
+
 export const ITestingHooks = t.iface([], {
   "getPort": t.func("number"),
   "setLoginSessionProfile": t.func("void", t.param("gristSidCookie", "string"), t.param("profile", t.union("UserProfile", "null")), t.param("org", "string", true)),
@@ -35,10 +41,12 @@ export const ITestingHooks = t.iface([], {
     [t.indexKey]: "string",
   }))),
   "resetEnv": t.func("void"),
+  "captureLog": t.func(t.array("CapturedLogEntry"), t.param("capture", "boolean")),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
   ClientJsonMemoryLimits,
+  CapturedLogEntry,
   ITestingHooks,
 };
 export default exportedTypeSuite;

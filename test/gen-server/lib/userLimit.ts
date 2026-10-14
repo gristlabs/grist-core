@@ -1,11 +1,14 @@
 import { Features } from "app/common/Features";
+import { TelemetryMetadata } from "app/common/Telemetry";
 import { Organization } from "app/common/UserAPI";
 import { Product } from "app/gen-server/entity/Product";
+import { Telemetry } from "app/server/lib/Telemetry";
 import { TestServer } from "test/gen-server/apiUtils";
 import { createTmpDir } from "test/server/docTools";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";
+import * as sinon from "sinon";
 
 /**
  * Tests holding a site read-only when it has more billable members than its plan allows.
@@ -95,7 +98,17 @@ describe("userLimit", function() {
 
     // Removing the extra member is enough; nothing has to be cleared by hand, since the
     // read-only state is derived from the count rather than stored.
-    await setMembers({ "kiwi@getgrist.com": null });
+    const logged: TelemetryMetadata[] = [];
+    const stub = sinon.stub(Telemetry.prototype, "logEvent").callsFake((_req, event, metadata) => {
+      if (event === "limitStatusChanged") { logged.push(metadata!.full!); }
+    });
+    try {
+      await setMembers({ "kiwi@getgrist.com": null });
+    } finally {
+      stub.restore();
+    }
+    assert.lengthOf(logged, 1);
+    assert.deepInclude(logged[0], { feature: "siteUsers", status: "cleared", siteId: nasa.id });
     await assertCanWrite(true);
   });
 

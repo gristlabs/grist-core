@@ -1,5 +1,6 @@
 import { beaconOpenMessage, IBeaconOpenOptions } from "app/client/lib/helpScout";
 import { makeT } from "app/client/lib/localization";
+import { logUpsellShown } from "app/client/lib/upsellTelemetry";
 import { AppModel } from "app/client/models/AppModel";
 import { ConnectState } from "app/client/models/ConnectState";
 import { urlState } from "app/client/models/gristUrlState";
@@ -25,8 +26,9 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
   switch (action) {
     case "upgrade":
       if (appModel) {
+        logUpsellShown(appModel, "toast");
         return cssToastAction(t("Upgrade Plan"), dom.on("click", () =>
-          appModel.showUpgradeModal()));
+          appModel.showUpgradeModal("toast")));
       } else {
         return dom("a", cssToastAction.cls(""), t("Upgrade Plan"), { target: "_blank" },
           { href: commonUrls.plans });

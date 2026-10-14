@@ -7,7 +7,7 @@ import { Deps as DiscourseConnectDeps } from "app/server/lib/DiscourseConnect";
 import { Deps as DocManagerDeps } from "app/server/lib/DocManager";
 import { FlexServer } from "app/server/lib/FlexServer";
 import { invalidateAllReloadableSettings, invalidateReloadableSettings } from "app/server/lib/gristSettings";
-import { ClientJsonMemoryLimits, ITestingHooks } from "app/server/lib/ITestingHooks";
+import { CapturedLogEntry, ClientJsonMemoryLimits, ITestingHooks } from "app/server/lib/ITestingHooks";
 import ITestingHooksTI from "app/server/lib/ITestingHooks-ti";
 import log from "app/server/lib/log";
 import { connect, fromCallback } from "app/server/lib/serverUtils";
@@ -21,6 +21,7 @@ import { Request } from "express";
 import { IMessage, Rpc } from "grain-rpc";
 import clone from "lodash/clone";
 import * as t from "ts-interface-checker";
+import * as winston from "winston";
 
 const tiCheckers = t.createCheckers(ITestingHooksTI, { UserProfile: t.name("object") });
 
@@ -90,6 +91,20 @@ let docOpensSeen = 0;
 // Longest that document opens will be held before the gate lets go by itself, so that a test
 // dying before it unpauses cannot wedge every later document open on this server.
 const maxDocOpenPauseMs = 60000;
+
+// Helper for capturing server logs.
+class CaptureLogTransport extends winston.Transport {
+  private _capturedLog: CapturedLogEntry[] = [];
+
+  public drain(): CapturedLogEntry[] {
+    return this._capturedLog.splice(0);
+  }
+
+  public log(level: string, msg: string, meta: any, callback: () => void) {
+    this._capturedLog.push({ level, msg, meta });
+    callback();
+  }
+}
 
 export class TestingHooks implements ITestingHooks {
   private _oldEnv: NodeJS.ProcessEnv | null = null;
@@ -363,5 +378,20 @@ export class TestingHooks implements ITestingHooks {
     }
     this._oldEnv = null;
     invalidateAllReloadableSettings();
+  }
+
+  /**
+   * Returns the entries logged since the last call, and starts or stops capturing further ones.
+   */
+  public async captureLog(capture: boolean): Promise<CapturedLogEntry[]> {
+    const attached = log.transports[CaptureLogTransport.name] as CaptureLogTransport | undefined;
+    const capturedEntries = attached?.drain() ?? [];
+    if (capture && !attached) {
+      // winston types are off: it takes the class, and constructs it with these options.
+      log.add(CaptureLogTransport as any, { name: CaptureLogTransport.name, level: "info" });
+    } else if (!capture && attached) {
+      log.remove(CaptureLogTransport.name);
+    }
+    return capturedEntries;
   }
 }

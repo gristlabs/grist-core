@@ -2,8 +2,11 @@
 // DocApi pulls in ExportXLSX, which refuses to load inside a worker thread.
 
 import { Document } from "app/gen-server/entity/Document";
+import { getAuthSession, RequestOrSession } from "app/server/lib/sessionUtils";
 
 import * as moment from "moment";
+
+import type { ITelemetry } from "app/server/lib/Telemetry";
 
 // The org a document belongs to, and the monthly limit that applies to it. The org is named
 // by its billing account, which is where the limit comes from.
@@ -41,4 +44,33 @@ export function getOrgUsageLimit(doc: Document | undefined): OrgUsageLimit | und
     billingAccountId: org.billingAccountId,
     monthlyMax: org.billingAccount?.getEffectiveFeatures().maxApiCallsPerOrgMonth,
   };
+}
+
+// Which limit a call reached. The daily limit is per document, so only it names one.
+export type ApiLimitReached = { kind: "daily", docId: string } | { kind: "monthly" };
+
+// The call a reached limit is reported for: who made it, and the cached document of the
+// authorized request, which is where the site and plan come from.
+export interface ApiUsageContext {
+  requestOrSession: RequestOrSession;
+  doc: Document | undefined;
+}
+
+/**
+ * Log that API usage reached a plan limit.
+ */
+export function logApiLimitReached(
+  telemetry: ITelemetry, { requestOrSession, doc }: ApiUsageContext, reached: ApiLimitReached,
+) {
+  const org = doc?.workspace?.org;
+  telemetry.logEvent(requestOrSession, "limitStatusChanged", {
+    full: {
+      feature: "apiCalls",
+      status: "exceeded",
+      planName: org?.billingAccount?.product?.name,
+      siteId: org?.id,
+      ...(reached.kind === "daily" ? { docIdDigest: reached.docId } : {}),
+      userId: getAuthSession(requestOrSession).userId,
+    },
+  });
 }

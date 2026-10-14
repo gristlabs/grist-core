@@ -1,5 +1,7 @@
 import { commonUrls } from "app/common/gristUrls";
+import { TelemetryMetadata } from "app/common/Telemetry";
 import { DocApiUsageTracker } from "app/server/lib/DocApiUsageTracker";
+import { ITelemetry } from "app/server/lib/Telemetry";
 import { EnvironmentSnapshot } from "test/server/testUtils";
 
 import { promisifyAll } from "bluebird";
@@ -68,6 +70,32 @@ describe("DocApiUsageTracker", function() {
         tracker.acquire("doc1", undefined);
         tracker.release("doc1");
       }
+    });
+
+    it("reports when the daily limit is reached, once", function() {
+      const reports: TelemetryMetadata[] = [];
+      const telemetry = { logEvent: (_r, event, metadata) =>
+        reports.push({ event, ...metadata!.full }) } as Partial<ITelemetry> as ITelemetry;
+      const tracker = new DocApiUsageTracker({ telemetry });
+      const context = { requestOrSession: null, doc: undefined };
+      // The 3 is the dailyMax, so the third call is the one that spends the last unit.
+      tracker.acquire("doc2", 3, undefined, context);
+      tracker.release("doc2");
+      assert.deepEqual(reports, []);
+      tracker.acquire("doc2", 3, undefined, context);
+      tracker.release("doc2");
+      assert.deepEqual(reports, []);
+      tracker.acquire("doc2", 3, undefined, context);
+      tracker.release("doc2");
+      assert.lengthOf(reports, 1);
+      // Spending the last unit leaves the apiCalls feature with no budget, which is what its
+      // "exceeded" status says. The call that spent it was served.
+      assert.deepInclude(reports[0],
+        { event: "limitStatusChanged", feature: "apiCalls", status: "exceeded", docIdDigest: "doc2" });
+      assert.throws(() => tracker.acquire("doc2", 3, undefined, context), /Exceeded daily limit/);
+      tracker.release("doc2");
+      // Still just the one report, not a second one for the rejected call.
+      assert.lengthOf(reports, 1);
     });
   });
 

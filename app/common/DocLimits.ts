@@ -1,6 +1,7 @@
 import { DataLimitInfo, DataLimitStatus, DocumentUsage } from "app/common/DocUsage";
 import { Features } from "app/common/Features";
 import { APPROACHING_LIMIT_RATIO, getUsageRatio } from "app/common/Limits";
+import { LimitStatus } from "app/common/Telemetry";
 
 import moment from "moment-timezone";
 
@@ -34,6 +35,15 @@ export function getDataLimitInfo(params: GetDataLimitStatusParams): DataLimitInf
   return { status: null };
 }
 
+function getDataLimitRatios(docUsage: DocumentUsage | null, productFeatures: Features | undefined) {
+  const { rowCount, dataSizeBytes, attachmentsSizeBytes } = docUsage ?? {};
+  return {
+    rows: getUsageRatio(rowCount?.total, productFeatures?.baseMaxRowsPerDocument),
+    dataSize: getUsageRatio(dataSizeBytes, productFeatures?.baseMaxDataSizePerDocument),
+    attachments: getUsageRatio(attachmentsSizeBytes, productFeatures?.baseMaxAttachmentsBytesPerDocument),
+  };
+}
+
 /**
  * Given `docUsage` and `productFeatures`, returns the highest usage ratio
  * across all data-related limits (currently only row count, data size and attachment size).
@@ -42,16 +52,54 @@ export function getDataLimitRatio(
   docUsage: DocumentUsage | null,
   productFeatures: Features | undefined,
 ): number {
-  if (!docUsage) { return 0; }
+  return Math.max(...Object.values(getDataLimitRatios(docUsage, productFeatures)));
+}
 
-  const { rowCount, dataSizeBytes, attachmentsSizeBytes } = docUsage;
-  const maxRows = productFeatures?.baseMaxRowsPerDocument;
-  const maxDataSize = productFeatures?.baseMaxDataSizePerDocument;
-  const maxAttachmentsSizeBytes = productFeatures?.baseMaxAttachmentsBytesPerDocument;
-  const rowRatio = getUsageRatio(rowCount?.total, maxRows);
-  const dataSizeRatio = getUsageRatio(dataSizeBytes, maxDataSize);
-  const attachmentSizeRatio = getUsageRatio(attachmentsSizeBytes, maxAttachmentsSizeBytes);
-  return Math.max(rowRatio, dataSizeRatio, attachmentSizeRatio);
+export type DataLimitFeature = "rows" | "dataSize" | "attachments";
+
+/**
+ * The data-related limit closest to being reached, or null when nothing is limited.
+ */
+export function getDataLimitFeature(
+  docUsage: DocumentUsage | null, productFeatures: Features | undefined,
+): DataLimitFeature | null {
+  const ratios = getDataLimitRatios(docUsage, productFeatures);
+  const [feature, ratio] = Object.entries(ratios).reduce((a, b) => (b[1] > a[1] ? b : a));
+  return ratio > 0 ? feature as DataLimitFeature : null;
+}
+
+const DATA_LIMIT_STATUS_TO_LIMIT_STATUS: Record<NonNullable<DataLimitStatus>, LimitStatus> = {
+  approachingLimit: "approaching",
+  gracePeriod: "exceeded",
+  deleteOnly: "readOnly",
+};
+
+export interface DataLimitTransition { feature: DataLimitFeature; status: LimitStatus; }
+
+/**
+ * The feature closest to its limit and its telemetry status, or null when nothing is limited.
+ */
+function getLimitState(params: GetDataLimitStatusParams): DataLimitTransition | null {
+  const status = getDataLimitInfo(params).status;
+  const feature = getDataLimitFeature(params.docUsage, params.productFeatures);
+  if (status === null || feature === null) { return null; }
+  return { feature, status: DATA_LIMIT_STATUS_TO_LIMIT_STATUS[status] };
+}
+
+/**
+ * Tracks a document's data-limit state across checks and reports each transition once.
+ */
+export class DataLimitTransitions {
+  // Undefined before the first update, which only records a baseline.
+  private _last?: DataLimitTransition | null;
+
+  public update(params: GetDataLimitStatusParams): DataLimitTransition | null {
+    const previous = this._last;
+    const current = this._last = getLimitState(params);
+    if (previous === undefined) { return null; }
+    if (current) { return current.status === previous?.status ? null : current; }
+    return previous ? { feature: previous.feature, status: "cleared" } : null;
+  }
 }
 
 /**

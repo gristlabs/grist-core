@@ -2240,6 +2240,7 @@ export class HomeDBManager implements HomeDBAuth {
   ): Promise<QueryResult<OrgAccessChanges>> {
     const { userId } = scope;
     const notifications: (() => Promise<void>)[] = [];
+    let userLimitCleared = false;
     const result = await this._connection.transaction(async (manager) => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
       let orgQuery = this.org(scope, orgKey, {
@@ -2280,7 +2281,11 @@ export class HomeDBManager implements HomeDBAuth {
         // the site would be left with.
         const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const usersAfter = removeRole(membersAfter);
-        this._restrictOrgMembers(org.billingAccount.getEffectiveFeatures(), usersBefore, usersAfter);
+        const features = org.billingAccount.getEffectiveFeatures();
+        this._restrictOrgMembers(features, usersBefore, usersAfter);
+        // Removing a member is the only way a site comes back under the cap just checked.
+        userLimitCleared = this._isOverUserLimit(features, usersBefore) &&
+          !this._isOverUserLimit(features, usersAfter);
         await manager.save(groups);
         // Fully remove any users being removed from the org.
         for (const deltaUser in userIdDelta) {
@@ -2308,6 +2313,7 @@ export class HomeDBManager implements HomeDBAuth {
           accessChanges: {
             users: getUserAccessChanges({ users, userIdDelta }),
           },
+          userLimitCleared,
         },
       };
     });
@@ -2573,6 +2579,25 @@ export class HomeDBManager implements HomeDBAuth {
         users,
       },
     };
+  }
+
+  /**
+   * The number of users granted access directly on the document, in any non-guest role.
+   * Reported in telemetry; the count is needed even for documents the caller cannot list
+   * shares of, so this reads the groups directly rather than going through getDocAccess().
+   */
+  public async getDocShareCount(docId: string): Promise<number> {
+    const doc = await this._connection.createQueryBuilder()
+      .select("docs")
+      .from(Document, "docs")
+      .leftJoinAndSelect("docs.aclRules", "acl_rules")
+      .leftJoinAndSelect("acl_rules.group", "groups")
+      .leftJoinAndSelect("groups.memberUsers", "users")
+      .where("docs.id = :docId", { docId })
+      .getOne();
+    if (!doc) { return 0; }
+    const userIds = getNonGuestGroups(doc).flatMap(group => group.memberUsers.map(user => user.id));
+    return new Set(userIds).size;
   }
 
   // Returns UserAccessData for all users with any permissions on the ORG, as well as the
@@ -5325,6 +5350,12 @@ export class HomeDBManager implements HomeDBAuth {
         message: "pay for more team members",
       }],
     });
+  }
+
+  // Whether this membership puts a site over the member limit of its plan.
+  private _isOverUserLimit(features: Features, users: User[]) {
+    const limit = features.maxUsersPerOrg;
+    return limit !== undefined && this._billableUsers(users).length > limit;
   }
 
   // The users among these that are billed for, which is the population the member limit
