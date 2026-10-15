@@ -325,6 +325,7 @@ export default class DetailView extends BaseView {
       if (yesNo) {
         const layoutBox = fieldDom.closest(".layout_hbox")!;
         this.layoutBoxIdx(indexOf(layoutBox.parentElement!.childNodes, layoutBox));
+        this._scrollFieldIntoView(fieldDom);
       }
     }));
     const fieldBuilder = this.fieldBuilders.at(field._index()!)!;
@@ -368,7 +369,14 @@ export default class DetailView extends BaseView {
       dom.maybe(use => !use(this.recordLayout.isEditingLayout), () => {
         if (!this._isSingle) {
           return this.scrollPane = dom("div.detailview_scroll_pane.flexitem",
-            kd.scrollChildIntoView(this.cursor.rowIndex),
+            // Keep the cursor's card in view. For a card taller than the pane, that may scroll the
+            // selected field out of view, so bring the field back into view afterwards.
+            kd.makeBinding(this.cursor.rowIndex, (elem: HTMLElement, index: number | null) => {
+              kd.doScrollChildIntoView(elem, index)
+                .then(() => this._scrollFieldIntoView(
+                  elem.querySelector(".selected_cursor")?.closest(".g_record_detail_el")))
+                .catch(reportError);
+            }),
             dom.onDispose(() => {
               // Save the previous scroll values to the section.
               if (this.scrolly()) {
@@ -570,6 +578,15 @@ export default class DetailView extends BaseView {
       `Hide fields ${actions.map(a => a[1]).join(", ")} ` +
       `from ${this.tableModel.tableData.tableId}.`,
     );
+  }
+
+  /**
+   * Keeps the selected field visible in a card larger than its section.
+   */
+  protected _scrollFieldIntoView(fieldDom: Element | null | undefined) {
+    if (this.viewSection.hasFocus.peek()) {
+      fieldDom?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
   }
 
   protected _clearSelection() {
