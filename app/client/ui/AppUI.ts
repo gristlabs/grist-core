@@ -13,6 +13,7 @@ import {
 import { createSessionObs, isBoolean, isNumber, SessionObs } from "app/client/lib/sessionObs";
 import { AppModel, TopAppModel } from "app/client/models/AppModel";
 import { DocPageModelImpl } from "app/client/models/DocPageModel";
+import { urlState } from "app/client/models/gristUrlState";
 import { HomeModelImpl } from "app/client/models/HomeModel";
 import { App } from "app/client/ui/App";
 import { AppHeader } from "app/client/ui/AppHeader";
@@ -156,6 +157,18 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   const innerLeftPanelWidth = createSessionObs<number>(owner, "innerLeftPanelWidth", 440, isNumber);
 
   collapseNavWithInnerLeftPanel(owner, pageModel.innerLeftPanelOpen, leftPanelOpen, rightPanelOpen);
+
+  const sidebarParam = urlState().state.get().params?.sidebar;
+  if (sidebarParam === "collapsed") {
+    leftPanelOpen.pauseSaving(true);
+    leftPanelOpen.set(false);
+    leftPanelOpen.pauseSaving(false);
+  }
+  else if (sidebarParam === "expanded") {
+    leftPanelOpen.pauseSaving(true);
+    leftPanelOpen.set(true);
+    leftPanelOpen.pauseSaving(false);
+  }
 
   // The RightPanel component gets created only when an instance of GristDoc is set in pageModel.
   // use.owner is a feature of grainjs to make the new RightPanel owned by the computed itself:
