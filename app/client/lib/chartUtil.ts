@@ -24,6 +24,13 @@ export function sortByXValues(series: { values: Datum[] }[]): void {
   }
 }
 
+/**
+ * Returns the distinct values across several lists of x values, sorted as by sortByXValues().
+ */
+export function sortedCategories(xValueLists: Datum[][]): Datum[] {
+  return [...new Set(flatten(xValueLists))].sort(typedCompare);
+}
+
 // Makes series so that the values of series[0] are duplicate free.
 export function uniqXValues<T extends { values: Datum[] }>(series: T[]) {
   if (!series[0]) { return; }
