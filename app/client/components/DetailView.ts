@@ -109,6 +109,9 @@ export default class DetailView extends BaseView {
     this.viewPane = this.buildDom();
     this.onDispose(() => { dom.domDispose(this.viewPane); this.viewPane.remove(); });
 
+    const cursorMoved = this.autoDispose(ko.computed(() => [this.cursor.rowIndex(), this.cursor.fieldIndex()]));
+    this.autoDispose(cursorMoved.subscribe(() => this.scrollToCursor(false).catch(reportError)));
+
     // --------------------------------------------------
     // Set up DOM event handling.
     this._twoLastFieldIdsSelected = [null, null];
@@ -325,7 +328,6 @@ export default class DetailView extends BaseView {
       if (yesNo) {
         const layoutBox = fieldDom.closest(".layout_hbox")!;
         this.layoutBoxIdx(indexOf(layoutBox.parentElement!.childNodes, layoutBox));
-        this._scrollFieldIntoView(fieldDom);
       }
     }));
     const fieldBuilder = this.fieldBuilders.at(field._index()!)!;
@@ -369,14 +371,7 @@ export default class DetailView extends BaseView {
       dom.maybe(use => !use(this.recordLayout.isEditingLayout), () => {
         if (!this._isSingle) {
           return this.scrollPane = dom("div.detailview_scroll_pane.flexitem",
-            // Keep the cursor's card in view. For a card taller than the pane, that may scroll the
-            // selected field out of view, so bring the field back into view afterwards.
-            kd.makeBinding(this.cursor.rowIndex, (elem: HTMLElement, index: number | null) => {
-              kd.doScrollChildIntoView(elem, index)
-                .then(() => this._scrollFieldIntoView(
-                  elem.querySelector(".selected_cursor")?.closest(".g_record_detail_el")))
-                .catch(reportError);
-            }),
+            kd.scrollChildIntoView(this.cursor.rowIndex),
             dom.onDispose(() => {
               // Save the previous scroll values to the section.
               if (this.scrolly()) {
@@ -522,9 +517,14 @@ export default class DetailView extends BaseView {
     return index !== null && this.viewData.getRowId(index) === "new";
   }
 
-  public async scrollToCursor(sync: boolean = true): Promise<void> {
-    if (!this.scrollPane) { return; }
-    return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync);
+  public scrollToCursor(sync: boolean = true): Promise<void> {
+    const rowScrolled = this.scrollPane ?
+      kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync) : Promise.resolve();
+    if (sync) {
+      this._scrollFieldIntoView();
+      return rowScrolled;
+    }
+    return rowScrolled.then(() => this._scrollFieldIntoView());
   }
 
   protected async _duplicateRows(): Promise<number[] | undefined> {
@@ -583,9 +583,16 @@ export default class DetailView extends BaseView {
   /**
    * Keeps the selected field visible in a card larger than its section.
    */
-  protected _scrollFieldIntoView(fieldDom: Element | null | undefined) {
-    if (this.viewSection.hasFocus.peek()) {
-      fieldDom?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  protected _scrollFieldIntoView() {
+    if (this.isDisposed() || !this.viewSection.hasFocus.peek()) { return; }
+    const fieldDom = this.viewPane.querySelector(".selected_cursor")?.closest(".g_record_detail_el");
+    if (!fieldDom) { return; }
+    const pane = this.scrolly.peek() ? this.scrollPane : this.viewPane;
+    const field = fieldDom.getBoundingClientRect(), box = pane.getBoundingClientRect();
+    if (field.top < box.top) {
+      pane.scrollTop -= box.top - field.top;
+    } else if (field.bottom > box.bottom) {
+      pane.scrollTop += Math.min(field.bottom - box.bottom, field.top - box.top);
     }
   }
 
