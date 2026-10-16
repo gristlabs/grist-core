@@ -1,3 +1,4 @@
+import { makeT } from "app/client/lib/localization";
 import { IOrgMemberSelectOption, UserManagerModel } from "app/client/models/UserManagerModel";
 import { textarea } from "app/client/ui/inputs";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
@@ -10,6 +11,8 @@ import { isEmail } from "app/common/gutil";
 import { BasicRole, isBasicRole, NonGuestRole, VIEWER } from "app/common/roles";
 
 import { computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled } from "grainjs";
+
+const t = makeT("MultiUserManager");
 
 /**
  * Splits the text entered into the "Invite multiple" dialog into a list of emails. Emails are
@@ -50,28 +53,28 @@ export function buildMultiUserManagerModal(
     { style: "padding: 0;" },
     dom.cls(cssAnimatedModal.className),
     cssTitle(
-      "Invite Users",
+      t("Invite Users"),
       testId("um-header"),
     ),
     cssModalBody(
       cssUserManagerBody(
         buildEmailsTextarea(emailListObs, isValidObs),
-        dom.maybe(use => !use(isValidObs), () => cssErrorMessage("At least one email is invalid")),
+        dom.maybe(use => !use(isValidObs), () => cssErrorMessage(t("At least one email is invalid"))),
         cssInheritRoles(
-          dom("span", "Access: "),
+          dom("span", t("Access:"), " "),
           buildRolesSelect(rolesObs, model),
         ),
       ),
     ),
     cssModalButtons(
       { style: "margin: 32px 64px; display: flex;" },
-      bigPrimaryButton("Confirm",
+      bigPrimaryButton(t("Confirm"),
         dom.boolAttr("disabled", use => !use(enableAdd)),
         dom.on("click", () => save(ctl)),
         testId("um-confirm"),
       ),
       bigBasicButton(
-        "Cancel",
+        t("Cancel"),
         dom.on("click", () => ctl.close()),
         testId("um-cancel"),
       ),
@@ -110,7 +113,7 @@ function buildEmailsTextarea(
 ) {
   return cssTextarea(emailListObs,
     { onInput: true, isValid: isValidObs },
-    { placeholder: "Enter email addresses, one per line or separated by commas" },
+    { placeholder: t("Enter email addresses, one per line or separated by commas") },
     dom.on("change", _ev => isValidObs.set(true)),
     ...args,
   );

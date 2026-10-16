@@ -178,7 +178,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
         menus.menuItemCmd(allCommands.contextMenuCut, t("Cut")),
         menus.menuItemCmd(allCommands.contextMenuPaste, t("Paste")),
         menus.menuDivider(),
-        menus.menuItemCmd(allCommands.deleteFields, "Hide"),
+        menus.menuItemCmd(allCommands.deleteFields, t("Hide")),
         elem => void FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }),
         customItems?.length ? menus.menuDivider(dom.style("min-width", "200px")) : null,
         ...(customItems ?? []),

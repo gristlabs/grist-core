@@ -66,7 +66,7 @@ export function buildDescriptionConfig(
         cssLabel(t("DESCRIPTION"), { for: `${options.testPrefix}-description-input` }),
         cssRow(
           editor = cssTextArea(fromKo(description), { onInput: false, save },
-            { rows, placeholder: "Enter description", id: `${options.testPrefix}-description-input` },
+            { rows, placeholder: t("Enter description"), id: `${options.testPrefix}-description-input` },
             dom.onKeyDown({
               Enter$: (ev, elem) => { if (!ev.shiftKey) { return save(elem.value); } },
               Escape: closeEditor,

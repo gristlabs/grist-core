@@ -521,7 +521,7 @@ export class AccessRules extends Disposable {
             cssSectionHeading(t("User Attributes")),
             cssTableRounded(
               cssTableHeaderRow(
-                cssCell1(cssCell.cls("-rborder"), cssCell.cls("-center"), cssColHeaderCell("Name")),
+                cssCell1(cssCell.cls("-rborder"), cssCell.cls("-center"), cssColHeaderCell(t("Name"))),
                 cssCell4(
                   cssColumnGroup(
                     cssCell1(cssColHeaderCell(t("Attribute to Look Up"))),
@@ -1845,13 +1845,13 @@ class ObsUserAttributeRule extends Disposable {
                 value: tableId,
                 label: this._accessRules.getTableTitle(tableId),
               })),
-              { defaultLabel: "[Select Table]" },
+              { defaultLabel: t("[Select Table]") },
             ),
             testId("rule-userattr-table"),
           ),
           cssCell1(
             aclSelect(this._lookupColId, this._validColIds,
-              { defaultLabel: "[Select Column]" }),
+              { defaultLabel: t("[Select Column]") }),
             testId("rule-userattr-col"),
           ),
           cssCellIcon(

@@ -68,7 +68,7 @@ export class DataTables extends Disposable {
                 cssTitleRow(cssTableTitle(this._tableTitle(tableRec, isEditingName), testId("table-title"))),
                 cssDetailsRow(
                   cssTableIdWrapper(cssHoverWrapper(
-                    cssUpperCase("Table ID: "),
+                    cssUpperCase(t("Table ID: ")),
                     cssTableId(
                       testId("table-id"),
                       dom.text(tableRec.tableId),
@@ -259,7 +259,7 @@ export class DataTables extends Disposable {
       if (rowCounts === "hidden") { return null; }
 
       return cssTableRowsWrapper(
-        cssUpperCase("Rows: "),
+        cssUpperCase(t("Rows: ")),
         rowCounts === "pending" ? cssLoadingDots() : cssTableRows(
           rowCounts[table.getRowId()] !== undefined ?
             this._rowCountFormatter.format(rowCounts[table.getRowId()]) :
