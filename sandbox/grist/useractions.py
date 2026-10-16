@@ -714,7 +714,7 @@ class UserActions(object):
 
     for col, values in col_updates.items():
       if 'type' in values:
-        self.doModifyColumn(col.tableId, col.colId, {'type': 'Int'})
+        self.doModifyColumn(col.tableId, col.colId, {'type': 'Int'}, recalc_reverse_refs=False)
 
     make_acl_updates = acl.prepare_acl_table_renames(self, table_renames)
 
@@ -730,8 +730,10 @@ class UserActions(object):
     # Internal functions are used to prevent unintended additional changes from occurring.
     # Specifically, this prevents widgetOptions and displayCol from being cleared as a side
     # effect of the column type change.
+    # The relationships have not changed, so do not recalculate reverse references. In particular,
+    # a reverse column in the same table may still have its temporary Int type at this point.
     for col, values in col_updates.items():
-      self.doModifyColumn(col.tableId, col.colId, values)
+      self.doModifyColumn(col.tableId, col.colId, values, recalc_reverse_refs=False)
     self.doBulkUpdateFromPairs('_grist_Tables_column', col_updates.items())
     make_acl_updates()
 
@@ -1784,7 +1786,7 @@ class UserActions(object):
       update_values['parentPos'] = col_info['_position']
     self._docmodel.update([col], **update_values)
 
-  def doModifyColumn(self, table_id, col_id, col_info):
+  def doModifyColumn(self, table_id, col_id, col_info, recalc_reverse_refs=True):
     """
     ModifyColumn involves a ModifyColumn docaction which changes the column's schema, and creates
     a new Column object, destroying the old one. Additionally, it may have an effect on the
@@ -1797,6 +1799,9 @@ class UserActions(object):
     (2) It may switch a column between "formula" and "data". Since formula columns are computed
     on the fly and not stored in DB (at least not always), such a switch requires an action to
     fill in all values.
+
+    Set recalc_reverse_refs=False for temporary type changes during table renames, which preserve
+    existing relationships.
     """
     table = self._engine.tables[table_id]
     old_column = table.get_column(col_id)
@@ -1861,7 +1866,7 @@ class UserActions(object):
         self._engine.out_actions.undo.append(mod_action)
 
     # Give two-way reference columns a chance to get rebuilt after a Ref<>RefList switch.
-    if 'type' in col_info:
+    if 'type' in col_info and recalc_reverse_refs:
       update_action = new_column.recalc_from_reverse_values()
       self._do_doc_action(update_action)
 
