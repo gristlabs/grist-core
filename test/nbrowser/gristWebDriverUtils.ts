@@ -12,7 +12,7 @@ import { CommandName } from "app/client/components/commandList";
 import { DocAction, UserAction } from "app/common/DocActions";
 
 import escapeRegExp from "lodash/escapeRegExp";
-import { WebDriver, WebElement, WebElementPromise } from "mocha-webdriver";
+import { error, WebDriver, WebElement, WebElementPromise } from "mocha-webdriver";
 
 type SectionTypes = "Table" | "Card" | "Card List" | "Chart" | "Custom" | "Form";
 
@@ -422,14 +422,19 @@ export class GristWebDriverUtils {
 
     // Take each cell from the row that shows its number. Reading the row numbers and the cells in
     // separate passes, and lining the two up by position, gives a cell from a layout that is gone
-    // when the section is rebuilt in between.
-    const cells = await this.driver.executeScript<(WebElement | null)[]>(
-      (elem: HTMLElement, wanted: number[], nthChildren: number[]) => wanted.flatMap((rowNum) => {
-        const row = Array.from(elem.querySelectorAll(".gridview_row")).find(r =>
-          parseInt(r.querySelector<HTMLElement>(".gridview_data_row_num")?.innerText ?? "", 10) === rowNum);
-        return nthChildren.map(nth =>
-          row?.querySelector(`.record:not(.column_names) .field:nth-child(${nth})`) ?? null);
-      }), sectionElem, rowNums, colIndexes.map(i => i + 1));
+    // when the section is rebuilt in between. Wait out any pending scroll to the cursor first.
+    const findCells = () => this.driver.executeScript<(WebElement | null)[] | false>(
+      (elem: HTMLElement, wanted: number[], nthChildren: number[]) => {
+        if ((window as any).gristApp?.testNumPendingScrolls?.()) { return false; }
+        return wanted.flatMap((rowNum) => {
+          const row = Array.from(elem.querySelectorAll(".gridview_row")).find(r =>
+            parseInt(r.querySelector<HTMLElement>(".gridview_data_row_num")?.innerText ?? "", 10) === rowNum);
+          return nthChildren.map(nth =>
+            row?.querySelector(`.record:not(.column_names) .field:nth-child(${nth})`) ?? null);
+        });
+      }, sectionElem, rowNums, colIndexes.map(i => i + 1));
+    const cells = await this.driver.wait(findCells, 2000, "Timed out waiting for the grid to scroll") as
+      (WebElement | null)[];
 
     // A row number that is not on screen has no cell, and read as undefined before this too.
     const read = mapper ?? ((el: WebElement) => el.getText());
@@ -449,7 +454,12 @@ export class GristWebDriverUtils {
     const options: IColSelect<WebElement> = (typeof colOrOptions === "object" ?
       { col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper } :
       { col: colOrOptions, rowNums: [rowNum!], section, mapper });
-    return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then(elems => elems[0]));
+    return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then((elems) => {
+      if (!elems[0]) {
+        throw new error.NoSuchElementError(`Row ${options.rowNums[0]} is not rendered in the grid`);
+      }
+      return elems[0];
+    }));
   }
 
   /** Waits for the app's hidden clipboard element to hold the focus, or to have given it up. */
