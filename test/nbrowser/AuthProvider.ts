@@ -38,13 +38,12 @@ describe("AuthProvider", function() {
     await server.simulateLogin(user.name, user.email, "docs");
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
+    await gu.waitForAdminChecks();
     await toggleItem("authentication");
 
     // Be default we should see "no authentication" value, as no provider is configured and the default
     // fallback to MinimalProvider is used, which Grists reports as "no authentication".
-    await gu.waitToPass(async () => {
-      assert.equal(await itemValue("authentication"), "no authentication");
-    }, 500);
+    assert.equal(await itemValue("authentication"), "no authentication");
 
     // We should see couple of providers, including "OIDC and SAML".
     await driver.findWait(".test-admin-auth-provider-row", 2000); // wait for it to appear
@@ -116,6 +115,7 @@ describe("AuthProvider", function() {
     await server.simulateLogin(user.name, user.email, "docs");
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
+    await gu.waitForAdminChecks();
     await toggleItem("authentication");
   }
 
@@ -155,9 +155,7 @@ describe("AuthProvider", function() {
 
     // We now see that there is some auth error, as OIDC appears to be configured, nothing is selected by the
     // user so this was picked as the active method, but the test OIDC server is not responding properly.
-    await gu.waitToPass(async () => {
-      assert.equal(await itemValue("authentication"), "auth error");
-    });
+    assert.equal(await itemValue("authentication"), "auth error");
 
     assert.match(await heroCard().getText(), /OIDC/);
     assert.includeMembers(await heroBadges(), ["Error"]);

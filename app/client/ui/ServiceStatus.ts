@@ -30,7 +30,7 @@ export class ServiceStatus extends Disposable {
       (use) => {
         const req = this._adminChecks.requestCheckById(use, "service-status");
         const result = req ? use(req.result) : undefined;
-        if (!result) {
+        if (!result || result.status === "none") {
           return cssCenteredFlexGrow(loadingSpinner());
         }
 

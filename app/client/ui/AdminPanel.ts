@@ -234,6 +234,8 @@ class AdminInstallationPanel extends Disposable {
   private _drafts = DraftChangesManager.create(this);
 
   private _checks: AdminChecks;
+  // Set once the probe list has loaded, so the access-denied card doesn't flash first.
+  private _checksLoaded = Observable.create<boolean>(this, false);
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
   private _authCheck: Observable<AdminCheckRequest | undefined>;
@@ -295,18 +297,21 @@ class AdminInstallationPanel extends Disposable {
       return this._buildMainContentForOthers();
     }
 
-    this._checks.fetchAvailableChecks().catch((err) => {
-      reportError(err);
-    });
+    this._checks.fetchAvailableChecks()
+      .catch(reportError)
+      .finally(() => {
+        if (this.isDisposed()) { return; }
+        this._checksLoaded.set(true);
+      });
 
     // If probes are available, show the panel as normal.
     // Otherwise say it is unavailable, and describe a fallback
     // mechanism for access.
-    return dom.maybe(use => use(this._checks.probes), probes => [
+    return dom.maybe(this._checksLoaded, () => dom.domComputed(this._checks.probes, probes =>
       probes.length > 0 ?
         this._buildMainContentForAdmin() :
         this._buildMainContentForOthers(),
-    ]);
+    ));
   }
 
   public async restartGrist(): Promise<void> {
@@ -668,7 +673,7 @@ now, and takes effect the next time you restart Grist manually.")),
           // Sandbox details get filled out relatively slowly if
           // this is first time on admin panel. So show "checking"
           // if we don't have a reported status yet.
-          return cssValueLabel(result?.status ? t("unknown") : t("checking"));
+          return cssValueLabel(result && result.status !== "none" ? t("unknown") : t("checking"));
         }
         const flavor = details.flavor;
         const configured = details.configured;
@@ -689,7 +694,7 @@ now, and takes effect the next time you restart Grist manually.")),
     const result = req ? use(req.result) : undefined;
     const success = result?.status === "success";
 
-    if (!result) {
+    if (!result || result.status === "none") {
       return t("checking");
     }
 
@@ -710,7 +715,7 @@ now, and takes effect the next time you restart Grist manually.")),
         // Until the probe lands, show a neutral placeholder rather than the
         // alarming default. Otherwise a real admin (and our tests) see
         // "out of service" briefly on every page load.
-        if (!result) { return cssValueLabel(t("checking")); }
+        if (!result || result.status === "none") { return cssValueLabel(t("checking")); }
         if (result.details?.inService) {
           return cssValueLabel(cssHappyText(t("in service")));
         }
@@ -769,7 +774,7 @@ now, and takes effect the next time you restart Grist manually.")),
         const req = this._checks.requestCheckById(use, "boot-key");
         const result = req ? use(req.result) : undefined;
 
-        if (!result) { return cssValueLabel(t("checking")); }
+        if (!result || result.status === "none") { return cssValueLabel(t("checking")); }
         if (result.details?.disabled) {
           return cssValueLabel(cssHappyText(t("disabled")));
         }
@@ -796,6 +801,7 @@ now, and takes effect the next time you restart Grist manually.")),
             testId("admin-panel-value-label-error"),
           );
         }
+        if (result.status === "none") { return cssValueLabel(t("checking")); }
 
         const { status, details, verdict } = result;
         const success = status === "success";
@@ -852,6 +858,7 @@ now, and takes effect the next time you restart Grist manually.")),
         const req = this._checks.requestCheckById(use, "session-secret");
         const result = req ? use(req.result) : undefined;
 
+        if (result?.status === "none") { return cssValueLabel(t("checking")); }
         if (result?.status === "warning") {
           return cssValueLabel(cssDangerText(t("default")));
         }
@@ -909,7 +916,8 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
 
     const config = getGristConfig();
     const latestVersionAvailable = Observable.create(owner, config.latestVersionAvailable);
-    const checkForLatestVersion = Observable.create(owner, true);
+    // Null until install prefs load; the toggle is left out until then, so it never shows a guess.
+    const checkForLatestVersion = Observable.create<boolean | null>(owner, null);
     const allowAutomaticVersionChecking = Observable.create(owner, config.automaticVersionCheckingAllowed);
     this._installAPI.getInstallPrefs()
       .then((prefs) => {
@@ -1085,13 +1093,14 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
           ]),
         )),
         dom.domComputed(allowAutomaticVersionChecking, allowAutomaticChecks =>
-          allowAutomaticChecks ? cssExpandedContent(
-            dom("label", t("Auto-check weekly"), { for: "admin-panel-updates-auto-check-switch" }),
-            dom("div", toggleSwitch(enabledController, {
-              args: [testId("admin-panel-updates-auto-check")],
-              inputArgs: [{ id: "admin-panel-updates-auto-check-switch" }],
-            })),
-          ) :
+          allowAutomaticChecks ?
+            dom.maybe(use => use(checkForLatestVersion) !== null, () => cssExpandedContent(
+              dom("label", t("Auto-check weekly"), { for: "admin-panel-updates-auto-check-switch" }),
+              dom("div", toggleSwitch(enabledController, {
+                args: [testId("admin-panel-updates-auto-check")],
+                inputArgs: [{ id: "admin-panel-updates-auto-check-switch" }],
+              })),
+            )) :
             cssExpandedContent(
               dom("span", t('Automatic checks are disabled. \
 Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to enable them.'),

@@ -118,6 +118,8 @@ export class BackupsSection extends Disposable {
 
   public buildStatusDisplay() {
     return dom.domComputed((use) => {
+      const req = this._props.checks.requestCheckById(use, "backups");
+      if (req && use(req.result).status === "none") { return cssValueLabel(t("checking")); }
       const backend = use(this._activeBackend);
       if (backend) {
         return cssValueLabel(cssHappyText(STORAGE_BACKENDS[backend].label));
