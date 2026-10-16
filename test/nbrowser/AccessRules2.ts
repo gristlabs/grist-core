@@ -309,19 +309,19 @@ describe("AccessRules2", function() {
     // Select a table and check that the Column field offers a dropdown.
     await gu.findOpenMenuItem("li", "ClientsTable").click();
     await userAttrRule.find(".test-rule-userattr-col").click();
-    await gu.waitToPass(async () => {
-      assert.includeMembers(await gu.findOpenMenuAllItems("li", el => el.getText()),
-        ["Agent_Email", "Email", "First_Name"]);
-    });
+    assert.includeMembers(await gu.findOpenMenuAllItems("li", el => el.getText()),
+      ["Agent_Email", "Email", "First_Name"]);
 
     // Select a different table, and check that the Column field dropdown gets updated.
+    // Keys typed before the menu takes the focus go to the button, which picks its own match, so
+    // "Access" could end up selecting "ClientsTable [by Shared]".
     await userAttrRule.find(".test-rule-userattr-table").click();
+    await gu.waitForMenuFocus();
     await driver.sendKeys("Access", Key.ENTER);
     await userAttrRule.find(".test-rule-userattr-col").click();
-    await gu.waitToPass(async () => {
-      assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()),
-        ["Email", "SharedOnly", "id"]);
-    });
+    assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()),
+      ["Email", "SharedOnly", "id"]);
+    await gu.waitForMenuFocus();
     await driver.sendKeys("Email", Key.ENTER);
 
     // Remove ClientTable rules, and add a new one using the new UserAttribute.
