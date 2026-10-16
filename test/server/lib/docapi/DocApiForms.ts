@@ -223,6 +223,65 @@ function addFormsTests(getCtx: () => TestContext) {
       assert.sameMembers(refValuesFor(resp.data, "Pick"), ["Alpha", "Gamma"]);
     });
 
+    it("filters Reference choices by dropdown condition", async function() {
+      const { serverUrl, userApi, chimpy, nobody } = getCtx();
+      const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
+      const docId = await userApi.newDoc({ name: "FormsRefDropdownCondition" }, wid);
+      const docUrl = `${serverUrl}/api/docs/${docId}`;
+      const widgetOptions = JSON.stringify({
+        dropdownCondition: {
+          text: 'choice.B == "Approved"',
+          parsed: JSON.stringify(["Eq", ["Attr", ["Name", "choice"], "B"], ["Const", "Approved"]]),
+        },
+      });
+
+      const resp = await axios.post(`${docUrl}/apply`, [
+        ["BulkAddRecord", "Table1", [1, 2, 3], {
+          A: ["Alpha", "Beta", "Gamma"],
+          B: ["Approved", "Pending", "Approved"],
+        }],
+        ["AddTable", "FormT", [{ id: "Pick", type: "Ref:Table1" }]],
+        // visibleCol 2 is Table1.A in a fresh doc (manualSort=1, A=2, B=3, C=4).
+        ["ModifyColumn", "FormT", "Pick", { visibleCol: 2, widgetOptions }],
+      ], chimpy);
+      assert.equal(resp.status, 200);
+
+      const sectionId = await getPrimarySectionId(docUrl, chimpy, "FormT");
+      await makeForm(docUrl, chimpy, sectionId);
+
+      // The authenticated form endpoint applies the dropdown condition.
+      let formResp = await axios.get(`${docUrl}/forms/${sectionId}`, chimpy);
+      assert.equal(formResp.status, 200);
+      assert.sameMembers(refValuesFor(formResp.data, "Pick"), ["Alpha", "Gamma"]);
+
+      // The same filtering is applied to the anonymously published form.
+      const key = await publishForm(docUrl, docId, chimpy, sectionId);
+      formResp = await axios.get(`${serverUrl}/api/s/${key}/forms/${sectionId}`, nobody);
+      assert.equal(formResp.status, 200);
+      assert.sameMembers(refValuesFor(formResp.data, "Pick"), ["Alpha", "Gamma"]);
+
+      // A published form is a new record. Conditions that reference `rec` without
+      // reading a column should receive an empty record rather than `undefined`.
+      const recWidgetOptions = JSON.stringify({
+        dropdownCondition: {
+          text: "rec",
+          parsed: JSON.stringify(["Name", "rec"]),
+        },
+      });
+      const updateResp = await axios.post(`${docUrl}/apply`, [
+        ["ModifyColumn", "FormT", "Pick", { widgetOptions: recWidgetOptions }],
+      ], chimpy);
+      assert.equal(updateResp.status, 200);
+
+      formResp = await axios.get(`${docUrl}/forms/${sectionId}`, chimpy);
+      assert.equal(formResp.status, 200);
+      assert.sameMembers(refValuesFor(formResp.data, "Pick"), ["Alpha", "Beta", "Gamma"]);
+
+      formResp = await axios.get(`${serverUrl}/api/s/${key}/forms/${sectionId}`, nobody);
+      assert.equal(formResp.status, 200);
+      assert.sameMembers(refValuesFor(formResp.data, "Pick"), ["Alpha", "Beta", "Gamma"]);
+    });
+
     it("filters ReferenceList choices by the viewer's row access", async function() {
       const { chimpy, kiwi } = getCtx();
       const { docUrl, sectionId } = await setupRefForm({
