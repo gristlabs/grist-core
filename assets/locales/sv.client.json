@@ -285,7 +285,8 @@
         "Revert": "Ångra",
         "SORT": "SORTERA",
         "Update Sort&Filter settings": "Uppdatera sortering- & filterinställningar",
-        "Sort and filter": "Sortera och filtrera"
+        "Sort and filter": "Sortera och filtrera",
+        "Calendar view": "Kalendervy"
     },
     "WidgetTitle": {
         "Save": "Spara",
@@ -2695,7 +2696,11 @@
         "Open the current row menu": "Öppna nuvarande radmenyn",
         "When focused on a page panel, focus next landmark": "När en panel är i fokus, fokuseras nästa landmärke",
         "When focused on a page panel, focus previous landmark": "När en panel är i fokus, fokuseras föregående landmärke",
-        "When focused on a widget, move focus between widget and widget header": "När en widget är I fokus, flyttas fokus mellan widget och widget titel"
+        "When focused on a widget, move focus between widget and widget header": "När en widget är I fokus, flyttas fokus mellan widget och widget titel",
+        "Open the formula assistant": "Öppna formulärassistenten",
+        "Shortcut to close the inner left panel": "Genväg för att stänga den inre vänstra panelen",
+        "Shortcut to open the inner left panel": "Genväg för att öppna den inre vänstra panelen",
+        "Toggle the assistant": "Slå av/på assistenten"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-timmarsformat",
