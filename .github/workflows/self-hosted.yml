@@ -11,7 +11,7 @@ jobs:
     name: Add issue to project
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/add-to-project@v1.0.1
+      - uses: actions/add-to-project@v2
         with:
           project-url: https://github.com/orgs/gristlabs/projects/2
           github-token: ${{ secrets.SELF_HOSTED_PROJECT }}

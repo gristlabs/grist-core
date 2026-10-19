@@ -22,7 +22,7 @@ jobs:
       (github.event.action == 'closed' ||
       (github.event.action == 'unlabeled' && github.event.label.name == 'preview')))
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
