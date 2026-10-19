@@ -117,8 +117,12 @@ describe("AccessRules4", function() {
     await assertChanged();
 
     await driver.find(".test-tools-raw").click();
-    await driver.findWait(".test-modal-dialog", 500);
-    assert.match(await driver.find(".test-modal-title").getText(), /Unsaved changes/, "A confirm modal should appear when trying to leave the ACL page without saving");
+    await driver.findWait(
+      ".test-modal-dialog",
+      500,
+      "A confirm modal should appear when trying to leave the ACL page without saving",
+    );
+    assert.match(await driver.find(".test-modal-title").getText(), /Unsaved changes/);
     assert.equal(await driver.find(".test-modal-confirm").getText(), "Exit without saving");
     assert.equal(await driver.find(".test-modal-cancel").getText(), "Stay on the page");
 
