@@ -26,11 +26,13 @@ async function openAclViewAsPopup() {
 
 async function closeViewAsMenu() {
   if (!(await driver.find(".grist-floating-menu").isPresent())) { return; }
-  // Escape clears an active filter before closing; send a second time if still open.
-  await driver.sendKeys(Key.ESCAPE);
-  if (await driver.find(".grist-floating-menu").isPresent()) {
+  // Escape clears an active filter before closing.
+  const filter = driver.find(".test-acl-user-filter");
+  if (await filter.isPresent() && !(await filter.matches(":blank"))) {
     await driver.sendKeys(Key.ESCAPE);
+    await driver.findWait(".test-acl-user-filter:blank", 200);
   }
+  await driver.sendKeys(Key.ESCAPE);
   await gu.waitToPass(async () => {
     assert.isFalse(await driver.find(".grist-floating-menu").isPresent());
   });
@@ -39,6 +41,7 @@ async function closeViewAsMenu() {
 async function filterWith(text: string) {
   const input = driver.find(".test-acl-user-filter");
   await input.click();
+  await driver.wait(() => input.hasFocus());
   await gu.sendKeys(await gu.selectAllKey(), Key.DELETE, text);
 }
 
