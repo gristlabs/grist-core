@@ -242,6 +242,10 @@ export const groups: CommendGroupDef[] = [{
       name: "reloadPlugins",
       keys: ["Mod+Alt+P"],
       desc: null, // reload plugins
+    }, {
+      name: "expandSection",
+      keys: ["Mod+Shift+F"],
+      desc: () => t("Maximize the active widget"),
     },
 
   ],
@@ -302,11 +306,6 @@ export const groups: CommendGroupDef[] = [{
       name: "openWidgetConfiguration",
       keys: [],
       desc: () => t("Open Custom widget configuration screen"),
-    },
-    {
-      name: "expandSection",
-      keys: [],
-      desc: () => t("Maximize the active section"),
     },
     {
       name: "leftPanelOpen",
