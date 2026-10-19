@@ -73,9 +73,9 @@ export class UnsavedChangeSet {
    * Returns true if navigation should proceed, false if the user chose to stay.
    */
   public async canLeavePage(): Promise<boolean> {
-    if (!this.findManualSaveChange()) { return true; }
-    if (!this._manualConfirmModal) { return true; }
-    return this._manualConfirmModal();
+    return !this.findManualSaveChange() ||
+      !this._manualConfirmModal ||
+      this._manualConfirmModal();
   }
 
   public add(unsaved: UnsavedChange) { this._changes.add(unsaved); }
