@@ -217,6 +217,7 @@ export const Base: BaseThemeTokens = {
     controlSecondaryDisabledFg: tokens.decoration,
     controlSecondaryHoverFg: tokens.body,
     controlSecondaryHoverBg: tokens.decorationSecondary,
+    controlDangerFg: tokens.error,
 
     /* Checkboxes */
     checkboxBg: tokens.bg,
