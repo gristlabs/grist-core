@@ -552,4 +552,29 @@ describe("CellColor", function() {
       await cell().find(".test-toggle-switch-slider").getCssValue("background-color"), gu.hexToRgb("#009058"),
     );
   });
+
+  it("should have a detach button on conditional style formula inputs", async function() {
+    await gu.addInitialStyleRule();
+    await gu.openStyleRuleFormula(0);
+
+    assert.isTrue(await driver.findWait(".test-floating-editor-detach-button", 1000).isDisplayed());
+    await driver.find(".test-floating-editor-detach-button").click();
+
+    await driver.findWait(".test-floating-editor-popup", 1000).isDisplayed();
+    assert.match(
+      await driver.find(".test-floating-editor-popup-title").getText(),
+      /Conditional Style/,
+    );
+
+    assert.isTrue(
+      await driver.findWait(".test-formula-editor-save-button", 1000).isDisplayed(),
+    );
+    assert.isTrue(
+      await driver.find(".test-formula-editor-cancel-button").isDisplayed(),
+    );
+    assert.isFalse(
+      await driver.find(".test-formula-editor-preview-button").isPresent(),
+    );
+    await driver.find(".test-formula-editor-cancel-button").click();
+  });
 });

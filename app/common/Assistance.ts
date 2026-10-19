@@ -65,6 +65,7 @@ export interface AssistanceContextV1 {
   colId: string;
   evaluateCurrentFormula?: boolean;
   rowId?: number;
+  specificInstructions?: string;
 }
 
 export interface AssistanceContextV2 {

@@ -1,7 +1,7 @@
 import { GristDoc } from "app/client/components/GristDoc";
 import * as kf from "app/client/lib/koForm";
 import { makeT } from "app/client/lib/localization";
-import { ColumnRec } from "app/client/models/DocModel";
+import { ColumnRec, ViewFieldRec } from "app/client/models/DocModel";
 import { KoSaveableObservable } from "app/client/models/modelUtil";
 import { RuleOwner } from "app/client/models/RuleOwner";
 import { buildHighlightedCode } from "app/client/ui/CodeHighlight";
@@ -13,13 +13,14 @@ import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssDragger } from "app/client/ui2018/draggableList";
 import { icon } from "app/client/ui2018/icons";
 import { setupEditorCleanup } from "app/client/widgets/FieldEditor";
+import { FloatingEditor } from "app/client/widgets/FloatingEditor";
 import { cssError, openFormulaEditor } from "app/client/widgets/FormulaEditor";
 import { isRaisedException, isValidRuleValue } from "app/common/gristTypes";
 import { Style } from "app/common/Styles";
 import { GristObjCode, RowRecord } from "app/plugin/GristData";
 import { decodeObject } from "app/plugin/objtypes";
 
-import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, DomContents, domDispose, makeTestId, Observable, styled } from "grainjs";
 import debounce from "lodash/debounce";
 
 const testId = makeTestId("test-widget-style-");
@@ -42,6 +43,7 @@ export class ConditionalStyle extends Disposable {
     private _label: string,
     private _ruleOwner: RuleOwner,
     private _gristDoc: GristDoc,
+    private _scope: "row" | "column",
     private _disabled?: Observable<boolean>,
   ) {
     super();
@@ -89,7 +91,7 @@ export class ConditionalStyle extends Disposable {
             dom.on("click", () => this._ruleOwner.addEmptyRule()),
             dom.prop("disabled", this._disabled),
           ),
-          this._label === t("Row Style") ? "addRowConditionalStyle" : "addColumnConditionalStyle",
+          this._scope === "row" ? "addRowConditionalStyle" : "addColumnConditionalStyle",
         ),
         dom.hide(use => use(this._ruleOwner.hasRules)),
       ),
@@ -244,22 +246,70 @@ export class ConditionalStyle extends Disposable {
       dom.cls(cssFieldFormula.className),
       dom.cls(cssErrorBorder.className, hasError),
       { tabIndex: "-1" },
-      dom.on("focus", (_, refElem) => {
-        const section = this._gristDoc.viewModel.activeSection();
-        const vsi = section.viewInstance();
-        const editorHolder = openFormulaEditor({
-          gristDoc: this._gristDoc,
-          editingFormula: this._gristDoc.docModel.editingFormula,
-          column,
-          editRow: vsi?.moveEditRowToCursor(),
-          refElem,
-          setupCleanup: setupEditorCleanup,
-          canDetach: false,
-        });
-        // Add editor to document holder - this will prevent multiple formula editor instances.
-        this._gristDoc.fieldEditorHolder.autoDispose(editorHolder);
-      }),
+      dom.on("focus", (_, refElem) => this._openRuleFormulaEditor(column, refElem)),
     );
+  }
+
+  private _openRuleFormulaEditor(column: ColumnRec, refElem: Element) {
+    const section = this._gristDoc.viewModel.activeSection();
+    const vsi = section.viewInstance();
+    const editRow = vsi?.moveEditRowToCursor();
+    const position = this._gristDoc.cursorPosition.get();
+    const tableId = column.table.peek().tableId.peek();
+
+    // Controller that moves the editor DOM between the inline placement and the floating popup.
+    const floatController = {
+      attach: async (content: HTMLElement) => {
+        if (refElem.isConnected) {
+          formulaEditor.attach(refElem);
+        } else {
+          formulaEditor.dispose();
+          domDispose(content);
+          if (position) {
+            await this._gristDoc.recursiveMoveToCursorPos(position, true);
+          }
+        }
+      },
+      detach() {
+        return formulaEditor.detach();
+      },
+      autoDispose(el: Disposable) {
+        return formulaEditor.autoDispose(el);
+      },
+      dispose() {
+        formulaEditor.dispose();
+      },
+    };
+
+    const actualColId = this._scope === "column" ? (this._ruleOwner as ViewFieldRec).colId.peek() : undefined;
+
+    // Don't save on focus loss while the floating editor is open (focus moves during detach).
+    const formulaEditor = openFormulaEditor({
+      gristDoc: this._gristDoc,
+      editingFormula: this._gristDoc.docModel.editingFormula,
+      column,
+      editRow,
+      refElem,
+      setupCleanup: (...args) => setupEditorCleanup(...args, () => floatingExtension.active.get()),
+      canDetach: true,
+      assistantInstructions: this._scope === "column" ?
+        "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
+        `whether to apply later user-specified formatting style on cells inside the column with ID "${actualColId}". ` :
+        "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
+        "whether to apply later user-specified formatting style on entire rows. ",
+    });
+
+    const floatingExtension = FloatingEditor.create(formulaEditor, floatController, {
+      gristDoc: this._gristDoc,
+      refElem,
+      placement: "overlapping",
+      title: this._scope === "column" ?
+        `${tableId}.${actualColId} - ${t("Conditional Style")}` :
+        `${tableId} - ${t("Conditional Style")}`,
+    });
+
+    // Add editor to document holder - this will prevent multiple formula editor instances.
+    this._gristDoc.fieldEditorHolder.autoDispose(formulaEditor);
   }
 }
 
