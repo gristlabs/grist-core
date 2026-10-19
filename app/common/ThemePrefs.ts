@@ -288,6 +288,7 @@ export const componentsCssMapping = {
   controlDisabledFg: "control-disabled-fg",
   controlDisabledBg: "control-disabled-bg",
   controlBorder: "control-border",
+  controlDangerFg: "control-danger-fg",
   checkboxBg: "checkbox-bg",
   checkboxSelectedFg: "checkbox-selected-bg",
   checkboxDisabledBg: "checkbox-disabled-bg",
@@ -1138,6 +1139,7 @@ export interface BaseThemeTokens {
     controlSecondaryDisabledFg: Token;
     controlSecondaryHoverFg: Token;
     controlSecondaryHoverBg: Token;
+    controlDangerFg: Token;
     checkboxBg: Token;
     checkboxSelectedFg: Token;
     checkboxDisabledBg: Token;
