@@ -59,7 +59,7 @@ export function permissionsWidget(
         (isCustom ?
           cssMenuItem(() => null, dom.cls("disabled"), menuIcon("Tick"),
             cssMenuItemContent(
-              "Custom",
+              t("Custom"),
               cssMenuItemDetails(dom.text(use => psetDescription(use(pset)))),
             ),
           ) :
@@ -78,7 +78,7 @@ export function permissionsWidget(
         cssMenuItem(() => setPermissions(empty),
           // For the empty permission set, it seems clearer to describe it as "No Effect", but to
           // all it "Clear" when offering to the user as the action.
-          isEqual(pset.get(), empty) ? [tick(true), "No Effect"] : [tick(false), "Clear"],
+          isEqual(pset.get(), empty) ? [tick(true), t("No Effect")] : [tick(false), t("Clear")],
           dom.cls("disabled", options.disabled),
         ),
       ];

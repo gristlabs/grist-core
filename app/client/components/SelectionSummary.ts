@@ -254,9 +254,9 @@ export class SelectionSummary extends Disposable {
 
         if (countNumeric > 0) {
           const sumValue = sumFormatter ? sumFormatter.formatAny(sum) : String(sum);
-          summary.push({ id: "sum", label: "Sum ", value: sumValue, clickToCopy: true });
+          summary.push({ id: "sum", label: t("Sum") + " ", value: sumValue, clickToCopy: true });
         } else {
-          summary.push({ id: "count", label: "Count ", value: String(countNonEmpty), clickToCopy: true });
+          summary.push({ id: "count", label: t("Count") + " ", value: String(countNonEmpty), clickToCopy: true });
         }
       }
       summary.push({ id: "dimensions", label: "", value: `${rowCount}⨯${colCount}` });

@@ -1211,7 +1211,7 @@ export class Importer extends DisposableWithEvents {
   private _makeImportOptionsMenu(transformCol: ColumnRec, others: [string, string][], info: SourceInfo) {
     return [
       menuItem(() => this._setColumnFormula(transformCol, null, info),
-        "Skip",
+        t("Skip"),
         testId("column-match-menu-item")),
       others.length ? menuDivider() : null,
       ...others.map(([formula, label]) =>
@@ -1346,7 +1346,7 @@ export class Importer extends DisposableWithEvents {
           await this._updateImportDiff(info);
         });
       },
-      "Apply Formula",
+      t("Apply Formula"),
       "Lighting",
       testId("apply-formula"),
       cssGreenIcon.cls(""),
@@ -1369,7 +1369,7 @@ export class Importer extends DisposableWithEvents {
       const column = use(field.column);
       return use(column.formula);
     });
-    const codeOptions = { placeholder: "Skip", maxLines: 1 };
+    const codeOptions = { placeholder: t("Skip"), maxLines: 1 };
     return dom.create(buildHighlightedCode, formula, codeOptions,
       dom.cls(cssFieldFormula.className),
       dom.cls("disabled"),

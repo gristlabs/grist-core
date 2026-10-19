@@ -1,3 +1,4 @@
+import { makeT } from "app/client/lib/localization";
 import { ColumnFilter } from "app/client/models/ColumnFilter";
 import { IColumnFilterViewType } from "app/client/ui/ColumnFilterMenu";
 import { updateRelativeDate } from "app/client/ui/RelativeDatesOptions";
@@ -8,6 +9,8 @@ import getCurrentTime from "app/common/getCurrentTime";
 
 import { Disposable, dom, Observable, styled } from "grainjs";
 import moment from "moment-timezone";
+
+const t = makeT("ColumnFilterCalendarView");
 
 export class ColumnFilterCalendarView extends Disposable {
   private _$el: any;
@@ -33,11 +36,11 @@ export class ColumnFilterCalendarView extends Disposable {
     return cssContainer(
       cssLinkRow(
         cssLink(
-          "← List view",
+          t("← List view"),
           dom.on("click", () => this._opts.selectedBoundObs.set(null)),
         ),
         cssLink(
-          "Today",
+          t("Today"),
           dom.on("click", () => {
             this._$el.datepicker("update", this._getCurrentTime());
             this._cleanup();

@@ -201,14 +201,14 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
     cssItemsFixed(
       cssSelectorItem(
         labeledSquareCheckbox(current,
-          [t("Current field "), cssSelectorNote("(data cleaning)")],
+          [t("Current field "), cssSelectorNote(t("(data cleaning)"))],
           dom.boolAttr("disabled", allUpdates),
         ),
       ),
       menuDivider(),
       cssSelectorItem(
         labeledSquareCheckbox(allUpdates,
-          [`${t("Any field")} `, cssSelectorNote("(except formulas)")],
+          [`${t("Any field")} `, cssSelectorNote(t("(except formulas)"))],
         ),
       ),
     ),

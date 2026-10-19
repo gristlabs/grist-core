@@ -15,6 +15,8 @@ const {cssTextInput} = require("app/client/ui2018/editableLabel");
 const {dom: gdom, styled, fromKo} = require("grainjs");
 const {select} = require("app/client/ui2018/menus");
 const {buildTZAutocomplete} = require("app/client/widgets/TZAutocomplete");
+const {makeT} = require("app/client/lib/localization");
+const t = makeT("DateTimeTextBox");
 const {timeFormatOptions} = require("app/common/parseDate");
 
 
@@ -59,18 +61,18 @@ DateTimeTextBox.prototype.buildConfigDom = function(_gristDoc, isTransformConfig
   });
   const alignment = fromKoSave(this.field.config.options.prop("alignment"));
   return dom("div",
-    cssLabel("Timezone"),
+    cssLabel(t("Timezone")),
     cssRow(
       gdom.create(buildTZAutocomplete, moment, fromKo(this._timezone), this._setTimezone,
         { disabled : fromKo(disabled)}),
     ),
     this.buildDateConfigDom(),
-    cssLabel("Time Format"),
+    cssLabel(t("Time Format")),
     cssRow(dom(
       select(
         fromKo(this.standardTimeFormat),
         [...timeFormatOptions, "Custom"],
-        { disabled : fromKo(disabled), defaultLabel: "Mixed format" }
+        { disabled : fromKo(disabled), defaultLabel: t("Mixed format") }
       ),
       dom.testId("Widget_timeFormat")
     )),

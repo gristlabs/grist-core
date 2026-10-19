@@ -1328,7 +1328,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       const link = urlState().makeUrl({ hash });
       await copyToClipboard(link);
       setTestState({ clipboard: link });
-      reportSuccess("Link copied to clipboard", { key: "clipboard" });
+      reportSuccess(t("Link copied to clipboard"), { key: "clipboard" });
     } catch (e) {
       throw new Error("cannot copy to clipboard");
     }
@@ -1805,7 +1805,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
   private _getToolContent(tool: typeof RightPanelTool.type): IExtraTool | null {
     switch (tool) {
       case "docHistory": {
-        return { icon: "Log", label: "Document History", content: this._docHistory };
+        return { icon: "Log", label: t("Document History"), content: this._docHistory };
       }
       case "validations": {
         const content = this._rightPanelTabs.get("Validate Data");
@@ -1861,10 +1861,10 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
   }
 
   private async _promptForName() {
-    return await invokePrompt("Table name", {
-      btnText: "Create",
+    return await invokePrompt(t("Table name"), {
+      btnText: t("Create"),
       initial: "",
-      placeholder: "Default table name",
+      placeholder: t("Default table name"),
     });
   }
 
