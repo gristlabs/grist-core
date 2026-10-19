@@ -1154,7 +1154,12 @@
         "Hidden {{label}}": "Hidden {{label}}",
         "Show {{label}}": "Show {{label}}",
         "Hide {{label}} (batch mode)": "Hide {{label}} (batch mode)",
-        "Show {{label}} (batch mode)": "Show {{label}} (batch mode)"
+        "Show {{label}} (batch mode)": "Show {{label}} (batch mode)",
+        "Clear hidden columns filter": "Clear hidden columns filter",
+        "Clear visible columns filter": "Clear visible columns filter",
+        "Filter": "Filter",
+        "Filter hidden columns": "Filter hidden columns",
+        "Filter visible columns": "Filter visible columns"
     },
     "WidgetTitle": {
         "Cancel": "Cancel",
