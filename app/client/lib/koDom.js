@@ -21,6 +21,7 @@ var G = require("./browserGlobals").get("document", "Node");
 var ko = require("knockout");
 var dom = require("./dom");
 var koArray = require("./koArray");
+var { testPendingScrolls } = require("app/client/lib/testPendingOps");
 
 /**
  * Creates a binding between a DOM element and an observable value, making sure that
@@ -307,6 +308,7 @@ function doScrollChildIntoView(elem, index, sync) {
       // Promise1 moves to 20, and clears the index.
       // Promise2 checks the index is null and just returns.
       elem[indexKey] = index;
+      testPendingScrolls.start();
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           try {
@@ -325,6 +327,7 @@ function doScrollChildIntoView(elem, index, sync) {
           } finally {
             // Clear the index, any subsequent async scrolls will be cancelled (on the if test above).
             elem[indexKey] = null;
+            testPendingScrolls.end();
           }
         }, 0);
       });
