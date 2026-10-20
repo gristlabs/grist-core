@@ -2,7 +2,7 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
-import { AdminCheckRequest, AdminChecks, ProbeDetails } from "app/client/models/AdminChecks";
+import { AdminCheckRequest, AdminChecks, isChecking, ProbeDetails } from "app/client/models/AdminChecks";
 import { AppModel, getHomeUrl, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -691,8 +691,7 @@ now, and takes effect the next time you restart Grist manually.")),
       const result = req ? use(req.result) : undefined;
 
       // No answer yet. Sandbox details are slow to fill on the first visit to the panel.
-      const checking = !result || result.status === "none";
-      if (checking) {
+      if (isChecking(result)) {
         return { label: t("checking") };
       }
 
@@ -743,10 +742,9 @@ now, and takes effect the next time you restart Grist manually.")),
         const req = this._checks.requestCheckById(use, "service-status");
         const result = req ? use(req.result) : undefined;
 
-        // Until the probe lands, show a neutral placeholder rather than the
-        // alarming default. Otherwise a real admin (and our tests) see
-        // "out of service" briefly on every page load.
-        if (!result || result.status === "none") { return cssValueLabel(t("checking")); }
+        // A neutral placeholder rather than a brief, alarming "out of service".
+        if (isChecking(result)) { return cssValueLabel(t("checking")); }
+        if (result.details?.requestFailed) { return cssValueLabel(t("unknown")); }
         if (result.details?.inService) {
           return cssValueLabel(cssHappyText(t("in service")));
         }
@@ -767,9 +765,7 @@ now, and takes effect the next time you restart Grist manually.")),
       const req = this._checks.requestCheckById(use, "admins");
       const result = req ? use(req.result) : undefined;
 
-      // No answer yet. The placeholder result has status "none".
-      const checking = !result || result.status === "none";
-      if (checking) {
+      if (isChecking(result)) {
         return { label: t("checking") };
       }
 
@@ -846,7 +842,8 @@ now, and takes effect the next time you restart Grist manually.")),
         const req = this._checks.requestCheckById(use, "boot-key");
         const result = req ? use(req.result) : undefined;
 
-        if (!result || result.status === "none") { return cssValueLabel(t("checking")); }
+        if (isChecking(result)) { return cssValueLabel(t("checking")); }
+        if (result.details?.requestFailed) { return cssValueLabel(t("unknown")); }
         if (result.details?.disabled) {
           return cssValueLabel(cssHappyText(t("disabled")));
         }
@@ -867,9 +864,7 @@ now, and takes effect the next time you restart Grist manually.")),
       const req = use(this._authCheck);
       const result = req ? use(req.result) : undefined;
 
-      // No answer yet. The placeholder result has status "none".
-      const checking = !result || result.status === "none";
-      if (checking) {
+      if (isChecking(result)) {
         return { label: t("checking") };
       }
 
@@ -963,11 +958,12 @@ now, and takes effect the next time you restart Grist manually.")),
         const req = this._checks.requestCheckById(use, "session-secret");
         const result = req ? use(req.result) : undefined;
 
-        if (result?.status === "none") { return cssValueLabel(t("checking")); }
-        if (result?.status === "warning") {
+        if (isChecking(result)) { return cssValueLabel(t("checking")); }
+        if (result.status === "warning") {
           return cssValueLabel(cssDangerText(t("default")));
         }
-
+        // The check itself only answers success or warning, so anything else is a failed request.
+        if (result.status !== "success") { return cssValueLabel(t("unknown")); }
         return cssValueLabel(cssHappyText(t("configured")));
       },
     );

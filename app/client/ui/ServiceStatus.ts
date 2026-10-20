@@ -1,6 +1,6 @@
 import { makeT } from "app/client/lib/localization";
 import { cssMarkdownSpan } from "app/client/lib/markdown";
-import { AdminChecks } from "app/client/models/AdminChecks";
+import { AdminChecks, isChecking } from "app/client/models/AdminChecks";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { saveModal } from "app/client/ui2018/modals";
@@ -30,7 +30,7 @@ export class ServiceStatus extends Disposable {
       (use) => {
         const req = this._adminChecks.requestCheckById(use, "service-status");
         const result = req ? use(req.result) : undefined;
-        if (!result || result.status === "none") {
+        if (isChecking(result)) {
           return cssCenteredFlexGrow(loadingSpinner());
         }
 

@@ -246,12 +246,11 @@ describe("AdminPanel", function() {
   it("should show admin accounts", async function() {
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
-    const adminAccounts = await driver.findWait(".test-admin-panel-item-admins", 2000);
+    // The count comes from the "admins" check; the pill is rebuilt when it reports.
+    await gu.waitForAdminChecks();
+    const adminAccounts = await driver.find(".test-admin-panel-item-admins");
     assert.equal(await adminAccounts.isDisplayed(), true);
     const adminDisplay = await driver.find(".test-admin-panel-admin-accounts-display");
-
-    // The count comes from the "admins" probe; the item renders "checking" until it reports.
-    await gu.waitForAdminChecks();
     assert.equal("1 admin account", await adminDisplay.getText());
 
     await toggleItem("admins");
