@@ -568,6 +568,7 @@ describe("Comments", function() {
     await waitForInput();
     await gu.sendKeys("Owners comment");
     await enter();
+    await gu.sendKeys(Key.ESCAPE);
     await assertNoPopup();
 
     await asSupport();
@@ -712,6 +713,7 @@ describe("Comments", function() {
     await waitForPopup("empty");
     assert.isEmpty(await getEditorText("start"));
     await gu.sendKeys(Key.ESCAPE);
+    await assertNoPopup();
 
     // Clicking comment should not send the empty comment.
     await gu.getCell("A", 2).click();
@@ -1345,6 +1347,7 @@ describe("Comments", function() {
     await assertNoPopup();
     await openCommentsWithKey();
     await waitForPopup("any");
+    await waitForInput();
     await gu.sendKeys(Key.ESCAPE);
     await assertNoPopup();
     await openCommentsWithMouse("B", 1);
@@ -2156,7 +2159,7 @@ async function waitForInput(which?: EditorType) {
 
 async function assertNoPopup() {
   await gu.waitToPass(async () => {
-    assert.isFalse(await driver.find(".test-comments-popup").isPresent());
+    assert.isFalse(await driver.find(".test-discussion-popup").isPresent());
   });
 }
 

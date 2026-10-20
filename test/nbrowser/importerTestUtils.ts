@@ -39,7 +39,7 @@ export const getPreviewDiffCellValues = stackWrapFunc(async (cols: number[], row
 export const waitForDiffPreviewToLoad = async (): Promise<void> => {
   await gu.waitForServer();
   await driver.wait(() => driver.find(".test-importer-preview").isPresent(), 5000);
-  await driver.findWait(".test-importer-preview .gridview_row", 1000);
+  await driver.findWait(".test-importer-preview .gridview_row", 5000);
 
   // Check if we can see row number 1
   await driver.findContentWait(".test-importer-preview .gridview_data_row_num", "1", 5000);

@@ -1,6 +1,6 @@
 import * as gu from "test/nbrowser/gristUtils";
 
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
+import { assert, driver, Key, until, WebElement } from "mocha-webdriver";
 
 /**
  * Find .test-rule-table element for the given tableId.
@@ -213,6 +213,19 @@ export async function hasExtraAdd(el: WebElement): Promise<boolean> {
   const parts = await el.findAll(".test-rule-part-and-memo");
   const adds = await el.findAll(".test-rule-add");
   return adds.length === parts.length + 1;
+}
+
+/**
+ * Click the Save button to save the Access Rules changes.
+ */
+export async function saveRules(checkStateChange: boolean = true) {
+  const saveBtn = driver.find(".test-rules-save");
+  await driver.wait(() => saveBtn.isDisplayed());
+  await saveBtn.click();
+  if (checkStateChange) {
+    await driver.wait(until.stalenessOf(saveBtn));
+  }
+  await gu.waitForServer();
 }
 
 /**

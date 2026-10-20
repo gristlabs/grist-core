@@ -4,7 +4,7 @@
 import {
   assertChanged, assertSaved, enterRulePart, findDefaultRuleSet,
   findRuleSetColumnWait, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
-  removeTable, startEditingAccessRules,
+  removeTable, saveRules, startEditingAccessRules,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -43,8 +43,7 @@ describe("AccessRules3", function() {
       await startEditingAccessRules();
 
       // Save the initial rules.
-      await driver.find(".test-rules-save").click();
-      await gu.waitForServer();
+      await saveRules();
       await assertSaved();
 
       // Check seed rule checkbox is unselected.
@@ -256,8 +255,7 @@ describe("AccessRules3", function() {
       await assertChanged();
 
       // Save, and check state is correctly persisted.
-      await driver.find(".test-rules-save").click();
-      await gu.waitForServer();
+      await saveRules();
       seedRule = await driver.findWait("div.test-rule-special-SeedRule", 2000);
       checkbox = seedRule.find("input[type=checkbox]");
       assert.equal(await checkbox.isSelected(), true);
@@ -272,8 +270,7 @@ describe("AccessRules3", function() {
       // Now unselect the checkbox, and make sure that we can save+reload.
       await checkbox.click();
       await assertChanged();
-      await driver.find(".test-rules-save").click();
-      await gu.waitForServer();
+      await saveRules();
       seedRule = await driver.findWait("div.test-rule-special-SeedRule", 2000);
       checkbox = seedRule.find("input[type=checkbox]");
       assert.equal(await checkbox.isSelected(), false);
@@ -286,8 +283,7 @@ describe("AccessRules3", function() {
       // Select the checkbox again, and save. Then make a custom change.
       await checkbox.click();
       await assertChanged();
-      await driver.find(".test-rules-save").click();
-      await gu.waitForServer();
+      await saveRules();
       seedRule = await driver.findWait("div.test-rule-special-SeedRule", 2000);
       checkbox = seedRule.find("input[type=checkbox]");
       assert.equal(await checkbox.isSelected(), true);
@@ -301,8 +297,7 @@ describe("AccessRules3", function() {
       await assertChanged();
 
       // Save the custom change, and make sure we can reload it.
-      await driver.find(".test-rules-save").click();
-      await gu.waitForServer();
+      await saveRules();
       seedRule = await driver.findWait("div.test-rule-special-SeedRule", 2000);
       checkbox = seedRule.find("input[type=checkbox]");
       assert.equal(await checkbox.isSelected(), false);
@@ -347,8 +342,7 @@ describe("AccessRules3", function() {
       // Check that the Save button is enabled, and save.
       await gu.userActionsCollect();
       await assertChanged();
-      await driver.find(".test-rules-save").click();
-      await gu.waitForServer();
+      await saveRules();
 
       // This is the important check of this test: that for a column rule, we only save the "read"
       // and "update" bits.
