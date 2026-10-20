@@ -99,7 +99,7 @@ export interface ViewSectionOptions extends ChartOptions {
   rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
 
   // Options for the native CalendarView.
-  calendarViewPerspective?: "day" | "week" | "month";   // Last-used calendar view.
+  calendarViewPerspective?: "day" | "week" | "month";   // Saved calendar view.
 
   // Other options.
   customView?: string;    // Configuration for custom widgets in JSON format.
@@ -296,6 +296,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // We won't freeze all the columns on a grid, it will leave at least 1 column unfrozen.
   numFrozen: ko.Computed<number>;
   activeCustomOptions: modelUtil.CustomComputed<any>;
+  activeCalendarPerspective: modelUtil.CustomComputed<"day" | "week" | "month">;
 
   // Observables used for styling rows with limited heights.
   rowHeight: Computed<number>;
@@ -548,6 +549,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   });
 
   this.activeCustomOptions = modelUtil.customValue(this.customDef.widgetOptions);
+  this.activeCalendarPerspective = modelUtil.customValue(
+    modelUtil.fieldWithDefault(this.optionsObj.prop("calendarViewPerspective"), "week"));
 
   this.saveCustomDef = async () => {
     await customDefObj.save();

@@ -1,5 +1,11 @@
 const fs = require("fs");
 const path = require("path");
+const appModulePath = require("app-module-path");
+
+// Set up module paths here rather than with NODE_PATH, whose separator differs on Windows.
+for (const p of ["_build", "_build/ext", "_build/stubs", "ext/node_modules"]) {
+  appModulePath.addPath(path.resolve(p));
+}
 
 const { setupLocale } = require("app/server/localization");
 

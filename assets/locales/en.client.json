@@ -1141,7 +1141,8 @@
         "SORT": "SORT",
         "Save": "Save",
         "Update Sort&Filter settings": "Update Sort&Filter settings",
-        "Sort and filter": "Sort and filter"
+        "Sort and filter": "Sort and filter",
+        "Calendar view": "Calendar view"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "Cannot drop items into Hidden Fields",
@@ -2720,7 +2721,11 @@
         "Open the current row menu": "Open the current row menu",
         "When focused on a page panel, focus next landmark": "When focused on a page panel, focus next landmark",
         "When focused on a page panel, focus previous landmark": "When focused on a page panel, focus previous landmark",
-        "When focused on a widget, move focus between widget and widget header": "When focused on a widget, move focus between widget and widget header"
+        "When focused on a widget, move focus between widget and widget header": "When focused on a widget, move focus between widget and widget header",
+        "Open the formula assistant": "Open the formula assistant",
+        "Shortcut to close the inner left panel": "Shortcut to close the inner left panel",
+        "Shortcut to open the inner left panel": "Shortcut to open the inner left panel",
+        "Toggle the assistant": "Toggle the assistant"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",
