@@ -75,7 +75,10 @@
         "Permission to access the document in full by unrestricted users": "Permission to access the document in full by unrestricted users",
         "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.",
         "Special rules for templates": "Special rules for templates",
-        "This options should be off if Editors' access is to be limited. ": "This options should be off if Editors' access is to be limited. "
+        "This options should be off if Editors' access is to be limited. ": "This options should be off if Editors' access is to be limited. ",
+        "Allow Editors to edit structure (e.g. modify and delete tables and columns, and edit formulas, pages, widgets, and settings).  Important: if checked, Editors may be able to bypass table and column access rules, and to read and change all data!": "Allow Editors to edit structure (e.g. modify and delete tables and columns, and edit formulas, pages, widgets, and settings).  Important: if checked, Editors may be able to bypass table and column access rules, and to read and change all data!",
+        "Dismiss.": "Dismiss.",
+        "This option should be off unless you trust Editors as you would Owners on this document. ": "This option should be off unless you trust Editors as you would Owners on this document. "
     },
     "AccountPage": {
         "API": "API",
@@ -869,7 +872,10 @@
         "SELECT BY": "SELECT BY",
         "{{table}} grouped by… (press to select fields)": "{{table}} grouped by… (press to select fields)",
         "Press Space to add fields": "Press Space to add fields",
-        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps."
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.",
+        "Create your own": "Create your own",
+        "More": "More",
+        "NEW": "NEW"
     },
     "Pages": {
         "Delete": "Delete",
@@ -1527,7 +1533,9 @@
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.",
         "Unpin to hide the button while keeping the filter.": "Unpin to hide the button while keeping the filter.",
         "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.",
-        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "To configure your calendar, select columns for start/end dates and event titles. Note each column's type."
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.",
+        "Editors can edit structure, so they, like Owners, may bypass table and column access rules and read and change any data in this document. Turn off structure editing in Access Rules to limit them.": "Editors can edit structure, so they, like Owners, may bypass table and column access rules and read and change any data in this document. Turn off structure editing in Access Rules to limit them.",
+        "This widget is one file of HTML and JavaScript, saved in this document. It reads the rows of the table you pick.": "This widget is one file of HTML and JavaScript, saved in this document. It reads the rows of the table you pick."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION",
@@ -1699,7 +1707,8 @@
         "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.",
         "Configure notifications": "Configure notifications",
         "Invitation emails are not enabled on this installation.": "Invitation emails are not enabled on this installation.",
-        "Invitation emails are not sent on Grist Community edition.": "Invitation emails are not sent on Grist Community edition."
+        "Invitation emails are not sent on Grist Community edition.": "Invitation emails are not sent on Grist Community edition.",
+        "Owner-like data access": "Owner-like data access"
     },
     "SearchModel": {
         "Search all pages": "Search all pages",
@@ -2051,7 +2060,24 @@
         "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.",
         "Switch to Community edition?": "Switch to Community edition?",
         "Switch to full Grist?": "Switch to full Grist?",
-        "This will also apply your other pending changes:": "This will also apply your other pending changes:"
+        "This will also apply your other pending changes:": "This will also apply your other pending changes:",
+        "Any document can run code with full access to this server.": "Any document can run code with full access to this server.",
+        "Anyone can open this server": "Anyone can open this server",
+        "Could not read admin accounts": "Could not read admin accounts",
+        "Could not run the {{name}} check": "Could not run the {{name}} check",
+        "Formulas are not sandboxed": "Formulas are not sandboxed",
+        "Health check is failing": "Health check is failing",
+        "No install admin": "No install admin",
+        "No sign-in method": "No sign-in method",
+        "No sign-in method is set up. Anyone who can reach this server can see all data.": "No sign-in method is set up. Anyone who can reach this server can see all data.",
+        "Only the admin can sign in": "Only the admin can sign in",
+        "Sandbox is not working": "Sandbox is not working",
+        "Sandbox {{flavor}} is set up but fails to start.": "Sandbox {{flavor}} is set up but fails to start.",
+        "Set GRIST_ADMIN_EMAIL so that someone can manage this server.": "Set GRIST_ADMIN_EMAIL so that someone can manage this server.",
+        "Sign-in is broken": "Sign-in is broken",
+        "Sign-in works only with the boot key. Set up a sign-in method so that other users can sign in.": "Sign-in works only with the boot key. Set up a sign-in method so that other users can sign in.",
+        "The server cannot open a websocket to its own public URL. Check your reverse proxy.": "The server cannot open a websocket to its own public URL. Check your reverse proxy.",
+        "Websockets do not work": "Websockets do not work"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2414,7 +2440,9 @@
         "start a new chat": "start a new chat",
         "upgrade to the Pro Team plan": "upgrade to the Pro Team plan",
         "upgrade your plan": "upgrade your plan",
-        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance."
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.",
+        "The session has become too long and I can no longer respond effectively. Please {{startANewSessionButton}} to continue receiving assistance.": "The session has become too long and I can no longer respond effectively. Please {{startANewSessionButton}} to continue receiving assistance.",
+        "start a new session": "start a new session"
     },
     "apiconsole": {
         "Are you sure you want to delete the following?": "Are you sure you want to delete the following?",
@@ -2725,7 +2753,8 @@
         "Open the formula assistant": "Open the formula assistant",
         "Shortcut to close the inner left panel": "Shortcut to close the inner left panel",
         "Shortcut to open the inner left panel": "Shortcut to open the inner left panel",
-        "Toggle the assistant": "Toggle the assistant"
+        "Toggle the assistant": "Toggle the assistant",
+        "Save the code of a custom widget in its editor": "Save the code of a custom widget in its editor"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-hour format",
@@ -3124,7 +3153,9 @@
         },
         "Your data may not survive a container restart.": "Your data may not survive a container restart.",
         "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.",
-        "To preserve it, mount a volume at /persist.": "To preserve it, mount a volume at /persist."
+        "To preserve it, mount a volume at /persist.": "To preserve it, mount a volume at /persist.",
+        "Back up documents externally": "Back up documents externally",
+        "Storage": "Storage"
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Allow anonymous access",
@@ -3364,7 +3395,9 @@
         "filtered": "filtered",
         "not configured": "not configured",
         "review": "review",
-        "unfiltered": "unfiltered"
+        "unfiltered": "unfiltered",
+        "How user actions can reach the outside world": "How user actions can reach the outside world",
+        "Outgoing requests": "Outgoing requests"
     },
     "McpConnectBanner": {
         "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})"
@@ -3624,6 +3657,53 @@
         "{{count}} warnings_one": "{{count}} warning",
         "{{count}} warnings_other": "{{count}} warnings",
         "{{count}} dismissed_one": "{{count}} dismissed",
-        "{{count}} dismissed_other": "{{count}} dismissed"
+        "{{count}} dismissed_other": "{{count}} dismissed",
+        "Click to show them again.": "Click to show them again.",
+        "Dismiss": "Dismiss",
+        "Grist may not be safe or may not work until these are fixed.": "Grist may not be safe or may not work until these are fixed.",
+        "Show": "Show",
+        "These may be fine for your setup, but check them.": "These may be fine for your setup, but check them."
+    },
+    "WidgetCreatorSectionConfig": {
+        "Ask assistant": "Ask assistant",
+        "Close editor": "Close editor",
+        "Edit code": "Edit code",
+        "Edit source": "Edit source",
+        "In-document custom widget": "In-document custom widget",
+        "Its code is saved in this document, so copies and exports keep it.": "Its code is saved in this document, so copies and exports keep it.",
+        "Use assistant": "Use assistant",
+        "WIDGET": "WIDGET"
+    },
+    "WidgetCreatorView": {
+        "Ask the assistant": "Ask the assistant",
+        "Close editor": "Close editor",
+        "Copy error": "Copy error",
+        "Don't save": "Don't save",
+        "Edit source": "Edit source",
+        "Empty": "Empty",
+        "Error copied": "Error copied",
+        "Error on line {{line}}: {{- message}}": "Error on line {{line}}: {{- message}}",
+        "Error: {{- message}}": "Error: {{- message}}",
+        "Expand the widget": "Expand the widget",
+        "Fix this error in the widget code: {{- error}}": "Fix this error in the widget code: {{- error}}",
+        "Learn more": "Learn more",
+        "Open the code": "Open the code",
+        "Save": "Save",
+        "Save the code ({{shortcut}})": "Save the code ({{shortcut}})",
+        "Save your changes?": "Save your changes?",
+        "Saved": "Saved",
+        "Send to assistant": "Send to assistant",
+        "Source": "Source",
+        "The widget has changes that are not saved. If you close the editor without saving, they are lost.": "The widget has changes that are not saved. If you close the editor without saving, they are lost.",
+        "This widget is empty.": "This widget is empty.",
+        "Toggle preview": "Toggle preview",
+        "Too narrow for the code": "Too narrow for the code",
+        "Too narrow for the code. Expand to see and edit it.": "Too narrow for the code. Expand to see and edit it.",
+        "Use assistant": "Use assistant",
+        "What should this widget show?": "What should this widget show?",
+        "Write html and js code": "Write html and js code",
+        "or": "or",
+        "write it yourself": "write it yourself",
+        "{{ask}}, or {{write}}": "{{ask}}, or {{write}}"
     }
 }
