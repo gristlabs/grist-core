@@ -171,6 +171,15 @@ describe("Authorizer", function() {
     assert.equal(nbSessionsAfter, nbSessionsBefore, "No new session should have been created during the API call");
   });
 
+  it("does not generate sessions when using a permit", async function() {
+    const permitKey = await server.getPermitStore().setPermit({ docId: docs.Bananas.id });
+    const nbSessionsBefore = await countSessions();
+    const resp = await axios.get(`${serverUrl}/api/docs/${docs.Bananas.id}/tables`, { headers: { Permit: permitKey } });
+    const nbSessionsAfter = await countSessions();
+    assert.equal(resp.status, 200);
+    assert.equal(nbSessionsAfter, nbSessionsBefore, "No new session should have been created during the permit call");
+  });
+
   // This checks we create an altSessionID for Anonymous users. Useful in particular to give them
   // rights through Access Rules.
   it("does generate a session when calling the API as anonymous", async function() {
