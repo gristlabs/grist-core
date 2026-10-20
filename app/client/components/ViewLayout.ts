@@ -13,6 +13,7 @@ import { Layout, purgeBoxSpec } from "app/client/components/Layout";
 import { LayoutEditor } from "app/client/components/LayoutEditor";
 import { LayoutTray } from "app/client/components/LayoutTray";
 import { printViewSection } from "app/client/components/Printing";
+import { WidgetCreatorView } from "app/client/components/WidgetCreatorView";
 import { Delay } from "app/client/lib/Delay";
 import { createObsArray } from "app/client/lib/koArrayWrap";
 import { makeT } from "app/client/lib/localization";
@@ -56,6 +57,7 @@ const viewSectionTypes: { [key: string]: any } = {
   calendar: CalendarView,
   custom: CustomView,
   form: FormView,
+  creator: WidgetCreatorView,
 };
 
 function getInstanceConstructor(parentKey: string) {

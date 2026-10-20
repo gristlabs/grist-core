@@ -19,6 +19,7 @@ import { icon } from "app/client/ui2018/icons";
 import { spinnerModal } from "app/client/ui2018/modals";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { isLongerThan, nativeCompare } from "app/common/gutil";
+import { getGristConfig } from "app/common/urlUtils";
 import { IWidgetType } from "app/common/widgetTypes";
 
 import {
@@ -122,7 +123,7 @@ function getCompatibleTypes(tableId: TableRef,
   { isNewPage, summarize }: ICompatibleTypes): IWidgetType[] {
   let compatibleTypes: IWidgetType[] = [];
   if (tableId !== "New Table") {
-    compatibleTypes = ["record", "single", "detail", "chart", "calendar", "custom", "form"];
+    compatibleTypes = [...mainSectionTypes, ...moreSectionTypes];
   } else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
     compatibleTypes = ["record", "form"];
@@ -324,10 +325,11 @@ export interface ISelectOptions {
   selectBy?: (val: IPageWidget) => IOption<string>[];
 }
 
-// the list of widget types in the order they should be listed by the widget.
-const sectionTypes: IWidgetType[] = [
-  "record", "single", "detail", "form", "chart", "calendar", "custom",
-];
+// The widget types in the order the picker lists them: these first, then the "More" divider.
+const mainSectionTypes: IWidgetType[] = ["record", "single", "detail", "chart", "calendar"];
+
+// The widget types under the "More" divider.
+const moreSectionTypes: IWidgetType[] = ["form", "custom", "creator"];
 
 // Returns dom that let a user select a page widget. User can select a widget type (id: 'grid',
 // 'card', ...), one of `tables` and optionally some of the `columns` of the selected table if she
@@ -432,30 +434,9 @@ export class PageWidgetSelect extends Disposable {
             "aria-describedby": "picker-kb-help",
           },
           header(t("Select widget"), { id: "picker-widgets-header" }),
-          sectionTypes.map((value) => {
-            const widgetInfo = getWidgetTypes(value);
-            const disabled = computed(this._value.table,
-              (use, tid) => this._isTypeDisabled(value, tid, use(this._value.summarize)),
-            );
-            return cssEntry(
-              dom.autoDispose(disabled),
-              cssTypeIcon(widgetInfo.icon),
-              widgetInfo.getLabel(),
-              dom.on("click", (event) => {
-                if (disabled.get()) {
-                  return;
-                }
-                event.preventDefault();
-                this._selectType(value);
-              }),
-              dom.data("widget-type", value),
-              cssEntry.cls("-selected", use => use(this._value.type) === value),
-              dom.attr("aria-pressed", use => use(this._value.type) === value ? "true" : undefined),
-              cssEntry.cls("-disabled", disabled),
-              dom.prop("disabled", disabled),
-              testId("type"),
-            );
-          }),
+          mainSectionTypes.map(value => this._buildTypeEntry(value)),
+          cssMoreDivider(t("More")),
+          moreSectionTypes.map(value => this._buildTypeEntry(value)),
         ),
         cssPanel(
           testId("data"),
@@ -603,6 +584,33 @@ export class PageWidgetSelect extends Disposable {
 
   private _openSummarizePanel() {
     this._value.summarize.set(true);
+  }
+
+  private _buildTypeEntry(value: IWidgetType) {
+    const widgetInfo = getWidgetTypes(value);
+    const disabled = computed(this._value.table,
+      (use, tid) => this._isTypeDisabled(value, tid, use(this._value.summarize)),
+    );
+    const isWidgetCreator = value === "creator";
+    return cssEntry(
+      dom.autoDispose(disabled),
+      cssTypeIcon(isWidgetCreator && getGristConfig().assistant?.version === 2 ? "Sparkle" : widgetInfo.icon),
+      isWidgetCreator ? t("Create your own") : widgetInfo.getLabel(),
+      isWidgetCreator ? cssNewBadge(t("NEW"), testId("new-badge")) : null,
+      dom.on("click", (event) => {
+        if (disabled.get()) {
+          return;
+        }
+        event.preventDefault();
+        this._selectType(value);
+      }),
+      dom.data("widget-type", value),
+      cssEntry.cls("-selected", use => use(this._value.type) === value),
+      dom.attr("aria-pressed", use => use(this._value.type) === value ? "true" : undefined),
+      cssEntry.cls("-disabled", disabled),
+      dom.prop("disabled", disabled),
+      testId("type"),
+    );
   }
 
   private _selectType(type: IWidgetType) {
@@ -794,7 +802,7 @@ function header(label: DomArg, ...args: DomElementArg[]) {
 const cssContainer = styled("div", `
   --outline: 1px solid ${theme.widgetPickerBorder};
 
-  max-height: 386px;
+  max-height: 440px;
   box-shadow: 0 2px 20px 0 ${theme.widgetPickerShadow};
   border-radius: 2px;
   display: flex;
@@ -863,6 +871,35 @@ const cssIcon = styled(icon, `
   .${cssEntry.className}-disabled > & {
     opacity: 0.25;
   }
+`);
+
+const cssMoreDivider = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 18px 4px 24px;
+  font-size: ${vars.xsmallFontSize};
+  line-height: 12px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: ${theme.lightText};
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: ${theme.pagePanelsBorder};
+  }
+`);
+
+const cssNewBadge = styled("span", `
+  margin: 0 14px 0 auto;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: ${vars.xsmallFontSize};
+  font-weight: 600;
+  line-height: 16px;
+  color: ${theme.controlPrimaryBg};
+  background-color: ${theme.selectionOpaqueBg};
 `);
 
 const cssTypeIcon = styled(cssIcon, `

@@ -137,7 +137,8 @@ export type CommandName =
   "showColumns" |
   "createForm" |
   "insertField" |
-  "pushUndoAction"
+  "pushUndoAction" |
+  "widgetCreatorSave"
   ;
 
 export interface CommandDef {
@@ -801,6 +802,15 @@ export const groups: CommendGroupDef[] = [{
       name: "transformUpdate",
       keys: ["Shift+Enter"],
       desc: null, // Updates the transform formula
+    },
+  ],
+}, {
+  group: "Widget Creator",
+  commands: [
+    {
+      name: "widgetCreatorSave",
+      keys: ["Mod+s"],
+      desc: () => t("Save the code of a custom widget in its editor"),
     },
   ],
 }];

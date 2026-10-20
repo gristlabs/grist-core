@@ -202,7 +202,7 @@ describe("PageWidgetPicker", () => {
     await driver.findContent(".test-wselect-table", /New Table/).doClick();
 
     // check that 'Chart', 'Calendar' and 'Custom' are disabled
-    assert.deepEqual(await findAllDisabled("type"), ["Chart", "Calendar", "Custom"]);
+    assert.deepEqual(await findAllDisabled("type"), ["Chart", "Calendar", "Custom", "Create your own\nNEW"]);
     assert.deepEqual(await findAllDisabled("table"), []);
 
     // click 'Chart'
@@ -238,7 +238,7 @@ describe("PageWidgetPicker", () => {
     // select 'New Table' and check that 'single', 'detail', 'chart', 'calendar', 'custom' are disabled
     await driver.findContent(".test-wselect-table", /New Table/).doClick();
     assert.deepEqual(await findAllDisabled("type"),
-      ["Card", "Card List", "Chart", "Calendar", "Custom"]);
+      ["Card", "Card List", "Chart", "Calendar", "Custom", "Create your own\nNEW"]);
     assert.deepEqual(await findAllDisabled("table"), []);
 
     // select 'Companies' and check that none are disabled

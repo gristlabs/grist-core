@@ -103,6 +103,7 @@ export interface ViewSectionOptions extends ChartOptions {
 
   // Other options.
   customView?: string;    // Configuration for custom widgets in JSON format.
+  html?: string;          // The code of a Widget Creator widget: one HTML file.
   disabled?: boolean;     // Applies to the "default record card".
   rulesOptions?: Style[];
 }

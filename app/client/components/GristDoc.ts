@@ -88,12 +88,13 @@ import {
   SpecialDocPage,
   ViewDocPage,
 } from "app/common/gristUrls";
-import { undef, waitObs } from "app/common/gutil";
+import { safeJsonParse, undef, waitObs } from "app/common/gutil";
 import { LocalPlugin } from "app/common/plugin";
 import { StringUnion } from "app/common/StringUnion";
 import { TableData } from "app/common/TableData";
 import { getGristConfig } from "app/common/urlUtils";
 import { AttachmentTransferStatus, DocAPI, ExtendedUser } from "app/common/UserAPI";
+import { DEFAULT_WIDGET_CREATOR_ACCESS, toWidgetCreatorOptions } from "app/common/WidgetCreatorCode";
 import { IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { CursorPos } from "app/plugin/GristAPI";
 
@@ -1094,7 +1095,14 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
         // if type changes, let's save it.
         if (oldVal.type !== newVal.type) {
-          await section.parentKey.saveOnly(newVal.type);
+          if (newVal.type === WidgetType.Creator) {
+            // One save, so the widget is never shown as Widget Creator without its code.
+            const options = toWidgetCreatorOptions(safeJsonParse(section.options.peek(), {}), { typeChanged: true });
+            await docData.sendAction(["UpdateRecord", "_grist_Views_section", section.getRowId(),
+              { parentKey: newVal.type, options: JSON.stringify(options) }]);
+          } else {
+            await section.parentKey.saveOnly(newVal.type);
+          }
         }
 
         // if grouped by column changes, let's use the specific user action.
@@ -1566,6 +1574,9 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     if (type === "form") {
       await this._setDefaultFormLayoutSpec(result.sectionRef);
     }
+    if (type === "creator") {
+      await this._setWidgetCreatorDefaultAccess(result.sectionRef);
+    }
     await this.saveLink(link, result.sectionRef);
     const widgetType = getTelemetryWidgetTypeFromPageWidget(widget);
     logTelemetryEvent("addedWidget", { full: { docIdDigest: this.docId(), widgetType } });
@@ -1607,6 +1618,9 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     }
     if (type === "form") {
       await this._setDefaultFormLayoutSpec(sectionRef!);
+    }
+    if (type === "creator") {
+      await this._setWidgetCreatorDefaultAccess(sectionRef!);
     }
     logTelemetryEvent("addedPage", { full: { docIdDigest: this.docId() } });
     logTelemetryEvent("addedWidget", {
@@ -2114,6 +2128,11 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       // send actions
       await this.docModel.viewFields.sendTableActions(actions);
     }
+  }
+
+  private async _setWidgetCreatorDefaultAccess(sectionRef: number) {
+    const { customDef } = this.docModel.viewSections.getRowModel(sectionRef);
+    if (!customDef.access.peek()) { await customDef.access.saveOnly(DEFAULT_WIDGET_CREATOR_ACCESS); }
   }
 
   private async _setDefaultFormLayoutSpec(viewSectionId: number) {

@@ -30,6 +30,7 @@ import { TableOperations } from "app/plugin/TableOperations";
 import { TableOperationsImpl } from "app/plugin/TableOperationsImpl";
 import { checkers } from "app/plugin/TypeCheckers";
 import { WidgetAPI } from "app/plugin/WidgetAPI";
+import { reportWidgetErrors } from "app/plugin/WidgetErrors";
 
 export * from "app/plugin/TypeCheckers";
 export * from "app/plugin/FileParserAPI";
@@ -523,6 +524,10 @@ if (typeof window !== "undefined") {
   // Allow outer Grist application to trigger printing. This is similar to using
   // iframe.contentWindow.print(), but that call does not work cross-domain.
   rpc.registerFunc("print", () => window.print());
+
+  // A Widget Creator widget runs at "about:srcdoc". Send its errors to Grist from the start,
+  // also the ones before grist.ready().
+  if (window.location.href === "about:srcdoc") { reportWidgetErrors(); }
 } else if (typeof process === "undefined") {
   // Web worker. We can't really bring in the types for WebWorker (available with --lib flag)
   // without conflicting with a regular window, so use just use `self as any` here.

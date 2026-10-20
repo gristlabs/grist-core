@@ -1,5 +1,5 @@
 import { ApiError } from "app/common/ApiError";
-import { AssistanceRequestV1, AssistanceRequestV2 } from "app/common/Assistance";
+import { AssistanceRequestV1, AssistanceUserRequestV2 } from "app/common/Assistance";
 import { IOptions } from "app/common/BaseAPI";
 import { Features } from "app/common/Features";
 import { resetOrg } from "app/common/resetOrg";
@@ -676,7 +676,7 @@ describe("limits", function() {
           colId: "",
         },
       };
-      const v2: AssistanceRequestV2 = {
+      const v2: AssistanceUserRequestV2 = {
         ...sharedPayload,
         context: {},
       };

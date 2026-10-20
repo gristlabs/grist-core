@@ -1,9 +1,11 @@
 import { allCommands } from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
+import { WidgetCreatorView } from "app/client/components/WidgetCreatorView";
 import { hooks } from "app/client/Hooks";
 import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { urlState } from "app/client/models/gristUrlState";
+import { widgetCreatorMenuItems } from "app/client/ui/WidgetCreatorSectionConfig";
 import { testId } from "app/client/ui2018/cssVars";
 import { menuDivider, menuItemCmd, menuItemLink } from "app/client/ui2018/menus";
 import { WidgetType } from "app/common/widgetTypes";
@@ -73,6 +75,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     Boolean(viewRec.getRowId()) && !isReadonly;
 
   return [
+    viewInstance instanceof WidgetCreatorView ? widgetCreatorMenuItems(viewInstance) : null,
     dom.maybe(isCard, () => contextMenu),
     dom.maybe(showRawData,
       () => menuItemLink(

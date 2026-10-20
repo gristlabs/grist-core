@@ -57,9 +57,9 @@ export interface AssistantV2 {
     params: unknown,
   ): Promise<FunctionCallResult>;
   /**
-   * Return the list of available tools.
+   * Return the tools that run on the server, without a browser. Used by the MCP endpoint.
    */
-  getTools?(): OpenAITool[];
+  getServerTools?(): OpenAITool[];
 }
 
 export interface AssistantV1Options {
