@@ -6,15 +6,16 @@
 import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
 import {
-  cssDangerText,
-  cssHappyText,
+  buildStatusPill,
   cssIconWrapper as cssWellIcon,
   cssWell,
   cssWellContent,
   cssWellTitle,
+  RowStatus,
 } from "app/client/ui/AdminPanelCss";
-import { cssValueLabel, SectionItem } from "app/client/ui/SettingsLayout";
+import { SectionItem } from "app/client/ui/SettingsLayout";
 import { hoverTooltip } from "app/client/ui/tooltips";
+import { TopProblem } from "app/client/ui/TopProblems";
 import { textButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
@@ -30,7 +31,7 @@ import {
   ServerHealthReason,
 } from "app/common/BootProbe";
 
-import { Disposable, dom, DomContents, makeTestId, styled, UseCBOwner } from "grainjs";
+import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled, UseCBOwner } from "grainjs";
 
 const t = makeT("AdminServersSection");
 const testId = makeTestId("test-admin-servers-");
@@ -108,17 +109,10 @@ documents are only reachable on the server assigned to them."),
 
 /**
  * Explains the states of servers that the banner does not cover, with a count for each.
- *
- * Singular and plural are separate strings, since an untranslated language falls back to the key,
- * and an i18next plural key would read "1 servers".
  */
 const OTHER_STATE: Record<Exclude<ServerHealthReason, "ok" | "shared-address">, (n: number) => string> = {
-  stale: n => n === 1 ?
-    t("1 other server has stopped reporting that it is running.") :
-    t("{{count}} other servers have stopped reporting that they are running.", { count: n }),
-  unavailable: n => n === 1 ?
-    t("1 other server is registered but not accepting new documents.") :
-    t("{{count}} other servers are registered but not accepting new documents.", { count: n }),
+  stale: n => t("{{count}} other servers have stopped reporting that they are running.", { count: n }),
+  unavailable: n => t("{{count}} other servers are registered but not accepting new documents.", { count: n }),
 };
 
 /**
@@ -167,12 +161,15 @@ export interface ServersSectionProps {
  * The Servers section, and the settings warning at the top of the page, which use the same check.
  */
 export class ServersSection extends Disposable {
+  public readonly status: Observable<RowStatus>;
+
   // The last answer, so the list stays in place while a refresh is pending. Set by _check inside
   // computeds, which is safe since it only caches what _check returns.
   private _lastDetails: MultiServerBootProbeDetails | undefined;
 
   constructor(private _props: ServersSectionProps) {
     super();
+    this.status = Computed.create(this, use => this._buildStatus(use));
   }
 
   /**
@@ -211,26 +208,58 @@ so that every server is configured the same way."))),
       name: t("Servers"),
       // Home servers that hold no documents do not register, so they are not listed.
       description: t("The servers registered to hold documents"),
-      value: dom.domComputed(use => this._buildSummary(use)),
+      value: buildStatusPill(this.status),
       expandedContent: dom.domComputed(use => this._buildDetail(use)),
     }));
   }
 
-  /** The short summary shown in the row while it is collapsed. */
-  private _buildSummary(use: UseCBOwner): DomContents {
+  /** The short summary shown in the row while it is collapsed, with the problem it reports. */
+  private _buildStatus(use: UseCBOwner): RowStatus {
     const { details } = this._check(use);
-    if (!details) { return cssValueLabel(t("checking")); }
-    const copy = _copyFor(details.situation);
-    const count = details.registeredServerCount === 1 ?
-      t("1 server") : t("{{count}} servers", { count: details.registeredServerCount });
+    if (!details) {
+      return { label: t("checking") };
+    }
+    const servers = details.servers ?? [];
+    const count = t("{{count}} servers", { count: details.registeredServerCount });
+    // Text of the situation, e.g. "1 of 3 not reporting", or the count when it has none.
+    const summary = _copyFor(details.situation)?.summary?.(
+      countServerHealth(details.servers), details.servers?.length ?? 0) ?? count;
+    // Ids of the servers the problem is about. A change brings a dismissed problem back.
+    const idsOf = (list: typeof servers) => list.map(s => s.id).sort().join(",");
+    // Status with a problem that has the title and body of the situation's banner.
+    const withProblem = (copy: SituationCopy, key: TopProblem["key"], version?: string): RowStatus => ({
+      level: "warning",
+      label: summary,
+      problem: {
+        key,
+        severity: "warning",
+        anchor: "servers",
+        version,
+        title: copy.title(),
+        text: copy.body(),
+      },
+    });
     switch (details.situation) {
       case "healthy":
-        return cssValueLabel(cssHappyText(count));
+        return { level: "success", label: count };
       case "unlicensed":
-        return cssValueLabel(count);
+        return { label: count };
+      case "no-workers":
+        return withProblem(SITUATION_COPY["no-workers"], "servers.no-workers");
+      case "stale-registrations":
+        return withProblem(
+          SITUATION_COPY["stale-registrations"],
+          "servers.stale",
+          idsOf(servers.filter(s => !s.alive)),
+        );
+      case "shared-addresses":
+        return withProblem(
+          SITUATION_COPY["shared-addresses"],
+          "servers.shared-address",
+          idsOf(servers.filter(s => s.workerIdsSharingAddress?.length)),
+        );
       default:
-        return cssValueLabel(cssDangerText(
-          copy?.summary?.(countServerHealth(details.servers), details.servers?.length ?? 0) ?? count));
+        return { level: "warning", label: summary };
     }
   }
 
@@ -305,8 +334,7 @@ so that every server is configured the same way."))),
         ),
         cssServerUrl(server.internalUrl),
         cssServerMeta([
-          server.documentCount === 1 ?
-            t("1 document") : t("{{count}} documents", { count: server.documentCount }),
+          t("{{count}} documents", { count: server.documentCount }),
           server.group ? t("group {{group}}", { group: server.group }) : null,
           // Load only affects where new documents go if GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT is set.
           showLoad && server.load !== undefined ?

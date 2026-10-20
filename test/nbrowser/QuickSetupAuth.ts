@@ -3,6 +3,7 @@ import { FALLBACK_PROVIDER_KEY, FORWARD_AUTH_PROVIDER_KEY } from "app/common/log
 import { toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { startMockOIDCIssuer } from "test/nbrowser/oidcMockServer";
+import { FAST_NO_SANDBOX_PROBE } from "test/nbrowser/sandboxProbeFixture";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver } from "mocha-webdriver";
@@ -57,21 +58,17 @@ async function openWizardGetGristModal(): Promise<void> {
   // (with a CTA) when no real provider is active; otherwise -- e.g. when an
   // earlier suite left a real provider active -- it appears as a regular
   // provider row with a Configure button. Handle both so the helper is robust
-  // to suite ordering. The section re-renders when async fetches land, so
-  // retry the lookup and click together.
-  await gu.waitToPass(async () => {
-    const ctas = await driver.findAll(".test-admin-auth-hero-configure");
-    if (ctas.length > 0) {
-      await ctas[0].click();
-      return;
-    }
+  // to suite ordering.
+  const ctas = await driver.findAll(".test-admin-auth-hero-configure");
+  if (ctas.length > 0) {
+    await ctas[0].click();
+  } else {
     const header = await driver.find(".test-admin-auth-provider-list-header");
     if (await header.getAttribute("aria-expanded") === "false") {
       await header.click();
     }
-    const row = await driver.findContent(".test-admin-auth-provider-row", /getgrist/i);
-    await row.click();
-  }, 4000);
+    await driver.findContent(".test-admin-auth-provider-row", /getgrist/i).click();
+  }
   await driver.findWait(".test-admin-auth-modal-header", 2000);
 }
 
@@ -96,6 +93,8 @@ describe("QuickSetupAuth", function() {
     GRIST_TEST_SERVER_DEPLOYMENT_TYPE: "core",
     GRIST_LOG_HTTP: "1",
     GRIST_IN_SERVICE: "false",
+    // The wizard prefetches the sandbox probe, and waitForAdminChecks waits for it.
+    GRIST_TEST_SANDBOX_PROVIDERS_PROBE_RESULT: JSON.stringify(FAST_NO_SANDBOX_PROBE),
   }));
 
   async function navigateToAuthStep() {
@@ -103,6 +102,10 @@ describe("QuickSetupAuth", function() {
     await driver.get(`${server.getHost()}/admin/setup`);
     // Click the "Authentication" step label.
     await driver.findContentWait("button", /Authentication/, 4000).click();
+    // The provider list re-renders when the authentication check lands, so rows found before then
+    // go stale. Wait for requests first, since checks only start once their list arrives.
+    await gu.waitForServer();
+    await gu.waitForAdminChecks();
   }
 
   describe("default-email-set", function() {
@@ -112,10 +115,7 @@ describe("QuickSetupAuth", function() {
       // The wizard promotes getgrist.com as the recommended hero when
       // nothing real is configured (instead of the admin panel's no-auth
       // warning).
-      await gu.waitToPass(async () => {
-        const hero = await driver.findWait(".test-admin-auth-hero-card", 2000);
-        assert.match(await hero.getText(), /ideal for testing/i);
-      }, 2000);
+      assert.match(await driver.find(".test-admin-auth-hero-card").getText(), /ideal for testing/i);
       assert.isTrue(await driver.find(".test-admin-auth-badge-recommended").isDisplayed());
       assert.isTrue(await driver.find(".test-admin-auth-hero-configure").isDisplayed());
 
@@ -125,31 +125,22 @@ describe("QuickSetupAuth", function() {
 
     it("should exclude getgrist.com from the 'Other methods' list", async function() {
       await navigateToAuthStep();
-      await driver.findWait(".test-admin-auth-hero-card", 2000);
 
       // The "Other methods" list is always expanded in the wizard (static header).
-      // Retry the find and read together: the step content fades in (opacity
-      // animates from 0) and the section re-renders as async fetches land, so
-      // getText can return "" or hit a stale element until it settles.
-      await gu.waitToPass(async () => {
-        const header = await driver.findWait(".test-admin-auth-provider-list-header", 2000);
-        assert.match(await header.getText(), /other methods/i);
-      }, 2000);
+      assert.match(await driver.find(".test-admin-auth-provider-list-header").getText(), /other methods/i);
 
-      await gu.waitToPass(async () => {
-        const rowText = (await Promise.all(
-          (await driver.findAll(".test-admin-auth-provider-row")).map(r => r.getText()),
-        )).join("\n");
-        assert.match(rowText, /OIDC/);
-        assert.match(rowText, /SAML/);
-        // getgrist.com is the hero card here, never a row in this list.
-        assert.notMatch(rowText, /getgrist/i);
-      }, 2000);
+      const rowText = (await Promise.all(
+        (await driver.findAll(".test-admin-auth-provider-row")).map(r => r.getText()),
+      )).join("\n");
+      assert.match(rowText, /OIDC/);
+      assert.match(rowText, /SAML/);
+      // getgrist.com is the hero card here, never a row in this list.
+      assert.notMatch(rowText, /getgrist/i);
     });
 
     it("should hide Continue when no auth is configured", async function() {
       await navigateToAuthStep();
-      await driver.findWait(".test-admin-auth-hero-card", 2000);
+      await driver.find(".test-admin-auth-hero-card");
 
       // Continue only appears once a method is configured or no-auth acknowledged.
       assert.lengthOf(await driver.findAll(".test-quick-setup-auth-continue"), 0);
@@ -157,11 +148,7 @@ describe("QuickSetupAuth", function() {
 
     it("should confirm the no-auth card click, then stage the choice for apply", async function() {
       await navigateToAuthStep();
-      // Retry the find+click together: the section re-renders as async fetches
-      // land, so the card can go stale between the find and the click.
-      await gu.waitToPass(async () => {
-        await driver.findWait(".test-admin-auth-provider-row-no-auth", 2000).click();
-      }, 4000);
+      await driver.find(".test-admin-auth-provider-row-no-auth").click();
 
       // Modal opens with Save disabled until the acknowledgement is ticked.
       const confirm = await driver.findWait(".test-modal-confirm", 2000);
@@ -386,18 +373,15 @@ describe("QuickSetupAuth", function() {
       await navigateToAuthStep();
 
       // OIDC is active but erroring (bad issuer). Continue should still be enabled.
-      const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
-      await gu.waitToPass(async () => {
-        assert.equal(await continueBtn.getAttribute("disabled"), null);
-      }, 2000);
+      const continueBtn = await driver.find(".test-quick-setup-auth-continue");
+      assert.equal(await continueBtn.getAttribute("disabled"), null);
     });
 
     it("should not show restart warning when auth changes are made", async function() {
       // Reuses the OIDC env from the previous test.
       await navigateToAuthStep();
-
-      // Wait for auth section to load.
-      await driver.findWait(".test-admin-auth-hero-card", 2000);
+      // Check the section rendered, so the absence check below is not vacuous.
+      await driver.find(".test-admin-auth-hero-card");
 
       // The "Restart required" warning should NOT appear in the setup wizard.
       const pageText = await driver.find("body").getText();
@@ -411,10 +395,8 @@ describe("QuickSetupAuth", function() {
       // because nothing is pending. Click should advance to the Backups step
       // rather than triggering a restart or sign-in redirect.
       await navigateToAuthStep();
-      const continueBtn = await driver.findWait(".test-quick-setup-auth-continue", 2000);
-      await gu.waitToPass(async () => {
-        assert.equal(await continueBtn.getAttribute("disabled"), null);
-      }, 2000);
+      const continueBtn = await driver.find(".test-quick-setup-auth-continue");
+      assert.equal(await continueBtn.getAttribute("disabled"), null);
 
       await continueBtn.click();
       await driver.findWait(".test-quick-setup-backups-continue", 2000);

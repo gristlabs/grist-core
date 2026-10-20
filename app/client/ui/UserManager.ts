@@ -25,7 +25,8 @@ import { buildAskTheAdmin } from "app/client/ui/AskTheAdmin";
 import { getAutomationsStatus } from "app/client/ui/FeatureStatus";
 import { computeSetupSteps, setupFeatureNeeds, SetupStep } from "app/client/ui/SetupSteps";
 import { shadowScroll } from "app/client/ui/shadowScroll";
-import { hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip } from "app/client/ui/tooltips";
+import { hoverTooltip, infoTooltip, ITooltipControl, showTransientTooltip,
+  withInfoTooltip } from "app/client/ui/tooltips";
 import { createUserImage } from "app/client/ui/UserImage";
 import { cssMemberBtn, cssMemberImage, cssMemberListItem,
   cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
@@ -38,6 +39,8 @@ import { loadingSpinner } from "app/client/ui2018/loaders";
 import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
   IModalControl, modal } from "app/client/ui2018/modals";
+import { ACLRuleCollection, getAclFacts } from "app/common/ACLRuleCollection";
+import { editorsBypassRules } from "app/common/DocUsage";
 import { normalizeEmail } from "app/common/emails";
 import { commonUrls, isOrgInPathOnly } from "app/common/gristUrls";
 import { capitalizeFirstWord, isAffirmative, isLongerThan } from "app/common/gutil";
@@ -244,6 +247,9 @@ function buildUserManagerModal(
 export class UserManager extends Disposable {
   private _dom: HTMLDivElement;
 
+  // Whether Editors can bypass this document's access rules on data, as Owners can.
+  private _editorsBypassRules = Observable.create(this, false);
+
   constructor(
     private _model: UserManagerModel,
     private _options: {
@@ -255,6 +261,7 @@ export class UserManager extends Disposable {
       isReadonly?: boolean,
     }) {
     super();
+    this._checkEditorsBypassRules().catch(reportError);
   }
 
   public buildDom() {
@@ -587,10 +594,12 @@ export class UserManager extends Disposable {
       this._model.isPersonal ? null : menu(() => [
         dom.forEach(allRoles, _role =>
           // The active user should be prevented from changing their own role.
-          menuItem(() => isActiveUser || role.set(_role.value), _role.label,
-            // Indicate which option is inherited, if any.
-            dom.text(use => use(inherited) && (use(inherited) === _role.value) &&
-              !isActiveUser ? " (inherited)" : ""),
+          menuItem(() => isActiveUser || role.set(_role.value),
+            this._buildRoleLabel(_role,
+              // Indicate which option is inherited, if any.
+              () => dom.text(use => use(inherited) && (use(inherited) === _role.value) &&
+                !isActiveUser ? " (inherited)" : ""),
+            ),
             // Disable everything providing less access than the inherited access
             dom.cls("disabled", use =>
               roles.getStrongestRole(_role.value, use(inherited)) !== _role.value),
@@ -620,6 +629,40 @@ granted to individual documents or workspaces, rather than the full team site.`)
       cssCollapseIcon("Collapse"),
       this._options.isReadonly || this._model.isPersonal ? dom.cls("disabled") : null,
       testId("um-member-role"),
+    );
+  }
+
+  private async _checkEditorsBypassRules() {
+    if (this._model.resourceType !== "document") { return; }
+    const gristDoc = this._model.gristDoc;
+    if (!gristDoc) {
+      // Without the document open, use what the doc worker last cached, if anything.
+      this._editorsBypassRules.set(Boolean(this._model.initData.editorsBypassRules));
+      return;
+    }
+    const rules = new ACLRuleCollection();
+    await rules.update(gristDoc.docData, { log: console, pullOutSchemaEdit: true });
+    if (!this.isDisposed()) { this._editorsBypassRules.set(editorsBypassRules(getAclFacts(rules))); }
+  }
+
+  // Builds the label for a role in the role menu. Editors get a note under the label when they
+  // can bypass access rules on data, as Owners can.
+  private _buildRoleLabel(role: IOrgMemberSelectOption, buildSuffix: () => DomElementArg) {
+    if (role.value !== roles.EDITOR) { return [role.label, buildSuffix()]; }
+    // domComputed needs an element here, and the note goes under it.
+    const buildLabel = () => dom("span", role.label, buildSuffix());
+    return dom.domComputed(this._editorsBypassRules, bypass => !bypass ? buildLabel() :
+      cssRoleLabel(
+        buildLabel(),
+        cssRoleNote(
+          t("Owner-like data access"),
+          infoTooltip("editorsOwnerLikeDataAccess", { variant: "hover" }),
+          // Clicking the note shouldn't pick the role, since on touch screens tapping its icon is
+          // how the tip opens.
+          dom.on("click", ev => ev.stopPropagation()),
+          testId("um-editor-owner-like-data-access"),
+        ),
+      ),
     );
   }
 
@@ -858,6 +901,18 @@ const cssRoleBtn = styled("div", `
     opacity: 0.5;
     cursor: default;
   }
+`);
+
+const cssRoleLabel = styled("div", `
+  display: flex;
+  flex-direction: column;
+`);
+
+const cssRoleNote = styled("div", `
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: ${vars.smallFontSize};
 `);
 
 const cssCollapseIcon = styled(icon, `

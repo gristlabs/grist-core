@@ -16,6 +16,7 @@ import { BulkColValues, CellValue, fromTableDataAction, RowRecord } from "app/co
 import { extractInfoFromColType, GristTypeInfo, reencodeAsTypedCellValue } from "app/common/gristTypes";
 import { convertThemeKeysToCssVars } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
+import { parseWidgetError } from "app/common/WidgetCreatorCode";
 import { LinkingInfo } from "app/plugin/CustomSectionAPI";
 import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
@@ -23,6 +24,7 @@ import {
 } from "app/plugin/grist-plugin-api";
 import { CellFormatType } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
+import { WidgetError } from "app/plugin/WidgetErrors";
 
 import { MsgType, Rpc } from "grain-rpc";
 import { Computed, Disposable, dom, Observable } from "grainjs";
@@ -54,6 +56,10 @@ export interface WidgetFrameOptions {
    * Url of external page. Iframe is rebuild each time the URL changes.
    */
   url: string | null;
+  /** HTML of the widget page, used instead of `url` in a sandboxed iframe. */
+  srcdoc?: string;
+  /** Called with the errors a `srcdoc` page reports. */
+  onWidgetError?: (error: WidgetError) => void;
   /**
    * ID of widget, if known. When set, the url for the specified widget
    * in the WidgetRepository, if found, will take precedence.
@@ -154,7 +160,7 @@ export class WidgetFrame extends DisposableWithEvents {
     );
 
     // Iframe is empty when url is not set.
-    this._isEmpty = Computed.create(this, use => !use(maybeUrl));
+    this._isEmpty = Computed.create(this, use => !use(maybeUrl) && this._options.srcdoc === undefined);
 
     // When isEmpty is switched to true, reset the ready state.
     this.autoDispose(this._isEmpty.addListener((isEmpty) => {
@@ -222,7 +228,11 @@ export class WidgetFrame extends DisposableWithEvents {
       dom.style("visibility", use => use(this._visible) ? "visible" : "hidden"),
       dom.cls("clipboard_allow_focus"),
       dom.cls("custom_view"),
-      dom.attr("src", this._url),
+      this._options.srcdoc !== undefined ? [
+        // No allow-same-origin: the code can't reach Grist's origin, only post messages.
+        { sandbox: "allow-scripts" },
+        dom.attr("srcdoc", this._options.srcdoc),
+      ] : dom.attr("src", this._url),
       // Allow widgets to write to the clipboard via the Clipboard API.
       { allow: "clipboard-write" },
       hooks.iframeAttributes,
@@ -259,6 +269,12 @@ export class WidgetFrame extends DisposableWithEvents {
 
   private _onMessage(event: MessageEvent) {
     if (this._iframe && event.source === this._iframe.contentWindow && !this.isDisposed()) {
+      const { onWidgetError } = this._options;
+      const widgetError = onWidgetError && parseWidgetError(event.data);
+      if (widgetError) {
+        onWidgetError(widgetError);
+        return;
+      }
       // Previously, we forwarded messages targeted at "grist" to the back-end.
       // Now, we process them immediately in the context of the client for access
       // control purposes.  To do that, any message that comes in with mdest of

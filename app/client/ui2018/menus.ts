@@ -55,6 +55,10 @@ export function menu(createFunc: weasel.MenuCreateFunc, options?: weasel.IMenuOp
 
 export interface SearchableMenuOptions {
   searchInputPlaceholder?: string;
+  /** Extra args for the search input (e.g. to focus it, or add a test id). */
+  searchInputArgs?: DomElementArg[];
+  /** If set, builds what to show in place of items when none match the search. */
+  buildEmptyMessage?: () => DomContents;
 }
 
 export interface SearchableMenuItem {
@@ -66,41 +70,54 @@ export interface SearchableMenuItem {
   args?: DomElementArg[];
 }
 
+/**
+ * Builds the contents of a menu with a search input that filters `menuItems` by their `cleanText`.
+ */
 export function searchableMenu(
   menuItems: MaybeObsArray<SearchableMenuItem>,
   options: SearchableMenuOptions = {},
 ): DomElementArg[] {
-  const { searchInputPlaceholder } = options;
+  const { searchInputPlaceholder, searchInputArgs = [], buildEmptyMessage } = options;
 
   const searchValue = Observable.create(null, "");
-  const setSearchValue = debounce((value) => { searchValue.set(value); }, 100);
+  const setSearchValue = debounce((value: string) => {
+    if (!searchValue.isDisposed()) { searchValue.set(value); }
+  }, 100);
+  const filteredItems = Computed.create(null, (use) => {
+    const cleanSearchValue = use(searchValue).trim().toLowerCase();
+    const items = Array.isArray(menuItems) ? menuItems : use(menuItems);
+    return items.filter(item => item.cleanText.includes(cleanSearchValue));
+  });
 
   return [
+    dom.autoDispose(searchValue),
+    dom.autoDispose(filteredItems),
     menuItemStatic(
       cssMenuSearch(
         cssMenuSearchIcon("Search"),
         cssMenuSearchInput(
-          dom.autoDispose(searchValue),
           dom.on("input", (_ev, elem) => { setSearchValue(elem.value); }),
           { placeholder: searchInputPlaceholder },
           testId("searchable-menu-input"),
+          ...searchInputArgs,
         ),
       ),
     ),
     menuDivider(),
-    dom.domComputed(searchValue, (value) => {
-      const cleanSearchValue = value.trim().toLowerCase();
-      return dom.forEach(menuItems, (item) => {
-        if (!item.cleanText.includes(cleanSearchValue)) { return null; }
-        if (item.label && item.action) {
-          return menuItem(item.action, item.label, ...(item.args || []));
-        } else if (item.builder) {
-          return item.builder();
-        } else {
-          throw new Error("Invalid menu item");
-        }
-      });
-    }),
+    dom.domComputed(
+      use => Boolean(buildEmptyMessage) && use(filteredItems).length === 0,
+      isEmpty => isEmpty ?
+        buildEmptyMessage!() :
+        dom.forEach(filteredItems, (item) => {
+          if (item.label && item.action) {
+            return menuItem(item.action, item.label, ...(item.args || []));
+          } else if (item.builder) {
+            return item.builder();
+          } else {
+            throw new Error("Invalid menu item");
+          }
+        }),
+    ),
     testId("searchable-menu"),
   ];
 }

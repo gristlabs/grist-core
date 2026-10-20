@@ -5,11 +5,11 @@ import { cssMarkdownSpan } from "app/client/lib/markdown";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
 import {
-  cssFadeUp,
   cssFadeUpGristLogo,
   cssFadeUpHeading,
   cssFadeUpSubHeading,
   cssFlexSpace,
+  fadeUp,
 } from "app/client/ui/AdminPanelCss";
 import { App } from "app/client/ui/App";
 import { BootAPI } from "app/client/ui/BootAPI";
@@ -368,7 +368,6 @@ const cssMainContent = styled("div", `
 `);
 
 const cssCard = styled("div", `
-  animation: ${cssFadeUp} 0.5s ease 0.24s both;
   background: ${tokens.bg};
   border: 1px solid ${tokens.decorationSecondary};
   border-radius: 12px;
@@ -377,6 +376,7 @@ const cssCard = styled("div", `
     0 8px 24px rgba(0, 0, 0, 0.06);
   margin: 0 auto;
   padding: 32px;
+  ${fadeUp("0.24s")}
 `);
 
 const cssTabs = styled("div", `

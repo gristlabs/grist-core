@@ -158,7 +158,8 @@ export class AdminCheckRunner {
       this.result.set(result);
     }).catch((e) => {
       if (this._abandoned()) { return; }
-      this.result.set({ status: "fault", details: { error: String(e) } });
+      // requestFailed tells a failed request apart from a check that ran and found a fault.
+      this.result.set({ status: "fault", details: { error: String(e), requestFailed: true } });
     }).finally(() => {
       // After the observable is set, so a count of zero means values are already written.
       testPendingChecks.end();

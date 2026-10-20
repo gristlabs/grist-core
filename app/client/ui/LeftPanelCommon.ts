@@ -14,7 +14,6 @@
  *    )
  */
 import { allCommands } from "app/client/components/commands";
-import { beaconOpenMessage } from "app/client/lib/helpScout";
 import { makeT } from "app/client/lib/localization";
 import { AppModel } from "app/client/models/AppModel";
 import { hoverTooltip } from "app/client/ui/tooltips";
@@ -25,36 +24,25 @@ import { unstyledButton } from "app/client/ui2018/unstyled";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { commonUrls, isFeatureEnabled } from "app/common/gristUrls";
 import { tokens } from "app/common/ThemePrefs";
-import { getGristConfig } from "app/common/urlUtils";
 
 import { dom, DomContents, Observable, styled } from "grainjs";
 
 const t = makeT("LeftPanelCommon");
 
 /**
- * Creates the "help tools", a button/link to open HelpScout beacon, and one to open the
- * HelpCenter in a new tab.
+ * Creates the "help tools": a link to open the Help Center in a new tab.
  */
-export function createHelpTools(appModel: AppModel): DomContents {
+export function createHelpTools(): DomContents {
   if (!isFeatureEnabled("helpCenter")) {
     return [];
   }
-  const { deploymentType } = getGristConfig();
-  return cssSplitPageEntry(
-    cssPageEntryMain(
-      cssPageLink(cssPageIcon("Help"),
-        cssLinkText(t("Help Center")),
-        dom.cls("tour-help-center"),
-        deploymentType === "saas" ?
-          dom.on("click", () => beaconOpenMessage({ appModel })) :
-          { href: commonUrls.help, target: "_blank" },
-        testId("left-feedback"),
-      ),
-    ),
-    cssPageEntrySmall(
-      cssPageLink(cssPageIcon("FieldLink"),
-        { "href": commonUrls.help, "aria-label": t("Help Center"), "target": "_blank" },
-      ),
+  return cssPageEntry(
+    cssPageLink(cssPageIcon("Help"),
+      cssLinkText(t("Help Center")),
+      cssExternalLinkIcon("FieldLink"),
+      dom.cls("tour-help-center"),
+      { href: commonUrls.help, target: "_blank" },
+      testId("left-feedback"),
     ),
   );
 }
@@ -104,7 +92,7 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
       cssTools(
         cssTools.cls("-collapsed", use => !use(panelOpen)),
         cssSpacer(),
-        createHelpTools(appModel),
+        createHelpTools(),
         createAccessibilityTools(appModel),
       ),
     ),
@@ -243,6 +231,15 @@ const cssContextIcon = styled(icon, `
   height: 18px;
   margin-left: 4px;
   --icon-color: currentColor;
+  .${cssTools.className}-collapsed & {
+    display: none;
+  }
+`);
+
+// A hint that the link opens elsewhere, placed like the F4 hint on the Accessibility row.
+const cssExternalLinkIcon = styled(icon, `
+  margin-left: auto;
+  margin-right: 16px;
   .${cssTools.className}-collapsed & {
     display: none;
   }

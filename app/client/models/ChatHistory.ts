@@ -1,4 +1,4 @@
-import { ApiError } from "app/common/ApiError";
+import { ApiErrorDetails } from "app/common/ApiError";
 import { AssistanceState, DeveloperPromptVersion } from "app/common/Assistance";
 
 /**
@@ -31,7 +31,7 @@ export interface ChatMessage {
   /**
    * Error response from the AI, if any.
    */
-  error?: ApiError;
+  error?: ChatMessageError;
   /**
    * The formula returned from the AI. It is only set when the sender is the AI.
    *
@@ -44,4 +44,10 @@ export interface ChatMessage {
    * Only used by version 1 of the AI assistant.
    */
   action?: any;
+}
+
+export interface ChatMessageError {
+  message?: string;
+  status?: number;
+  details?: ApiErrorDetails;
 }

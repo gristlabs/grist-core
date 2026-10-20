@@ -2,6 +2,7 @@ import { BaseAPI, IOptions } from "app/common/BaseAPI";
 import { TEAM_FREE_PLAN } from "app/common/Features";
 import { FullUser } from "app/common/LoginSessionAPI";
 import { StringUnion } from "app/common/StringUnion";
+import { UpgradePlacement } from "app/common/Telemetry";
 import { addCurrentOrgToPath } from "app/common/urlUtils";
 import { BillingAccount, ManagerDelta, OrganizationWithoutAccessInfo } from "app/common/UserAPI";
 
@@ -197,6 +198,7 @@ export interface PlanSelection {
   priceId?: string; // stripe id of the price
   offerId?: string; // stripe id of the offer
   count?: number;   // number of units for the plan (suggested as it might be different).
+  placement?: UpgradePlacement; // the UI element whose upgrade prompt led to this plan selection.
 }
 
 export interface BillingAPI {
@@ -269,9 +271,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     });
   }
 
-  public async createTeam(name: string, domain: string, plan: {
-    product?: string, priceId?: string, count?: number
-  }, next?: string): Promise<{
+  public async createTeam(name: string, domain: string, plan: PlanSelection, next?: string): Promise<{
     checkoutUrl?: string,
     orgUrl?: string,
   }> {

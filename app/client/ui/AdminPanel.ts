@@ -12,6 +12,7 @@ import { buildAdminAccessDeniedCard } from "app/client/ui/AdminAccessDeniedCard"
 import { buildAdminData } from "app/client/ui/AdminControls";
 import { buildAdminLeftPanel, getPageNames } from "app/client/ui/AdminLeftPanel";
 import {
+  buildStatusPill,
   cssDangerText,
   cssErrorText,
   cssFlexSpace,
@@ -22,6 +23,7 @@ import {
   cssWellContent,
   cssWellTitle,
   HidableToggle,
+  RowStatus,
 } from "app/client/ui/AdminPanelCss";
 import { getAdminPanelName } from "app/client/ui/AdminPanelName";
 import { ServersSection } from "app/client/ui/AdminServersSection";
@@ -36,7 +38,7 @@ import { InstallConfigsAPI } from "app/client/ui/ConfigsAPI";
 import { DraftChangesManager } from "app/client/ui/DraftChanges";
 import { EditionSection, editionSwitchModal, editionSwitchWarning } from "app/client/ui/EditionSection";
 import { peekSetupReturnFromGetGristCom } from "app/client/ui/GetGristComProvider";
-import { buildOutgoingRequestsPanel, buildOutgoingRequestsSummary } from "app/client/ui/OutgoingRequestsStatus";
+import { OutgoingRequestsSection } from "app/client/ui/OutgoingRequestsStatus";
 import { pagePanels } from "app/client/ui/PagePanels";
 import {
   buildPermissionsCard,
@@ -58,6 +60,7 @@ import {
 } from "app/client/ui/SettingsLayout";
 import { SupportGristPage } from "app/client/ui/SupportGristPage";
 import { createTopBarHome } from "app/client/ui/TopBar";
+import { TopProblem, TopProblems } from "app/client/ui/TopProblems";
 import { createUserImage } from "app/client/ui/UserImage";
 import { fullBreadcrumbs } from "app/client/ui2018/breadcrumbs";
 import { basicButton, bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
@@ -78,7 +81,7 @@ import {
   GristEdition,
   LatestVersionAvailable,
 } from "app/common/gristUrls";
-import { useBindable } from "app/common/gutil";
+import { isNonNullish, useBindable } from "app/common/gutil";
 import { InstallAPI, InstallAPIImpl } from "app/common/InstallAPI";
 import { BOOT_KEY_PROVIDER_KEY, MINIMAL_PROVIDER_KEY } from "app/common/loginProviders";
 import { InstallAdminInfo } from "app/common/LoginSessionAPI";
@@ -95,7 +98,6 @@ import {
   MultiHolder,
   Observable,
   styled,
-  UseCBOwner,
 } from "grainjs";
 
 const t = makeT("AdminPanel");
@@ -437,9 +439,36 @@ now, and takes effect the next time you restart Grist manually.")),
 
   private _buildMainContentForAdmin() {
     const supportGrist = SupportGristPage.create(this, this._appModel);
+    const authStatus = this._buildAuthenticationStatus();
+    const sandboxingStatus = this._buildSandboxingStatus();
+    const adminUsersStatus = this._buildAdminUsersStatus();
+    const outgoing = OutgoingRequestsSection.create(this, this._checks);
+    const backups = BackupsSection.create(this, { checks: this._checks, inAdminPanel: true });
+
+    // Problems for the wells on top, in page order.
+    const problems = Computed.create(this, (use) => {
+      return [
+        use(this._serversSection.status).problem,
+        use(adminUsersStatus).problem,
+        use(sandboxingStatus).problem,
+        use(authStatus).problem,
+        use(outgoing.status).problem,
+        use(backups.status).problem,
+        ...use(this._checks.probes).map((probe) => {
+          const result = use(this._checks.requestCheck(probe).result);
+          return this._buildProbeProblem(probe, result);
+        }),
+      ].filter(isNonNullish);
+    });
+
+    const topProblems = TopProblems.create(this, problems, this._appModel.currentValidUser!.id);
 
     return [
-      cssPageTitle(t("Installation")),
+      cssInstallationTitle(
+        t("Installation"),
+        topProblems.buildDismissedLink(),
+      ),
+      topProblems.buildDom(),
       this._serversSection.buildWarning(),
       dom.maybe(this._showRestartBanner, () => cssRestartBannerShell(
         (elem) => {
@@ -580,8 +609,8 @@ now, and takes effect the next time you restart Grist manually.")),
           id: "admins",
           name: t("Administrative accounts"),
           description: t("The users with administrative accounts"),
-          value: this._buildAdminUsersDisplay(),
-          expandedContent: this._buildAdminUsersDetail(),
+          value: buildStatusPill(adminUsersStatus, testId("admin-panel-admin-accounts-display")),
+          expandedContent: this._buildAdminUsersDetail(adminUsersStatus),
         }),
         SectionItem({
           id: "boot-key",
@@ -594,14 +623,14 @@ now, and takes effect the next time you restart Grist manually.")),
           id: "sandboxing",
           name: t("Sandboxing"),
           description: t("Sandbox settings for data engine"),
-          value: this._buildSandboxingDisplay(),
+          value: buildStatusPill(sandboxingStatus),
           expandedContent: this._sandboxSection.buildDom(),
         }),
         SectionItem({
           id: "authentication",
           name: t("Authentication"),
           description: t("Current authentication method"),
-          value: this._buildAuthenticationDisplay(),
+          value: buildStatusPill(authStatus),
           expandedContent: this._buildAuthenticationPanelExtraContent(),
         }),
         SectionItem({
@@ -618,15 +647,9 @@ now, and takes effect the next time you restart Grist manually.")),
           value: buildPermissionsStatusDisplay(this._permissionsModel),
           expandedContent: buildPermissionsCard(this._permissionsModel),
         }),
-        SectionItem({
-          id: "outgoing-requests",
-          name: t("Outgoing requests"),
-          description: t("How user actions can reach the outside world"),
-          value: this._buildOutgoingRequestsDisplay(),
-          expandedContent: this._buildOutgoingRequestsContent(),
-        }),
+        outgoing.buildItem(),
       ]),
-      this._buildBackupsSection(),
+      backups.buildAdminCard(),
       this._buildAuditLogsSection(),
       SectionCard(t("Self Checks"), [
         this._buildProbeItems({
@@ -662,48 +685,56 @@ now, and takes effect the next time you restart Grist manually.")),
     );
   }
 
-  private _buildSandboxingDisplay() {
-    return dom.domComputed(
-      (use) => {
-        const req = this._checks.requestCheckById(use, "sandboxing");
-        const result = req ? use(req.result) : undefined;
-        const success = result?.status === "success";
-        const details = result?.details as SandboxingBootProbeDetails | undefined;
-        if (!details) {
-          // Sandbox details get filled out relatively slowly if
-          // this is first time on admin panel. So show "checking"
-          // if we don't have a reported status yet.
-          return cssValueLabel(result && result.status !== "none" ? t("unknown") : t("checking"));
-        }
-        const flavor = details.flavor;
-        const configured = details.configured;
-        return cssValueLabel(
-          configured ?
-            (success ? cssHappyText(t("OK") + `: ${flavor}`) :
-              cssErrorText(t("Error") + `: ${flavor}`)) :
-            cssErrorText(t("unconfigured")));
-      },
-    );
-  }
+  private _buildSandboxingStatus() {
+    return Computed.create<RowStatus>(this, (use) => {
+      const req = this._checks.requestCheckById(use, "sandboxing");
+      const result = req ? use(req.result) : undefined;
 
-  private _buildAdminUsersComputed(
-    use: UseCBOwner,
-    renderSuccess: (users: InstallAdminInfo[]) => Element,
-  ) {
-    const req = this._checks.requestCheckById(use, "admins");
-    const result = req ? use(req.result) : undefined;
-    const success = result?.status === "success";
+      // No answer yet. Sandbox details are slow to fill on the first visit to the panel.
+      const checking = !result || result.status === "none";
+      if (checking) {
+        return { label: t("checking") };
+      }
 
-    if (!result || result.status === "none") {
-      return t("checking");
-    }
+      // No details: the request did not reach the server (listed in Self Checks).
+      const details = result.details as SandboxingBootProbeDetails | undefined;
+      if (!details || result.details?.requestFailed) {
+        return { label: t("unknown") };
+      }
 
-    if (!success) {
-      return cssErrorText(t("Error"));
-    }
+      // No sandbox is chosen: formulas run with full access to the server.
+      if (!details.configured) {
+        return {
+          level: "error",
+          label: t("unconfigured"),
+          problem: {
+            key: "sandboxing.off",
+            severity: "error",
+            anchor: "sandboxing",
+            title: t("Formulas are not sandboxed"),
+            text: t("Any document can run code with full access to this server."),
+          },
+        };
+      }
 
-    const users: InstallAdminInfo[] = result?.details?.users || [];
-    return renderSuccess(users);
+      // A sandbox is chosen but does not start.
+      if (result.status !== "success") {
+        return {
+          level: "error",
+          label: t("Error") + `: ${details.flavor}`,
+          problem: {
+            key: "sandboxing.broken",
+            severity: "error",
+            anchor: "sandboxing",
+            version: details.flavor,
+            title: t("Sandbox is not working"),
+            text: t("Sandbox {{flavor}} is set up but fails to start.", { flavor: details.flavor }),
+          },
+        };
+      }
+
+      return { level: "success", label: t("OK") + `: ${details.flavor}` };
+    });
   }
 
   private _buildServiceStatusDisplay() {
@@ -731,41 +762,82 @@ now, and takes effect the next time you restart Grist manually.")),
     });
   }
 
-  private _buildAdminUsersDisplay() {
-    return cssValueLabel(
-      dom.domComputed(
-        use => this._buildAdminUsersComputed(use, (users) => {
-          const actualUsers = users.filter(detail => detail.user !== null);
-          if (actualUsers.length > 0) {
-            return cssHappyText(t("{{count}} admin accounts", { count: actualUsers.length }));
-          }
-          return cssErrorText(t("no admin accounts"));
-        }),
-      ),
-      testId("admin-panel-admin-accounts-display"),
-    );
+  private _buildAdminUsersStatus() {
+    return Computed.create<AdminUsersStatus>(this, (use) => {
+      const req = this._checks.requestCheckById(use, "admins");
+      const result = req ? use(req.result) : undefined;
+
+      // No answer yet. The placeholder result has status "none".
+      const checking = !result || result.status === "none";
+      if (checking) {
+        return { label: t("checking") };
+      }
+
+      // The request did not reach the server. Its row in Self Checks lists it.
+      if (result.details?.requestFailed) {
+        return { label: t("unknown") };
+      }
+
+      // The check ran but threw, e.g. the database could not be read.
+      if (result.status === "fault") {
+        return {
+          level: "error",
+          label: t("Error"),
+          problem: {
+            key: "admins.error",
+            severity: "error",
+            anchor: "admins",
+            title: t("Could not read admin accounts"),
+            text: result.details?.error,
+          },
+        };
+      }
+
+      // The check reports success even when no admin email is set. It then returns one entry
+      // with `user: null` (see SimpleInstallAdmin.getAdminUsers). When an email is set, the
+      // server creates the account if needed, so `user` is never null.
+      const users: InstallAdminInfo[] = result.details?.users || [];
+      const admins = users.filter(detail => detail.user !== null);
+      if (!admins.length) {
+        return {
+          level: "error",
+          label: t("no admin accounts"),
+          users,
+          problem: {
+            key: "admins.none",
+            severity: "error",
+            anchor: "admins",
+            title: t("No install admin"),
+            text: t("Set GRIST_ADMIN_EMAIL so that someone can manage this server."),
+          },
+        };
+      }
+
+      return { level: "success", label: t("{{count}} admin accounts", { count: admins.length }), users };
+    });
   }
 
-  private _buildAdminUsersDetail() {
-    return dom.domComputed(
-      use => this._buildAdminUsersComputed(use, (users) => {
-        return cssAdminAccountList(
-          users.map(({ user, reason }) => {
-            const userDisplay = user ? cssUserInfo(
-              createUserImage(user, "medium"),
-              cssUserName(dom("span", user.name, testId("admin-panel-admin-account-name")),
-                cssEmail(user.email, testId("admin-panel-admin-account-email")),
-              ),
-            ) : cssErrorText(t("Admin account not found"));
-            return cssAdminAccountListItem([
-              cssAdminAccountItemPart(userDisplay),
-              cssAdminAccountItemPart(cssAdminAccountReason(markdown(reason, { inline: true }))),
-            ], testId(`admin-panel-admin-accounts-list-item`));
-          }),
-          testId(`admin-panel-admin-accounts-list`),
-        );
-      }),
-    );
+  private _buildAdminUsersDetail(status: Computed<AdminUsersStatus>) {
+    return dom.domComputed(status, ({ label, users }) => {
+      if (!users) {
+        return label;
+      }
+      return cssAdminAccountList(
+        users.map(({ user, reason }) => {
+          const userDisplay = user ? cssUserInfo(
+            createUserImage(user, "medium"),
+            cssUserName(dom("span", user.name, testId("admin-panel-admin-account-name")),
+              cssEmail(user.email, testId("admin-panel-admin-account-email")),
+            ),
+          ) : cssErrorText(t("Admin account not found"));
+          return cssAdminAccountListItem([
+            cssAdminAccountItemPart(userDisplay),
+            cssAdminAccountItemPart(cssAdminAccountReason(markdown(reason, { inline: true }))),
+          ], testId(`admin-panel-admin-accounts-list-item`));
+        }),
+        testId(`admin-panel-admin-accounts-list`),
+      );
+    });
   }
 
   private _buildBootKeyDisplay() {
@@ -790,62 +862,95 @@ now, and takes effect the next time you restart Grist manually.")),
     });
   }
 
-  private _buildAuthenticationDisplay() {
-    return dom.domComputed(
-      (use) => {
-        const req = use(this._authCheck);
-        const result = req ? use(req.result) : undefined;
-        if (!result) {
-          return cssValueLabel(
-            cssErrorText(t("unavailable")),
-            testId("admin-panel-value-label-error"),
-          );
-        }
-        if (result.status === "none") { return cssValueLabel(t("checking")); }
+  private _buildAuthenticationStatus() {
+    return Computed.create<RowStatus>(this, (use) => {
+      const req = use(this._authCheck);
+      const result = req ? use(req.result) : undefined;
 
-        const { status, details, verdict } = result;
-        const success = status === "success";
+      // No answer yet. The placeholder result has status "none".
+      const checking = !result || result.status === "none";
+      if (checking) {
+        return { label: t("checking") };
+      }
 
-        const provider = details?.provider ?? details?.label;
+      // The request did not reach the server. Its row in Self Checks lists it.
+      if (result.details?.requestFailed) {
+        return { label: t("unknown") };
+      }
 
-        if (!success && !provider) {
-          return cssValueLabel(
-            cssErrorText(t("auth error")),
-            verdict ? { title: verdict } : undefined,
-            testId("admin-panel-value-label-error"),
-          );
-        }
+      const { status, verdict } = result;
+      const provider: string | undefined = result.details?.provider ?? result.details?.label;
 
-        if (provider === MINIMAL_PROVIDER_KEY) {
-          return cssValueLabel(
-            cssDangerText(t("no authentication")),
-            verdict ? { title: verdict } : undefined,
-            testId("admin-panel-value-label-danger"),
-          );
-        }
+      // No login provider is active at all.
+      const noProvider = status !== "success" && !provider;
+      if (noProvider) {
+        return {
+          level: "error",
+          label: t("auth error"),
+          tooltip: verdict,
+          problem: {
+            key: "auth.no-provider",
+            severity: "error",
+            anchor: "authentication",
+            title: t("No sign-in method"),
+            text: verdict,
+          },
+        };
+      }
 
-        if (provider === BOOT_KEY_PROVIDER_KEY) {
-          return cssValueLabel(
-            cssDangerText(t("boot key")),
-            verdict ? { title: verdict } : undefined,
-            testId("admin-panel-value-label-danger"),
-          );
-        }
+      // Minimal provider means that there is a default user that is automatically signed in.
+      // The check reports success here, so the row decides it is a problem.
+      if (provider === MINIMAL_PROVIDER_KEY) {
+        return {
+          level: "warning",
+          label: t("no authentication"),
+          tooltip: verdict,
+          problem: {
+            key: "auth.none",
+            severity: "warning",
+            anchor: "authentication",
+            title: t("Anyone can open this server"),
+            text: t("No sign-in method is set up. Anyone who can reach this server can see all data."),
+          },
+        };
+      }
 
-        if (!success) {
-          return cssValueLabel(
-            cssErrorText(t("auth error")),
-            verdict ? { title: t("error in {{provider}}: {{verdict}}", { provider, verdict }) } : undefined,
-            testId("admin-panel-value-label-error"),
-          );
-        }
+      // Only the install admin can sign in if you have the boot key. Other users can't sign in.
+      if (provider === BOOT_KEY_PROVIDER_KEY) {
+        return {
+          level: "warning",
+          label: t("boot key"),
+          tooltip: verdict,
+          problem: {
+            key: "auth.boot-key",
+            severity: "warning",
+            anchor: "authentication",
+            title: t("Only the admin can sign in"),
+            text: t("Sign-in works only with the boot key. Set up a sign-in method so that other users can sign in."),
+          },
+        };
+      }
 
-        return cssValueLabel(
-          cssHappyText(provider),
-          testId("admin-panel-value-label-success"),
-        );
-      },
-    );
+      // A provider is set up but failed to start; the verdict has its error.
+      const providerFailed = status !== "success";
+      if (providerFailed) {
+        return {
+          level: "error",
+          label: t("auth error"),
+          tooltip: verdict ? t("error in {{provider}}: {{verdict}}", { provider, verdict }) : undefined,
+          problem: {
+            key: "auth.init-error",
+            severity: "error",
+            anchor: "authentication",
+            version: provider,
+            title: t("Sign-in is broken"),
+            text: verdict,
+          },
+        };
+      }
+
+      return { level: "success", label: provider ?? t("unknown") };
+    });
   }
 
   private _buildAuthenticationPanelExtraContent() {
@@ -872,20 +977,6 @@ now, and takes effect the next time you restart Grist manually.")),
     return t("Grist signs user session cookies with a secret key. Please set this key via the environment variable \
 GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice \
 in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.");
-  }
-
-  private _buildOutgoingRequestsDisplay() {
-    return dom.domComputed((use) => {
-      const req = this._checks.requestCheckById(use, "outgoing-requests");
-      return buildOutgoingRequestsSummary(req ? use(req.result) : undefined);
-    });
-  }
-
-  private _buildOutgoingRequestsContent() {
-    return dom.domComputed((use) => {
-      const req = this._checks.requestCheckById(use, "outgoing-requests");
-      return buildOutgoingRequestsPanel(req ? use(req.result) : undefined);
-    });
   }
 
   private _buildUpdates(owner: MultiHolder) {
@@ -1111,35 +1202,38 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
   }
 
   /**
-   * Show the results of various checks. Of the checks, some are considered
-   * "redundant" (already covered elsewhere in the Admin Panel) and the
-   * remainder are "novel".
+   * Show the results of various checks, failing ones first. Of the checks, some are considered
+   * "redundant" (already covered elsewhere in the Admin Panel) and the remainder are "novel".
    */
   private _buildProbeItems(options: {
     showRedundant: boolean,
     showNovel: boolean,
   }) {
-    return dom.domComputed(
-      use => [
-        ...use(this._checks.probes).map((probe) => {
-          const isRedundant = [
-            "boot-key",
-            "sandboxing",
-            "authentication",
-            "session-secret",
-            "service-status",
-            "backups",
-            "persist-data",
-            "outgoing-requests",
-            "multi-server",
-          ].includes(probe.id);
-          const show = isRedundant ? options.showRedundant : options.showNovel;
-          if (!show) { return null; }
-          const req = this._checks.requestCheck(probe);
-          return this._buildProbeItem(req.probe, use(req.result), req.details);
-        }),
-      ],
-    );
+    return dom.domComputed((use) => {
+      const rows = use(this._checks.probes).map((probe) => {
+        const req = this._checks.requestCheck(probe);
+        const result = use(req.result);
+        const failing = result.status === "fault";
+        // A failing check is never hidden under "more...".
+        const isRedundant = !failing && [
+          "boot-key",
+          "sandboxing",
+          "authentication",
+          "session-secret",
+          "service-status",
+          "backups",
+          "persist-data",
+          "outgoing-requests",
+          "multi-server",
+        ].includes(probe.id);
+        const show = isRedundant ? options.showRedundant : options.showNovel;
+        return { req, result, failing, show };
+      });
+      return rows
+        .filter(row => row.show)
+        .sort((a, b) => Number(b.failing) - Number(a.failing))
+        .map(row => this._buildProbeItem(row.req.probe, row.result, row.req.details));
+    });
   }
 
   /**
@@ -1151,7 +1245,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
     const status = this._encodeSuccess(result);
     return SectionItem({
       id: `probe-${info.id}`,
-      name: info.id,
+      name: result.status === "fault" ? cssErrorText(info.id) : info.id,
       description: info.name,
       value: cssStatus(status),
       expandedContent: [
@@ -1185,6 +1279,46 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
   }
 
   /**
+   * Problem of a Self Checks row. Most checks have their own row elsewhere on the page that
+   * reports them; here we report only checks without such a row, and failed requests.
+   */
+  private _buildProbeProblem(info: BootProbeInfo, result: BootProbeResult): TopProblem | undefined {
+    if (result.details?.requestFailed) {
+      return {
+        key: "check.unreachable",
+        severity: "error",
+        anchor: `probe-${info.id}`,
+        version: info.id,
+        title: t("Could not run the {{name}} check", { name: info.id }),
+        text: result.details.error,
+      };
+    }
+    if (result.status !== "fault") {
+      return undefined;
+    }
+    switch (info.id) {
+      case "health-check":
+        return {
+          key: "health.failed",
+          severity: "error",
+          anchor: `probe-${info.id}`,
+          title: t("Health check is failing"),
+          text: result.details?.error,
+        };
+      case "websockets":
+        return {
+          key: "websockets.failed",
+          severity: "error",
+          anchor: `probe-${info.id}`,
+          title: t("Websockets do not work"),
+          text: t("The server cannot open a websocket to its own public URL. Check your reverse proxy."),
+        };
+      default:
+        return undefined;
+    }
+  }
+
+  /**
    * Give an icon summarizing success or failure. Factor in the
    * severity of the result for failures. This is crude, the
    * visualization of the results can be elaborated in future.
@@ -1205,19 +1339,6 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
         // should not arrive here
         return "??";
     }
-  }
-
-  private _buildBackupsSection() {
-    const backups = BackupsSection.create(this, { checks: this._checks, inAdminPanel: true });
-    return SectionCard(t("Storage"), [
-      SectionItem({
-        id: "backups",
-        name: t("Backups"),
-        description: t("Back up documents externally"),
-        value: backups.buildStatusDisplay(),
-        expandedContent: backups.buildDom(),
-      }),
-    ]);
   }
 
   private _buildAuditLogsSection() {
@@ -1305,6 +1426,13 @@ learn more.",
 const cssCheckHeader = styled("h5", `
   margin-bottom: 5px;
   font-variant: small-caps;
+`);
+
+type AdminUsersStatus = RowStatus & { users?: InstallAdminInfo[] };
+
+const cssInstallationTitle = styled(cssPageTitle, `
+  display: flex;
+  align-items: baseline;
 `);
 
 const cssStatus = styled("div", `

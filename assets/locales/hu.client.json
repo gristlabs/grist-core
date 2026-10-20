@@ -3535,6 +3535,14 @@
         "Could not reach the server": "A kiszolgáló nem elérhető",
         "Each document is held by one of these servers. Fleet-style routing.": "Minden dokumentumot ezek közül az egyik kiszolgáló tárol. Flotta-jellegű útválasztás.",
         "Each document is held by one of these servers. Worker-pool routing.": "Minden dokumentumot egyetlen kiszolgáló tárol ezek közül. Feladathoz kötődő útválasztás.",
-        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET be van állítva, de ez a kiadás nem tudja a kiszolgálók között közvetíteni a dokumentumokat, a dokumentumok csak a hozzájuk rendelt kiszolgálón érhetőek el."
+        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET be van állítva, de ez a kiadás nem tudja a kiszolgálók között közvetíteni a dokumentumokat, a dokumentumok csak a hozzájuk rendelt kiszolgálón érhetőek el.",
+        "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.": "Adj minden kiszolgálónak egy címet, amelyen a társ-kiszolgálói elérik, és amit más kiszolgáló nem használ. Addig a dokumentumkérések rossz helyre érkezhetnek és hibára futhatnak.",
+        "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.": "A Grist Flotta egy egyszerű és jól támogatott módja a Grist horizontális skálázásának, amivel kiszolgálók egy csoportja dokumentumonként intelligensen eloszthatja a terhelést. Ez a rész listázza a kiszolgálókat, az általuk kezelt dokumentumokat, és hogy futnak-e.",
+        "Grist Fleet is not in your activation key": "Az aktiváló kulcsod nem tartalmazza a Grist Flottát",
+        "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.": "Nem közölte, hogy régebb óta futna, mint kellene. Egy működő kiszolgáló néhány másodpercenként közli ezt, akár kérdezi valaki, akár nem.",
+        "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.": "Nem lehet dokumentumot megnyitni, amíg nincs hozzárendelve a kiszolgáló, amelyik tárolja. Ellenőrizd, hogy legalább egy kiszolgáló fut dokumentumfeldolgozóként, és az eléri a Redis-t.",
+        "No servers are registered to hold documents": "Nincs dokumentumokat tároló kiszolgáló regisztrálva",
+        "Refresh": "Frissítés",
+        "Refreshing…": "Frissítés…"
     }
 }

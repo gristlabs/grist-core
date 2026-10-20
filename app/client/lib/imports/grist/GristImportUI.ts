@@ -37,6 +37,7 @@ import {
   NewTable,
 } from "app/client/lib/imports/ImportTableMapping";
 import { makeT } from "app/client/lib/localization";
+import { logUpsellShown } from "app/client/lib/upsellTelemetry";
 import { AppModel } from "app/client/models/AppModel";
 import { cssWell } from "app/client/ui/AdminPanelCss";
 import { isGristImportAvailable } from "app/client/ui/FeatureStatus";
@@ -342,6 +343,7 @@ export class GristImport extends Disposable {
     const { deploymentType } = getGristConfig();
     const isCoreDeployment = deploymentType === "core";
     const canUpgrade = deploymentType === "saas" && appModel.isOwner() && appModel.isBillingManager();
+    if (canUpgrade) { logUpsellShown(appModel, "importFromGrist"); }
 
     return cssUpgradeNudge(
       cssUpgradeNudgeText(isCoreDeployment ?
@@ -350,7 +352,7 @@ export class GristImport extends Disposable {
       canUpgrade ?
         bigPrimaryButton(
           t("Try for free"),
-          dom.on("click", () => appModel.showUpgradeModal()),
+          dom.on("click", () => appModel.showUpgradeModal("importFromGrist")),
           testId("import-grist-upgrade"),
         ) :
         bigPrimaryButtonLink(
