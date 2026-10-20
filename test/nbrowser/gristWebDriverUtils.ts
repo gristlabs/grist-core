@@ -287,22 +287,26 @@ export class GristWebDriverUtils {
    * Sends UserActions using client api from the browser.
    */
   public async sendActions(actions: (DocAction | UserAction)[], optTimeout: number = 5000) {
-    await this.driver.manage().setTimeouts({
-      script: optTimeout, /* milliseconds */
-    });
-
     // Make quick test that we have a list of actions not just a single action, by checking
     // if the first element is an array.
     if (actions.length && !Array.isArray(actions[0])) {
       throw new Error("actions argument should be a list of actions, not a single action");
     }
 
-    const result = await this.driver.executeAsyncScript(`
-    const done = arguments[arguments.length - 1];
-    const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
-    prom.then(() => done(null));
-    prom.catch((err) => done(String(err?.message || err)));
-  `);
+    // The browser outlives a test file, so put the script timeout back for whatever runs next.
+    const timeouts = await this.driver.manage().getTimeouts();
+    await this.driver.manage().setTimeouts({ script: optTimeout });
+    let result: unknown;
+    try {
+      result = await this.driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
+        prom.then(() => done(null));
+        prom.catch((err) => done(String(err?.message || err)));
+      `);
+    } finally {
+      await this.driver.manage().setTimeouts(timeouts);
+    }
     if (result) {
       throw new Error(result as string);
     }
