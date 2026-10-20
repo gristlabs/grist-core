@@ -235,7 +235,7 @@ describe("AccessRules2", function() {
     await ruleSet.find(".test-rule-part-and-memo:nth-child(1) .test-rule-remove").click();
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).isPresent(), true);
-    assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).matches(".disabled"), false);
+    assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).matches('[aria-disabled="true"]'), false);
     await driver.sendKeys(Key.ESCAPE);
 
     // Save
@@ -316,13 +316,13 @@ describe("AccessRules2", function() {
 
     // Select a different table, and check that the Column field dropdown gets updated.
     await userAttrRule.find(".test-rule-userattr-table").click();
-    await driver.sendKeys("Access", Key.ENTER);
+    await gu.findOpenMenuItem("li", "Access").click();
     await userAttrRule.find(".test-rule-userattr-col").click();
     await gu.waitToPass(async () => {
       assert.deepEqual(await gu.findOpenMenuAllItems("li", el => el.getText()),
         ["Email", "SharedOnly", "id"]);
     });
-    await driver.sendKeys("Email", Key.ENTER);
+    await gu.findOpenMenuItem("li", "Email").click();
 
     // Remove ClientTable rules, and add a new one using the new UserAttribute.
     if (await findTable(/ClientsTable/).isPresent()) {

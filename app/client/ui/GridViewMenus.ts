@@ -13,12 +13,12 @@ import { icon } from "app/client/ui2018/icons";
 import {
   menuCssClass,
   menuDivider,
+  menuGroup,
   menuIcon,
   menuItem,
   menuItemCmd,
   menuItemSubmenu,
   menuItemTrimmed,
-  menuSubHeader,
   menuSubHeaderMenu,
   menuText,
   searchableMenu,
@@ -28,7 +28,7 @@ import * as UserType from "app/client/widgets/UserType";
 import { isFullReferencingType, isListType, RecalcWhen } from "app/common/gristTypes";
 import { Sort } from "app/common/SortSpec";
 
-import { dom, DomElementArg, styled } from "grainjs";
+import { dom, DomElementArg, onKeyDown, styled } from "grainjs";
 import isEqual from "lodash/isEqual";
 import * as weasel from "popweasel";
 
@@ -180,14 +180,16 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
   if (hiddenColumns.length <= 5) {
     return [
       menuDivider(),
-      menuSubHeader(t("Hidden Columns"), testId("new-columns-menu-hidden-columns-header")),
-      hiddenColumns.map((col: ColumnRec) =>
-        menuItem(
-          async () => {
-            await gridView.showColumn(col.id(), index);
-          },
-          col.label(),
-          testId("new-columns-menu-hidden-column-inlined"),
+      menuGroup(
+        [t("Hidden Columns"), testId("new-columns-menu-hidden-columns-header")],
+        hiddenColumns.map((col: ColumnRec) =>
+          menuItem(
+            async () => {
+              await gridView.showColumn(col.id(), index);
+            },
+            col.label(),
+            testId("new-columns-menu-hidden-column-inlined"),
+          ),
         ),
       ),
     ];
@@ -219,12 +221,14 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
 function buildShortcutsMenuItems(gridView: GridView, index?: number) {
   return [
     menuDivider(),
-    menuSubHeader(t("Shortcuts"), testId("new-columns-menu-shortcuts")),
-    buildTimestampMenuItems(gridView, index),
-    buildAuthorshipMenuItems(gridView, index),
-    buildDetectDuplicatesMenuItems(gridView, index),
-    buildDateHelpersMenuItems(gridView, index),
-    buildUUIDMenuItem(gridView, index),
+    menuGroup(
+      [t("Shortcuts"), testId("new-columns-menu-shortcuts")],
+      buildTimestampMenuItems(gridView, index),
+      buildAuthorshipMenuItems(gridView, index),
+      buildDetectDuplicatesMenuItems(gridView, index),
+      buildDateHelpersMenuItems(gridView, index),
+      buildUUIDMenuItem(gridView, index),
+    ),
   ];
 }
 
@@ -702,15 +706,10 @@ function buildLookupSection(gridView: GridView, index?: number) {
 
   return [
     menuDivider(),
-    menuSubHeader(
-      withInfoTooltip(
-        t("Lookups"),
-        "lookups",
-        { variant: "hover" },
-      ),
-      testId("new-columns-menu-lookups"),
+    menuGroup(
+      [withInfoTooltip(t("Lookups"), "lookups", { variant: "hover" }), testId("new-columns-menu-lookups")],
+      ...menuContent,
     ),
-    ...menuContent,
   ];
 }
 
@@ -747,12 +746,14 @@ export function calcFieldsCondition(
 export function buildColumnContextMenu(options: IColumnContextMenu) {
   const { disableModify, filterOpenFunc, colRowId, sortSpec, isReadonly } = options;
 
-  const disableForReadonlyColumn = dom.cls("disabled", Boolean(disableModify) || isReadonly);
+  const disableForReadonlyColumn = dom.attr("aria-disabled",
+    Boolean(disableModify) || isReadonly ? "true" : "false",
+  );
 
   const addToSortLabel = getAddToSortLabel(sortSpec, colRowId);
 
   const isVirtual = typeof colRowId === "string";
-  const disabledForVirtual = dom.cls("disabled", isVirtual);
+  const disabledForVirtual = dom.attr("aria-disabled", isVirtual ? "true" : "false");
 
   return [
     !isVirtual ? menuItemCmd(allCommands.fieldTabOpen, t("Column Options")) : null,
@@ -823,8 +824,10 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
  * makes sense.
  */
 export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
-  const disableForReadonlyColumn = dom.cls("disabled", Boolean(options.disableModify) || options.isReadonly);
-  const disableForReadonlyView = dom.cls("disabled", options.isReadonly);
+  const disableForReadonlyColumn = dom.attr("aria-disabled",
+    Boolean(options.disableModify) || options.isReadonly ? "true" : "false",
+  );
+  const disableForReadonlyView = dom.attr("aria-disabled", options.isReadonly ? "true" : "false");
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
     t("Reset {{count}} entire columns", { count: num }) :
@@ -1007,7 +1010,9 @@ const cssCustomMenuItem = styled("div", `
     padding-left: 24px;
     flex: 1 0 auto;
   }
-  &-selected, &-selected:not(:hover) {
+  &-selected, &-selected:not(:hover),
+  &.${weasel.cssMenuItem.className}-sel {
+    outline: none;
     background-color: ${theme.menuItemSelectedBg};
     color: ${theme.menuItemSelectedFg};
     --icon-color: ${theme.menuItemSelectedFg};
@@ -1017,7 +1022,11 @@ const cssCustomMenuItem = styled("div", `
 function customMenuItem(action: () => void, ...args: DomElementArg[]) {
   const element: HTMLElement = cssCustomMenuItem(
     ...args,
+    { tabindex: "-1", role: "menuitem" },
     dom.on("click", () => action()),
+    onKeyDown({
+      Enter$: () => action(),
+    }),
   );
   return element;
 }

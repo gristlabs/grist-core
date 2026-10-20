@@ -2248,7 +2248,7 @@ export default class GridView extends BaseView {
       menuToggle(null,
         // Don't let the click through to the corner's select-all handler.
         dom.on("click", ev => ev.stopPropagation()),
-        menu(() => rowNumbersMenu(this.viewSection), { trigger: ["click"] }),
+        menu(ctl => rowNumbersMenu(this.viewSection, ctl), { trigger: ["click"] }),
         testId("corner-menu-trigger"),
       ),
     ];

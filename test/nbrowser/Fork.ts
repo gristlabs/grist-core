@@ -659,7 +659,7 @@ describe("Fork", function() {
           // check Replace Original does not let us proceed because we don't have
           // editing rights on trunk.
           await driver.find(".test-tb-share").click();
-          assert.equal(await driver.findWait(".test-replace-original", 1000).matches(".disabled"), true);
+          assert.equal(await driver.findWait(".test-replace-original", 1000).matches('[aria-disabled="true"]'), true);
           // Clicking the disabled element does nothing.
           await driver.find(".test-replace-original").click();
           assert.equal(await gu.findOpenMenu().isDisplayed(), true);
