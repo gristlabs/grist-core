@@ -1,4 +1,5 @@
 import { Activation } from "app/gen-server/entity/Activation";
+import { OUTGOING_REQUEST_ENV_VARS } from "app/server/lib/outgoingRequests";
 import * as gu from "test/nbrowser/gristUtils";
 import { useFastSandboxProbe } from "test/nbrowser/sandboxProbeFixture";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
@@ -18,6 +19,9 @@ describe("AdminTopProblems", function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = "core";
     process.env.GRIST_DEFAULT_EMAIL = gu.session().email;
+    OUTGOING_REQUEST_ENV_VARS.forEach((v) => { delete process.env[v]; });
+    // Set here, since only the dev server turns REQUEST() on by default.
+    process.env.GRIST_ENABLE_REQUEST_FUNCTION = "1";
     useFastSandboxProbe();
     await server.restart(true);
     await gu.session().personalSite.login();
@@ -33,8 +37,8 @@ describe("AdminTopProblems", function() {
 
   afterEach(() => gu.checkForErrors());
 
-  // Tests run with GRIST_SANDBOX_FLAVOR=unsandboxed, the minimal login, and REQUEST() and
-  // webhooks without a URL filter, so the page always reports these problems.
+  // Tests run with GRIST_SANDBOX_FLAVOR=unsandboxed, the minimal login, and REQUEST() without a
+  // URL filter, so the page always reports these problems.
 
   describe("wells", function() {
     it("lists errors before warnings in one well", async function() {
