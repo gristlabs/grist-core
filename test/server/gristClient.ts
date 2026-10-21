@@ -36,6 +36,7 @@ export class GristClient {
   private _consumer: () => void;
   private _ignoreTrivialActions: boolean = false;
   private _ignorePresenceUpdates: boolean = false;
+  private _sawClientConnect: boolean = false;
 
   constructor(public ws: GristClientSocket) {
     ws.onmessage = (data: string) => {
@@ -43,6 +44,12 @@ export class GristClient {
         ["reqId", "error", "errorCode", "data", "type", "docFD"]);
       if (this._ignorePresenceUpdates && msg.type === "docUserPresenceUpdate") {
         return;
+      }
+      // The server repeats clientConnect 250ms after connecting (see Client.sendConnectMessage).
+      // Skip the repeat, as the browser client does.
+      if (msg.type === "clientConnect") {
+        if (this._sawClientConnect) { return; }
+        this._sawClientConnect = true;
       }
       if (this._ignoreTrivialActions && msg.type === "docUserAction" &&
         msg.data?.actionGroup?.internal === true &&
@@ -139,7 +146,7 @@ export class GristClient {
     return this.send("ping");
   }
 
-  // Helper to read the next docUserAction ignoring anything else (e.g. a duplicate clientConnect).
+  // Helper to read the next docUserAction ignoring anything else.
   public async readDocUserAction(): Promise<DocAction[]> {
     while (true) {
       const msg = await this.readMessage();
