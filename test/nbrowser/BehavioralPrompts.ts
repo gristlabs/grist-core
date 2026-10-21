@@ -85,8 +85,7 @@ describe("BehavioralPrompts", function() {
     await driver.find(".test-fbuilder-type-select").click();
     await gu.findOpenMenu();
     await assertPromptTitle(null);
-    await gu.waitForMenuFocus();
-    await gu.sendKeys(Key.ESCAPE);
+    await gu.closeOpenMenu();
   });
 
   it("should be shown after selecting a reference column type", async function() {

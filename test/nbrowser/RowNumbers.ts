@@ -72,7 +72,7 @@ describe("RowNumbers", function() {
     await firstGutter.mouseMove();
     await firstGutter.find(".test-row-menu-trigger").click();
     assert.isTrue(await gu.findOpenMenu(1000).isDisplayed());
-    await driver.sendKeys(Key.ESCAPE);
+    await gu.closeOpenMenu();
   });
 
   it("collapses the gutter in Hidden mode", async function() {
@@ -91,7 +91,7 @@ describe("RowNumbers", function() {
     await driver.withActions(a => a.contextClick(cell));
     const menu = await gu.findOpenMenu(1000);
     assert.isTrue(await menu.findContent("li", /Delete row/).isPresent());
-    await driver.sendKeys(Key.ESCAPE);
+    await gu.closeOpenMenu();
   });
 
   it("keeps frozen columns flush with the left edge when hidden", async function() {
@@ -144,8 +144,7 @@ describe("RowNumbers", function() {
     await trigger.click();
     menu = await gu.findOpenMenu(1000);
     assert.equal(await menu.find(".test-row-numbers-selected").findClosest("li").getText(), "Numbers");
-    await gu.waitForMenuFocus();
-    await driver.sendKeys(Key.ESCAPE);
+    await gu.closeOpenMenu();
   });
 
   it("opens the corner menu on right-click", async function() {

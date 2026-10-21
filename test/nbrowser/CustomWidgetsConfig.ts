@@ -73,8 +73,7 @@ async function refresh() {
 async function hasSectionOption() {
   const menu = await gu.openSectionMenu("viewLayout");
   const has = 1 === (await menu.findAll(".test-section-open-configuration")).length;
-  await gu.waitForMenuFocus();
-  await driver.sendKeys(Key.ESCAPE);
+  await gu.closeOpenMenu();
   return has;
 }
 

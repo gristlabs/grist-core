@@ -108,9 +108,7 @@ describe("RawData", function() {
     assert.equal(await gu.findOpenMenuItem("li", /Collapse widget/).matches(".disabled"), true);
     assert.equal(await gu.findOpenMenuItem("li", /Duplicate widget/).matches(".disabled"), true);
     assert.equal(await gu.findOpenMenuItem("li", /Delete widget/).matches(".disabled"), true);
-    await gu.waitForMenuFocus();
-    await driver.sendKeys(Key.ESCAPE);    // Close the menu
-    await driver.wait(async () => !await driver.find(".grist-floating-menu").isPresent());
+    await gu.closeOpenMenu();    // Close the menu
     await driver.sendKeys(Key.ESCAPE);    // Close the preview popup
     await driver.wait(async () => !await driver.find(".test-raw-data-overlay").isPresent());
   });

@@ -1499,8 +1499,7 @@ namespace gristUtils {
   export async function canRemovePage(name: string | RegExp) {
     await openPageMenu(name);
     const isDisabled = await driver.find(".test-docpage-remove").matches(".disabled");
-    await waitForMenuFocus();
-    await driver.sendKeys(Key.ESCAPE);
+    await closeOpenMenu();
     return !isDisabled;
   }
 
@@ -3761,8 +3760,7 @@ namespace gristUtils {
     await driver.find(".test-field-behaviour").click();
     await findOpenMenu();
     const list = await driver.findAll(".grist-floating-menu li", el => el.getText());
-    await waitForMenuFocus();
-    await driver.sendKeys(Key.ESCAPE);
+    await closeOpenMenu();
     return list;
   }
 
@@ -3917,8 +3915,7 @@ namespace gristUtils {
   ) {
     await openSectionMenu("viewLayout", section);
     const href = await driver.findWait(".test-download-section", 1000).getAttribute("href");
-    await waitForMenuFocus();
-    await driver.sendKeys(Key.ESCAPE);  // Close section menu
+    await closeOpenMenu();
     const resp = await axios.get(href, { responseType: "text", headers });
     return resp.data as string;
   }
@@ -4429,6 +4426,15 @@ namespace gristUtils {
   }
 
   /**
+   * Closes the open menu with Escape, once the menu is ready for it, and waits for it to go.
+   */
+  export async function closeOpenMenu() {
+    await waitForMenuFocus();
+    await driver.sendKeys(Key.ESCAPE);
+    await waitForMenuToClose(1000);
+  }
+
+  /**
    * Waits for every view to have the data it asked for. Moving the cursor in one widget makes the
    * widgets linked to it re-query, and the page has no other signal for when those queries finish.
    */
@@ -4491,8 +4497,7 @@ namespace gristUtils {
         // Wait for the menu.
         await findOpenMenu();
         const options =  await findOpenMenuAllItems("li", el => el.getText());
-        await waitForMenuFocus();
-        await driver.sendKeys(Key.ESCAPE);
+        await closeOpenMenu();
         return options;
       },
       /**
