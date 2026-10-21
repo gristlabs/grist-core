@@ -566,6 +566,10 @@ GRIST_SANDBOX_FLAVOR | can be gvisor, pynbox, unsandboxed, docker, or macSandbox
 GRIST_SANDBOX | a program or image name to run as the sandbox. See NSandbox.ts for nerdy details. | N/A |
 GVISOR_LIMIT_NPROC | the number of extant processes the sandbox is allowed to spawn when running on Linux. Defaults to 8. | GVisor |
 GVISOR_LIMIT_MEMORY | the maximum size of the sandboxed process's virtual memory (in bytes). No limit by default. | GVisor |
+GVISOR_SANDBOX_PATH | Customize the PATH inside the sandbox | GVisor |
+GVISOR_SANDBOX_LD_LIBRARY_PATH | Customize the LD_LIBRARY_PATH inside the sandbox | GVisor |
+GVISOR_NO_DEFAULT_FHS_DIR | Do not bind mount FHS directories. You will need to specify directories that are meant to be accessible in the sandbox using `GVISOR_EXTRA_DIRS` | GVisor |
+GVISOR_EXTRA_DIRS | colon-separated list of directories to bind mount inside the sandbox | GVisor |
 
 #### Forward authentication variables:
 
