@@ -3155,7 +3155,9 @@
         "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.",
         "To preserve it, mount a volume at /persist.": "To preserve it, mount a volume at /persist.",
         "Back up documents externally": "Back up documents externally",
-        "Storage": "Storage"
+        "Storage": "Storage",
+        "checking": "checking",
+        "unknown": "unknown"
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Allow anonymous access",
