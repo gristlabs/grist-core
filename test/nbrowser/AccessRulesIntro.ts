@@ -185,6 +185,7 @@ describe("AccessRulesIntro", function() {
     // "trash" icons visible to delete other rules, and deleting them en masse is very risky.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /Table1/, 500).click();
+    await gu.waitForMenuAction();
     await enterRulePart(findDefaultRuleSetWait(/Table1/), 1, "True", { C: "deny" });
 
     // The "Disable" button should disappear.

@@ -189,6 +189,7 @@ describe("SelectBySummary", function() {
     // Deny all access to Table1.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /Table1/, 3000).click();
+    await gu.waitForMenuAction();
     const ruleSet = findDefaultRuleSetWait(/Table1/);
     await enterRulePart(ruleSet, 1, null, "Deny all");
     await driver.find(".test-rules-save").click();

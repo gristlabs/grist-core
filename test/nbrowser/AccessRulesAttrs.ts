@@ -47,6 +47,7 @@ describe("AccessRulesAttrs", function() {
     // Add rules for TableFoo.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /TableFoo/, 3000).click();
+    await gu.waitForMenuAction();
     let ruleSet = findDefaultRuleSetWait(/TableFoo/);
 
     // Add a rule that only allows reading row with "foo" in it (all lowercase).
@@ -155,6 +156,7 @@ describe("AccessRulesAttrs", function() {
     // While this column is Text, we can use "lower()" method, and everything works.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /TableFoo/, 3000).click();
+    await gu.waitForMenuAction();
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
     // This rule won't match anything, which is fine, we are only interested in its validity.
     await enterRulePart(ruleSet, 1, 'newRec.OtherText.lower() == "blah"', { U: "deny", C: "deny" });
