@@ -257,12 +257,8 @@ describe("QuickSetupApply", function() {
     await driver.get(`${server.getHost()}/admin/setup`);
     await driver.findWait(".test-stepper-step-4", 1000);
     await driver.find(".test-stepper-step-4").click();
-    await gu.waitToPass(async () => {
-      assert.include(
-        await driver.find(".test-permissions-setup-section").getText(),
-        "Apply & restart",
-      );
-    }, 1000);
+    // The step shows its title while the permissions are still loading, so wait for the loaded card.
+    await driver.findWait(".test-permissions-setup-card", 2000);
   }
 
   async function isPresetActive(preset: string): Promise<boolean> {
