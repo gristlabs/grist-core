@@ -122,14 +122,34 @@ function domT(key: string, args: any, tImpl: typeof i18next.t) {
     const result: string = tImpl(key, { ...copy, missingInterpolationHandler });
 
     // Now replace all markers with dom elements passed as arguments.
-    const parts = result.split(/(\[\[\[[^\]]+?\]\]\])/);
-    for (let i = 1; i < parts.length; i += 2) { // Every second element is our dom element.
-      const propName = parts[i].substring(3, parts[i].length - 3);
-      const domElement = args[propName] ?? `{{${propName}}}`; // If the prop is not there, simulate default behavior.
-      parts[i] = domElement;
-    }
-    return parts.filter(p => p !== "") as any; // Remove empty parts.
+    return splitInterpolationMarkers(result, args).filter(p => p !== "") as any; // Remove empty parts.
   }
+}
+
+/**
+ * Returns a marker for each of `props`, to pass to `t` in place of values that can't be
+ * interpolated as strings. See {@link splitInterpolationMarkers}.
+ */
+export function interpolationMarkers(props: Iterable<string>): Record<string, string> {
+  return Object.fromEntries(Array.from(props, prop => [prop, interpolationMarker(prop)]));
+}
+
+/**
+ * Splits translated `text` around its interpolation markers, replacing each with its value
+ * from `values` (or `{{prop}}` if missing, to simulate the default behavior). Values are at odd
+ * indices of the result.
+ */
+export function splitInterpolationMarkers<T>(text: string, values: Record<string, T>): (string | T)[] {
+  const parts: (string | T)[] = text.split(/(\[\[\[[^\]]+?\]\]\])/);
+  for (let i = 1; i < parts.length; i += 2) {
+    const prop = (parts[i] as string).slice(3, -3);
+    parts[i] = values[prop] ?? `{{${prop}}}`;
+  }
+  return parts;
+}
+
+function interpolationMarker(prop: string) {
+  return `[[[${prop}]]]`;
 }
 
 /**
@@ -140,7 +160,7 @@ export function hasTranslation(key: string) {
 }
 
 function missingInterpolationHandler(key: string, value: any) {
-  return `[[[${value[1]}]]]`;
+  return interpolationMarker(value[1]);
 }
 
 /**

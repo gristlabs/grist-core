@@ -57,7 +57,7 @@ module.exports = {
   // typescript ("cheap-module-eval-source-map" is faster, but breakpoints are largely broken).
   devtool: "source-map",
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".tsx", ".js"],
     modules: [
       path.resolve("."),
       path.resolve("./ext"),
@@ -74,9 +74,10 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|ts)?$/,
+        test: /\.(js|tsx?)$/,
         loader: "esbuild-loader",
         options: {
+          jsx: "automatic",
           target: "es2020",
           sourcemap: true,
         },

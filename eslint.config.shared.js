@@ -80,7 +80,7 @@ function makeConfig({ projectRoot, lintExt }) {
       },
     }, {
       basePath: projectRoot,
-      files: ["**/*.ts"],
+      files: ["**/*.ts", "**/*.tsx"],
 
       extends: [
         "js/recommended",

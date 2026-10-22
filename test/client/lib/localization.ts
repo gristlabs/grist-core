@@ -1,4 +1,4 @@
-import { makeT, t } from "app/client/lib/localization";
+import { interpolationMarkers, makeT, splitInterpolationMarkers, t } from "app/client/lib/localization";
 
 import { assert } from "chai";
 import { Disposable, dom, DomContents, observable } from "grainjs";
@@ -132,5 +132,20 @@ describe("localization", function() {
   it("makeT helper fallbacks to an argument", function() {
     const scoped = makeT("Parent", instance);
     assert.equal(scoped("I'm not there"), "I'm not there");
+  });
+
+  it("splits translated text around interpolation markers", function() {
+    const markers = interpolationMarkers(["arg1", "arg2", "end"]);
+    const text = t("Argument", markers, instance);
+    const arg1 = { value: 1 };
+    const arg2 = { value: 2 };
+    assert.deepEqual(
+      splitInterpolationMarkers<object | string>(text, { arg1, arg2, end: "!" }),
+      ["Translated ", arg1, " ", arg2, "", "!", ""],
+    );
+  });
+
+  it("keeps missing interpolation values as placeholders", function() {
+    assert.deepEqual(splitInterpolationMarkers("a [[[x]]] b", {}), ["a ", "{{x}}", " b"]);
   });
 });

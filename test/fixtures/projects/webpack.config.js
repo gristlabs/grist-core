@@ -42,7 +42,7 @@ module.exports = {
   },
   devtool: "source-map",
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".tsx", ".js"],
     modules: [
       path.resolve("."),
       path.resolve("./node_modules"),
@@ -56,10 +56,10 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|ts)?$/,
+        test: /\.(js|tsx?)$/,
         loader: "esbuild-loader",
         options: {
-          loader: "ts",
+          jsx: "automatic",
           target: "es2020",
           sourcemap: true,
         },
