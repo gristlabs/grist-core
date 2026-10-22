@@ -14,7 +14,7 @@ describe("CalendarView", function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();
   // The calendar shares the page with its source table, so on the default 1024x640 window the
-  // section is narrow: the toolbar overflows and the drag test's target can fall outside the
+  // section is narrow: the toolbar takes two rows and the drag test's target can fall outside the
   // viewport. Give the suite a bigger screen so the widget has realistic room.
   gu.bigScreen();
 
@@ -521,9 +521,9 @@ describe("CalendarView", function() {
     return driver.executeScript("return window.gristCalendarView.getCalendarDate()");
   }
 
-  // Read textContent rather than getText(): the toolbar's button groups don't shrink, so when the
-  // section is narrow the title ellipsizes and getText() (which returns only rendered text) comes
-  // back empty. textContent is what the view actually set, which is what these assertions check.
+  // Read textContent rather than getText(): a long title that does not fit is cut with an ellipsis,
+  // and getText() returns only the rendered text. textContent is what the view actually set, which
+  // is what these assertions check.
   async function getCalendarTitle(): Promise<string> {
     return driver.executeScript<string>(
       `return document.querySelector(".test-calendar-title").textContent`);
