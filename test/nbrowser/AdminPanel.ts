@@ -157,7 +157,7 @@ describe("AdminPanel", function() {
     // Reload the page and check that the Grist config indicates telemetry is set to "limited".
     await driver.navigate().refresh();
     await gu.waitForAdminPanel();
-    toggle = await switchElement("telemetry");
+    toggle = await switchElement("telemetry", { visible: true });
     assert.equal(await isEnabled(toggle), true);
     await toggleItem("telemetry");
     await driver.findContentWait(".test-support-grist-page-telemetry-section button", /Opt out of Telemetry/, 2000);
@@ -209,7 +209,7 @@ describe("AdminPanel", function() {
     // Check that the Support Grist page reports telemetry is enabled.
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
-    const toggle = await switchElement("telemetry");
+    const toggle = await switchElement("telemetry", { visible: true });
     assert.equal(await isEnabled(toggle), true);
     await toggleItem("telemetry");
     assert.equal(
@@ -246,12 +246,11 @@ describe("AdminPanel", function() {
   it("should show admin accounts", async function() {
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
-    const adminAccounts = await driver.findWait(".test-admin-panel-item-admins", 2000);
+    // The count comes from the "admins" check; the pill is rebuilt when it reports.
+    await gu.waitForAdminChecks();
+    const adminAccounts = await driver.find(".test-admin-panel-item-admins");
     assert.equal(await adminAccounts.isDisplayed(), true);
     const adminDisplay = await driver.find(".test-admin-panel-admin-accounts-display");
-
-    // The count comes from the "admins" probe; the item renders "checking" until it reports.
-    await gu.waitForAdminChecks();
     assert.equal("1 admin account", await adminDisplay.getText());
 
     await toggleItem("admins");
@@ -304,7 +303,8 @@ describe("AdminPanel", function() {
 
   const upperCheckNow = () => driver.find(".test-admin-panel-updates-upper-check-now");
   const lowerCheckNow = () => driver.find(".test-admin-panel-updates-lower-check-now");
-  const autoCheckToggle = () => driver.find(".test-admin-panel-updates-auto-check");
+  // Rendered once its saved value loads.
+  const autoCheckToggle = () => driver.findWait(".test-admin-panel-updates-auto-check", 4000);
   const autoCheckToggleDisabled = () => driver.find(".test-admin-panel-updates-auto-check-disabled");
   const updateMessage = () => driver.find(".test-admin-panel-updates-message");
   const versionBox = () => driver.find(".test-admin-panel-updates-version");
@@ -364,6 +364,8 @@ describe("AdminPanel", function() {
     await waitForStatus(/Newer version available/);
     assert.isTrue(await versionBox().isDisplayed());
     assert.equal(await versionBox().getText(), `Version ${fakeServer.latestVersion}`);
+    // Let the setting save before reloading.
+    await gu.waitForServer();
 
     // Refresh to see if we are disabled.
     fakeServer.pause();
@@ -481,10 +483,11 @@ describe("AdminPanel", function() {
     await server.restart(true);
     await driver.get(`${server.getHost()}/admin?boot-key=zig`);
     await gu.waitForAdminPanel();
+    await gu.waitForAdminChecks();
 
-    const adminAccounts = await driver.findWait(".test-admin-panel-item-admins", 2000);
+    const adminAccounts = await driver.find(".test-admin-panel-item-admins");
     assert.equal(await adminAccounts.isDisplayed(), true);
-    const adminDisplay = await driver.findWait(".test-admin-panel-admin-accounts-display", 1000);
+    const adminDisplay = await driver.find(".test-admin-panel-admin-accounts-display");
 
     assert.equal("no admin accounts", await adminDisplay.getText());
 

@@ -1,5 +1,5 @@
 import { makeT } from "app/client/lib/localization";
-import { AdminChecks } from "app/client/models/AdminChecks";
+import { AdminChecks, isChecking } from "app/client/models/AdminChecks";
 import {
   buildStatusPill,
   cssIconWrapper as cssWellIcon,
@@ -66,8 +66,7 @@ function readDetails(result: BootProbeResult | undefined): OutgoingRequestsProbe
  * listed at the top of the page.
  */
 export function buildOutgoingRequestsStatus(result: BootProbeResult | undefined): RowStatus {
-  // No answer yet. The placeholder result has status "none".
-  if (!result || result.status === "none") {
+  if (isChecking(result)) {
     return { label: t("checking") };
   }
   const details = readDetails(result);
@@ -145,7 +144,7 @@ export class OutgoingRequestsSection extends Disposable {
  * Settings section. Also used by Storybook with synthetic probe fixtures.
  */
 export function buildOutgoingRequestsPanel(result: BootProbeResult | undefined): DomContents {
-  if (!result) { return dom("p", t("Checking…")); }
+  if (isChecking(result)) { return dom("p", t("Checking…")); }
   const details = readDetails(result);
   const checks = details?.checks || [];
 

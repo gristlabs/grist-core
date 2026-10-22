@@ -142,6 +142,16 @@ export interface AdminCheckRequest {
 }
 
 /**
+ * Whether a check has yet to report. Until then its result is a placeholder with status "none",
+ * so this suits only checks that never answer "none" themselves.
+ */
+export function isChecking(
+  result: BootProbeResult | undefined,
+): result is undefined | (BootProbeResult & { status: "none" }) {
+  return !result || result.status === "none";
+}
+
+/**
  * Manage a single check.
  */
 export class AdminCheckRunner {

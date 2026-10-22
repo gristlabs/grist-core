@@ -65,11 +65,10 @@ describe("AuthProviderGetGrist", function() {
       await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
       await driver.get(`${server.getHost()}/admin`);
       await gu.waitForAdminPanel();
+      await gu.waitForAdminChecks();
       await toggleItem("authentication");
 
-      await gu.waitToPass(async () => {
-        assert.equal(await itemValue("authentication"), "no authentication");
-      }, 500);
+      assert.equal(await itemValue("authentication"), "no authentication");
 
       await driver.findWait(".test-admin-auth-provider-row", 2000);
       const providerItems = await driver.findAll(".test-admin-auth-provider-row");
@@ -158,6 +157,7 @@ describe("AuthProviderGetGrist", function() {
       await server.simulateLogin("user1", process.env.GRIST_DEFAULT_EMAIL!, "docs");
       await driver.get(`${server.getHost()}/admin`);
       await gu.waitForAdminPanel();
+      await gu.waitForAdminChecks();
       await toggleItem("authentication");
       assert.equal(await itemValue("authentication"), "getgrist.com");
 

@@ -1,5 +1,5 @@
 import { makeT } from "app/client/lib/localization";
-import { AdminChecks } from "app/client/models/AdminChecks";
+import { AdminChecks, isChecking } from "app/client/models/AdminChecks";
 import { buildStatusPill, RowStatus } from "app/client/ui/AdminPanelCss";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
 import { SectionCard, SectionItem } from "app/client/ui/SettingsLayout";
@@ -135,20 +135,26 @@ export class BackupsSection extends Disposable {
   }
 
   private _buildStatus(use: UseCBOwner): RowStatus {
-    const backend = use(this._activeBackend);
     const persist = use(this._persistResult);
     // Require a verdict: a failed check request faults without one, which isn't data loss.
     const dataWillBeLost = persist?.status === "fault" && persist.verdict;
+    const problem: RowStatus["problem"] = dataWillBeLost ? {
+      key: "persist.ephemeral",
+      severity: "error",
+      anchor: "backups",
+      title: t("Your data may not survive a container restart."),
+      text: t("To preserve it, mount a volume at /persist."),
+    } : undefined;
+
+    const req = this._props.checks.requestCheckById(use, "backups");
+    const result = req ? use(req.result) : undefined;
+    if (req && isChecking(result)) { return { label: t("checking"), problem }; }
+    if (result?.details?.requestFailed) { return { label: t("unknown"), problem }; }
+    const backend = use(this._activeBackend);
     return {
       label: backend ? STORAGE_BACKENDS[backend].label() : t("Off"),
       level: backend ? "success" : "warning",
-      problem: dataWillBeLost ? {
-        key: "persist.ephemeral",
-        severity: "error",
-        anchor: "backups",
-        title: t("Your data may not survive a container restart."),
-        text: t("To preserve it, mount a volume at /persist."),
-      } : undefined,
+      problem,
     };
   }
 
