@@ -36,6 +36,12 @@ export class TestPendingOps {
 export const testPendingChecks = new TestPendingOps();
 
 /**
+ * Views scrolling to the cursor. A view scrolls a tick after the cursor moves, and renders the
+ * cursor's row only then.
+ */
+export const testPendingScrolls = new TestPendingOps();
+
+/**
  * Paste operations. A file paste is an upload followed by a separate addAttachments action, so
  * in-flight request counts go quiet between the two and look like success.
  */
