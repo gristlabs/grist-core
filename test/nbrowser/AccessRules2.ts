@@ -189,10 +189,12 @@ describe("AccessRules2", function() {
     const options = await gu.findOpenMenuAllItems("li", e => e.getText());
     assert.deepEqual(options, ["ClientsTable", "ClientsTable [by Shared]", "FinancialsTable"]);
     await gu.findOpenMenuItem("li", /ClientsTable/).click();
+    await gu.waitForMenuAction();
 
     // Add rules hiding First_Name, Last_Name columns.
     await findTableWait(/ClientsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
+    await gu.waitForMenuAction();
     let ruleSet = await findRuleSetColumnWait(/ClientsTable/);
     await ruleSet.find(".test-rule-resource .test-select-open").click();
     await gu.findOpenMenuItem("li", "First_Name").click();
@@ -203,6 +205,7 @@ describe("AccessRules2", function() {
     // Add table rule entirely hiding FinancialsTable.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /FinancialsTable/).click();
+    await gu.waitForMenuAction();
     ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
     await enterRulePart(ruleSet, 1, null, { R: "deny" });
 
@@ -253,6 +256,7 @@ describe("AccessRules2", function() {
     assert.equal(await findRuleSet(/FinancialsTable/, 1).isPresent(), false);
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /FinancialsTable/).click();
+    await gu.waitForMenuAction();
     ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
 
     await enterRulePart(ruleSet, 1, null, { R: "deny" });
@@ -328,9 +332,11 @@ describe("AccessRules2", function() {
     if (await findTable(/ClientsTable/).isPresent()) {
       await findTable(/ClientsTable/).find(".test-rule-table-menu-btn").click();
       await gu.findOpenMenuItem("li", /Delete Table Rules/).click();
+      await gu.waitForMenuAction();
     }
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /ClientsTable/).click();
+    await gu.waitForMenuAction();
     const ruleSet = findDefaultRuleSetWait(/ClientsTable/);
     await ruleSet.find(".test-rule-part .test-rule-add").click();
     // newRec term in the following does nothing, it is just there to test renaming later.
@@ -614,6 +620,7 @@ describe("AccessRules2", function() {
     await driver.findContent(".test-rule-table-header", / #Invalid \(ClientsTable\)$/)
       .find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Delete/).click();
+    await gu.waitForMenuAction();
     await save();
     await gu.waitForServer();
     assert.isTrue(await driver.find(".test-rules-non-save").isDisplayed());
@@ -646,16 +653,19 @@ describe("AccessRules2", function() {
     // Add a rule for TmpTable1.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /TmpTable1/, 3000).click();
+    await gu.waitForMenuAction();
     let ruleSet = findDefaultRuleSetWait(/TmpTable1/);
     await enterRulePart(ruleSet, 1, null, "Allow all");
 
     // Add a rule for columns of TmpTable2.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /TmpTable2/, 3000).click();
+    await gu.waitForMenuAction();
     ruleSet = findDefaultRuleSetWait(/TmpTable2/);
     await enterRulePart(ruleSet, 1, null, "Allow all");
     await findTable(/TmpTable2/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
+    await gu.waitForMenuAction();
     ruleSet = findRuleSetColumnWait(/TmpTable2/);
     await ruleSet.find(".test-rule-resource .test-select-open").click();
     await gu.findOpenMenuItem("li", "A").click();
