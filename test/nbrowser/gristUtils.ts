@@ -3260,8 +3260,8 @@ namespace gristUtils {
     await driver.sendKeys(Key.ESCAPE);
   }
 
-  export type SortOption = "naturalSort" | "emptyLast" | "orderByChoice";
-  export const SortOptions: readonly SortOption[] = ["orderByChoice", "emptyLast", "naturalSort"];
+  export type SortOption = "naturalSort" | "emptyFirst" | "emptyLast" | "orderByChoice";
+  export const SortOptions: readonly SortOption[] = ["orderByChoice", "naturalSort", "emptyFirst", "emptyLast"];
 
   // Returns checked sort options for current column. Assumes the menu is opened.
   export async function getSortOptions(): Promise<SortOption[]> {
