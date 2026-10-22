@@ -1499,7 +1499,7 @@ namespace gristUtils {
   export async function canRemovePage(name: string | RegExp) {
     await openPageMenu(name);
     const isDisabled = await driver.find(".test-docpage-remove").matches(".disabled");
-    await driver.sendKeys(Key.ESCAPE);
+    await closeOpenMenu();
     return !isDisabled;
   }
 
@@ -3760,7 +3760,7 @@ namespace gristUtils {
     await driver.find(".test-field-behaviour").click();
     await findOpenMenu();
     const list = await driver.findAll(".grist-floating-menu li", el => el.getText());
-    await driver.sendKeys(Key.ESCAPE);
+    await closeOpenMenu();
     return list;
   }
 
@@ -3915,7 +3915,7 @@ namespace gristUtils {
   ) {
     await openSectionMenu("viewLayout", section);
     const href = await driver.findWait(".test-download-section", 1000).getAttribute("href");
-    await driver.sendKeys(Key.ESCAPE);  // Close section menu
+    await closeOpenMenu();
     const resp = await axios.get(href, { responseType: "text", headers });
     return resp.data as string;
   }
@@ -4414,7 +4414,8 @@ namespace gristUtils {
 
   /**
    * Waits for an open menu to hold the focus, which is when it starts handling keys. A menu takes
-   * the focus a tick after it is shown, so an Escape sent before then leaves it open.
+   * the focus a tick after it is shown. Keys sent before then miss it: an Escape leaves it open,
+   * and letters typed into a select go to the select's button, which picks its own match.
    */
   export async function waitForMenuFocus(optTimeout: number = 1000) {
     const menuHasFocus = () => driver.executeScript<boolean>(() => {
@@ -4422,6 +4423,15 @@ namespace gristUtils {
       return Array.from(document.querySelectorAll(".grist-floating-menu")).some(m => m.contains(active));
     }).catch(() => false);
     await driver.wait(menuHasFocus, optTimeout, "the open menu did not take the focus");
+  }
+
+  /**
+   * Closes the open menu with Escape, once the menu is ready for it, and waits for it to go.
+   */
+  export async function closeOpenMenu() {
+    await waitForMenuFocus();
+    await driver.sendKeys(Key.ESCAPE);
+    await waitForMenuToClose(1000);
   }
 
   /**
@@ -4487,7 +4497,7 @@ namespace gristUtils {
         // Wait for the menu.
         await findOpenMenu();
         const options =  await findOpenMenuAllItems("li", el => el.getText());
-        await driver.sendKeys(Key.ESCAPE);
+        await closeOpenMenu();
         return options;
       },
       /**
