@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key, until } from "mocha-webdriver";
 
@@ -8,8 +8,7 @@ describe("ColumnFilterMenu", function() {
 
   before(async function() {
     this.timeout(60000);
-    await driver.get(`${server.getHost()}/ColumnFilterMenu`);
-    await driver.findWait(".fixture-json", 2000);
+    await openFixture("ColumnFilterMenu");
   });
 
   beforeEach(async () => {

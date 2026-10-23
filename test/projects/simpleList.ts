@@ -1,4 +1,4 @@
-import { server } from "test/fixtures/projects/webpack-test-server";
+import { openFixture, server } from "test/projects/testUtils";
 
 import { assert, driver, Key,  useServer } from "mocha-webdriver";
 
@@ -6,7 +6,7 @@ describe("simpleList", function() {
   useServer(server);
 
   beforeEach(async function() {
-    await driver.get(`${server.getHost()}/simpleList`);
+    await openFixture("simpleList");
   });
 
   function getLogs() {

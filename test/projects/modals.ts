@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
@@ -8,7 +8,7 @@ describe("modals", function() {
   setupTestSuite();
 
   async function loadPage() {
-    await driver.get(`${server.getHost()}/modals`);
+    await openFixture("modals");
   }
 
   before(loadPage);

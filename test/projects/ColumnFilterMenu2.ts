@@ -1,5 +1,5 @@
 import { selectAllKey } from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
@@ -19,7 +19,7 @@ describe("ColumnFilterMenu2", function() {
 
   before(async function() {
     this.timeout(60000);
-    await driver.get(`${server.getHost()}/ColumnFilterMenu`);
+    await openFixture("ColumnFilterMenu");
   });
 
   beforeEach(async () => {

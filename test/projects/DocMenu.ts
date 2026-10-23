@@ -1,5 +1,5 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 
@@ -67,7 +67,7 @@ describe("DocMenu", function() {
   });
 
   before(async function() {
-    await driver.get(`${server.getHost()}/DocMenu`);
+    await openFixture("DocMenu");
     // Prevent the opening of new pages using using a UrlState hook. This prevents the testing of
     // navigation, but allows for better testing of the DocMenu page itself.
     await driver.executeScript(`window._urlStateLoadPage = () => {};`);

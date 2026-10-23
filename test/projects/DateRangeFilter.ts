@@ -1,6 +1,6 @@
 import * as gu from "test/nbrowser/gristUtils";
 import * as fu from "test/projects/filterUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import range from "lodash/range";
 import { addToRepl, assert, driver, Key } from "mocha-webdriver";
@@ -16,7 +16,7 @@ describe("DateRangeFilter", function() {
   this.timeout(10000);
 
   async function refresh() {
-    await driver.get(`${server.getHost()}/ColumnFilterMenu?filterType=Date` +
+    await openFixture("ColumnFilterMenu?filterType=Date" +
       `&currentTime=${encodeURIComponent(now().toISOString())}`);
     await gu.waitToPass(async () => {
       assert(await driver.find(".test-filter-menu-search-input").hasFocus());

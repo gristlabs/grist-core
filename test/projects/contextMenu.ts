@@ -1,6 +1,5 @@
-import { waitToPass } from "test/nbrowser/gristUtils";
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
@@ -34,15 +33,13 @@ describe("contextMenu", function() {
   this.timeout(20000);
 
   before(async function() {
-    await driver.get(`${server.getHost()}/contextMenu`);
+    await openFixture("contextMenu");
     addToRepl("contextMenu", contextMenu);
   });
 
   it("should open on contextmenu and work properly", async function() {
-    await waitToPass(async () =>  {
-      await contextMenu(10, 10);
-      assert.equal(await driver.find(".grist-floating-menu").isPresent(), true);
-    });
+    await contextMenu(10, 10);
+    assert.equal(await driver.find(".grist-floating-menu").isPresent(), true);
 
     // click Foo
     await gu.findOpenMenuItem("li", "Foo").click();

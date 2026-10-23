@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Origin } from "mocha-webdriver";
 
@@ -8,7 +8,7 @@ describe("resizeHandle", function() {
 
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
-    await driver.get(`${server.getHost()}/resizeHandle`);
+    await openFixture("resizeHandle");
   });
 
   function dragByX(x: number) {

@@ -1,5 +1,5 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 
@@ -14,8 +14,7 @@ describe("Mentions", function() {
   this.timeout("30s");
 
   before(async function() {
-    await driver.get(`${server.getHost()}/Mentions`);
-    await getInput(10000);
+    await openFixture("Mentions");
   });
 
   afterEach(async function() {
