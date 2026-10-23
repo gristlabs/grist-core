@@ -63,15 +63,15 @@ export class QuickSetupApplyStep extends Disposable {
   private _surveyPayload: HelpUsImproveSubmission | null = null;
   private _surveyMessage = Computed.create(this, (use) => {
     const resp = use(this._lastResponse);
-    // No structured response (network / unknown error): both parts retry.
-    if (!resp) {
-      return t("We couldn't submit your details or your request to be kept up to date. Please try again.");
-    }
 
     const tryAgainMessage = (use(this._surveyStatus) === "unrecoverable") ?
       t("Our servers may be experiencing issues. Please try again later.") :
       t("Please try again.");
 
+    // No structured response (network / unknown error): both parts retry.
+    if (!resp) {
+      return t("We couldn't submit your details or your request to be kept up to date.") + " " + tryAgainMessage;
+    }
     if (resp.persistFailed && !resp.subscribeFailed) {
       return t("We subscribed you for product updates, but couldn't save your other details.") + " " + tryAgainMessage;
     }
