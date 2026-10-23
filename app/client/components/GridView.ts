@@ -3,6 +3,7 @@ import { parsePasteForView } from "app/client/components/BaseView2";
 import * as selector from "app/client/components/CellSelector";
 import { ElemType } from "app/client/components/CellSelector";
 import { CutCallback } from "app/client/components/Clipboard";
+import { columnResizer } from "app/client/components/columnResizer";
 import * as commands from "app/client/components/commands";
 import { CopySelection } from "app/client/components/CopySelection";
 import { GristDoc } from "app/client/components/GristDoc";
@@ -10,8 +11,8 @@ import { reportUndo } from "app/client/components/modals";
 import { renderAllRows } from "app/client/components/Printing";
 import { viewCommands } from "app/client/components/RegionFocusSwitcher";
 import { SelectionSummary } from "app/client/components/SelectionSummary";
-import viewCommon from "app/client/components/viewCommon";
 import { onDblClickMatchElem } from "app/client/lib/dblclick";
+import { getInlineScroll, inlineOffset, inlineSign, isRtl, setInlineScroll } from "app/client/lib/direction";
 import { testId as oldTestId } from "app/client/lib/dom";
 import { isEventOnLink } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
@@ -146,6 +147,8 @@ export default class GridView extends BaseView {
   protected dragY: ko.Observable<number>;
   protected rowShadowAdjust;
   protected colShadowAdjust;
+  // +1 or -1: whether the mouse moving toward the end edge increases pageX, at column-drag start.
+  protected colDragSign: 1 | -1;
   protected scrollLeft: ko.Observable<number>;
   protected isScrolledLeft: ko.Computed<boolean>;
   protected scrollTop: ko.Observable<number>;
@@ -222,7 +225,8 @@ export default class GridView extends BaseView {
     this.dragX = ko.observable(0); // x coord of mouse during drag mouse down
     this.dragY = ko.observable(0); // ^ for y coord
     this.rowShadowAdjust = 0; // pixel dist from mouse click y-coord and the clicked row's top offset
-    this.colShadowAdjust = 0; // ^ for x-coord and clicked col's left offset
+    this.colShadowAdjust = 0; // ^ for x-coord and clicked col's start offset
+    this.colDragSign = 1;
     this.scrollLeft = ko.observable(0);
     this.isScrolledLeft = this.autoDispose(ko.computed(() => this.scrollLeft() > 0));
     this.scrollTop = ko.observable(0);
@@ -511,30 +515,22 @@ export default class GridView extends BaseView {
       }
       this.cursor.rowIndex(this.cursor.rowIndex()! - 1);
     },
-    cursorRight: function() {
-      if (this.cursor.fieldIndex() === this.viewSection.viewFields().peekLength - 1) {
-        // When the cursor is in the rightmost column, the view may not be scrolled all the way to
-        // the right (i.e. in the case of a wide column).
-        this.scrollPaneRight();
-      }
-      this.cursor.fieldIndex(this.cursor.fieldIndex() + 1);
-    },
-    cursorLeft: function() {
-      if (this.cursor.fieldIndex() === 0) {
-        // When the cursor is in the leftmost column, the view may not be scrolled all the way to
-        // the left (i.e. in the case of a wide column).
-        this.scrollPaneLeft();
-      }
-      this.cursor.fieldIndex(this.cursor.fieldIndex() - 1);
-    },
+    // Horizontal commands name the visual direction of the key; the grid maps that to a field
+    // index movement, which depends on whether it is laid out right-to-left.
+    cursorRight: function() { this._moveCursorHorizontally("right"); },
+    cursorLeft: function() { this._moveCursorHorizontally("left"); },
     shiftDown: function() { this._shiftSelect({ step: 1, direction: "down" }); },
     shiftUp: function() { this._shiftSelect({ step: 1, direction: "up" }); },
-    shiftRight: function() { this._shiftSelect({ step: 1, direction: "right" }); },
-    shiftLeft: function() { this._shiftSelect({ step: 1, direction: "left" }); },
+    shiftRight: function() { this._shiftSelect({ step: 1, direction: this._logicalDirection("right") }); },
+    shiftLeft: function() { this._shiftSelect({ step: 1, direction: this._logicalDirection("left") }); },
     ctrlShiftDown: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "down" }); },
     ctrlShiftUp: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "up" }); },
-    ctrlShiftRight: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "right" }); },
-    ctrlShiftLeft: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: "left" }); },
+    ctrlShiftRight: function() {
+      this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: this._logicalDirection("right") });
+    },
+    ctrlShiftLeft: function() {
+      this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: this._logicalDirection("left") });
+    },
     fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex()! + 1); },
     // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
     editField: function(event?: KeyboardEvent) {
@@ -571,7 +567,7 @@ export default class GridView extends BaseView {
     this.onScroll();
 
     // Initialize scroll position.
-    this.scrollPane.scrollLeft = this.viewSection.lastScrollPos.scrollLeft;
+    setInlineScroll(this.scrollPane, this.viewSection.lastScrollPos.scrollLeft);
     this.scrolly.scrollToSavedPos(this.viewSection.lastScrollPos);
 
     if (this._inline) {
@@ -1168,12 +1164,40 @@ export default class GridView extends BaseView {
     this.scrollPane.scrollTop = 0;
   }
 
-  protected scrollPaneRight() {
-    this.scrollPane.scrollLeft = this.scrollPane.scrollWidth;
+  protected scrollPaneEnd() {
+    setInlineScroll(this.scrollPane, this.scrollPane.scrollWidth);
   }
 
-  protected scrollPaneLeft() {
-    this.scrollPane.scrollLeft = 0;
+  protected scrollPaneStart() {
+    setInlineScroll(this.scrollPane, 0);
+  }
+
+  /**
+   * Maps a visual horizontal direction ("left"/"right", as named by keys and commands) to the
+   * logical one used for field indices: in a right-to-left grid, the next field is to the left.
+   */
+  protected _logicalDirection(direction: "left" | "right"): "left" | "right" {
+    if (!isRtl(this.scrollPane)) { return direction; }
+    return direction === "left" ? "right" : "left";
+  }
+
+  protected _moveCursorHorizontally(visualDirection: "left" | "right") {
+    const index = this.cursor.fieldIndex();
+    if (this._logicalDirection(visualDirection) === "right") {
+      if (index === this.viewSection.viewFields().peekLength - 1) {
+        // When the cursor is in the last column, the view may not be scrolled all the way to
+        // the end (i.e. in the case of a wide column).
+        this.scrollPaneEnd();
+      }
+      this.cursor.fieldIndex(index + 1);
+    } else {
+      if (index === 0) {
+        // When the cursor is in the first column, the view may not be scrolled all the way to
+        // the start (i.e. in the case of a wide column).
+        this.scrollPaneStart();
+      }
+      this.cursor.fieldIndex(index - 1);
+    }
   }
 
   protected selectColumn(colIndex: number) {
@@ -1288,12 +1312,13 @@ export default class GridView extends BaseView {
   }
 
   /**
-   *  Returns the column index of the column whose left position is closest to and
+   *  Returns the column index of the column whose start position is closest to and
    *  no greater than given x-position.
    *  param{xCoord}: The mouse x-position (absolute position on a page).
    *  Grid scroll offset and frozen columns are taken into account.
    *  Assumes that this.colRightOffsets is up to date
-   *  In the following examples, let * denote the current mouse position.
+   *  In the following examples (drawn left-to-right; a right-to-left grid is the mirror image),
+   *  let * denote the current mouse position.
    *      * |0____|1____|2____|3____|       Returns 0
    *        |0__*_|1____|2____|3____|       Returns 0
    *        |0____|1__*_|2____|3____|       Returns 1
@@ -1311,12 +1336,13 @@ export default class GridView extends BaseView {
    **/
   protected getMousePosCol(mouseX: number) {
     const scrollLeft = this.scrollLeft();
-    // Offset to left edge of gridView viewports
-    const headerOffset = this._cornerDom.getBoundingClientRect().right;
-    // Convert mouse x to grid x (not including scroll yet).
+    // Convert mouse x to grid x: the distance from the end edge of the row-number corner (which
+    // is where columns start) toward the end edge of the pane, not including scroll yet.
     // GridX now has x position as if the grid pane is covering
     // the whole screen, it still can be scrolled, so 0px is not equal to A column yet.
-    const gridX = mouseX - headerOffset;
+    const corner = this._cornerDom.getBoundingClientRect();
+    const rtl = isRtl(this._cornerDom);
+    const gridX = inlineOffset(corner, mouseX, rtl) - corner.width;
     // Total width of frozen columns (if zero, no frozen column set)
     const frozenWidth = this.frozenWidth.peek();
     // Frozen columns can be scrolled also, but not more then frozenOffset.
@@ -1386,7 +1412,7 @@ export default class GridView extends BaseView {
   // TODO : is this necessary? make passive. Also this could be removed soon I think
   protected onScroll() {
     const pane = this.scrollPane;
-    this.scrollLeft(pane.scrollLeft);
+    this.scrollLeft(getInlineScroll(pane));
     this.scrollTop(pane.scrollTop);
     this.width(pane.clientWidth);
   }
@@ -1461,12 +1487,12 @@ export default class GridView extends BaseView {
       this.colLine = dom(
         "div.col_indicator_line",
         kd.show(() => this.cellSelector.isCurrentDragType(selector.COL)),
-        dom.style("left", this.cellSelector.col.linePos),
+        dom.style("insetInlineStart", this.cellSelector.col.linePos),
       ),
       this.colShadow = dom(
         "div.column_shadow",
         kd.show(() => this.cellSelector.isCurrentDragType(selector.COL)),
-        dom.style("left", use => (use(this.dragX) - this.colShadowAdjust) + "px"),
+        dom.style("insetInlineStart", use => (this.colDragSign * use(this.dragX) - this.colShadowAdjust) + "px"),
       ),
       this.rowLine = dom(
         "div.row_indicator_line",
@@ -1487,7 +1513,7 @@ export default class GridView extends BaseView {
           dom.onDispose(() => {
           // Save the previous scroll values to the section.
             this.viewSection.lastScrollPos = _.extend({
-              scrollLeft: this.scrollPane.scrollLeft,
+              scrollLeft: getInlineScroll(this.scrollPane),
             }, this.scrolly.getScrollPos());
           }),
 
@@ -1556,8 +1582,8 @@ export default class GridView extends BaseView {
                       ];
                     },
                     dom.style("width", field.widthPx),
-                    dom.style("borderRightWidth", v.borderWidthPx),
-                    viewCommon.makeResizable(field.width, { shouldSave: !this.isReadonly }),
+                    dom.style("borderInlineEndWidth", v.borderWidthPx),
+                    columnResizer(field.width, { shouldSave: !this.isReadonly }),
                     kd.toggleClass("selected", () => ko.unwrap(this.isColSelected.at(field._index()!)!)),
                     dom.on("contextmenu", (ev) => {
                     // This is a little hack to position the menu the same way as with a click
@@ -1823,7 +1849,7 @@ export default class GridView extends BaseView {
               kd.style("width", field.widthPx),
               // TODO: Ensure that fields in a row resize when
               // a cell in that row becomes larger
-              kd.style("borderRightWidth", v.borderWidthPx),
+              kd.style("borderInlineEndWidth", v.borderWidthPx),
               kd.toggleClass("selected", isSelected),
               // Optional icon. Currently only use to show formula icon.
               dom("div.field-icon"),
@@ -2068,12 +2094,15 @@ export default class GridView extends BaseView {
     const colStart = this.cellSelector.colLower();
     const colEnd = this.cellSelector.colUpper();
     const shadowWidth = this.colRightOffsets.peek().getCumulativeValueRange(colStart, colEnd + 1);
-    const shadowLeft = (this._rowNumWidth.peek() + this.colRightOffsets.peek().getSumTo(colStart) - this.scrollLeft());
+    // Offset of the shadow from the start edge of the pane.
+    const shadowStart = (this._rowNumWidth.peek() + this.colRightOffsets.peek().getSumTo(colStart) - this.scrollLeft());
 
-    this.colLine.style.left = shadowLeft + "px";
-    this.colShadow.style.left = shadowLeft + "px";
+    this.colLine.style.insetInlineStart = shadowStart + "px";
+    this.colShadow.style.insetInlineStart = shadowStart + "px";
     this.colShadow.style.width = shadowWidth + "px";
-    this.colShadowAdjust = event.pageX - shadowLeft;
+    // While dragging, the shadow's start offset is sign * pageX - adjust (see buildDom).
+    this.colDragSign = inlineSign(isRtl(this.scrollPane));
+    this.colShadowAdjust = this.colDragSign * event.pageX - shadowStart;
     this.cellSelector.currentDragType(selector.COL);
     this.cellSelector.col.dropIndex(this.cellSelector.colLower());
   }
@@ -2350,9 +2379,9 @@ export default class GridView extends BaseView {
     if (this.numFrozen.peek() && colIndex < this.numFrozen.peek()) { return; }
 
     if (colIndex === 0) {
-      this.scrollPaneLeft();
+      this.scrollPaneStart();
     } else if (colIndex === this.viewSection.viewFields().peekLength - 1) {
-      this.scrollPaneRight();
+      this.scrollPaneEnd();
     } else {
       const offset = this.colRightOffsets.peek().getSumTo(colIndex);
 
@@ -2360,14 +2389,15 @@ export default class GridView extends BaseView {
       const viewWidth = this.scrollPane.clientWidth - rowNumsWidth;
       const fieldWidth = this.colRightOffsets.peek().getValue(colIndex) + 1; // +1px border
 
-      // Left and right pixel edge of 'viewport', starting from edge of row nums.
+      // Start and end pixel edge of 'viewport', starting from edge of row nums.
       const frozenWidth = this.frozenWidth.peek();
-      const leftEdge = this.scrollPane.scrollLeft + frozenWidth;
-      const rightEdge = leftEdge + (viewWidth - frozenWidth);
+      const scroll = getInlineScroll(this.scrollPane);
+      const startEdge = scroll + frozenWidth;
+      const endEdge = startEdge + (viewWidth - frozenWidth);
 
       // If cell doesn't fit onscreen, scroll to fit.
-      const scrollShift = offset - gutil.clamp(offset, leftEdge, rightEdge - fieldWidth);
-      this.scrollPane.scrollLeft = this.scrollPane.scrollLeft + scrollShift;
+      const scrollShift = offset - gutil.clamp(offset, startEdge, endEdge - fieldWidth);
+      setInlineScroll(this.scrollPane, scroll + scrollShift);
     }
   }
 
@@ -2437,7 +2467,7 @@ export default class GridView extends BaseView {
       this._scrollColumnIntoView(columnIndex);
       this._insertColumnIndex(columnIndex);
     } else {
-      this.scrollPaneRight();
+      this.scrollPaneEnd();
       this._insertColumnIndex(-1);
     }
   }
