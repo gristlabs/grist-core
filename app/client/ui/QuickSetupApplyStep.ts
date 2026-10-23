@@ -198,8 +198,8 @@ export class QuickSetupApplyStep extends Disposable {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(this._surveyPayload),
       });
-      // Any 400 error (except 429 rate limited) means it isn't worth retrying (bad payload shape, etc.).
-      if (400 <= resp.status && resp.status < 500 && resp.status !== 429) {
+      // A 400 error means it isn't worth retrying (bad payload shape, etc.).
+      if (400 === resp.status) {
         if (this.isDisposed()) {
           return;
         }
