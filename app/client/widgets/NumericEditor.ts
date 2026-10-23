@@ -1,5 +1,8 @@
 import { FieldOptions } from "app/client/widgets/NewBaseEditor";
 import { NTextEditor } from "app/client/widgets/NTextEditor";
+import NumberParse from "app/common/NumberParse";
+
+import { dom } from "grainjs";
 
 export class NumericEditor extends NTextEditor {
   constructor(protected options: FieldOptions) {
@@ -13,5 +16,15 @@ export class NumericEditor extends NTextEditor {
       options = { ...options, editValue };
     }
     super(options);
+
+    // On many keyboard layouts the keypad's decimal key produces "." even where the locale's decimal
+    // separator is ",". Insert the locale's separator instead, as spreadsheets do.
+    const { decimalSeparator } = NumberParse.fromSettings(options.field.documentSettings.peek());
+    dom.onElem(this.textInput, "keydown", (ev) => {
+      if (ev.code === "NumpadDecimal" && ev.key !== decimalSeparator) {
+        ev.preventDefault();
+        document.execCommand("insertText", false, decimalSeparator);
+      }
+    });
   }
 }
