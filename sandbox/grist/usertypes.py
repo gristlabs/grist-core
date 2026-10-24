@@ -36,6 +36,7 @@ _type_defaults = {
   'Any':          None,
   'Attachments':  None,
   'Blob':         None,
+  'Button':       None,
   'Bool':         False,
   'Choice':       u'',
   'ChoiceList':   None,
@@ -238,6 +239,27 @@ class Any(BaseColumnType):
   def do_convert(cls, value):
     # Convert AltText values to plain text when assigning to type Any.
     return str(value) if isinstance(value, AltText) else value
+
+
+class Button(Any):
+  """
+  Button columns hold formula-generated button and action definitions.
+  """
+  @classmethod
+  def is_right_type(cls, value):
+    return value is None or (
+      isinstance(value, list) and
+      all(
+        isinstance(button, dict) and
+        isinstance(button.get('button'), str) and button['button'].strip() and
+        isinstance(button.get('actions'), list) and
+        all(
+          isinstance(action, list) and action and isinstance(action[0], str)
+          for action in button['actions']
+        )
+        for button in value
+      )
+    )
 
 
 class Bool(BaseColumnType):

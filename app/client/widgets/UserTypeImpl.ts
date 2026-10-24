@@ -1,5 +1,6 @@
 import { AttachmentsEditor } from "app/client/widgets/AttachmentsEditor";
 import { AttachmentsWidget } from "app/client/widgets/AttachmentsWidget";
+import { ButtonWidget } from "app/client/widgets/ButtonWidget";
 import CheckBoxEditor from "app/client/widgets/CheckBoxEditor";
 import ChoiceEditor from "app/client/widgets/ChoiceEditor";
 import { ChoiceListCell } from "app/client/widgets/ChoiceListCell";
@@ -57,6 +58,7 @@ export const nameToWidget = {
   DateEditor: DateEditor,
   AttachmentsWidget: AttachmentsWidget,
   AttachmentsEditor: AttachmentsEditor,
+  ButtonWidget: ButtonWidget,
   DateTimeEditor: DateTimeEditor,
 };
 
