@@ -246,6 +246,34 @@ Take advantage of OpenRouter's routing capabilities to optimize for cost, speed,
 You can find the available models and their identifiers on the OpenRouter website.
 Note: Make sure not to set the OPENAI_API_KEY variable when using OpenRouter, as this would override the OpenRouter configuration.
 
+## Using Grist with Cheaper Inference
+
+Cheaper Inference is an OpenAI-compatible LLM gateway.
+Grist's AI Formula Assistant can use it with the following environment variables:
+
+### Required: Set the endpoint to Cheaper Inference's API
+
+```
+ASSISTANT_CHAT_COMPLETION_ENDPOINT=https://api.cheaperinference.com/v1/chat/completions
+```
+
+### Required: Your Cheaper Inference API key
+
+```
+ASSISTANT_API_KEY=your_cheaper_inference_api_key_here
+```
+
+Sign up for an API key at <https://cheaperinference.com/signup>
+
+### Required: Specify which model to use
+
+```
+ASSISTANT_MODEL=gpt-5.4-mini
+```
+
+Model identifiers have no vendor prefix, for example `claude-sonnet-5` or `gemini-3.1-pro`.
+You can find the available models at <https://cheaperinference.com/markets>.
+
 
 ## Available Docker images
 
