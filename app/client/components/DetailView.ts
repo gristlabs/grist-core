@@ -33,6 +33,11 @@ import _ from "underscore";
 
 const t = makeT("DetailView");
 
+interface SelectedCellId {
+  fieldId: number;
+  rowId: UIRowId | null;
+}
+
 // Disable member-ordering linting temporarily, so that it's easier to review the conversion to
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.
 /* eslint-disable @typescript-eslint/member-ordering */
@@ -51,7 +56,7 @@ export default class DetailView extends BaseView {
 
   private _isSingle: boolean;
   private _isExternalSectionPopup: boolean;
-  private _twoLastFieldIdsSelected: (number | null)[];
+  private _twoLastCellIdsSelected: (SelectedCellId | null)[];
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     super(gristDoc, viewSectionModel, { addNewRow: true });
@@ -111,7 +116,7 @@ export default class DetailView extends BaseView {
 
     // --------------------------------------------------
     // Set up DOM event handling.
-    this._twoLastFieldIdsSelected = [null, null];
+    this._twoLastCellIdsSelected = [null, null];
 
     // Clicking on a detail field selects that field.
     this.autoDispose(dom.onMatchElem(this.viewPane, ".g_record_detail_el", "mousedown", (event, elem) => {
@@ -125,8 +130,11 @@ export default class DetailView extends BaseView {
       // multiple instances of the virtual table component).
       this.viewPane.dispatchEvent(new CustomEvent("setCursor", { detail: [rowModel, field], bubbles: true }));
 
-      this._twoLastFieldIdsSelected.unshift(field.id());
-      this._twoLastFieldIdsSelected.pop();
+      this._twoLastCellIdsSelected.unshift({
+        fieldId: field.id(),
+        rowId: rowModel.getRowId(),
+      });
+      this._twoLastCellIdsSelected.pop();
     }));
 
     // Double-clicking on a field also starts editing the field.
@@ -145,8 +153,12 @@ export default class DetailView extends BaseView {
       if ((event.target as HTMLElement)?.closest("a")) { return; }
 
       const field = this.recordLayout.getContainingField(elem as Element, this.viewPane);
+      const [currentCell, previousCell] = this._twoLastCellIdsSelected;
       if (
-        this._twoLastFieldIdsSelected[0] === this._twoLastFieldIdsSelected[1] &&
+        currentCell !== null &&
+        previousCell !== null &&
+        currentCell.fieldId === previousCell.fieldId &&
+        currentCell.rowId === previousCell.rowId &&
         !isNarrowScreen() &&
         this._canSingleClick(field)
       ) {
