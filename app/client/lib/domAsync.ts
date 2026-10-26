@@ -1,3 +1,4 @@
+import { testPendingAsyncContent } from "app/client/lib/testPendingOps";
 import { reportError } from "app/client/models/errors";
 
 import { DomContents, onDisposeElem, replaceContent } from "grainjs";
@@ -16,9 +17,11 @@ export function domAsync(promiseForDomContents: Promise<DomContents>, onError = 
   // Function is added after the markers, to run once they have been attached to elem (the parent).
   return [markerPre, markerPost, (elem: Node) => {
     let disposed = false;
+    testPendingAsyncContent.start();
     promiseForDomContents
       .then(contents => disposed || replaceContent(markerPre, markerPost, contents))
-      .catch(onError);
+      .catch(onError)
+      .finally(() => testPendingAsyncContent.end());
 
     // If markerPost is disposed before the promise resolves, set insertContent to noop.
     onDisposeElem(markerPost, () => { disposed = true; });

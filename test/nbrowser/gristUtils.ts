@@ -1669,7 +1669,7 @@ namespace gristUtils {
   }
 
   /**
- * Opens a Creator Panel on Widget/Table settings tab.
+ * Opens a Creator Panel on the Column tab, and waits for its sections to load.
  */
   export async function openColumnPanel(col?: string | number) {
     if (col !== undefined) {
@@ -1677,6 +1677,7 @@ namespace gristUtils {
     }
     await toggleSidePanel("right", "open");
     await driver.find(".test-right-tab-field").click();
+    await waitForAsyncContent();
   }
 
   /**
@@ -1982,8 +1983,7 @@ namespace gristUtils {
     }
 
     const { skipWait, apply } = options;
-    await toggleSidePanel("right", "open");
-    await driver.find(".test-right-tab-field").click();
+    await openColumnPanel();
     await driver.find(".test-fbuilder-type-select").click();
     type = typeof type === "string" ? exactMatch(type) : type;
     await findOpenMenuItem(".test-select-row", type, 500).click();
@@ -4457,6 +4457,15 @@ namespace gristUtils {
   export async function waitForChartRenders(optTimeout: number = 5000) {
     await waitForViewLoads(optTimeout);
     await waitForPendingOps("testNumPendingChartRenders", "charts to render", optTimeout);
+  }
+
+  /**
+   * Waits for content that renders once its code has loaded, such as the sections of the creator
+   * panel. The first time a panel tab opens, it can show nothing for as long as the load takes.
+   * The count is zero until the content starts building, so call this after the step that builds it.
+   */
+  export async function waitForAsyncContent(optTimeout: number = 5000) {
+    await waitForPendingOps("testNumPendingAsyncContent", "content to load", optTimeout);
   }
 
   /** Gets the value from the select component */

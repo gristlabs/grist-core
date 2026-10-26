@@ -1,4 +1,6 @@
 import { domAsync } from "app/client/lib/domAsync";
+import { testPendingAsyncContent } from "app/client/lib/testPendingOps";
+import { delay } from "app/common/delay";
 
 import { assert } from "chai";
 import { dom } from "grainjs";
@@ -66,5 +68,22 @@ describe("domAsync", function() {
     assert.lengthOf(b.children, 2);
     assert.lengthOf(c.children, 0);
     assert.lengthOf(d.children, 0);
+  });
+
+  it("should count as pending until the content is in place", async function() {
+    const r1 = dom("button");
+    const promise1 = new Promise(r => setTimeout(r, 20)).then(() => r1);
+    const promise2 = Promise.reject(new Error("p2"));
+    const base = testPendingAsyncContent.count;
+    const a = dom("span", domAsync(promise1));
+    dom("span", domAsync(promise2, () => null));
+    assert.equal(testPendingAsyncContent.count, base + 2);
+
+    await promise2.catch(() => null);
+    await promise1;
+    assert.deepEqual([...a.children], [r1]);
+    // The count clears just after the content goes in.
+    await delay(0);
+    assert.equal(testPendingAsyncContent.count, base);
   });
 });

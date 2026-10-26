@@ -35,8 +35,7 @@ describe("BehavioralPrompts", function() {
 
     it("should not be shown", async function() {
       await assertPromptTitle(null);
-      await gu.toggleSidePanel("right", "open");
-      await driver.find(".test-right-tab-field").click();
+      await gu.openColumnPanel();
       await driver.find(".test-fbuilder-type-select").click();
       await assertPromptTitle(null);
     });
@@ -58,8 +57,7 @@ describe("BehavioralPrompts", function() {
   });
 
   it("should be shown when the column type select menu is opened", async function() {
-    await gu.toggleSidePanel("right", "open");
-    await driver.find(".test-right-tab-field").click();
+    await gu.openColumnPanel();
     await driver.find(".test-fbuilder-type-select").click();
     await gu.findOpenMenu();
     await assertPromptTitle("Reference Columns");
@@ -82,6 +80,7 @@ describe("BehavioralPrompts", function() {
 
     // Refresh the page and make sure the prompt isn't shown again.
     await session.loadDoc(`/doc/${docId}`);
+    await gu.openColumnPanel();
     await driver.find(".test-fbuilder-type-select").click();
     await gu.findOpenMenu();
     await assertPromptTitle(null);
@@ -248,8 +247,7 @@ describe("BehavioralPrompts", function() {
       // The comments announcement is normally shown here.
       await assertPromptTitle(null);
       await driver.find(".test-doc-tutorial-popup-minimize-maximize").click();
-      await gu.toggleSidePanel("right", "open");
-      await driver.find(".test-right-tab-field").click();
+      await gu.openColumnPanel();
       await driver.find(".test-fbuilder-type-select").click();
       await gu.findOpenMenu();
       await assertPromptTitle(null);
