@@ -43,6 +43,8 @@ export class UrlState<IUrlState extends object> extends Disposable {
   // Current state. This gets initialized in the constructor, and updated on navigation events.
   public state = observable<IUrlState>(this._getState());
 
+  private _ongoingPopState = false;
+
   constructor(private _window: HistWindow, private _stateImpl: UrlStateSpec<IUrlState>) {
     super();
 
@@ -52,7 +54,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
     }
 
     // On navigation events, update our current state, including the observables.
-    this.autoDispose(dom.onElem(this._window, "popstate", ev => this.loadState()));
+    this.autoDispose(dom.onElem(this._window, "popstate", ev => this._onPopState()));
   }
 
   /**
@@ -158,6 +160,40 @@ export class UrlState<IUrlState extends object> extends Disposable {
   public loadState() {
     log.debug(`loadState ${this._window.location.href}`);
     this.state.set(this._getState());
+  }
+
+  /**
+   * Update the state on browser navigation events (i.e. back/forward browser button clicks).
+   */
+  private async _onPopState() {
+    if (this._ongoingPopState) { return; }
+    this._ongoingPopState = true;
+    try {
+      const prevState = this.state.get();
+      const newUrl = this._window.location.href;
+
+      // If navigation is aborted by the app (i.e. user clicks "Cancel" on unsaved changes warning modal),
+      // we need to put the URL back to its previous state. This is because, when firing the popstate event,
+      // the browser has already changed the URL of the page, we need to "undo" this.
+      if (!await this._stateImpl.delayPushUrl(prevState, this._getState())) {
+        this._window.history.pushState(
+          null,
+          "",
+          this._stateImpl.encodeUrl(prevState, this._window.location),
+        );
+        return;
+      }
+
+      // In case we actually waited because of delayPushUrl above, _and_ the user clicked multiple times on
+      // back/forward browser buttons while we waited, make sure the URL matches the actual state.
+      if (this._window.location.href !== newUrl) {
+        this._window.history.pushState(null, "", newUrl);
+      }
+
+      this.loadState();
+    } finally {
+      this._ongoingPopState = false;
+    }
   }
 
   private _getState(): IUrlState {
