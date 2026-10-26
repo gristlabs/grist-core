@@ -4,6 +4,7 @@ import {
   BootProbeResult,
   getPathsNeedingVolume,
   getStorageRisks,
+  IMAGE_VOLUME,
   PersistDataBootProbeDetails,
   summarizeOutgoingRequests,
 } from "app/common/BootProbe";
@@ -468,7 +469,6 @@ const _sandboxProvidersProbe: Probe = {
  */
 export function _persistDataVerdict(details: PersistDataBootProbeDetails): string | undefined {
   const risks = getStorageRisks(details);
-  // Just "/persist", rather than the stores' own paths, when one volume there would cover them all.
   const volumePaths = getPathsNeedingVolume(details);
   const stores = [
     { envVar: "GRIST_DATA_DIR", target: details.dataDir, risk: risks.docs },
@@ -484,9 +484,9 @@ export function _persistDataVerdict(details: PersistDataBootProbeDetails): strin
       target && volumePaths.includes(target) ?
         `${envVar} (${target}) appears to be in the container's own filesystem, so anything ` +
         "stored there would be lost when the container is recreated." :
-        // Otherwise the official image's paths were folded into the one volume at /persist.
+        // Otherwise the official image's paths were folded into its one volume.
         "Grist appears to be running in the official Docker image without a volume mounted at " +
-        "/persist, so data would be lost when the container is recreated.");
+        `${IMAGE_VOLUME}, so data would be lost when the container is recreated.`);
   }
   return sentences.size > 0 ? [...sentences].join(" ") : undefined;
 }
