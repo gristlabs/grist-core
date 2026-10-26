@@ -7,6 +7,7 @@ function setupTest() {
   const toggle = Observable.create(null, false);
   const duration = Observable.create(null, "1s");
   const finishCount = Observable.create(null, 0);
+  const finishValue = Observable.create<boolean | null>(null, null);
   return [
     testBox(
       dom("div.test-left",
@@ -14,7 +15,7 @@ function setupTest() {
         transition(toggle, {
           prepare(elem, val) { elem.style.opacity = "0"; },
           run(elem, val) { elem.style.opacity = ""; },
-          finish(elem, val) { finishCount.set(finishCount.get() + 1); },
+          finish(elem, val) { finishCount.set(finishCount.get() + 1); finishValue.set(val); },
         }),
         dom.cls("expanded", toggle),
       ),
@@ -29,6 +30,8 @@ function setupTest() {
     dom("div", { style: "margin-left: 100px; margin-top: 25px" },
       " Number of finished transitions: ",
       dom("span.test-finished", dom.text(use => "" + use(finishCount))),
+      " Last finished with: ",
+      dom("span.test-finished-value", dom.text(use => String(use(finishValue)))),
     ),
   ];
 }
