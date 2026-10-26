@@ -1,6 +1,8 @@
 import { cssBannerLink } from "app/client/components/Banner";
 import { getExternalStorageRecommendation } from "app/client/components/ExternalAttachmentBanner";
 import { makeT } from "app/client/lib/localization";
+import { logUpsellShown } from "app/client/lib/upsellTelemetry";
+import { AppModel } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { docListHeader } from "app/client/ui/DocMenuCss";
@@ -14,6 +16,7 @@ import { displayPlanName, Features, isFreePlan } from "app/common/Features";
 import { capitalizeFirstWord } from "app/common/gutil";
 import { APPROACHING_LIMIT_RATIO } from "app/common/Limits";
 import { canUpgradeOrg } from "app/common/roles";
+import { UpgradePlacement } from "app/common/Telemetry";
 import { getGristConfig } from "app/common/urlUtils";
 
 import { Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled } from "grainjs";
@@ -179,9 +182,11 @@ export class DocumentUsage extends Disposable {
           }),
           (product && isFreePlan(product.name) ?
             [" ", buildUpgradeMessage(
+              this._docPageModel.appModel,
+              "rawDataUsage",
               canUpgradeOrg(org),
               "long",
-              () =>  this._docPageModel.appModel.showUpgradeModal(),
+              this._docPageModel.currentDocId.get(),
             )] :
             null
           ),
@@ -253,11 +258,15 @@ export function buildLimitStatusMessage(
 }
 
 export function buildUpgradeMessage(
+  appModel: AppModel,
+  placement: UpgradePlacement,
   canUpgrade: boolean,
   variant: "short" | "long",
-  onUpgrade: () => void,
+  docId?: string,
 ) {
   if (!canUpgrade) { return t("Contact the site owner to upgrade the plan to raise limits."); }
+
+  logUpsellShown(appModel, placement, docId);
 
   const upgradeLinkText = t("start your 30-day free trial of the Pro plan.");
   // TODO i18next
@@ -265,13 +274,13 @@ export function buildUpgradeMessage(
     variant === "short" ? null : t("For higher limits, "),
     buildUpgradeLink(
       variant === "short" ? capitalizeFirstWord(upgradeLinkText) : upgradeLinkText,
-      () => onUpgrade(),
+      () => appModel.showUpgradeModal(placement),
     ),
   ];
 }
 
 function buildUpgradeLink(linkText: string, onClick: () => void) {
-  return cssBannerLink(linkText, dom.on("click", () => onClick()));
+  return cssBannerLink(linkText, dom.on("click", () => onClick()), testId("upgrade-link"));
 }
 
 function buildRawDataPageLink(linkText: string) {

@@ -185,7 +185,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
             ),
           ) : null
         ),
-        createHelpTools(home.app),
+        createHelpTools(),
         createAccessibilityTools(home.app),
         (commonUrls.termsOfService ?
           cssPageEntry(
@@ -224,7 +224,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
       dom.attr("aria-disabled", use => (!roles.canEdit(orgAccess) || !use(home.available)) ? "true" : "false"),
       testId("dm-new-workspace"),
     ),
-    upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
+    upgradeText(needUpgrade, () => home.app.showUpgradeModal("homeLeftPane")),
   ];
 }
 
@@ -336,7 +336,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
     home.app.isPersonal ? null : upgradableMenuItem(needUpgrade, manageWorkspaceUsers,
       roles.canEditAccess(ws.access) ? t("Manage users") : t("Access Details"),
       testId("dm-workspace-access")),
-    upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
+    upgradeText(needUpgrade, () => home.app.showUpgradeModal("homeLeftPane")),
   ];
 }
 

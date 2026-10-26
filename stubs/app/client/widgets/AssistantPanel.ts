@@ -1,9 +1,9 @@
 import { GristDoc } from "app/client/components/GristDoc";
-import { IAssistantPopup } from "app/client/ui/IAssistantPopup";
+import { IAssistantPanel } from "app/client/ui/IAssistantPanel";
 
 import { DomElementArg } from "grainjs";
 
-export function buildAssistantPopup(_gristDoc: GristDoc): IAssistantPopup | null {
+export function buildAssistantPanel(_gristDoc: GristDoc): IAssistantPanel | null {
   return null;
 }
 

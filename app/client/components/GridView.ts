@@ -49,7 +49,7 @@ import { applyRowHeightLimit } from "app/client/ui/RowHeightConfig";
 import { rowNumbersMenu } from "app/client/ui/RowNumbersMenu";
 import { formatForScreenReader } from "app/client/ui/ScreenReaderFormatters";
 import { ITooltipControl, showTooltip } from "app/client/ui/tooltips";
-import { isNarrowScreen, testId } from "app/client/ui2018/cssVars";
+import { isNarrowScreen, testId, zIndexes } from "app/client/ui2018/cssVars";
 import { closeRegisteredMenu, menu } from "app/client/ui2018/menus";
 import BinaryIndexedTree from "app/common/BinaryIndexedTree";
 import { BulkColValues, CellValue, UserAction } from "app/common/DocActions";
@@ -60,8 +60,22 @@ import { CombinedStyle } from "app/common/Styles";
 import { CursorPos, UIRowId } from "app/plugin/GristAPI";
 
 import convert from "color-convert";
-import { BindableValue, bundleChanges, Computed, Disposable, Holder, MultiHolder, Observable } from "grainjs";
-import { dom, DomElementArg, DomElementMethod, subscribeElem } from "grainjs";
+import {
+  BindableValue,
+  bundleChanges,
+  Computed,
+  Disposable,
+  dom,
+  DomContents,
+  DomElementArg,
+  DomElementMethod,
+  Holder,
+  IDisposableOwner,
+  MultiHolder,
+  Observable,
+  styled,
+  subscribeElem,
+} from "grainjs";
 import ko from "knockout";
 import debounce from "lodash/debounce";
 import identity from "lodash/identity";
@@ -92,6 +106,8 @@ export type RowIndexRenderer = (row: DataRowModel) => DomElementArg | null;
  */
 export type CornerRenderer = (el: Element) => DomElementArg | null;
 
+type FreeSpaceRenderer = (owner: IDisposableOwner, view: GridView) => DomContents;
+
 // size of the plus width
 const PLUS_WIDTH = 40;
 // size of the row number field
@@ -118,6 +134,7 @@ export interface GridViewOptions extends ViewOptions {
   cornerRenderer?: CornerRenderer; // function to render the corner cell.
   onCellDblClick?: (pos: CursorPos) => void; // function to call on cell double click, instead of default
   // editor activation action.
+  freeSpaceRenderer?: FreeSpaceRenderer; // function to render the space below the add row
 }
 
 /**
@@ -1610,6 +1627,12 @@ export default class GridView extends BaseView {
             renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), renderRow.bind(this)),
           ),
         ), // end scrollpane
+
+      !this.gridOptions?.freeSpaceRenderer ? null : cssFreeSpace(
+        dom.style("top", use =>
+          `min(100%, calc(var(--gridview-header-height) + 1px + ${use(koDomScrolly.getInstance(data).totalHeight)}px))`),
+        dom.create(this.gridOptions.freeSpaceRenderer, this),
+      ),
     );// END MAIN VIEW BOX
 
     function renderRow(this: GridView, row: DataRowModel) {
@@ -2594,3 +2617,19 @@ function scrollBar(): { width: number; height: number } {
   // Tested on Chrome/FF Linux/Windows/MacOS.
   return { width: 13, height: 13 };
 }
+
+const cssFreeSpace = styled("div", `
+  position: absolute;
+  left: var(--row-num-width, 0px);
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: ${zIndexes.gridFreeSpaceZIndex};
+
+  @media print {
+    & {
+      display: none;
+    }
+  }
+`);

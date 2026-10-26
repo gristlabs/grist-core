@@ -6,6 +6,16 @@ export interface ClientJsonMemoryLimits {
   maxReservationSize?: number | null;
 }
 
+/**
+ * One entry logged by the server, as captured by captureLog().
+ */
+export interface CapturedLogEntry {
+  level: string;
+  msg: string;
+  // The log metadata, which for a telemetry event holds the event itself.
+  meta: any;
+}
+
 export interface ITestingHooks {
   getPort(): Promise<number>;
   setLoginSessionProfile(gristSidCookie: string, profile: UserProfile | null, org?: string): Promise<void>;
@@ -29,4 +39,5 @@ export interface ITestingHooks {
   tickleUnhandledErrors(errType: string): Promise<void>;
   addEnv(env: { [key: string]: string }): Promise<void>;
   resetEnv(): Promise<void>;
+  captureLog(capture: boolean): Promise<CapturedLogEntry[]>;
 }

@@ -9,6 +9,7 @@
 
 import { getReferencedTableId } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
+import { isPluginWidget } from "app/common/widgetTypes";
 
 import pick from "lodash/pick";
 
@@ -241,7 +242,7 @@ export function isValidLink(source: LinkNode, target: LinkNode) {
     return false;
   }
 
-  if (source.widgetType === "custom") {
+  if (isPluginWidget(source.widgetType)) {
     // custom widget do not support linking by columns
     if (source.tableId !== source.section.tableId) {
       return false;

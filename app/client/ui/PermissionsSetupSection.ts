@@ -84,6 +84,7 @@ export function buildPermissionsCard(
   return dom.domComputed(model.status, (status) => {
     if (!status) { return cssLoading(loadingSpinner(), t("Loading permissions…")); }
     return cssPermissionsSection(
+      testId("card"),
       options.disabled ? dom.cls("disabled", options.disabled) : null,
       cssSectionLabel(t("DEFAULT PERMISSIONS")),
       cssPresetBar(

@@ -38,7 +38,10 @@ import {
   summarizePermissionSet,
   trimPermissions,
 } from "app/common/ACLPermissions";
-import { ACLRuleCollection, isSchemaEditResource, SPECIAL_RULES_TABLE_ID } from "app/common/ACLRuleCollection";
+import {
+  ACLRuleCollection, editorsCanEditStructure, isSchemaEditResource, RulePartSummary,
+  SCHEMA_EDIT_ALLOW_EDITORS, SPECIAL_RULES_TABLE_ID,
+} from "app/common/ACLRuleCollection";
 import { SPECIAL_RULE_SPECS, SpecialRuleName } from "app/common/ACLRuleCollection";
 import { AclRuleProblem, AclTableDescription, getTableTitle } from "app/common/ActiveDocAPI";
 import { BulkColValues, getColValues, RowRecord, UserAction } from "app/common/DocActions";
@@ -1480,10 +1483,7 @@ interface SpecialRuleProperties extends SpecialRuleBody {
 }
 
 const schemaEditRules: { [key: string]: SpecialRuleBody } = {
-  allowEditors: {
-    permissions: "+S",
-    formula: "user.Access == EDITOR",
-  },
+  allowEditors: SCHEMA_EDIT_ALLOW_EDITORS,
   denyEditors: {
     permissions: "-S",
     formula: "user.Access != OWNER",
@@ -1518,9 +1518,9 @@ Only use for for examples and templates, not for documents with sensitive data.`
   SchemaEdit: {
     ...SPECIAL_RULE_SPECS.SchemaEdit,
     name: t("Permission to edit document structure"),
-    description: t(`Allow Editors to edit structure (e.g. modify and delete tables, columns, and \
-layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access \
-all data, regardless of table and column access rules!`),
+    description: t(`Allow Editors to edit structure (e.g. modify and delete tables and columns, and edit \
+formulas, pages, widgets, and settings).  Important: if checked, Editors may be able to bypass table and \
+column access rules, and to read and change all data!`),
   },
 } satisfies Record<SpecialRuleName, SpecialRuleProperties>;
 
@@ -1709,11 +1709,10 @@ class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
   protected _buildDomWarning(): DomContents {
     return dom.maybe(
       use => use(this._body).every(rule => rule.isBuiltInOrEmpty(use)),
-      // TODO get rid of red disclaimer.
       () => cssError(
-        t("This options should be off if Editors' access is to be limited. "),
+        t("This option should be off unless you trust Editors as you would Owners on this document. "),
         dom("a", { style: "color: inherit; text-decoration: underline" },
-          "Dismiss.", dom.on("click", () => this._allowEditors("confirm"))),
+          t("Dismiss."), dom.on("click", () => this._allowEditors("confirm"))),
         testId("rule-schema-edit-warning"),
       ),
     );
@@ -1729,8 +1728,7 @@ class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
 
   protected _createIsCheckedObs(owner: IDisposableOwner, isNonStandard: Observable<boolean>): Observable<boolean> {
     return Computed.create(owner, this._body,
-      (use, body) => body.every(rule => rule.isBuiltInOrEmpty(use) ||
-        rule.matches(use, schemaEditRules.allowEditors.formula, schemaEditRules.allowEditors.permissions)))
+      (use, body) => editorsCanEditStructure(body.map(rule => rule.summarize(use))))
       .onWrite(val => this._allowEditors(val));
   }
 
@@ -2017,6 +2015,14 @@ class ObsRulePart extends Disposable {
       permissionsText: permissionSetToText(this._permissions.get()),
       rulePos: this._rulePart?.origRecord?.rulePos as number | undefined,
       memo: this._memo.get(),
+    };
+  }
+
+  public summarize(use: UseCB): RulePartSummary {
+    return {
+      aclFormula: use(this._aclFormula),
+      permissionsText: permissionSetToText(use(this._permissions)),
+      builtIn: this.isBuiltIn(),
     };
   }
 

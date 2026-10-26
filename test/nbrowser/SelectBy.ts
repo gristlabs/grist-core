@@ -171,7 +171,9 @@ describe("SelectBy", function() {
 
     // There is another group that still has one record.
     await gu.getCell({ section: "TABLE3 [by A]", rowNum: 2, col: "A" }).click();
-    assert.equal(await section.find(".grist-single-record__menu__count").getText(), "1 OF 1");
+    await gu.waitToPass(async () => {
+      assert.equal(await section.find(".grist-single-record__menu__count").getText(), "1 OF 1");
+    });
   });
 
   it("should save link correctly", async () => {

@@ -239,7 +239,7 @@ describe("FormView1", function() {
       await gu.getCell("D", 1).click();
       await gu.openColumnPanel();
       await driver.find(".test-field-set-trigger").click();
-      await gu.waitAppFocus(false);
+      await gu.waitForAceEditor(driver, { hasFocus: true });
       await gu.sendKeys('"Hello from trigger"', Key.ENTER);
       await gu.waitForServer();
       await gu.closeRawTable();
@@ -260,7 +260,7 @@ describe("FormView1", function() {
       await gu.getCell("D", 1).click();
       await gu.openColumnPanel();
       await driver.find(".test-field-set-trigger").click();
-      await gu.waitAppFocus(false);
+      await gu.waitForAceEditor(driver, { hasFocus: true });
       await gu.sendKeys('f"{user.Email} {user.Name}"', Key.ENTER);
       await gu.waitForServer();
       await gu.closeRawTable();

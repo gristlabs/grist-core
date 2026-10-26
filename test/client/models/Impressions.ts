@@ -40,7 +40,7 @@ describe("Impressions", function() {
     const appModel = createAppModel({ impressions: { assistantIntro: 3 } });
     const impressions = Impressions.create(owner, appModel);
 
-    impressions.incrementCount("assistantIntro", 10);
+    impressions.incrementCount("assistantIntro");
 
     assert.deepEqual(appModel.userPrefsObs.get().impressions, { assistantIntro: 4 });
   });
@@ -49,7 +49,7 @@ describe("Impressions", function() {
     const appModel = createAppModel({ locale: "fr", onlyShowDocuments: true });
     const impressions = Impressions.create(owner, appModel);
 
-    impressions.incrementCount("assistantIntro", 10);
+    impressions.incrementCount("assistantIntro");
 
     assert.deepInclude(appModel.userPrefsObs.get(), { locale: "fr", onlyShowDocuments: true });
   });
@@ -58,8 +58,8 @@ describe("Impressions", function() {
     const appModel = createAppModel({});
     const impressions = Impressions.create(owner, appModel);
 
-    impressions.incrementCount("assistantIntro", 10);
-    impressions.incrementCount("assistantIntro", 10);
+    impressions.incrementCount("assistantIntro");
+    impressions.incrementCount("assistantIntro");
 
     assert.equal(appModel.userPrefsObs.get().impressions?.assistantIntro, 1);
   });
@@ -70,9 +70,9 @@ describe("Impressions", function() {
     let saves = 0;
     owner.autoDispose(appModel.userPrefsObs.addListener(() => { saves += 1; }));
 
-    impressions.incrementCount("assistantIntro", 10);
-    impressions.incrementCount("assistantIntro", 10);
-    impressions.incrementCount("assistantIntro", 10);
+    impressions.incrementCount("assistantIntro");
+    impressions.incrementCount("assistantIntro");
+    impressions.incrementCount("assistantIntro");
 
     assert.equal(saves, 1);
   });
@@ -81,7 +81,7 @@ describe("Impressions", function() {
     const appModel = createAppModel({ impressions: { assistantIntro: 10 } });
     const impressions = Impressions.create(owner, appModel);
 
-    impressions.incrementCount("assistantIntro", 10);
+    impressions.incrementCount("assistantIntro");
 
     assert.equal(appModel.userPrefsObs.get().impressions?.assistantIntro, 10);
   });
@@ -90,7 +90,7 @@ describe("Impressions", function() {
     const impressions = Impressions.create(owner,
       createAppModel({ impressions: { assistantIntro: 3 } }));
 
-    impressions.incrementCount("assistantIntro", 10);
+    impressions.incrementCount("assistantIntro");
 
     assert.equal(impressions.getCount("assistantIntro"), 3);
   });
@@ -98,7 +98,7 @@ describe("Impressions", function() {
   it("picks up counts persisted by an earlier session", function() {
     const appModel = createAppModel({ impressions: { assistantIntro: 3 } });
 
-    Impressions.create(owner, appModel).incrementCount("assistantIntro", 10);
+    Impressions.create(owner, appModel).incrementCount("assistantIntro");
 
     assert.equal(Impressions.create(owner, appModel).getCount("assistantIntro"), 4);
   });

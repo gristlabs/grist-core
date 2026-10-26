@@ -13,6 +13,7 @@ import {
   ThemeNotifier,
   WidgetAPIImpl,
   WidgetFrame,
+  WidgetFrameOptions,
 } from "app/client/components/WidgetFrame";
 import { CustomSectionElement, ViewProcess } from "app/client/lib/CustomSectionElement";
 import { testId as oldTestId } from "app/client/lib/dom";
@@ -265,7 +266,7 @@ Please contact document owner or modify access rules."),
           dom("div.flexauto.custom_view_content",
             dom.style("display", _hide ? "none" : "flex"),
             this._buildIFrame({
-              baseUrl: _url,
+              url: _url,
               access: builtInSettings.accessLevel || (_access as AccessLevel || AccessLevel.none),
               showAfterReady: showAfterReady(),
               widgetId: builtInSettings.widgetId || _widgetId,
@@ -289,92 +290,81 @@ Please contact document owner or modify access rules."),
     );
   }
 
-  private _promptAccess(access: AccessLevel) {
-    if (this.gristDoc.isReadonly.get()) {
-      return;
-    }
-    this.viewSection.desiredAccessLevel(access);
-  }
-
-  private _buildIFrame(options: {
-    baseUrl: string | null,
-    access: AccessLevel,
-    showAfterReady?: boolean,
-    widgetId?: string | null,
-    pluginId?: string
-  }) {
-    const { baseUrl, access, showAfterReady, widgetId, pluginId } = options;
-    const documentSettings = this.gristDoc.docData.docSettings();
-    const readonly = this.gristDoc.isReadonly.get();
-    const widgetFrame = WidgetFrame.create(null,  {
-      url: baseUrl,
-      widgetId,
-      pluginId,
-      access,
-      preferences:
-      {
-        culture: documentSettings.locale ?? defaultLocale,
-        language: this.gristDoc.appModel.currentUser?.locale ?? defaultLocale,
-        timeZone: this.gristDoc.docInfo.timezone() ?? "UTC",
-        currency: documentSettings.currency ?? "USD",
-      },
-      readonly,
-      showAfterReady,
-      configure: (frame) => {
-        this._frame = frame;
-        // Need to cast myself to a BaseView
-        const view: BaseView = this;
-        frame.exposeAPI(
-          "GristDocAPI",
-          new GristDocAPIImpl(this.gristDoc),
-          GristDocAPIImpl.defaultAccess);
-        frame.exposeAPI(
-          "GristView",
-          new GristViewImpl(view, access), new MinimumLevel(AccessLevel.read_table));
-        frame.exposeAPI(
-          "CustomSectionAPI",
-          new CustomSectionAPIImpl(
-            this.viewSection,
-            access,
-            this._promptAccess.bind(this)),
-          new MinimumLevel(AccessLevel.none));
-        frame.exposeAPI(
-          "CommandAPI",
-          new CommandAPI(access),
-          new MinimumLevel(AccessLevel.none));
-        frame.useEvents(RecordNotifier.create(frame, view), new MinimumLevel(AccessLevel.read_table));
-        frame.useEvents(TableNotifier.create(frame, view), new MinimumLevel(AccessLevel.read_table));
-        frame.exposeAPI(
-          "WidgetAPI",
-          new WidgetAPIImpl(this.viewSection),
-          new MinimumLevel(AccessLevel.none)); // none access is enough
-        frame.useEvents(
-          ConfigNotifier.create(frame, this.viewSection, {
-            access,
-          }),
-          new MinimumLevel(AccessLevel.none)); // none access is enough
-        frame.useEvents(
-          ThemeNotifier.create(frame),
-          new MinimumLevel(AccessLevel.none));
-      },
-      onElem: iframe => onFrameFocus(iframe, () => {
-        if (this.isDisposed()) { return; }
-        if (!this.viewSection.isDisposed() && !this.viewSection.hasFocus()) {
-          this.viewSection.hasFocus(true);
-        }
-        // allow menus to close if any
-        closeRegisteredMenu();
-      }),
-      gristDoc: this.gristDoc,
-    });
+  private _buildIFrame(options: CustomWidgetFrameOptions) {
+    const widgetFrame = createCustomWidgetFrame(this, options);
+    this._frame = widgetFrame;
 
     // Can't use dom.create() because it seems buggy in this context. This dom will be detached
     // and attached several times, and dom.create() doesn't seem to handle that well as it returns an
     // array of nodes (comment, node, comment) and it somehow breaks the dispose order. Collapsed widgets
-    // relay on a correct order of dispose, and are detaching nodes just before they are disposed, so if
+    // rely on a correct order of dispose, and are detaching nodes just before they are disposed, so if
     // the order is wrong, the node is disposed without being detached first.
     return dom.update(widgetFrame.buildDom(), dom.autoDispose(widgetFrame));
   }
+}
+
+export type CustomWidgetFrameOptions = Pick<WidgetFrameOptions,
+  "url" | "srcdoc" | "onWidgetError" | "widgetId" | "pluginId" | "access" | "showAfterReady">;
+
+/**
+ * Creates the frame of a custom widget in `view`, with the APIs and events of Grist that the
+ * widget can use at its access level. The caller owns the frame and must dispose it.
+ */
+export function createCustomWidgetFrame(view: BaseView, options: CustomWidgetFrameOptions): WidgetFrame {
+  const { gristDoc, viewSection } = view;
+  const { access } = options;
+  const documentSettings = gristDoc.docData.docSettings();
+  return WidgetFrame.create(null, {
+    ...options,
+    preferences:
+    {
+      culture: documentSettings.locale ?? defaultLocale,
+      language: gristDoc.appModel.currentUser?.locale ?? defaultLocale,
+      timeZone: gristDoc.docInfo.timezone() ?? "UTC",
+      currency: documentSettings.currency ?? "USD",
+    },
+    readonly: gristDoc.isReadonly.get(),
+    configure: (frame) => {
+      frame.exposeAPI(
+        "GristDocAPI",
+        new GristDocAPIImpl(gristDoc),
+        GristDocAPIImpl.defaultAccess);
+      frame.exposeAPI(
+        "GristView",
+        new GristViewImpl(view, access), new MinimumLevel(AccessLevel.read_table));
+      frame.exposeAPI(
+        "CustomSectionAPI",
+        new CustomSectionAPIImpl(viewSection, access, (level) => {
+          if (!gristDoc.isReadonly.get()) { viewSection.desiredAccessLevel(level); }
+        }),
+        new MinimumLevel(AccessLevel.none));
+      frame.exposeAPI(
+        "CommandAPI",
+        new CommandAPI(access),
+        new MinimumLevel(AccessLevel.none));
+      frame.useEvents(RecordNotifier.create(frame, view), new MinimumLevel(AccessLevel.read_table));
+      frame.useEvents(TableNotifier.create(frame, view), new MinimumLevel(AccessLevel.read_table));
+      frame.exposeAPI(
+        "WidgetAPI",
+        new WidgetAPIImpl(viewSection),
+        new MinimumLevel(AccessLevel.none)); // none access is enough
+      frame.useEvents(
+        ConfigNotifier.create(frame, viewSection, { access }),
+        new MinimumLevel(AccessLevel.none)); // none access is enough
+      frame.useEvents(
+        ThemeNotifier.create(frame),
+        new MinimumLevel(AccessLevel.none));
+    },
+    onElem: iframe => onFrameFocus(iframe, () => {
+      if (view.isDisposed()) { return; }
+      if (!viewSection.isDisposed() && !viewSection.hasFocus()) {
+        viewSection.hasFocus(true);
+      }
+      // allow menus to close if any
+      closeRegisteredMenu();
+    }),
+    gristDoc,
+  });
 }
 
 // helper to build the notification's frame.

@@ -10,6 +10,19 @@ export enum Level {
 }
 
 /**
+ * Where an upgrade prompt appears. Shared by upsell impressions, upgrade clicks, and the
+ * plan-change event that echoes the click that led to checkout.
+ */
+export const UpgradePlacements = StringUnion(
+  "docUsageBanner", "siteUsageBanner", "siteReadOnlyBanner", "apiUsageBanner", "siteUserLimitBanner",
+  "rawDataUsage", "assistantBanner", "automationsPage", "auditLogsPage", "accountMenu", "homeLeftPane",
+  "importFromGrist", "toast", "upgradeButton", "billingPage", "urlParam",
+);
+export type UpgradePlacement = typeof UpgradePlacements.type;
+
+export type LimitStatus = "approaching" | "exceeded" | "readOnly" | "cleared";
+
+/**
  * A set of contracts that all telemetry events must follow prior to being
  * logged.
  *
@@ -409,52 +422,12 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  "beaconArticleViewed": {
-    category: "HelpCenter",
-    description: "Triggered when an article is opened in HelpScout Beacon.",
-    minimumTelemetryLevel: Level.full,
-    retentionPeriod: "indefinitely",
-    metadataContracts: {
-      articleId: {
-        description: "The id of the article.",
-        dataType: "string",
-      },
-      userId: {
-        description: "The id of the user that triggered this event.",
-        dataType: "number",
-      },
-      altSessionId: {
-        description: "A random, session-based identifier for the user that triggered this event.",
-        dataType: "string",
-      },
-    },
-  },
   "beaconEmailSent": {
     category: "HelpCenter",
     description: "Triggered when an email is sent in HelpScout Beacon.",
     minimumTelemetryLevel: Level.full,
     retentionPeriod: "indefinitely",
     metadataContracts: {
-      userId: {
-        description: "The id of the user that triggered this event.",
-        dataType: "number",
-      },
-      altSessionId: {
-        description: "A random, session-based identifier for the user that triggered this event.",
-        dataType: "string",
-      },
-    },
-  },
-  "beaconSearch": {
-    category: "HelpCenter",
-    description: "Triggered when a search is made in HelpScout Beacon.",
-    minimumTelemetryLevel: Level.full,
-    retentionPeriod: "indefinitely",
-    metadataContracts: {
-      searchQuery: {
-        description: "The search query.",
-        dataType: "string",
-      },
       userId: {
         description: "The id of the user that triggered this event.",
         dataType: "number",
@@ -686,6 +659,16 @@ export const TelemetryContracts: TelemetryContracts = {
       attachmentsSize: {
         description: "The total size of all attachments in the document.",
         dataType: "number",
+      },
+      dataLimitStatus: {
+        description: 'The document\'s data limit status: "approachingLimit", "gracePeriod", "deleteOnly", or null.',
+        dataType: "string",
+        minimumTelemetryLevel: Level.full,
+      },
+      numDocShares: {
+        description: "The number of users granted access directly on the document, in any non-guest role.",
+        dataType: "number",
+        minimumTelemetryLevel: Level.full,
       },
       numAccessRules: {
         description: "The number of access rules in the document.",
@@ -1327,6 +1310,11 @@ export const TelemetryContracts: TelemetryContracts = {
         description: "The id of the user that triggered this event.",
         dataType: "number",
       },
+      siteId: { description: "The id of the site.", dataType: "number" },
+      placement: {
+        description: "The UI element whose upgrade prompt led to creating the site, when known.",
+        dataType: "string",
+      },
     },
   },
   "cancelledPlan": {
@@ -1343,6 +1331,83 @@ export const TelemetryContracts: TelemetryContracts = {
         description: "The id of the user that triggered this event.",
         dataType: "number",
       },
+    },
+  },
+  "limitStatusChanged": {
+    category: "SubscriptionPlan",
+    description: "Triggered when usage of a plan-limited feature crosses a threshold: approaching the " +
+      "limit, reaching it, becoming read-only, or dropping back below the approaching threshold.",
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: "indefinitely",
+    metadataContracts: {
+      feature: {
+        description: 'The limited feature: "rows", "dataSize", "attachments", "assistant", "apiCalls", or "siteUsers".',
+        dataType: "string",
+      },
+      status: {
+        description: 'The new status: "approaching", "exceeded", "readOnly", or "cleared".',
+        dataType: "string",
+      },
+      planName: { description: "The name of the site's plan.", dataType: "string" },
+      docIdDigest: { description: "A hash of the doc id, when the limit is per document.", dataType: "string" },
+      access: { description: "The document access level of the user that triggered this event.", dataType: "string" },
+      siteId: { description: "The id of the site.", dataType: "number" },
+      siteType: { description: "The type of the site.", dataType: "string" },
+      userId: { description: "The id of the user that triggered this event.", dataType: "number" },
+      altSessionId: {
+        description: "A random, session-based identifier for the user that triggered this event.",
+        dataType: "string",
+      },
+    },
+  },
+  "upsellShown": {
+    category: "SubscriptionPlan",
+    description: "Triggered once per page load when a UI element offering an upgrade is shown.",
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: "indefinitely",
+    metadataContracts: {
+      placement: { description: "The UI element that offered the upgrade.", dataType: "string" },
+      planName: { description: "The name of the site's plan.", dataType: "string" },
+      siteId: { description: "The id of the site.", dataType: "number" },
+      docIdDigest: { description: "A hash of the doc id, when shown inside a document.", dataType: "string" },
+      userId: { description: "The id of the user that triggered this event.", dataType: "number" },
+      altSessionId: {
+        description: "A random, session-based identifier for the user that triggered this event.",
+        dataType: "string",
+      },
+    },
+  },
+  "upgradeClicked": {
+    category: "SubscriptionPlan",
+    description: "Triggered when a user clicks an upgrade prompt.",
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: "indefinitely",
+    metadataContracts: {
+      placement: { description: "The UI element that offered the upgrade.", dataType: "string" },
+      planName: { description: "The name of the site's plan.", dataType: "string" },
+      siteId: { description: "The id of the site.", dataType: "number" },
+      userId: { description: "The id of the user that triggered this event.", dataType: "number" },
+      altSessionId: {
+        description: "A random, session-based identifier for the user that triggered this event.",
+        dataType: "string",
+      },
+    },
+  },
+  "changedPlan": {
+    category: "SubscriptionPlan",
+    description: "Triggered when the plan of an existing site changes.",
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: "indefinitely",
+    metadataContracts: {
+      siteId: { description: "The id of the site.", dataType: "number" },
+      fromPlan: { description: "The name of the previous plan.", dataType: "string" },
+      toPlan: { description: "The name of the new plan.", dataType: "string" },
+      isTrial: { description: "Whether the new subscription is in a trial period.", dataType: "boolean" },
+      placement: {
+        description: "The UI element whose upgrade prompt led to checkout, when the change came through checkout.",
+        dataType: "string",
+      },
+      userId: { description: "The id of the user that triggered this event, when a user did.", dataType: "number" },
     },
   },
   "createdWorkspace": {
@@ -1951,9 +2016,7 @@ export const TelemetryEvents = StringUnion(
   "assistantClose",
   "assistantStartDocument",
   "beaconOpen",
-  "beaconArticleViewed",
   "beaconEmailSent",
-  "beaconSearch",
   "ratedHelpCenterArticle",
   "documentCreated",
   "documentForked",
@@ -1984,6 +2047,10 @@ export const TelemetryEvents = StringUnion(
   "copiedTemplate",
   "subscribedToPlan",
   "cancelledPlan",
+  "limitStatusChanged",
+  "upsellShown",
+  "upgradeClicked",
+  "changedPlan",
   "createdWorkspace",
   "deletedWorkspace",
   "visitedPage",

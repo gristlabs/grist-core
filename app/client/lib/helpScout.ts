@@ -1,6 +1,6 @@
 /**
- * This module contains tools and helpers to open HelpScout "Beacon" -- a popup which may contain
- * an email form, chat, and help docs -- and to include info relevant to support requests.
+ * This module contains tools and helpers to open HelpScout "Beacon" -- a popup with an email form
+ * for contacting support -- and to include info relevant to support requests.
  *
  * Usage:
  *    import {Beacon} from 'app/client/lib/helpScout';
@@ -29,8 +29,6 @@ export type BeaconCmd = "init" | "destroy" | "open" | "close" | "toggle" | "sear
   "article" | "navigate" | "identify" | "prefill" | "reset" | "logout" | "config" | "on" | "off" |
   "once" | "event" | "session-data";
 
-export type BeaconRoute = "/ask/message/" | "/answers/";
-
 export interface IUserObj {
   name?: string;
   email?: string;
@@ -53,11 +51,6 @@ interface ISessionData {
   [key: string]: string;
 }
 
-interface ICallbackAttributes {
-  id?: string;
-  query?: string;
-}
-
 /**
  * This provides the HelpScout Beacon API, taking care of initializing Beacon on first use.
  */
@@ -69,8 +62,7 @@ export function Beacon(method: "navigate", route: string): void;
 export function Beacon(method: "identify", userObj: IUserObj): void;
 export function Beacon(method: "prefill", formObj: IFormObj): void;
 export function Beacon(method: "config", configObj: object): void;
-export function Beacon(method: "on" | "once", event: string,
-  callback: (attrs?: ICallbackAttributes) => void): void;
+export function Beacon(method: "on" | "once", event: string, callback: () => void): void;
 export function Beacon(method: "off", event: string, callback?: () => void): void;
 export function Beacon(method: "session-data", data: ISessionData): void;
 export function Beacon(method: BeaconCmd): void;
@@ -106,7 +98,7 @@ function initBeacon(): void {
         }),
       ));
       _beacon("init", beaconId);
-      _beacon("config", { display: { style: "manual" } });
+      _beacon("config", { display: { style: "manual" }, docsEnabled: false });
     } else {
       (window as any).Beacon = () => null;
       reportWarning("Support form is not configured");
@@ -115,7 +107,6 @@ function initBeacon(): void {
 }
 
 let lastOpenType: "error" | "message" = "message";
-let lastRoute: BeaconRoute | null = null;
 
 /**
  * Helper to open a beacon, taking care of setting focus appropriately. Calls optional onOpen
@@ -134,27 +125,15 @@ function _beaconOpen(userObj: IUserObj | null, options: IBeaconOpenOptions) {
     lastOpenType = openType;
   }
 
-  const route: BeaconRoute = options.route || (errors?.length ? "/ask/message/" : "/answers/");
-  // If beacon was and still is being opened for help articles, avoid the 'navigate' call
-  // altogether, to keep the beacon at the last article it was on.
-  const skipNav = (route === lastRoute && route === "/answers/");
-  lastRoute = route;
-
   Beacon("once", "open", () => {
     const iframe = document.querySelector<HTMLIFrameElement>("#beacon-container iframe")!;
     if (iframe) { iframe.focus(); }
     if (onOpen) { onOpen(); }
   });
-  // Fix base-href tag when opening an article.
-  Beacon("once", "article-viewed", () => fixBeaconBaseHref());
-  // We duplicate this check for 'ready' event, because 'open' and 'article-viewed' events don't
-  // trigger on page reload when a beacon article is already open (seems to be a HelpScout bug).
-  Beacon("once", "ready", () => fixBeaconBaseHref());
 
   Beacon("once", "close", () => {
     const iframe = document.querySelector<HTMLIFrameElement>("#beacon-container iframe")!;
     if (iframe) { iframe.blur(); }
-    Beacon("off", "article-viewed");
   });
   if (userObj) {
     Beacon("identify", userObj);
@@ -189,32 +168,10 @@ function _beaconOpen(userObj: IUserObj | null, options: IBeaconOpenOptions) {
     ...attrs,
   });
   Beacon("open");
-  if (!skipNav) {
-    Beacon("navigate", route);
-  }
+  Beacon("navigate", "/ask/message/");
 
   Beacon("once", "open", () => logTelemetryEvent("beaconOpen"));
-  Beacon("on", "article-viewed", article => logTelemetryEvent("beaconArticleViewed", {
-    full: { articleId: article!.id },
-  }));
   Beacon("on", "email-sent", () => logTelemetryEvent("beaconEmailSent"));
-  Beacon("on", "search", search => logTelemetryEvent("beaconSearch", {
-    full: { searchQuery: search!.query },
-  }));
-}
-
-function fixBeaconBaseHref() {
-  // HelpScout creates an iframe with an empty 'src' attribute, then writes to it. In such an
-  // iframe, different browsers interpret relative links differently: Chrome's are relative to
-  // the parent page's URL; Firefox's are relative to the parent page's <base href>.
-  //
-  // Here we set a <base href> explicitly in the iframe to get consistent behavior of links
-  // relative to the top page's URL (HelpScout then seems to handle clicks on them correctly).
-  const iframe = document.querySelector<HTMLIFrameElement>("#beacon-container iframe")!;
-  const iframeDoc = iframe?.contentDocument;
-  if (iframeDoc && !iframeDoc.querySelector("head > base")) {
-    iframeDoc.head.appendChild(dom("base", { href: "" }));
-  }
 }
 
 export interface IBeaconOpenOptions {
@@ -222,7 +179,6 @@ export interface IBeaconOpenOptions {
   includeAppErrors?: boolean;
   onOpen?: () => void;
   errors?: IAppError[];
-  route?: BeaconRoute;
 }
 
 /**

@@ -1116,7 +1116,7 @@ describe("Comments", function() {
     await gu.openPage("Table2");
     await gu.rightClick(await gu.getCell("B", 2));
     assert.equal(await gu.findOpenMenuItem("li", /Comment/).matches('[aria-disabled="true"]'), false);
-    await gu.sendKeys(Key.ESCAPE);
+    await gu.closeOpenMenu();
     await gu.rightClick(await gu.getCell("B", 4));
     assert.equal(await gu.findOpenMenuItem("li", /Comment/).matches('[aria-disabled="true"]'), true);
   });

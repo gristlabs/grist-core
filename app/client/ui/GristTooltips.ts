@@ -58,7 +58,9 @@ export type Tooltip =
   "formUrlValues" |
   "rowHeight" |
   "rowIds" |
-  "suggestions"
+  "suggestions" |
+  "editorsOwnerLikeDataAccess" |
+  "widgetCreator"
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -272,6 +274,19 @@ to be reviewed by the document owner prior to integration.",
           link: commonUrls.helpSuggestions,
         },
       )),
+  ),
+  editorsOwnerLikeDataAccess: (...args: DomElementArg[]) => cssTooltipContent(
+    t("Editors can edit structure, so they, like Owners, may bypass table and column access \
+rules and read and change any data in this document. Turn off structure editing in Access Rules to limit them."),
+    ...args,
+  ),
+  widgetCreator: (...args: DomElementArg[]) => cssTooltipContent(
+    dom("div", t("This widget is one file of HTML and JavaScript, saved in this document. \
+It reads the rows of the table you pick.")),
+    dom("div",
+      cssLink({ href: commonUrls.helpWidgetCreator, target: "_blank" }, t("Learn more.")),
+    ),
+    ...args,
   ),
 };
 

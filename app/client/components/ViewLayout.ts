@@ -13,6 +13,7 @@ import { Layout, purgeBoxSpec } from "app/client/components/Layout";
 import { LayoutEditor } from "app/client/components/LayoutEditor";
 import { LayoutTray } from "app/client/components/LayoutTray";
 import { printViewSection } from "app/client/components/Printing";
+import { WidgetCreatorView } from "app/client/components/WidgetCreatorView";
 import { Delay } from "app/client/lib/Delay";
 import { createObsArray } from "app/client/lib/koArrayWrap";
 import { makeT } from "app/client/lib/localization";
@@ -20,6 +21,7 @@ import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { ViewRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
+import { getAssistantViewOptions } from "app/client/ui/AssistantDocBlock";
 import { getTelemetryWidgetTypeFromVS } from "app/client/ui/widgetTypesMap";
 import { cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
 import { isNarrowScreen, mediaSmall, testId, theme } from "app/client/ui2018/cssVars";
@@ -55,6 +57,7 @@ const viewSectionTypes: { [key: string]: any } = {
   calendar: CalendarView,
   custom: CustomView,
   form: FormView,
+  creator: WidgetCreatorView,
 };
 
 function getInstanceConstructor(parentKey: string) {
@@ -117,8 +120,9 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     // TODO add a test that creating / deleting a section creates/destroys one instance, and
     // switching pages destroys all instances.
     const viewSectionObs = createObsArray(this, this.viewModel.viewSections());
+    const viewOptions = getAssistantViewOptions(gristDoc);
     this.autoDispose(computedArray(viewSectionObs, (vs, i, compArr) =>
-      ViewSectionHelper.create(compArr, gristDoc, vs)));
+      ViewSectionHelper.create(compArr, gristDoc, vs, viewOptions)));
 
     // Update the stored layoutSpecObj with any missing fields that are present in viewFields.
     this.layoutSpec = this.autoDispose(ko.computed(

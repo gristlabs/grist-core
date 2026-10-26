@@ -14,7 +14,7 @@ describe("CalendarView", function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();
   // The calendar shares the page with its source table, so on the default 1024x640 window the
-  // section is narrow: the toolbar overflows and the drag test's target can fall outside the
+  // section is narrow: the toolbar takes two rows and the drag test's target can fall outside the
   // viewport. Give the suite a bigger screen so the widget has realistic room.
   gu.bigScreen();
 
@@ -41,9 +41,12 @@ describe("CalendarView", function() {
     return new Date(docTime.year(), docTime.month(), docTime.date(), docTime.hour(), docTime.minute()).getTime();
   };
 
+  let session: gu.Session;
+  let docId: string;
+
   before(async function() {
-    const session = await gu.session().login();
-    await session.tempDoc(cleanup, "Calendar.grist");
+    session = await gu.session().login();
+    docId = (await session.tempDoc(cleanup, "Calendar.grist")).id;
     await gu.addNewSection(/Calendar/, /Table1/, { selectBy: /TABLE1/ });
     // Adding a calendar with nothing mapped opens the blocking setup modal; dismiss it here so
     // the rest of these tests map columns through the right panel as before. The modal itself is
@@ -353,6 +356,78 @@ describe("CalendarView", function() {
     // The card and the placeholder "New Event" row are cleaned up by the afterEach teardown.
   });
 
+  describe("perspective", function() {
+    before(async function() {
+      await gu.reloadDoc();
+      await waitForCalendar();
+      await session.createHomeApi().updateDocPermissions(docId, {
+        users: { [gu.translateUser("user2").email]: "viewers" },
+      });
+    });
+
+    it("switches locally without saving to the document", async function() {
+      assert.equal(await getViewName(), "week");
+      await driver.find(".test-calendar-perspective-month").click();
+      assert.equal(await getViewName(), "month");
+      assert.isTrue(await driver.find(".test-section-menu-small-btn-save").isDisplayed());
+      await gu.waitForServer();
+      assert.isNull(await getSavedPerspective());
+
+      await gu.reloadDoc();
+      await waitForCalendar();
+      assert.equal(await getViewName(), "week");
+      assert.isFalse(await driver.find(".test-section-menu-small-btn-save").isPresent());
+    });
+
+    it("reverts to the saved perspective", async function() {
+      await driver.find(".test-calendar-perspective-day").click();
+      assert.equal(await getViewName(), "day");
+      await clickSmallSectionButton("revert");
+      assert.equal(await getViewName(), "week");
+      assert.isFalse(await driver.find(".test-section-menu-small-btn-save").isPresent());
+    });
+
+    it("does not mark the section unsaved when returning to the saved perspective", async function() {
+      await driver.find(".test-calendar-perspective-month").click();
+      await driver.find(".test-calendar-perspective-week").click();
+      assert.isFalse(await driver.find(".test-section-menu-small-btn-save").isPresent());
+    });
+
+    it("lists the unsaved perspective in the section menu", async function() {
+      await driver.find(".test-calendar-perspective-day").click();
+      await gu.openSectionMenu("sortAndFilter", "TABLE1 Calendar");
+      assert.match(await driver.findWait(".test-section-menu-calendar-options", 1000).getText(), /modified/);
+      await driver.find(".test-section-menu-btn-revert").click();
+      assert.equal(await getViewName(), "week");
+    });
+
+    it("saves the perspective from the section menu", async function() {
+      await driver.find(".test-calendar-perspective-month").click();
+      await clickSmallSectionButton("save");
+      await gu.waitForServer();
+      assert.equal(await getSavedPerspective(), "month");
+      assert.isFalse(await driver.find(".test-section-menu-small-btn-save").isPresent());
+
+      await gu.reloadDoc();
+      await waitForCalendar();
+      assert.equal(await getViewName(), "month");
+    });
+
+    it("lets a viewer switch perspective without errors", async function() {
+      const viewer = await gu.session().user("user2").login();
+      await viewer.loadDoc(`/doc/${docId}`);
+      await waitForCalendar();
+      assert.equal(await getViewName(), "month");
+      await driver.find(".test-calendar-perspective-day").click();
+      assert.equal(await getViewName(), "day");
+      await gu.waitForServer();
+      assert.isFalse(await driver.find(".test-section-menu-small-btn-save").isDisplayed());
+      assert.isTrue(await driver.find(".test-section-menu-small-btn-revert").isDisplayed());
+      assert.lengthOf(await driver.findElements(By.css(".test-notifier-toast-wrapper")), 0);
+      await gu.checkForErrors();
+    });
+  });
+
   // Helpers
 
   // Deletes any Table1 rows the drag-to-create flow left behind: rows whose Label is the default
@@ -446,12 +521,32 @@ describe("CalendarView", function() {
     return driver.executeScript("return window.gristCalendarView.getCalendarDate()");
   }
 
-  // Read textContent rather than getText(): the toolbar's button groups don't shrink, so when the
-  // section is narrow the title ellipsizes and getText() (which returns only rendered text) comes
-  // back empty. textContent is what the view actually set, which is what these assertions check.
+  // Read textContent rather than getText(): a long title that does not fit is cut with an ellipsis,
+  // and getText() returns only the rendered text. textContent is what the view actually set, which
+  // is what these assertions check.
   async function getCalendarTitle(): Promise<string> {
     return driver.executeScript<string>(
       `return document.querySelector(".test-calendar-title").textContent`);
+  }
+
+  async function clickSmallSectionButton(name: "save" | "revert") {
+    await driver.find(`.test-section-menu-small-btn-${name}`).click();
+    await driver.find(".test-calendar-title").mouseMove();
+  }
+
+  async function waitForCalendar() {
+    await driver.findWait(".test-calendar-widget", 2000);
+    await driver.wait(() => driver.executeScript("return Boolean(window.gristCalendarView?.getViewName())"), 2000);
+  }
+
+  // Reads the saved perspective from the doc's metadata.
+  async function getSavedPerspective(): Promise<string | null> {
+    return driver.executeScript(`
+      const view = window.gristCalendarView._view;
+      const sectionId = view.viewSection.getRowId();
+      const options = view.gristDoc.docData.getMetaTable("_grist_Views_section").getValue(sectionId, "options");
+      return JSON.parse(options || "{}").calendarViewPerspective ?? null;
+    `);
   }
 });
 
@@ -602,7 +697,9 @@ describe("CalendarView setup modal", function() {
   // Picks an option (matched by text) in one of the modal's slot selects.
   async function pickSlot(slot: string, label: RegExp) {
     await driver.find(`.test-calendar-setup-${slot} .test-select-open`).click();
-    await driver.findContentWait(".test-select-row", label, 1000).click();
+    // Look inside the open menu: the select button shows its current value as a .test-select-row
+    // too, and clicking that toggles the menu closed after a delay instead of picking an option.
+    await gu.findOpenMenuItem(".test-select-row", label, 1000).click();
   }
 
   async function getViewName(): Promise<string> {

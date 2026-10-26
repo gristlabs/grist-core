@@ -17,7 +17,7 @@ export const DEFAULT_VIEW_SECTION_OPTIONS = {
 
 // all widget types; "custom.calendar" exists only for old documents, new code never sets it.
 export type IWidgetType =
-  "record" | "detail" | "single" | "chart" | "calendar" | "custom" | "form" | "custom.calendar";
+  "record" | "detail" | "single" | "chart" | "calendar" | "custom" | "form" | "custom.calendar" | "creator";
 
 export enum WidgetType {
   Table = "record",
@@ -27,6 +27,12 @@ export enum WidgetType {
   Custom = "custom",
   Form = "form",
   Calendar = "calendar",
+  Creator = "creator",
+}
+
+/** If the widget is a page in a frame that reads and changes data with the plugin API. */
+export function isPluginWidget(widgetType: string | null | undefined): boolean {
+  return widgetType === WidgetType.Custom || widgetType === WidgetType.Creator;
 }
 
 // Identifiers of the retired calendar custom widget. Old documents may have plain "custom"

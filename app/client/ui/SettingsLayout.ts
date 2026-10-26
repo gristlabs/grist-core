@@ -53,12 +53,23 @@ export function SectionCard(title: DomContents | null, content: DomElementArg[])
   );
 }
 
+/** Ids of the admin panel items that focusAdminItem can go to. */
+export type SectionItemId =
+  | "edition" |
+  "servers" |
+  "admins" |
+  "sandboxing" |
+  "authentication" |
+  "outgoing-requests" |
+  "backups" |
+  `probe-${string}`;
+
 /**
  * Scrolls the admin panel item with the given id into view and briefly
  * flashes it, so users notice where they landed. Safe to call with an
  * id that doesn't exist yet (no-op).
  */
-export function focusAdminItem(itemId: string): void {
+export function focusAdminItem(itemId: SectionItemId): void {
   const elem = document.getElementById(itemId);
   if (!elem) { return; }
   // The id lands on the tiny item name span; scroll the surrounding

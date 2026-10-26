@@ -1749,6 +1749,7 @@ export class FlexServer implements GristServer {
     // the REST API and WebSocket paths.
     const tracker = new DocApiUsageTracker({
       getRedisClient: () => this._docWorkerMap.getRedisClient(),
+      telemetry: this.getTelemetry(),
     });
     this._docApiUsageTracker = tracker;
 

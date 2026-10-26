@@ -1,11 +1,12 @@
 import BaseView from "app/client/components/BaseView";
 import { GristDoc } from "app/client/components/GristDoc";
-import { consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
+import { consolidateValues, formatPercent, sortByXValues, sortedCategories, splitValuesByIndex,
   uniqXValues } from "app/client/lib/chartUtil";
 import { Delay } from "app/client/lib/Delay";
 import { fromKoSave } from "app/client/lib/fromKoSave";
 import { loadPlotly, PlotlyType } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
+import { testPendingChartRenders } from "app/client/lib/testPendingOps";
 import { ColumnRec, ViewFieldRec, ViewSectionRec } from "app/client/models/DocModel";
 import { ChartOptions, ViewSectionOptions } from "app/client/models/entities/ViewSectionRec";
 import { reportError } from "app/client/models/errors";
@@ -64,11 +65,11 @@ export function isNumericOnly(chartType: string) {
   return ["bar", "pie", "donut", "kaplan_meier", "line", "area", "scatter"].includes(chartType);
 }
 
-// Returns the type of the visibleCol if col is of type `Ref`, otherwise returns the type of col.
+// Returns the pure type of the visibleCol if col is of type `Ref` and shows one, otherwise of col itself.
 function visibleColType(col: ColumnRec, use: UseCB = unwrap) {
   const colType = use(col.pureType);
   const isRef = colType === "Ref";
-  return isRef ? use(use(col.visibleColModel).type) : colType;
+  return (isRef && use(use(col.visibleColModel).pureType)) || colType;
 }
 
 // Returns true if col is one of 'Numeric', 'Int', 'Any'.
@@ -89,7 +90,7 @@ type RowPropGetter = (rowId: number) => Datum;
 interface Series {
   label: string;          // Corresponds to the column name.
   values: Datum[];
-  pureType?: string;      // The pure type of the column.
+  pureType?: string;      // The pure type of the column, or of the shown column for a reference.
   group?: Datum;          // The group value, when grouped.
   isInSortSpec?: boolean; // Whether this series is present in sort spec for this chart.
 }
@@ -162,6 +163,7 @@ export class ChartView extends BaseView {
   private _options: ObjObservable<ViewSectionOptions>;
   private _chartDom: HTMLElement;
   private _update: () => void;
+  private _renderRequested = false;
   private _resize: () => void;
 
   private _formatterComp: ko.Computed<BaseFormatter | undefined>;
@@ -188,7 +190,19 @@ export class ChartView extends BaseView {
       return field?.visibleColFormatter();
     }));
 
-    this._update = debounce(() => this._updateView(), 0);
+    // Count a render as pending from when it is requested, so tests can wait for the chart to
+    // catch up with a change.
+    const render = debounce(() => {
+      this._renderRequested = false;
+      void this._updateView().finally(() => testPendingChartRenders.end());
+    }, 0);
+    this._update = () => {
+      if (!this._renderRequested) {
+        this._renderRequested = true;
+        testPendingChartRenders.start();
+      }
+      render();
+    };
 
     let subs: IDisposable[] = [];
     this.autoDispose(this._chartType.subscribe(this._update));
@@ -242,12 +256,13 @@ export class ChartView extends BaseView {
         // Use the colId of the displayCol, which may be different in case of Reference columns.
         const colId: string = field.displayColModel.peek().colId.peek();
         const getter = this.tableModel.tableData.getRowPropFunc(colId) as RowPropGetter;
-        const pureType = field.displayColModel().pureType();
+        const displayType = field.displayColModel().pureType();
         // Date values are always UTC-based; a DateTime column carries its timezone in its type.
         const timezone = removePrefix(field.displayColModel().type(), "DateTime:") || "UTC";
-        const fullGetter = (pureType === "Date" || pureType === "DateTime") ? dateGetter(getter, timezone) : getter;
+        const fullGetter = (displayType === "Date" || displayType === "DateTime") ?
+          dateGetter(getter, timezone) : getter;
         return {
-          pureType,
+          pureType: visibleColType(field.column.peek()),
           label: field.label(),
           values: rowIds.map(fullGetter),
           isInSortSpec: Boolean(Sort.findCol(this._sortSpec, field.colRef.peek())),
@@ -307,6 +322,17 @@ export class ChartView extends BaseView {
         const part = chartFunc(gSeries, options, dataOptions);
         part.data = plotData.data.concat(part.data);
         plotData = part;
+      }
+
+      // Line and area charts sort each series by x values. On a category axis, Plotly orders
+      // categories by their first appearance across all series, so the axis is out of order if the
+      // first series lacks some values. Tell Plotly the full order explicitly.
+      const chartType = this._chartType.peek();
+      if ((chartType === "line" || chartType === "area") &&
+        series[1].pureType && isCategoryType(series[1].pureType)) {
+        const axis = options.orientation === "h" ? "y" : "x";
+        const categoryarray = sortedCategories(plotData.data.map(d => (d as any)[axis] || []));
+        plotData.layout = defaultsDeep({ [`${axis}axis`]: { categoryorder: "array", categoryarray } }, plotData.layout);
       }
     }
 

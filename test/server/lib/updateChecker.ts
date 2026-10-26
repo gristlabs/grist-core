@@ -14,7 +14,7 @@ const fakeVersionUrl = "https://whatever.computer/version";
 describe("updateChecker", function() {
   testUtils.setTmpLogLevel("error");
 
-  let server: TestServer;
+  let server: TestServer | undefined;
   let homeUrl: string;
   let oldServerEnv: testUtils.EnvironmentSnapshot;
 
@@ -22,6 +22,9 @@ describe("updateChecker", function() {
 
   function setupTestServer(mockResponse: LatestVersion) {
     beforeEach(async function() {
+      // Starting a server runs every migration on a fresh home db, which
+      // can take over 2s on a busy machine.
+      this.timeout(10000);
       oldServerEnv = new testUtils.EnvironmentSnapshot();
 
       // Stub out the fetch to the external version API endpoint so we
@@ -55,18 +58,19 @@ describe("updateChecker", function() {
 
       process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING = "true";
       process.env.GRIST_TEST_VERSION_CHECK_URL = fakeVersionUrl;
-      server = new TestServer(this);
-      homeUrl = await server.start();
+      const testServer = new TestServer(this);
+      homeUrl = await testServer.start(["home"], {}, { seedData: false });
+      server = testServer;
       await setVersionPromise;
     });
 
     afterEach(async function() {
-      await server.stop();
-      oldServerEnv.restore();
       sandbox.restore();
+      oldServerEnv.restore();
+      await server?.stop();
+      server = undefined;
     });
     return {
-      server: () => server,
       homeUrl: () => homeUrl,
     };
   }

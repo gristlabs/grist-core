@@ -1,4 +1,5 @@
 import { buildDocumentBanners, buildHomeBanners } from "app/client/components/Banners";
+import { allCommands } from "app/client/components/commands";
 import { ViewAsBanner } from "app/client/components/ViewAsBanner";
 import { domAsync } from "app/client/lib/domAsync";
 import {
@@ -9,7 +10,7 @@ import {
   loadBillingPage,
   loadBootPage,
 } from "app/client/lib/imports";
-import { createSessionObs, isBoolean, isNumber } from "app/client/lib/sessionObs";
+import { createSessionObs, isBoolean, isNumber, SessionObs } from "app/client/lib/sessionObs";
 import { AppModel, TopAppModel } from "app/client/models/AppModel";
 import { DocPageModelImpl } from "app/client/models/DocPageModel";
 import { HomeModelImpl } from "app/client/models/HomeModel";
@@ -22,11 +23,11 @@ import { createHomeLeftPane } from "app/client/ui/HomeLeftPane";
 import { buildSnackbarDom } from "app/client/ui/NotifyUI";
 import { OAuthFlowUI } from "app/client/ui/OAuthFlow";
 import { OnboardingPage, shouldShowOnboardingPage } from "app/client/ui/OnboardingPage";
-import { pagePanels } from "app/client/ui/PagePanels";
+import { IInnerLeftPanel, pagePanels } from "app/client/ui/PagePanels";
 import { RightPanel } from "app/client/ui/RightPanel";
 import { createTopBarDoc, createTopBarHome } from "app/client/ui/TopBar";
 import { WelcomePage } from "app/client/ui/WelcomePage";
-import { testId } from "app/client/ui2018/cssVars";
+import { isNarrowScreenObs, testId } from "app/client/ui2018/cssVars";
 import { getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 
@@ -152,6 +153,9 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   const rightPanelOpen = createSessionObs<boolean>(owner, "rightPanelOpen", false, isBoolean);
   const leftPanelWidth = createSessionObs<number>(owner, "leftPanelWidth", 240, isNumber);
   const rightPanelWidth = createSessionObs<number>(owner, "rightPanelWidth", 240, isNumber);
+  const innerLeftPanelWidth = createSessionObs<number>(owner, "innerLeftPanelWidth", 440, isNumber);
+
+  collapseNavWithInnerLeftPanel(owner, pageModel.innerLeftPanelOpen, leftPanelOpen, rightPanelOpen);
 
   // The RightPanel component gets created only when an instance of GristDoc is set in pageModel.
   // use.owner is a feature of grainjs to make the new RightPanel owned by the computed itself:
@@ -159,6 +163,26 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   // instance of RightPanel will get disposed.
   const rightPanel = Computed.create(owner, pageModel.gristDoc, (use, gristDoc) =>
     gristDoc ? RightPanel.create(use.owner, gristDoc, rightPanelOpen) : null);
+
+  const innerLeftPanel = Computed.create(owner, use => use(pageModel.gristDoc)?.innerLeftPanel ?? null);
+  const innerLeftPanelOpen = Computed.create(owner, (use) => {
+    const gristDoc = use(pageModel.gristDoc);
+    // Document is still loading: use last-saved panel state to skip animation.
+    if (!gristDoc) { return use(pageModel.innerLeftPanelOpen); }
+
+    return Boolean(gristDoc.innerLeftPanel) && use(pageModel.innerLeftPanelOpen);
+  }).onWrite(val => pageModel.innerLeftPanelOpen.set(val));
+
+  owner.autoDispose(subscribe(pageModel.gristDoc, (_use, gristDoc) => {
+    if (gristDoc && !gristDoc.innerLeftPanel) { pageModel.innerLeftPanelOpen.set(false); }
+  }));
+
+  const innerLeftPanelMounted = Observable.create<IInnerLeftPanel | null>(owner, null);
+  owner.autoDispose(subscribe(innerLeftPanel, innerLeftPanelOpen, (use, panel, open) => {
+    if (panel !== innerLeftPanelMounted.get()) {
+      innerLeftPanelMounted.set(open ? panel : null);
+    }
+  }));
 
   // Set document title to strings like "DocName - Grist"
   owner.autoDispose(subscribe(pageModel.currentDocTitle, (use, docName) => {
@@ -182,6 +206,11 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
       header: dom.create(AppHeader, appModel, pageModel),
       content: pageModel.createLeftPane(leftPanelOpen),
     },
+    innerLeftPanel: {
+      panelWidth: innerLeftPanelWidth,
+      panelOpen: innerLeftPanelOpen,
+      content: dom.maybe(innerLeftPanelMounted, panel => panel.buildDom()),
+    },
     rightPanel: {
       panelWidth: rightPanelWidth,
       panelOpen: rightPanelOpen,
@@ -197,4 +226,41 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
     banner: dom.create(ViewAsBanner, pageModel),
     app: appObj,
   });
+}
+
+/**
+ * Collapses the left nav panel while the inner left panel is open and reopens
+ * it when the inner left panel closes.
+ */
+function collapseNavWithInnerLeftPanel(
+  owner: IDisposableOwner,
+  innerLeftOpen: Observable<boolean>,
+  leftOpen: SessionObs<boolean>,
+  rightOpen: Observable<boolean>,
+) {
+  const restoreNav = createSessionObs<boolean>(owner, "innerLeftPanelRestoreNav", false, isBoolean);
+
+  owner.autoDispose(innerLeftOpen.addListener((open) => {
+    const narrow = isNarrowScreenObs().get();
+    if (open) {
+      const restore = !narrow && leftOpen.get() && !leftOpen.isSavingPaused();
+      leftOpen.set(false);
+      if (narrow) { rightOpen.set(false); }
+      if (restore) { restoreNav.set(true); }
+    } else if (!narrow) {
+      if (restoreNav.get()) {
+        // Also pins the nav if it's currently expanded via hover.
+        allCommands.leftPanelOpen.run();
+      } else if (leftOpen.isSavingPaused()) {
+        // Collapse a nav that's expanded via hover.
+        leftOpen.set(false);
+      }
+      restoreNav.set(false);
+    }
+  }));
+
+  owner.autoDispose(leftOpen.addListener(() => {
+    // Ignore hover expansion and collapse, which pause saving while they run.
+    if (innerLeftOpen.get() && !leftOpen.isSavingPaused()) { restoreNav.set(false); }
+  }));
 }

@@ -59,8 +59,7 @@ async function assertShortcutWorks(shortcut: string, menuItemToTest: string) {
   await pressShortcut(shortcut);
   assert.isTrue(await gu.findOpenMenu().isDisplayed());
   await gu.findOpenMenuItem("li", menuItemToTest);
-  await gu.sendKeys(Key.ESCAPE);
-  await gu.waitForMenuToClose();
+  await gu.closeOpenMenu();
 }
 
 // Using gu.sendKeys doesn't work with Shift+F10 and similar shortcuts,

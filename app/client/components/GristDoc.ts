@@ -51,7 +51,9 @@ import { DocHistory } from "app/client/ui/DocHistory";
 import { startDocTour } from "app/client/ui/DocTour";
 import { DocTutorial } from "app/client/ui/DocTutorial";
 import { DocSettingsPage } from "app/client/ui/DocumentSettings";
+import { IAssistantPanel } from "app/client/ui/IAssistantPanel";
 import { isTourActive, isTourActiveObs } from "app/client/ui/OnBoardingPopups";
+import { IInnerLeftPanel } from "app/client/ui/PagePanels";
 import { DefaultPageWidget, IPageWidget, toPageWidget } from "app/client/ui/PageWidgetPicker";
 import { ProposedChangesPage } from "app/client/ui/ProposedChangesPage";
 import { linkFromId, NoLink, selectBy } from "app/client/ui/selectBy";
@@ -64,7 +66,7 @@ import { isNarrowScreen, mediaSmall, mediaXSmall, testId, theme } from "app/clie
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { invokePrompt } from "app/client/ui2018/modals";
-import { buildAssistantPopup } from "app/client/widgets/AssistantPopup";
+import { buildAssistantPanel } from "app/client/widgets/AssistantPanel";
 import { CommentMonitor, DiscussionPanel } from "app/client/widgets/DiscussionEditor";
 import { FieldEditor } from "app/client/widgets/FieldEditor";
 import { MinimalActionGroup } from "app/common/ActionGroup";
@@ -86,12 +88,13 @@ import {
   SpecialDocPage,
   ViewDocPage,
 } from "app/common/gristUrls";
-import { undef, waitObs } from "app/common/gutil";
+import { safeJsonParse, undef, waitObs } from "app/common/gutil";
 import { LocalPlugin } from "app/common/plugin";
 import { StringUnion } from "app/common/StringUnion";
 import { TableData } from "app/common/TableData";
 import { getGristConfig } from "app/common/urlUtils";
 import { AttachmentTransferStatus, DocAPI, ExtendedUser } from "app/common/UserAPI";
+import { DEFAULT_WIDGET_CREATOR_ACCESS, toWidgetCreatorOptions } from "app/common/WidgetCreatorCode";
 import { IWidgetType, WidgetType } from "app/common/widgetTypes";
 import { CursorPos } from "app/plugin/GristAPI";
 
@@ -184,6 +187,8 @@ export interface GristDoc extends DisposableWithEvents {
   rightPanelTool: Observable<IExtraTool | null>;
   isReadonly: Observable<boolean>;
   isReadonlyKo: IKnockoutObservable<boolean>;
+  assistantPanel: IAssistantPanel | null;
+  readonly innerLeftPanel: IInnerLeftPanel | null;
   readonly comparison: DocStateComparison | null;
   cursorMonitor: CursorMonitor;
   editorMonitor?: EditorMonitor;
@@ -328,6 +333,9 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public currentUser: Observable<ExtendedUser | null>;
   public latestActionState: Observable<DocState | null>;
 
+  public assistantPanel = buildAssistantPanel(this);
+  public get innerLeftPanel() { return this.assistantPanel; }
+
   private _actionLog: ActionLog;
   private _actionCounter: ActionCounter;
   private _undoStack: UndoStack;
@@ -347,7 +355,6 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private _disableAutoStartingTours: boolean = false;
   private _isShowingPopupSection = false;
   private _prevSectionId: number | null = null;
-  private _assistantPopup = buildAssistantPopup(this);
   private _diffModels: Record<string, DataTableModelWithDiff> = {};
   private _showAllRowsInComparison: boolean = false;
 
@@ -695,8 +702,14 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       setCursor: this.onSetCursorPos.bind(this),
       createForm: this._onCreateForm.bind(this),
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
-      activateAssistant: () => this._assistantPopup?.open(),
     }, this, true));
+
+    const assistantPanel = this.assistantPanel;
+    if (assistantPanel) {
+      this.autoDispose(commands.createGroup({
+        toggleAssistant: () => assistantPanel.toggle(),
+      }, this, true));
+    }
 
     this.userPresenceModel.initialize().catch(reportError);
 
@@ -828,8 +841,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       const assistantState = await this.docComm.getAssistantState(params.assistantState);
       if (this.isDisposed() || !assistantState) { return; }
 
-      this._assistantPopup?.setState(assistantState);
-      this._assistantPopup?.open();
+      this.assistantPanel?.setState(assistantState);
+      this.assistantPanel?.open();
     }));
   }
 
@@ -1082,7 +1095,14 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
         // if type changes, let's save it.
         if (oldVal.type !== newVal.type) {
-          await section.parentKey.saveOnly(newVal.type);
+          if (newVal.type === WidgetType.Creator) {
+            // One save, so the widget is never shown as Widget Creator without its code.
+            const options = toWidgetCreatorOptions(safeJsonParse(section.options.peek(), {}), { typeChanged: true });
+            await docData.sendAction(["UpdateRecord", "_grist_Views_section", section.getRowId(),
+              { parentKey: newVal.type, options: JSON.stringify(options) }]);
+          } else {
+            await section.parentKey.saveOnly(newVal.type);
+          }
         }
 
         // if grouped by column changes, let's use the specific user action.
@@ -1554,6 +1574,9 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     if (type === "form") {
       await this._setDefaultFormLayoutSpec(result.sectionRef);
     }
+    if (type === "creator") {
+      await this._setWidgetCreatorDefaultAccess(result.sectionRef);
+    }
     await this.saveLink(link, result.sectionRef);
     const widgetType = getTelemetryWidgetTypeFromPageWidget(widget);
     logTelemetryEvent("addedWidget", { full: { docIdDigest: this.docId(), widgetType } });
@@ -1595,6 +1618,9 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     }
     if (type === "form") {
       await this._setDefaultFormLayoutSpec(sectionRef!);
+    }
+    if (type === "creator") {
+      await this._setWidgetCreatorDefaultAccess(sectionRef!);
     }
     logTelemetryEvent("addedPage", { full: { docIdDigest: this.docId() } });
     logTelemetryEvent("addedWidget", {
@@ -2102,6 +2128,11 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
       // send actions
       await this.docModel.viewFields.sendTableActions(actions);
     }
+  }
+
+  private async _setWidgetCreatorDefaultAccess(sectionRef: number) {
+    const { customDef } = this.docModel.viewSections.getRowModel(sectionRef);
+    if (!customDef.access.peek()) { await customDef.access.saveOnly(DEFAULT_WIDGET_CREATOR_ACCESS); }
   }
 
   private async _setDefaultFormLayoutSpec(viewSectionId: number) {

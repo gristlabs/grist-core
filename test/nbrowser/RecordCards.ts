@@ -63,6 +63,7 @@ describe("RecordCards", function() {
     it("hides option to open popup if more than 1 row is selected", async function() {
       await gu.sendKeys(Key.chord(Key.SHIFT, Key.DOWN));
       assert.isFalse(await (await gu.openRowMenu(1)).findContent("li", /View as card/).isPresent());
+      await gu.waitForMenuFocus();
       await gu.sendKeys(Key.ESCAPE, Key.SPACE);
       assert.isFalse(await driver.find(".test-record-card-popup-overlay").isPresent());
     });
@@ -70,6 +71,7 @@ describe("RecordCards", function() {
     it('disables option to open popup in "add new" row', async function() {
       await gu.sendKeys(Key.chord(await gu.modKey(), Key.DOWN));
       assert.isTrue(await (await gu.openRowMenu(120)).findContent('li[aria-disabled="true"]', /View as card/).isPresent());
+      await gu.waitForMenuFocus();
       await gu.sendKeys(Key.ESCAPE, Key.SPACE);
       assert.isFalse(await driver.find(".test-record-card-popup-overlay").isPresent());
     });

@@ -121,18 +121,22 @@ describe("GristJobs", function() {
         // scheduled once the worker picks up the previous one, so on a loaded machine the count
         // drifts down and the test flakes. Wait for a few ticks and time them instead.
         await waitForIt(async () => {
-          assert.isAtLeast(times.length, 4);
-          assert.isAtLeast(defaultTimes.length, 4);
+          assert.isAtLeast(times.length, 8);
+          assert.isAtLeast(defaultTimes.length, 8);
         }, 10000, 20);
-        // Check the average interval, not each gap. BullMQ pins iterations to an absolute time
-        // grid and the worker polls for them, so a single gap swings by ±50ms either way while
-        // the average stays on the requested interval.
-        const meanGap = (ts: number[]) => (ts[3] - ts[0]) / 3;
-        assert.closeTo(meanGap(times), 250, 60, `add: ${times}`);
-        assert.closeTo(meanGap(defaultTimes), 100, 50, `badd: ${defaultTimes}`);
+        // Check the median interval, not each gap or the mean. BullMQ pins iterations to an
+        // absolute time grid and the worker polls for them, so a single gap swings by ±50ms either
+        // way. And when the event loop stalls, a slot gets skipped (a double gap) or caught up (a
+        // short one), which throws the mean off but not the median.
+        const medianGap = (ts: number[]) => {
+          const gaps = ts.slice(1).map((t, i) => t - ts[i]).sort((a, b) => a - b);
+          return gaps[Math.floor(gaps.length / 2)];
+        };
+        assert.closeTo(medianGap(times), 250, 60, `add: ${times}`);
+        assert.closeTo(medianGap(defaultTimes), 100, 50, `badd: ${defaultTimes}`);
         // Named jobs went to the named handler, unnamed ones to the default handler.
-        assert.isAtLeast(ct, 4 * 2);
-        assert.isAtLeast(defaultCt, 4);
+        assert.isAtLeast(ct, 8 * 2);
+        assert.isAtLeast(defaultCt, 8);
       } finally {
         await jobs.stop({ obliterate: true });
       }

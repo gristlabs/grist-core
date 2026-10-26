@@ -1,8 +1,8 @@
 import { makeT } from "app/client/lib/localization";
-import { AdminChecks } from "app/client/models/AdminChecks";
-import { cssDangerText, cssHappyText } from "app/client/ui/AdminPanelCss";
+import { AdminChecks, isChecking } from "app/client/models/AdminChecks";
+import { buildStatusPill, RowStatus } from "app/client/ui/AdminPanelCss";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
-import { cssValueLabel } from "app/client/ui/SettingsLayout";
+import { SectionCard, SectionItem } from "app/client/ui/SettingsLayout";
 import { buildBadge, buildHeroCard, buildItemCard, cssItemsContainer } from "app/client/ui/SetupCard";
 import { testId } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
@@ -74,6 +74,8 @@ export interface BackupsSectionProps {
 export class BackupsSection extends Disposable {
   public readonly canProceed: Computed<boolean>;
 
+  public readonly status: Computed<RowStatus>;
+
   /**
    * Backups is currently informational -- enabling a backend is done out of
    * band by setting env vars and restarting. So nothing is ever pending here
@@ -96,6 +98,7 @@ export class BackupsSection extends Disposable {
     super();
 
     this.canProceed = Computed.create(this, this._selectedBackend, (_use, backend) => !!backend);
+    this.status = Computed.create(this, use => this._buildStatus(use));
   }
 
   public async apply(): Promise<void> { /* no-op */ }
@@ -116,30 +119,59 @@ export class BackupsSection extends Disposable {
     );
   }
 
-  public buildStatusDisplay() {
-    return dom.domComputed((use) => {
-      const backend = use(this._activeBackend);
-      if (backend) {
-        return cssValueLabel(cssHappyText(STORAGE_BACKENDS[backend].label));
-      } else {
-        return cssValueLabel(cssDangerText(t("Off")));
-      }
-    });
+  /**
+   * The Storage card of the admin panel, with the Backups row.
+   */
+  public buildAdminCard(): DomContents {
+    return SectionCard(t("Storage"), [
+      SectionItem({
+        id: "backups",
+        name: t("Backups"),
+        description: t("Back up documents externally"),
+        value: buildStatusPill(this.status),
+        expandedContent: this.buildDom(),
+      }),
+    ]);
+  }
+
+  private _buildStatus(use: UseCBOwner): RowStatus {
+    const persist = use(this._persistResult);
+    // Require a verdict: a failed check request faults without one, which isn't data loss.
+    const dataWillBeLost = persist?.status === "fault" && persist.verdict;
+    const problem: RowStatus["problem"] = dataWillBeLost ? {
+      key: "persist.ephemeral",
+      severity: "error",
+      anchor: "backups",
+      title: t("Your data may not survive a container restart."),
+      text: t("To preserve it, mount a volume at /persist."),
+    } : undefined;
+
+    const req = this._props.checks.requestCheckById(use, "backups");
+    const result = req ? use(req.result) : undefined;
+    if (req && isChecking(result)) { return { label: t("checking"), problem }; }
+    if (result?.details?.requestFailed) { return { label: t("unknown"), problem }; }
+    const backend = use(this._activeBackend);
+    return {
+      label: backend ? STORAGE_BACKENDS[backend].label() : t("Off"),
+      level: backend ? "success" : "warning",
+      problem,
+    };
   }
 
   private _buildPersistWarning() {
-    return dom.maybe(this._persistResult, result =>
-      // Require a verdict — a failed check request faults without one, which isn't data loss.
-      result?.status === "fault" && result.verdict ?
-        buildHeroCard({
-          indicator: "warning",
-          header: t("Your data may not survive a container restart."),
-          text: t("To preserve it, mount a volume at /persist."),
-          badges: buildBadge(t("Action needed"), "warning"),
-          args: [dom.attr("title", result.verdict), testId("backups-persist-warning")],
-        }) :
-        null,
-    );
+    return dom.domComputed((use) => {
+      const { problem } = use(this.status);
+      if (!problem) {
+        return null;
+      }
+      return buildHeroCard({
+        indicator: "warning",
+        header: problem.title,
+        text: problem.text,
+        badges: buildBadge(t("Action needed"), "warning"),
+        args: [dom.attr("title", use(this._persistResult)?.verdict ?? ""), testId("backups-persist-warning")],
+      });
+    });
   }
 
   private _buildBackendCards() {

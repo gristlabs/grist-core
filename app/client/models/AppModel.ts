@@ -3,6 +3,7 @@ import { ScreenReaderAnnouncer } from "app/client/components/ScreenReaderAnnounc
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { sessionStorageObs } from "app/client/lib/localStorageObs";
 import { error } from "app/client/lib/log";
+import { logUpgradeClicked } from "app/client/lib/upsellTelemetry";
 import { reportError, setErrorNotifier } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { newUserAPIImpl } from "app/client/models/homeUrl";
@@ -24,6 +25,7 @@ import { LocalPlugin } from "app/common/plugin";
 import { DismissedPopup, DismissedReminder, UserPrefs } from "app/common/Prefs";
 import { isOwner, isOwnerOrEditor } from "app/common/roles";
 import { getTagManagerScript } from "app/common/tagManager";
+import { UpgradePlacement } from "app/common/Telemetry";
 import { getDefaultThemePrefs, ThemePrefs } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import { ExtendedUser } from "app/common/UserAPI";
@@ -143,7 +145,7 @@ export interface AppModel {
   impressions: Impressions;
 
   refreshOrgUsage(): Promise<void>;
-  showUpgradeModal(): Promise<void>;
+  showUpgradeModal(placement: UpgradePlacement, plan?: PlanSelection): Promise<void>;
   showNewSiteModal(): Promise<void>;
   isBillingManager(): boolean;          // If user is a billing manager for this org
   isSupport(): boolean;                 // If user is a Support user
@@ -398,7 +400,7 @@ export class AppModelImpl extends Disposable implements AppModel {
     } else if (state.upgradeTeam) {
       // Remove params from the URL.
       urlState().pushUrl({ upgradeTeam: false, params: {} }, { avoidReload: true, replace: true }).catch(() => {});
-      this.showUpgradeModal({
+      this.showUpgradeModal("urlParam", {
         priceId: state.params?.billingPlan,
         product: state.params?.planType,
       }).catch(reportError);
@@ -432,14 +434,16 @@ export class AppModelImpl extends Disposable implements AppModel {
     return this.currentProduct?.name ?? null;
   }
 
-  public async showUpgradeModal(plan?: PlanSelection) {
+  public async showUpgradeModal(placement: UpgradePlacement, plan?: PlanSelection) {
+    logUpgradeClicked(this, placement);
+    const pickPlan = { ...plan, placement };
     if (this.planName && this.currentOrg) {
       if (this.isPersonal) {
-        await this.showNewSiteModal(plan);
+        await this.showNewSiteModal(pickPlan);
       } else if (this.isTeamSite) {
         await buildUpgradeModal(this, {
           appModel: this,
-          pickPlan: plan,
+          pickPlan,
           reason: "upgrade",
         });
       } else {

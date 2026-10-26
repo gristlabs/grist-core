@@ -58,7 +58,7 @@ export class CalendarView extends BaseView implements CalendarHost {
   private _selectedRecordId: number | null = null;
 
   private _perspective = Computed.create(this,
-    fromKo(this.viewSection.optionsObj.prop("calendarViewPerspective")),
+    fromKo(this.viewSection.activeCalendarPerspective),
     (_use, view) => (view && PERSPECTIVES.includes(view) ? view : "week"));
 
   private _resize = this.autoDispose(Delay.untilAnimationFrame(() => this._calendar?.render(), this));
@@ -372,9 +372,8 @@ export class CalendarView extends BaseView implements CalendarHost {
   }
 
   private _setPerspective(view: Perspective) {
-    // Persist the choice; this flows back through _perspective (toolbar active state) and its
-    // listener (changeView), since setAndSave updates the underlying option synchronously.
-    this.viewSection.optionsObj.prop("calendarViewPerspective").setAndSave(view).catch(reportError);
+    // Local until saved from the section menu, like sort and filter.
+    this.viewSection.activeCalendarPerspective(view);
   }
 
   // Builds the toolbar and the container the calendar draws into.
@@ -501,9 +500,12 @@ const cssCalendarView = styled("div", `
   flex-direction: column;
   height: 100%;
   width: 100%;
+  container: calendar / inline-size;
   background-color: ${theme.mainPanelBg};
   color: ${theme.text};
 `);
+
+const narrowCalendar = "@container calendar (max-width: 479px)";
 
 // Shared sizing for every toolbar button (nav arrows/today + the Day/Week/Month toggle), so an
 // icon button and a text button render at the same height. Matches Grist's small-control sizing
@@ -517,18 +519,21 @@ const cssToolbarButtons = `
   }
 `;
 
-// Only the title flexes and truncates under pressure (see cssCalendarTitle); the button groups keep
-// their natural width. overflow-x is the escape hatch for a section too narrow even for those, so
-// the toolbar scrolls internally instead of pushing the whole section sideways.
 const cssToolbar = styled("div", `
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
+  gap: 8px 16px;
   padding: 8px 16px;
   min-width: 0;
-  overflow-x: auto;
   border-bottom: 1px solid ${theme.tableBodyBorder};
   flex: none;
+  ${narrowCalendar} {
+    & {
+      column-gap: 8px;
+      padding: 8px;
+    }
+  }
 `);
 
 const cssNavGroup = styled("div", `
@@ -559,7 +564,6 @@ const cssPerspectiveGroup = styled(cssButtonGroup, `
   }
 `);
 
-// The title takes the leftover space and truncates rather than forcing the toolbar wider.
 const cssCalendarTitle = styled("div", `
   font-weight: 600;
   font-size: 15px;
@@ -569,6 +573,12 @@ const cssCalendarTitle = styled("div", `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  ${narrowCalendar} {
+    & {
+      order: 1;
+      flex-basis: 100%;
+    }
+  }
 `);
 
 // Holds the calendar grid, filling the space below the toolbar.

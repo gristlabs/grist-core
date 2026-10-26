@@ -376,7 +376,7 @@ export class FormulaEditor extends NewBaseEditor {
     ev.stopPropagation();
     ev.preventDefault();
     commands.allCommands.detachEditor.run();
-    commands.allCommands.activateAssistant.run();
+    commands.allCommands.openFormulaAssistant.run();
   }
 
   private _calcSize(elem: HTMLElement, desiredElemSize: ISize) {

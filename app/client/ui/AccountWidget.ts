@@ -246,7 +246,7 @@ export class AccountWidget extends Disposable {
         menuItemLink(urlState().setLinkUrl({ billing: "billing" }), t("Billing account")) :
         menuItem(() => null, t("Billing account"), dom.attr("aria-disabled", "true"))
       ) :
-      menuItem(() => this._appModel.showUpgradeModal(), t("Upgrade Plan"));
+      menuItem(() => this._appModel.showUpgradeModal("accountMenu"), t("Upgrade Plan"));
   }
 
   private _maybeBuildActivationPageMenuItem() {

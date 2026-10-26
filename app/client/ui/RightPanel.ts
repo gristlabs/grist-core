@@ -42,6 +42,7 @@ import { buildConfigContainer, getFieldType } from "app/client/ui/RightPanelUtil
 import { rowHeightConfigTable } from "app/client/ui/RowHeightConfig";
 import { linkId, NoLink, selectBy } from "app/client/ui/selectBy";
 import { VisibleFieldsConfig } from "app/client/ui/VisibleFieldsConfig";
+import { WidgetCreatorSectionConfig } from "app/client/ui/WidgetCreatorSectionConfig";
 import { getTelemetryWidgetTypeFromVS, getWidgetTypes } from "app/client/ui/widgetTypesMap";
 import { ariaTabs } from "app/client/ui2018/ariaTabs";
 import { basicButton, primaryButton } from "app/client/ui2018/buttons";
@@ -57,7 +58,7 @@ import { isFullReferencingType } from "app/common/gristTypes";
 import { not } from "app/common/gutil";
 import { StringUnion } from "app/common/StringUnion";
 import { components } from "app/common/ThemePrefs";
-import { IWidgetType } from "app/common/widgetTypes";
+import { isPluginWidget, IWidgetType } from "app/common/widgetTypes";
 
 import {
   bundleChanges,
@@ -86,7 +87,7 @@ const t = makeT("RightPanel");
 
 // Widget types whose creator panel shows the column-mapping config.
 function usesColumnMapping(widgetType: IWidgetType | null | undefined): boolean {
-  return widgetType === "custom" || usesPredefinedMapping(widgetType);
+  return isPluginWidget(widgetType) || usesPredefinedMapping(widgetType);
 }
 
 // Widget types configured through the predefined column-mapping panel (no widget selector), as
@@ -584,6 +585,10 @@ export class RightPanel extends Disposable {
             () => dom.create(CustomSectionConfig, activeSection, this._gristDoc)),
         ];
       }),
+      dom.maybe(use => use(this._pageWidgetType) === "creator", () => [
+        cssSeparator(),
+        dom.create(WidgetCreatorSectionConfig, activeSection, this._gristDoc),
+      ]),
       // The native calendar and bundled custom widgets configure themselves through the predefined
       // column-mapping panel (no widget selector).
       dom.maybe(use => usesPredefinedMapping(use(this._pageWidgetType)), () => {

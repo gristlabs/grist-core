@@ -115,6 +115,7 @@ describe("AccessRules1", function() {
     // Make FinancialsTable private to user1.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /FinancialsTable/, 3000).click();
+    await gu.waitForMenuAction();
     let ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
     await enterRulePart(ruleSet, 1, null, "Deny all");
     await ruleSet.find(".test-rule-part .test-rule-add").click();
@@ -123,8 +124,10 @@ describe("AccessRules1", function() {
     // Make RumorsColumn of ClientsTable private to user1.
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     await gu.findOpenMenuItem("li", /ClientsTable/).click();
+    await gu.waitForMenuAction();
     await findTableWait(/ClientsTable/).findWait(".test-rule-table-menu-btn", 300).click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
+    await gu.waitForMenuAction();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
     await ruleSet.find(".test-rule-resource .test-select-open").click();
@@ -368,6 +371,7 @@ describe("AccessRules1", function() {
     // Add a column rule that uses rec but doesn't set read permission.
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
+    await gu.waitForMenuAction();
     let ruleSet = await findRuleSetColumnWait(/FinancialsTable/);
     await ruleSet.find(".test-rule-resource .test-select-open").click();
     assert.deepEqual(
@@ -399,6 +403,7 @@ describe("AccessRules1", function() {
     await driver.findWait(".test-rule-set", 2000);
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
+    await gu.waitForMenuAction();
     let ruleSet = await findRuleSetColumnWait(/FinancialsTable/);
     await ruleSet.find(".test-rule-resource .test-select-open").click();
     assert.deepEqual(
@@ -413,6 +418,7 @@ describe("AccessRules1", function() {
     // Make a rule for FinancialsTable.Year and FinancialsTable.Expenses that allows something.
     await findTable(/FinancialsTable/).find(".test-rule-table-menu-btn").click();
     await gu.findOpenMenuItem("li", /Add column rule/).click();
+    await gu.waitForMenuAction();
     ruleSet = findRuleSetColumnWait(/FinancialsTable/, 2);
     await ruleSet.find(".test-rule-resource .test-select-open").click();
     assert.deepEqual(
@@ -447,7 +453,7 @@ describe("AccessRules1", function() {
       await driver.findAll('.test-dp-add-new-menu > li[aria-disabled="true"]', imp => imp.getText()),
       ["Add widget to page"],
     );
-    await driver.sendKeys(Key.ESCAPE);
+    await gu.closeOpenMenu();
     await gu.waitAppFocus();
   });
 
