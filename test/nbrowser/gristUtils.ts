@@ -1521,6 +1521,8 @@ namespace gristUtils {
     await header.click();
     await header.click();   // Second click opens the label for editing.
     await driver.findWait(".test-column-title-label", 100).sendKeys(newName, Key.ENTER);
+    // The popup closes on a timer and saves as it closes.
+    await waitForNotPresent(".test-column-title-popup", 1000);
     await waitForServer();
   }
 
@@ -1870,6 +1872,8 @@ namespace gristUtils {
       await input.sendKeys(newDescription);
     }
     await driver.find(".test-widget-title-save").click();
+    // The popup closes on a timer and saves as it closes.
+    await waitForNotPresent(".test-widget-title-popup", 1000);
     await waitForServer();
     if (newName) {
       await driver.findContentWait(".test-raw-data-table-id", newName, 2000);
@@ -3661,8 +3665,9 @@ namespace gristUtils {
     await input.click();
     await selectAll();
     await input.sendKeys(name || Key.DELETE, Key.ENTER);
+    // The popup closes on a timer and saves as it closes.
+    await waitForNotPresent(".test-widget-title-section-name-input", 1000);
     await waitForServer();
-    await waitForNotPresent(".test-widget-title-section-name-input");
   }
 
   /**
