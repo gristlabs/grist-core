@@ -242,20 +242,20 @@ describe("BootProbe", function() {
     });
   });
 
+  const TMPFS = { mountPoint: "/persist", fsType: "tmpfs" };
+  const ROOT = { mountPoint: "/", fsType: "overlay" };
+  const VOLUME = { mountPoint: "/persist", fsType: "ext4" };
+
+  function details(overrides: Partial<PersistDataBootProbeDetails> = {}): PersistDataBootProbeDetails {
+    return {
+      dataDir: "/persist/docs", dataDirMount: VOLUME, homeDb: "/persist/home.sqlite3", homeDbMount: VOLUME,
+      externalStorageActive: false, usesPostgres: false, ...overrides,
+    };
+  }
+
   describe("getStorageRisks", function() {
-    const TMPFS = { mountPoint: "/persist", fsType: "tmpfs" };
-    const ROOT = { mountPoint: "/", fsType: "overlay" };
-    const VOLUME = { mountPoint: "/persist", fsType: "ext4" };
-
-    function details(over: Partial<PersistDataBootProbeDetails>): PersistDataBootProbeDetails {
-      return {
-        dataDir: "/persist/docs", dataDirMount: VOLUME, homeDb: "/persist/home.sqlite3", homeDbMount: VOLUME,
-        externalStorageActive: false, usesPostgres: false, ...over,
-      };
-    }
-
     it("finds no risk on a mount of its own", function() {
-      assert.deepEqual(getStorageRisks(details({})), { docs: undefined, home: undefined });
+      assert.deepEqual(getStorageRisks(details()), { docs: undefined, home: undefined });
     });
 
     it("calls a store on a RAM filesystem in memory", function() {
@@ -285,29 +285,29 @@ describe("BootProbe", function() {
       assert.deepEqual(getStorageRisks(details({ dataDirMount: null, homeDbMount: null })),
         { docs: undefined, home: undefined });
     });
+  });
 
-    describe("getPathsNeedingVolume", function() {
-      it("asks for one volume at /persist in the official image", function() {
-        assert.deepEqual(getPathsNeedingVolume(details({ dataDirMount: ROOT, homeDbMount: ROOT })),
-          ["/persist"]);
-      });
+  describe("getPathsNeedingVolume", function() {
+    it("asks for one volume at /persist in the official image", function() {
+      assert.deepEqual(getPathsNeedingVolume(details({ dataDirMount: ROOT, homeDbMount: ROOT })),
+        ["/persist"]);
+    });
 
-      it("names each path elsewhere", function() {
-        assert.deepEqual(getPathsNeedingVolume(details({
-          dataDir: "/data/docs", dataDirMount: ROOT, homeDb: "/data/home.sqlite3", homeDbMount: ROOT,
-        })), ["/data/docs", "/data/home.sqlite3"]);
-      });
+    it("names each path elsewhere", function() {
+      assert.deepEqual(getPathsNeedingVolume(details({
+        dataDir: "/data/docs", dataDirMount: ROOT, homeDb: "/data/home.sqlite3", homeDbMount: ROOT,
+      })), ["/data/docs", "/data/home.sqlite3"]);
+    });
 
-      it("names each path when /persist would not cover them all", function() {
-        assert.deepEqual(getPathsNeedingVolume(details({
-          dataDirMount: ROOT, homeDb: "/home.sqlite3", homeDbMount: ROOT,
-        })), ["/persist/docs", "/home.sqlite3"]);
-      });
+    it("names each path when /persist would not cover them all", function() {
+      assert.deepEqual(getPathsNeedingVolume(details({
+        dataDirMount: ROOT, homeDb: "/home.sqlite3", homeDbMount: ROOT,
+      })), ["/persist/docs", "/home.sqlite3"]);
+    });
 
-      it("leaves out stores in memory or safe", function() {
-        assert.deepEqual(getPathsNeedingVolume(details({ dataDirMount: TMPFS })), []);
-        assert.deepEqual(getPathsNeedingVolume(details({})), []);
-      });
+    it("leaves out stores in memory or safe", function() {
+      assert.deepEqual(getPathsNeedingVolume(details({ dataDirMount: TMPFS })), []);
+      assert.deepEqual(getPathsNeedingVolume(details()), []);
     });
   });
 });

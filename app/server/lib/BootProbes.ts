@@ -9,6 +9,7 @@ import {
 } from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
+import { getTypeORMSettings } from "app/server/lib/dbUtils";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
@@ -483,6 +484,7 @@ export function _persistDataVerdict(details: PersistDataBootProbeDetails): strin
       target && volumePaths.includes(target) ?
         `${envVar} (${target}) appears to be in the container's own filesystem, so anything ` +
         "stored there would be lost when the container is recreated." :
+        // Otherwise the official image's paths were folded into the one volume at /persist.
         "Grist appears to be running in the official Docker image without a volume mounted at " +
         "/persist, so data would be lost when the container is recreated.");
   }
@@ -494,8 +496,10 @@ export const _dataPersistsProbe: Probe = {
   name: "Does data persist across restarts",
   apply: async () => {
     const dataDir = process.env.GRIST_DATA_DIR ?? null;
-    const homeDb = process.env.TYPEORM_DATABASE ?? null;
-    const usesPostgres = (process.env.TYPEORM_TYPE === "postgres");
+    // The home database as the server will open it, defaults included.
+    const homeDbSettings = getTypeORMSettings();
+    const homeDb = typeof homeDbSettings.database === "string" ? homeDbSettings.database : null;
+    const usesPostgres = (homeDbSettings.type === "postgres");
     const externalStorageActive = appSettings.section("externalStorage").flag("active").getAsBool() ?? false;
     const mounts = await readMounts();
     const mountOf = (target: string | null) => (target && mounts && mountFor(target, mounts)) || null;

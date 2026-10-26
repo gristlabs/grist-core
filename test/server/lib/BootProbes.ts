@@ -181,7 +181,7 @@ describe("BootProbes with external storage", function() {
 const TMPFS: MountInfo = { mountPoint: "/persist", fsType: "tmpfs" };
 const ROOT: MountInfo = { mountPoint: "/", fsType: "overlay" };
 
-function details(over: Partial<PersistDataBootProbeDetails> = {}): PersistDataBootProbeDetails {
+function details(overrides: Partial<PersistDataBootProbeDetails> = {}): PersistDataBootProbeDetails {
   return {
     dataDir: "/persist/docs",
     dataDirMount: null,
@@ -189,7 +189,7 @@ function details(over: Partial<PersistDataBootProbeDetails> = {}): PersistDataBo
     homeDbMount: null,
     externalStorageActive: false,
     usesPostgres: false,
-    ...over,
+    ...overrides,
   };
 }
 
@@ -227,7 +227,8 @@ describe("BootProbes persist-data", () => {
     });
 
     it("joins a sentence for each kind of problem", () => {
-      assert.equal(_persistDataVerdict(details({ dataDirMount: TMPFS, homeDbMount: ROOT })),
+      const docsTmpfs = { mountPoint: "/persist/docs", fsType: "tmpfs" };
+      assert.equal(_persistDataVerdict(details({ dataDirMount: docsTmpfs, homeDbMount: ROOT })),
         "GRIST_DATA_DIR (/persist/docs) appears to be in memory, so anything stored there would " +
         "be lost when the server or container restarts. Grist appears to be running in the " +
         "official Docker image without a volume mounted at /persist, so data would be lost when " +
@@ -263,14 +264,12 @@ describe("BootProbes persist-data", () => {
       return { result, details: result.details as PersistDataBootProbeDetails };
     }
 
-    it("stays neutral, with nothing to report, when neither store is configured", async () => {
-      const { result, details: d } = await runPersistProbe();
-      assert.equal(result.status, "none");
-      assert.isUndefined(result.verdict);
-      assert.deepEqual(d, {
-        dataDir: null, dataDirMount: null, homeDb: null, homeDbMount: null,
-        externalStorageActive: false, usesPostgres: false,
-      });
+    it("checks the server's default home database when TYPEORM_DATABASE is unset", async () => {
+      const { details: d } = await runPersistProbe();
+      assert.equal(d.homeDb, "landing.db");
+      assert.isFalse(d.usesPostgres);
+      assert.isNull(d.dataDir);
+      assert.isNull(d.dataDirMount);
     });
 
     it("doesn't look up a mount for a Postgres home database", async () => {
