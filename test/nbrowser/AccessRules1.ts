@@ -359,8 +359,7 @@ describe("AccessRules1", function() {
     assert.equal(await driver.find(".test-rules-non-save").isDisplayed(), false);
 
     // Revert the changes in this test case.
-    await driver.find(".test-rules-revert").click();
-    await gu.waitForServer();
+    await revertAccessRules();
   });
 
   it("should allow read control for columns with rec in formula", async function() {
