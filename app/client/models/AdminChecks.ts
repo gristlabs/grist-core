@@ -36,14 +36,17 @@ export class AdminChecks {
     const config = getGristConfig();
     const errMessage = config.errMessage;
     if (!errMessage) {
-      const _probes = await this._installAPI.getChecks().catch(reportError);
-      if (!this._parent.isDisposed()) {
-        // Currently, probes are forbidden if not admin.
-        // TODO: May want to relax this to allow some probes that help
-        // diagnose some initial auth problems.
-        this.probes.set(_probes ? _probes.probes : []);
-      }
-      return _probes;
+      // Counted as pending, since no check is requested until the list arrives.
+      return testPendingChecks.track(async () => {
+        const _probes = await this._installAPI.getChecks().catch(reportError);
+        if (!this._parent.isDisposed()) {
+          // Currently, probes are forbidden if not admin.
+          // TODO: May want to relax this to allow some probes that help
+          // diagnose some initial auth problems.
+          this.probes.set(_probes ? _probes.probes : []);
+        }
+        return _probes;
+      });
     }
     return [];
   }
@@ -136,6 +139,16 @@ export interface AdminCheckRequest {
   probe: BootProbeInfo,
   result: Observable<BootProbeResult>,
   details: ProbeDetails,
+}
+
+/**
+ * Whether a check has yet to report. Until then its result is a placeholder with status "none",
+ * so this suits only checks that never answer "none" themselves.
+ */
+export function isChecking(
+  result: BootProbeResult | undefined,
+): result is undefined | (BootProbeResult & { status: "none" }) {
+  return !result || result.status === "none";
 }
 
 /**

@@ -9,7 +9,7 @@ import { MAX_SETUP_REASON_LENGTH, SetupRequestsSummary } from "app/common/SetupR
 import { SetupRequestsAPI } from "app/common/SetupRequestsAPI";
 import { tokens } from "app/common/ThemePrefs";
 
-import { dom, DomContents, IDisposableOwner, makeTestId, Observable, styled } from "grainjs";
+import { Computed, dom, DomContents, IDisposableOwner, makeTestId, Observable, styled } from "grainjs";
 
 // Strings from NotificationsAndAutomationsNudge migrated to this file.
 // eslint-disable-next-line local/makeT-filename
@@ -42,20 +42,21 @@ export function buildAskTheAdmin(
       reportError(e as Error);
     }
   };
+  // Rebuild only when the asked state flips, so the button survives the summary loading.
+  const requestedByMe = Computed.create(owner, use => Boolean(use(summary)?.steps[step.id]?.requestedByMe));
+  const count = Computed.create(owner, use => use(summary)?.steps[step.id]?.count ?? 0);
   return cssAsk(
-    dom.domComputed(summary, (s) => {
-      const stepSummary = s?.steps[step.id];
-      if (!stepSummary?.requestedByMe) {
+    dom.domComputed(requestedByMe, (asked) => {
+      if (!asked) {
         return [
           textButton(t("Ask the admin for this"),
             dom.on("click", () => { void send(); }),
             testId("ask")),
-          !stepSummary?.count ? null :
-            cssAskCount(othersAskedText(stepSummary.count), testId("ask-count")),
+          dom.maybe(count, n => cssAskCount(othersAskedText(n), testId("ask-count"))),
         ];
       }
       return [
-        cssAskDone(cssAskTick(icon("Tick")), askedText(stepSummary.count), testId("asked")),
+        cssAskDone(cssAskTick(icon("Tick")), dom.text(use => askedText(use(count))), testId("asked")),
         dom.domComputed(noteOpen, (open) => {
           if (open) {
             return cssAskNoteInput(

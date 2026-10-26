@@ -1,7 +1,7 @@
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver, Key, WebElement } from "mocha-webdriver";
+import { assert, driver, WebElement } from "mocha-webdriver";
 
 describe("RowMenu", function() {
   this.timeout(20000);
@@ -25,10 +25,7 @@ describe("RowMenu", function() {
     await firstRow.find(".test-row-menu-trigger").click();
     assert.isTrue(await gu.findOpenMenu(1000).isDisplayed());
     // close the menu
-    await gu.waitForMenuFocus();
-    await driver.sendKeys(Key.ESCAPE);
-    // make sure the menu is closed
-    await driver.wait(async () => (await driver.findAll(".grist-floating-menu")).length === 0, 2000);
+    await gu.closeOpenMenu();
   }
 
   async function assertRowMenuOpensWithRightClick() {
@@ -68,12 +65,7 @@ describe("RowMenu", function() {
     assert.isTrue(await gu.findOpenMenu(1000).isDisplayed());
 
     // send ESC to close the menu
-    await gu.waitForMenuFocus();
-    await driver.sendKeys(Key.ESCAPE);
-
-    // check that the context menu is gone
-    await gu.waitToPass(async () =>
-      assert.isFalse(await driver.find(".grist-floating-menu").isPresent()));
+    await gu.closeOpenMenu();
   });
 
   it("can rename headers from the selected line", async function() {

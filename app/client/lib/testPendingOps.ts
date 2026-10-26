@@ -36,6 +36,12 @@ export class TestPendingOps {
 export const testPendingChecks = new TestPendingOps();
 
 /**
+ * Views scrolling to the cursor. A view scrolls a tick after the cursor moves, and renders the
+ * cursor's row only then.
+ */
+export const testPendingScrolls = new TestPendingOps();
+
+/**
  * Paste operations. A file paste is an upload followed by a separate addAttachments action, so
  * in-flight request counts go quiet between the two and look like success.
  */
@@ -50,3 +56,8 @@ export const testPendingMenuActions = new TestPendingOps();
  * Views waiting for data. Moving the cursor in one widget makes the widgets linked to it re-query.
  */
 export const testPendingViewLoads = new TestPendingOps();
+
+/**
+ * Chart renders. A chart redraws asynchronously after a debounce, once its data or options change.
+ */
+export const testPendingChartRenders = new TestPendingOps();

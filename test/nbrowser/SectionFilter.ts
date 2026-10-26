@@ -17,6 +17,7 @@ describe("SectionFilter", function() {
     it("should be able to open / close filter menu", async () => {
       const menu = await gu.openColumnMenu("A", "Filter");
       assert.equal(await menu.find(".test-filter-menu-list").getText(), "No matching values");
+      await gu.waitForFocus(".test-filter-menu-search-input");
       await driver.sendKeys(Key.ESCAPE);
       await driver.wait(until.stalenessOf(menu));
     });
@@ -330,6 +331,7 @@ describe("SectionFilter", function() {
     it("should properly search through list of date to filter", async () => {
       const menu = await gu.openColumnMenu("Date", "Filter");
       assert.lengthOf(await gu.getFilterMenuState(), 7);
+      await gu.waitForFocus(".test-filter-menu-search-input");
       await driver.sendKeys("07");
       assert.deepEqual(await gu.getFilterMenuState(), [
         { checked: true, value: "2019-06-07", count: 1 },

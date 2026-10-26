@@ -23,6 +23,7 @@ export async function getChartData(chartElem?: WebElement | string): Promise<Cha
       await driver.findWait(".active_section", 4000);
     chartElem = await section.findWait(".test-chart-container.js-plotly-plot", 5_000);
   }
+  await gu.waitForChartRenders();
   return driver.executeScript((el: any) => ({ data: el.data, layout: el.layout }), chartElem);
 }
 

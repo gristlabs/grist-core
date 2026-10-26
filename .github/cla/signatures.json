@@ -487,6 +487,30 @@
       "created_at": "2026-10-16T15:03:18Z",
       "repoId": 266033395,
       "pullRequestNo": 2660
+    },
+    {
+      "name": "RaphaelFakhri",
+      "id": 153192858,
+      "comment_id": 6390362556,
+      "created_at": "2026-10-24T22:31:55Z",
+      "repoId": 266033395,
+      "pullRequestNo": 2687
+    },
+    {
+      "name": "thuma",
+      "id": 1155401,
+      "comment_id": 6399620060,
+      "created_at": "2026-10-25T15:37:27Z",
+      "repoId": 266033395,
+      "pullRequestNo": 2690
+    },
+    {
+      "name": "sviat-barbutsa",
+      "id": 9897782,
+      "comment_id": 6401953769,
+      "created_at": "2026-10-25T19:12:08Z",
+      "repoId": 266033395,
+      "pullRequestNo": 2691
     }
   ]
 }
