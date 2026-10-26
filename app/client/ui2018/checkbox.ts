@@ -150,6 +150,7 @@ function checkbox(
     { type: "checkbox" },
     dom.prop("checked", obs),
     dom.on("change", (ev, el) => obs.set(el.checked)),
+    dom.onKeyDown({ Escape$: (_ev, elem) => { elem.blur(); } }),
     ...domArgs,
   );
   const text = label ? cssLabelText(label) : null;

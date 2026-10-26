@@ -72,6 +72,7 @@ export function numericSpinner(
         ArrowUp: async (_ev, elem) => { elem.value = String(await incrementValue()); },
         ArrowDown: async (_ev, elem) => { elem.value = String(await decrementValue()); },
         Enter$: async (_ev, elem) => save && elem.blur(),
+        Escape$: (_ev, elem) => { elem.blur(); },
       }),
       !setValueOnInput ? null : dom.on("input", (_ev, elem) => {
         value.set(Number.parseFloat(elem.value));
