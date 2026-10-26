@@ -1026,7 +1026,8 @@
         "Sort in ascending order (current: descending)": "Sort in ascending order (current: descending)",
         "Sort in descending order (current: ascending)": "Sort in descending order (current: ascending)",
         "Sort options - {{- columnName }} column": "Sort options - {{- columnName }} column",
-        "{{- columnName }} column": "{{- columnName }} column"
+        "{{- columnName }} column": "{{- columnName }} column",
+        "Empty values first": "Empty values first"
     },
     "SortFilterConfig": {
         "Filter": "FILTER",
