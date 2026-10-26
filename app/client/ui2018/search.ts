@@ -247,6 +247,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     dom.cls(wrapperClass),
     dom.cls(`${wrapperClass}-expanded`, model.isExpanded),
     dom.cls(`${wrapperClass}-collapsed`, model.isCollapsed),
+    dom.cls(`${wrapperClass}-running`, model.isRunning),
     dom.autoDispose(commandGroup),
     dom.onKeyDown({
       // The $ indicates to grainjs we don't want to stop propagation of the event here.

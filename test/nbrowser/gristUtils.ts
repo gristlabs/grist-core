@@ -1777,16 +1777,14 @@ namespace gristUtils {
   }
 
   export async function openSearch() {
-    await waitToPass(async () => {
-      await searchIsClosed();
-      await driver.find(".test-tb-search-icon").doClick();
-      await waitToPass(searchIsOpened, 500);
-    }, 1500);
+    await searchIsClosed();
+    await driver.find(".test-tb-search-icon").doClick();
+    await searchIsOpened();
   }
 
   export async function closeSearch() {
     await driver.sendKeys(Key.ESCAPE);
-    await driver.sleep(500);
+    await searchIsClosed();
   }
 
   export async function closeTooltip() {
@@ -1833,16 +1831,28 @@ namespace gristUtils {
     });
   }
 
+  /**
+   * Waits for the search bar to finish opening. It widens over a transition, moving the top bar's
+   * buttons, and is marked expanded once it settles.
+   */
   export async function searchIsOpened() {
-    await waitToPass(async () => {
-      assert.isAbove((await getSearchInput().rect()).width, 50);
-    }, 500);
+    await driver.findWait(".grist-doc-search-bar-expanded", 2000);
   }
 
+  /**
+   * Waits for the search bar to finish closing. Its input hides at once, but the bar narrows over
+   * a transition, moving the top bar's buttons, and is marked collapsed once it settles.
+   */
   export async function searchIsClosed() {
-    await waitToPass(async () => {
-      assert.equal((await getSearchInput().rect()).width, 0);
-    }, 500);
+    await driver.findWait(".grist-doc-search-bar-collapsed", 2000);
+  }
+
+  /**
+   * Waits for a search in progress to finish. Searching all pages switches pages as it goes, which
+   * changes the page name in the top bar and moves the search bar.
+   */
+  export async function waitForSearch() {
+    await driver.findWait(".grist-doc-search-bar:not(.grist-doc-search-bar-running)", 5000);
   }
 
   export async function openRawTable(tableId: string) {

@@ -513,8 +513,9 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   }
 
   public async findNext() {
-    if (this.isRunning.get() || this.noMatch.get()) { return; }
+    if (this.isRunning.get() || this.noMatch.get() || this.isEmpty.get()) { return; }
     if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
+    if (!this._finder) { return; }
     await this._run(async (finder) => {
       await finder.nextField(1);
       await finder.matchNext(1);
@@ -522,8 +523,9 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   }
 
   public async findPrev() {
-    if (this.isRunning.get() || this.noMatch.get()) { return; }
+    if (this.isRunning.get() || this.noMatch.get() || this.isEmpty.get()) { return; }
     if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
+    if (!this._finder) { return; }
     await this._run(async (finder) => {
       await finder.nextField(-1);
       await finder.matchNext(-1);
@@ -538,7 +540,11 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     this._isRestartNeeded = false;
     this.isEmpty.set(!value);
     if (!await this._updateFinder(value)) { return; }
-    if (!value || !this._finder) { this.noMatch.set(true); return; }
+    if (!value || !this._finder) {
+      this.noMatch.set(true);
+      this.isRunning.set(false);
+      return;
+    }
     await this._run(async (finder) => {
       await finder.matchNext(1);
     });
