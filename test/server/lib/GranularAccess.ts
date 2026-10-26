@@ -235,6 +235,44 @@ describe("GranularAccess", function() {
     }
   });
 
+  it("lets only exceptional sessions write a locked table (SystemOnly.CanEditLockedTables)", async function() {
+    // The data engine refuses writes to a locked table unless the session's user carries
+    // SystemOnly.CanEditLockedTables, which GranularAccess sets only for exceptional (system/nascent)
+    // sessions. So a locked table is writable through a system session and refused for ordinary
+    // editors/owners.
+    await freshDoc();
+    await owner.applyUserActions(docId, [["AddTable", "T", [{ id: "A", type: "Numeric" }]]]);
+    const tableRef = (await owner.getDocAPI(docId).getRecords("_grist_Tables"))
+      .find(r => r.fields.tableId === "T")!.id;
+
+    const activeDoc = await docManager.getActiveDoc(docId);
+    const systemSession = makeExceptionalDocSession("system");
+
+    // Only a system session may set the locked flag.
+    await assert.isRejected(
+      owner.applyUserActions(docId, [["UpdateRecord", "_grist_Tables", tableRef, { locked: true }]]),
+      /locked flag/);
+    await activeDoc!.applyUserActions(systemSession,
+      [["UpdateRecord", "_grist_Tables", tableRef, { locked: true }]]);
+
+    // Ordinary editor and owner cannot write the locked table, nor clear its flag.
+    await assert.isRejected(
+      editor.applyUserActions(docId, [["AddRecord", "T", null, { A: 1 }]]), /locked table/);
+    await assert.isRejected(
+      owner.applyUserActions(docId, [["AddRecord", "T", null, { A: 1 }]]), /locked table/);
+    await assert.isRejected(
+      owner.applyUserActions(docId, [["UpdateRecord", "_grist_Tables", tableRef, { locked: false }]]),
+      /locked flag/);
+
+    // The system session may write it, and unlock it; then ordinary writes work again.
+    await activeDoc!.applyUserActions(systemSession, [["AddRecord", "T", null, { A: 1 }]]);
+    await activeDoc!.applyUserActions(systemSession,
+      [["UpdateRecord", "_grist_Tables", tableRef, { locked: false }]]);
+    await owner.applyUserActions(docId, [["AddRecord", "T", null, { A: 2 }]]);
+    const records = await owner.getDocAPI(docId).getRecords("T");
+    assert.deepEqual(records.map(r => r.fields.A), [1, 2]);
+  });
+
   // See the comment in PermissionInfo.ts/evaluateRule() for why we need this.
   describe("forces a row check for rules with memo and rec", function() {
     it("for -U permission", async function() {

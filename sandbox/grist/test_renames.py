@@ -347,7 +347,8 @@ class TestRenames(test_engine.EngineTestCase):
       'Access': 'owners',
       'SessionID': 'u1',
       'IsLoggedIn': True,
-      'ShareRef': None
+      'ShareRef': None,
+      'SystemOnly': { 'CanEditLockedTables': False }
     }
 
     # Renaming a table should not leave the old name available for auto-complete.

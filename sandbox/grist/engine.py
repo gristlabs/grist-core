@@ -1591,7 +1591,10 @@ class Engine(object):
       (len_calc, len_stored, len_undo, len_ret) = checkpoint
       undo_actions = self.out_actions.undo[len_undo:]
       log.info("Reverting %d doc actions", len(undo_actions))
-      self.user_actions.ApplyUndoActions([actions.get_action_repr(a) for a in undo_actions])
+      # This revert restores the prior state, and must not be refused by locked table checks
+      # (which skip almost all indirect actions)
+      with self.user_actions.indirect_actions():
+        self.user_actions.ApplyUndoActions([actions.get_action_repr(a) for a in undo_actions])
       # The trimmed undo actions (including any the revert itself just appended) must also
       # leave undo_owner, which is keyed by id(): a freed action's id can be reused by a
       # later undo action, which would then inherit a stale owner.

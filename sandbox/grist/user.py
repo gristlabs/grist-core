@@ -47,10 +47,15 @@ class User(object):
                  'IsLoggedIn', 'UserRef', 'ShareRef'):
       setattr(self, attr, data[attr])
 
+    # Internal flags not intended for use by users
+    # The underscore keeps it out of formula autocomplete (rlcompleter skips '_'-prefixed attrs).
+    self._SystemOnly = SystemOnly(data['SystemOnly'])
+
     self.LinkKey = LinkKey(data['LinkKey'])
 
     for name, value in data.items():
-      if hasattr(self, name) or not value:
+      # 'SystemOnly' is handled above under a different attribute name, so hasattr won't skip it.
+      if name == 'SystemOnly' or hasattr(self, name) or not value:
         continue
       table_name, row_id = value
       table = tables.get(table_name)
@@ -61,6 +66,11 @@ class User(object):
       setattr(self, name, record)
 
 class LinkKey(object):
+  def __init__(self, data):
+    for name, value in data.items():
+      setattr(self, name, value)
+
+class SystemOnly(object):
   def __init__(self, data):
     for name, value in data.items():
       setattr(self, name, value)
