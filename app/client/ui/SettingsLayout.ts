@@ -175,14 +175,28 @@ export function collapsibleContent(
   isCollapsed: Observable<boolean>, content: DomContents, ...args: DomElementArg[]
 ): DomContents {
   return cssExpandedContentWrap(
+    elem => markSettled(elem, isCollapsed.get()),
     transition(isCollapsed, {
       prepare(elem, close) { elem.style.maxHeight = close ? elem.scrollHeight + "px" : "0"; },
-      run(elem, close) { elem.style.maxHeight = close ? "0" : elem.scrollHeight + "px"; },
-      finish(elem, close) { elem.style.maxHeight = close ? "0" : "unset"; },
+      run(elem, close) {
+        markSettled(elem, null);
+        elem.style.maxHeight = close ? "0" : elem.scrollHeight + "px";
+      },
+      finish(elem, close) {
+        elem.style.maxHeight = close ? "0" : "unset";
+        markSettled(elem, close);
+      },
     }),
     content,
     ...args,
   );
+}
+
+// Marks a collapsible as fully collapsed or expanded, or neither while it animates. Content is
+// clipped until it is fully expanded, which tests can wait for.
+function markSettled(elem: HTMLElement, isCollapsed: boolean | null) {
+  elem.toggleAttribute("data-fully-collapsed", isCollapsed === true);
+  elem.toggleAttribute("data-fully-expanded", isCollapsed === false);
 }
 
 /**
