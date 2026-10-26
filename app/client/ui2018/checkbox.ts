@@ -39,7 +39,8 @@ export const cssLabel = styled("label", `
     flex: 1;
   }
 
-  .${cssMenuItem.className}.disabled & {
+  .${cssMenuItem.className}.disabled &,
+  .${cssMenuItem.className}[aria-disabled="true"] & {
     cursor: not-allowed;
   }
 `);
@@ -133,7 +134,8 @@ export const cssLabelText = styled("span", `
     color: ${theme.menuItemSelectedFg};
   }
 
-  .${cssMenuItem.className}.disabled & {
+  .${cssMenuItem.className}.disabled &,
+  .${cssMenuItem.className}[aria-disabled="true"] & {
     color: ${theme.menuItemDisabledFg};
   }
 `);

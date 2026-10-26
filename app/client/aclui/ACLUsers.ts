@@ -5,7 +5,7 @@ import { createUserImage } from "app/client/ui/UserImage";
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
   cssMemberSecondary, cssMemberText } from "app/client/ui/UserItem";
 import { testId, theme, vars } from "app/client/ui2018/cssVars";
-import { gristFloatingMenuClass, menu, menuCssClass, menuGroup, menuItemLink } from "app/client/ui2018/menus";
+import { menu, menuGroup, menuItemLink } from "app/client/ui2018/menus";
 import { PermissionDataWithExtraUsers } from "app/common/ActiveDocAPI";
 import { IGristUrlState, userOverrideParams } from "app/common/gristUrls";
 import { waitGrainObs } from "app/common/gutil";
@@ -78,6 +78,7 @@ export class ACLUsersPopup extends Disposable {
       const buildExampleUserRow =
         (user: UserAccessData) => this._buildUserRow(user, { isExampleUser: true, resetDocPage });
       return [
+        cssUsers.cls(""),
         this._shareUsers.length > 0 ? menuGroup(
           t("Shared users"),
           dom.forEach(this._shareUsers, buildRow),
@@ -94,10 +95,7 @@ export class ACLUsersPopup extends Disposable {
           dom.forEach(this._exampleUsers, buildExampleUserRow),
         ) : null,
       ];
-    }, {
-      ...menuOptions,
-      menuCssClass: `${menuCssClass} ${gristFloatingMenuClass} ${cssUsers.className}`,
-    })(elem);
+    }, menuOptions)(elem);
   }
 
   // See 'attachPopup' for more info on the 'resetDocPage' option.

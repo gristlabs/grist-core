@@ -865,7 +865,7 @@ export const cssCmdKey = styled("span", `
     color: ${theme.menuItemIconSelectedFg};
   }
 
-  .${weasel.cssMenuItem.className}[aria-disabled="true"],
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] &,
   .${weasel.cssMenuItem.className}.disabled & {
     color: ${theme.menuItemDisabledFg};
   }

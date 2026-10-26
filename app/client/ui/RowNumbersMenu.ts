@@ -1,4 +1,3 @@
-import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { reportError } from "app/client/models/errors";
@@ -37,13 +36,12 @@ export function rowNumbersMenu(
     }
   };
   return [
-    (elem) => { FocusLayer.create(ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
     menuGroup(
       t("Row numbers"),
       ...modes.map(({ value, label }) => menuItem(
         () => setMode(value),
         onKeyDown({
-          " $": (ev) => {
+          " ": (ev) => {
             ev.preventDefault();
             setMode(value);
           },
