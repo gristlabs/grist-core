@@ -337,8 +337,8 @@ async function openWebhookPage() {
 
 async function waitForWebhookPage() {
   await driver.findContentWait("button", /Clear queue/, 3000);
+  // Until the webhooks load, the list shows only the blank row for adding one.
+  await gu.waitForViewLoads();
   // No section, so no easy utility for setting focus. Click on a random cell.
-  await gu.waitToPass(async () => {
-    await gu.getDetailCell({ col: "Webhook Id", rowNum: 1 }).click();
-  });
+  await gu.getDetailCell({ col: "Webhook Id", rowNum: 1 }).click();
 }
