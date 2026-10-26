@@ -9,6 +9,7 @@ import { IDisposableOwner, Observable } from "grainjs";
 
 export interface SessionObs<T> extends Observable<T> {
   pauseSaving(yesNo: boolean): void;
+  isSavingPaused(): boolean;
 }
 
 /**
@@ -49,16 +50,26 @@ export function createSessionObs<T>(
   let _pauseSaving = false;
   const storage = getSessionStorage();
   const obs = Observable.create<T>(owner, fromString(storage.getItem(key)));
-  obs.addListener((value: T) => {
-    if (_pauseSaving) { return; }
+  const save = (value: T) => {
     const stored = toString(value);
     if (stored == null) {
       storage.removeItem(key);
     } else {
       storage.setItem(key, stored);
     }
+  };
+  obs.addListener((value: T) => {
+    if (_pauseSaving) { return; }
+    save(value);
   });
-  return Object.assign(obs, { pauseSaving(yesNo: boolean) { _pauseSaving = yesNo; } });
+  return Object.assign(obs, {
+    pauseSaving(yesNo: boolean) {
+      // When unpausing, ensure the current value is flushed to storage.
+      if (_pauseSaving && !yesNo) { save(obs.get()); }
+      _pauseSaving = yesNo;
+    },
+    isSavingPaused() { return _pauseSaving; },
+  });
 }
 
 /** Helper functions to check simple types, useful for the `isValid` argument to createSessionObs. */

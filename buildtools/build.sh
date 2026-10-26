@@ -62,6 +62,7 @@ if [[ -d ext/assets/locales ]]; then
   node buildtools/sanitize_translations.js ext/assets/locales
 fi
 tsc --build $PROJECT
+node buildtools/write_static_locales.js assets/locales ext/assets/locales
 buildtools/update_type_info.sh app
 webpack --config $WEBPACK_CONFIG $WEBPACK_MODE
 webpack --config buildtools/webpack.check.js $WEBPACK_MODE

@@ -1,6 +1,7 @@
-import { ACLRuleCollection } from "app/common/ACLRuleCollection";
+import { ACLRuleCollection, getAclFacts, ReadAclOptions } from "app/common/ACLRuleCollection";
 import { DocAction } from "app/common/DocActions";
 import { DocData } from "app/common/DocData";
+import { editorsBypassRules } from "app/common/DocUsage";
 import { isMetadataTable } from "app/common/isHiddenTable";
 import { compilePredicateFormula } from "app/common/PredicateFormula";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
@@ -30,8 +31,8 @@ describe("ACLRuleCollection", function() {
     ]);
   });
 
-  // Applies set of actions to a copy of the metadata and returns what the rules report.
-  async function messagesFor(actions: DocAction[], strict?: boolean): Promise<string[]> {
+  // Applies set of actions to a copy of the metadata and reads the rules from it.
+  async function rulesAfter(actions: DocAction[], options: ReadAclOptions) {
     const copy = new DocData(
       (tableId) => { throw new Error(`Unexpected DocData fetch: ${tableId}`); },
       Object.fromEntries([...docData.getTables()]
@@ -42,7 +43,13 @@ describe("ACLRuleCollection", function() {
       copy.receiveAction(action);
     }
     const rules = new ACLRuleCollection();
-    await rules.update(copy, { compile: compilePredicateFormula });
+    await rules.update(copy, options);
+    return { copy, rules };
+  }
+
+  // Applies set of actions to a copy of the metadata and returns what the rules report.
+  async function messagesFor(actions: DocAction[], strict?: boolean): Promise<string[]> {
+    const { copy, rules } = await rulesAfter(actions, { compile: compilePredicateFormula });
     return [
       ...(rules.ruleError ? [rules.ruleError.message] : []),
       ...rules.findRuleProblems(copy, { strict }).map(p => p.comment),
@@ -229,6 +236,63 @@ describe("ACLRuleCollection", function() {
           ...rulesFor({ tableId: "Orders", colIds: "Amount" }, { permissionsText }),
         ], true), [], permissionsText);
       }
+    });
+  });
+
+  describe("editorsBypassRules", function() {
+    async function bypassFor(actions: DocAction[]): Promise<boolean> {
+      const { rules } = await rulesAfter(actions, { pullOutSchemaEdit: true });
+      assert.isUndefined(rules.ruleError);
+      return editorsBypassRules(getAclFacts(rules));
+    }
+
+    // Only the text of a formula matters here, so any parsed formula will do.
+    const rule = (aclFormula: string, permissionsText: string) =>
+      ({ aclFormula, aclFormulaParsed: TRUE_PARSED.aclFormulaParsed, permissionsText });
+
+    function defaultRule(id: number, fields: Record<string, unknown>): DocAction {
+      return ["AddRecord", "_grist_ACLRules", id, { resource: defaultResourceId(), rulePos: id, ...fields }];
+    }
+
+    const limitEditors = () => rulesFor({ tableId: "Orders", colIds: "*" }, rule("user.Access == EDITOR", "-R"));
+
+    it("is false without rules", async function() {
+      assert.isFalse(await bypassFor([]));
+    });
+
+    it("is true when rules deny data and editors can edit structure", async function() {
+      assert.isTrue(await bypassFor(limitEditors()));
+      assert.isTrue(await bypassFor(rulesFor({ tableId: "Orders", colIds: "Amount" },
+        rule("user.Access == EDITOR", "-U"))));
+      assert.isTrue(await bypassFor([defaultRule(202, rule("user.Access != OWNER", "-D"))]));
+    });
+
+    it("is false when editors cannot edit structure", async function() {
+      assert.isFalse(await bypassFor([
+        ...limitEditors(),
+        defaultRule(201, rule("user.Access != OWNER", "-S")),
+      ]));
+      // One default rule can limit both data and structure.
+      assert.isFalse(await bypassFor([defaultRule(201, rule("user.Access != OWNER", "-RS"))]));
+    });
+
+    it("is true with the explicit rule letting editors edit structure", async function() {
+      assert.isTrue(await bypassFor([
+        ...limitEditors(),
+        defaultRule(201, rule("user.Access == EDITOR", "+S")),
+      ]));
+    });
+
+    it("is false when rules only allow", async function() {
+      assert.isFalse(await bypassFor(rulesFor({ tableId: "Orders", colIds: "*" },
+        rule("user.Access in [OWNER]", "+CRUD"))));
+    });
+
+    it("is false when structure rules are custom", async function() {
+      // The structure checkbox is disabled in this case, and shows no warning.
+      assert.isFalse(await bypassFor([
+        defaultRule(202, rule("user.Email == 'x@example.com'", "-DS")),
+      ]));
     });
   });
 });

@@ -18,6 +18,8 @@ var {gristThemeObs} = require("../ui2018/theme");
  *  and the value of the editor.
  * @param {Boolean} options.saveValueOnBlurEvent: Flag to indicate whether ace editor
  *  should save the value on `blur` event.
+ * @param {String} options.theme: Optional Ace theme ("chrome" or "dracula") to use always, instead of
+ *  the one that follows Grist's appearance.
  * @param {Function} options.calcSize: Optional function used to resize the editor. It is called
  *  with (elem, desiredSize) as arguments, and should return the actual size to use for the
  *  element. Both desiredSize and the return value are objects with 'width' and 'height' members.
@@ -30,6 +32,7 @@ function AceEditor(options) {
   this.calcSize = options.calcSize || ((_elem, size) => size);
   this.editorState = options.editorState || null;
   this._readonly = options.readonly || false;
+  this._theme = options.theme || null;
   this._getSuggestions = options.getSuggestions || null;
 
   this.editor = null;
@@ -270,7 +273,7 @@ AceEditor.prototype._getContentHeight = function() {
 
 AceEditor.prototype._setAceTheme = function(newTheme) {
   const {appearance} = newTheme;
-  const aceTheme = appearance === "dark" ? "dracula" : "chrome";
+  const aceTheme = this._theme || (appearance === "dark" ? "dracula" : "chrome");
   this.editor.setTheme(`ace/theme/${aceTheme}`);
 };
 

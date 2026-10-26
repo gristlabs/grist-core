@@ -29,8 +29,7 @@ describe("ColumnTransform", function() {
 
     // The 'Rename' option should be disabled.
     assert.isTrue(await driver.findContentWait("li", /Rename column/, 1000).matches(".disabled"));
-    await gu.sendKeys(Key.ESCAPE);
-    await gu.waitForMenuToClose();
+    await gu.closeOpenMenu();
 
     // Try to rename using shortcut (cmd+M on Mac, ctrl+M otherwise).
     await gu.sendKeys(Key.chord(await gu.modKey(), "m"));

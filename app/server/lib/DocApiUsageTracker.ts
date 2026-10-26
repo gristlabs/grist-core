@@ -5,7 +5,16 @@ import { RequestWithLogin } from "app/server/lib/Authorizer";
 import { docApiUsagePeriods, getDocApiUsageKeysToIncr } from "app/server/lib/DocApi";
 import log from "app/server/lib/log";
 import { getDocId } from "app/server/lib/requestUtils";
-import { billingMonthlyApiUsageKey, getDailyMax, getOrgUsageLimit, OrgUsageLimit } from "app/server/lib/usageKeys";
+import { ITelemetry } from "app/server/lib/Telemetry";
+import {
+  ApiLimitReached,
+  ApiUsageContext,
+  billingMonthlyApiUsageKey,
+  getDailyMax,
+  getOrgUsageLimit,
+  logApiLimitReached,
+  OrgUsageLimit,
+} from "app/server/lib/usageKeys";
 
 import { NextFunction, RequestHandler, Response } from "express";
 import LRUCache from "lru-cache";
@@ -23,6 +32,7 @@ const MAX_ACTIVE_ORGS_USAGE_CACHE = 1000;
 
 export interface DocApiUsageTrackerOptions {
   getRedisClient?: () => RedisClient | null;
+  telemetry?: ITelemetry;
 }
 
 type Handler = (req: RequestWithLogin, res: Response, next: NextFunction) => void | Promise<void>;
@@ -57,13 +67,17 @@ export class DocApiUsageTracker {
     });
 
   private _getRedisClient: () => RedisClient | null;
+  private _telemetry: ITelemetry | undefined;
 
   constructor(options: DocApiUsageTrackerOptions = {}) {
     this._getRedisClient = options.getRedisClient ?? (() => null);
+    this._telemetry = options.telemetry;
   }
 
   /**
-   * Check parallel, daily and monthly limits for a document. Throws ApiError(429) if exceeded.
+   * Check parallel, daily and monthly limits for a document. Throws ApiError(429) once a
+   * limit is exceeded, which is the call after the one that reached it. Reports a limit
+   * reached by this call.
    *
    * The parallel counter is incremented unconditionally before checking limits,
    * so callers MUST call release() in a finally block even if acquire() throws.
@@ -71,8 +85,11 @@ export class DocApiUsageTracker {
    * @param docId - The document ID.
    * @param dailyMax - The daily API usage limit. If undefined, skip daily check.
    * @param org - The site the document belongs to. If undefined, skip monthly check.
+   * @param context - The call to attribute a reached limit to. If undefined, skip reporting.
    */
-  public acquire(docId: string, dailyMax: number | undefined, org?: OrgUsageLimit): void {
+  public acquire(
+    docId: string, dailyMax: number | undefined, org?: OrgUsageLimit, context?: ApiUsageContext,
+  ): void {
     // Increment first — caller must release() in a finally block even on rejection.
     const count = this._currentUsage.get(docId) || 0;
     this._currentUsage.set(docId, count + 1);
@@ -85,15 +102,17 @@ export class DocApiUsageTracker {
     // the boundary of a day or a month.
     const now = moment.utc();
 
-    if (isLimitDefined(dailyMax) && this._checkAndUpdateDailyUsageExceeded(docId, dailyMax, now)) {
-      throw new ApiError(`Exceeded daily limit for document ${docId}`, 429);
+    if (isLimitDefined(dailyMax)) {
+      const daily = this._checkAndUpdateDailyUsage(docId, dailyMax, now);
+      if (daily === "exceeded") { throw new ApiError(`Exceeded daily limit for document ${docId}`, 429); }
+      if (daily === "reached") { this._reportLimitReached(context, { kind: "daily", docId }); }
     }
 
     // Checked after the daily limit so that a request rejected above does not spend any
     // of the monthly budget. A falsy id means the fake org anonymous users get, which has
     // no billing account, and whose counter would otherwise be shared by every site.
     if (org?.billingAccountId && isLimitDefined(org.monthlyMax)) {
-      this._checkAndUpdateMonthlyUsage(org.billingAccountId, org.monthlyMax, now);
+      this._checkAndUpdateMonthlyUsage(org.billingAccountId, org.monthlyMax, now, context);
     }
   }
 
@@ -134,7 +153,7 @@ export class DocApiUsageTracker {
       const docId = getDocId(req);
       try {
         const doc = mreq.docAuth!.cachedDoc!;
-        this.acquire(docId, getDailyMax(doc), getOrgUsageLimit(doc));
+        this.acquire(docId, getDailyMax(doc), getOrgUsageLimit(doc), { requestOrSession: mreq, doc });
         await callback(mreq, res, next);
       } catch (err) {
         next(err);
@@ -145,14 +164,15 @@ export class DocApiUsageTracker {
   }
 
   /**
-   * Check whether daily usage has been exceeded for a document, and if not,
-   * increment the usage counters. Returns true if the limit has been exceeded.
+   * Check whether daily usage has been exceeded for a document, and if not, increment the
+   * usage counters. "reached" means this call used up the last unit of the daily budget.
    */
-  private _checkAndUpdateDailyUsageExceeded(docId: string, dailyMax: number, m: moment.Moment): boolean {
+  private _checkAndUpdateDailyUsage(docId: string, dailyMax: number, m: moment.Moment): "exceeded" | "reached" |
+    undefined {
     const keys = getDocApiUsageKeysToIncr(docId, this._dailyUsage, dailyMax, m);
     if (!keys) {
       // The limit has been exceeded, reject the request.
-      return true;
+      return "exceeded";
     }
 
     // Always increment local cache to prevent bursts between Redis updates (or when Redis
@@ -180,14 +200,16 @@ export class DocApiUsageTracker {
       }).catch(e => log.error(`Error tracking API usage for doc ${docId}: ${e}`));
     }
 
-    return false;
+    return this._dailyUsage.get(keys[0]) === dailyMax ? "reached" : undefined;
   }
 
   /**
    * Check whether the site has used up its monthly limit, and if not, count this
-   * request against it. Throws ApiError(429) if the limit has been reached.
+   * request against it. Throws ApiError(429) if the budget is already used up.
    */
-  private _checkAndUpdateMonthlyUsage(billingAccountId: number, monthlyMax: number, m: moment.Moment): void {
+  private _checkAndUpdateMonthlyUsage(
+    billingAccountId: number, monthlyMax: number, m: moment.Moment, context?: ApiUsageContext,
+  ): void {
     const cli = this._getRedisClient();
     // Without redis the count would be per worker, and the pages showing it read it from
     // redis, so a limit would be enforced that nobody can see.
@@ -222,8 +244,16 @@ export class DocApiUsageTracker {
     // Expire after two months, so the key outlives the month it counts.
     const expiry = 62 * 24 * 60 * 60;
     cli.multi().incr(key).expire(key, expiry).execAsync().then((result) => {
-      this._monthlyUsage.set(key, Number(result![0]));
+      const newCount = Number(result![0]);
+      this._monthlyUsage.set(key, newCount);
+      // INCR is atomic, so exactly one worker's reply equals the max — the one whose
+      // call reached the limit.
+      if (newCount === monthlyMax) { this._reportLimitReached(context, { kind: "monthly" }); }
     }).catch(e => log.error(`Error tracking API usage for billing account ${billingAccountId}: ${e}`));
+  }
+
+  private _reportLimitReached(context: ApiUsageContext | undefined, reached: ApiLimitReached): void {
+    if (this._telemetry && context) { logApiLimitReached(this._telemetry, context, reached); }
   }
 
   /**

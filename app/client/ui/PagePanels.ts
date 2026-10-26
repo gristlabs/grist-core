@@ -7,7 +7,7 @@ import { urlState } from "app/client/models/gristUrlState";
 import { App } from "app/client/ui/App";
 import { resizeFlexVHandle } from "app/client/ui/resizeHandle";
 import { hoverTooltip } from "app/client/ui/tooltips";
-import { transition, TransitionWatcher } from "app/client/ui/transitions";
+import { prepareForTransition, transition, TransitionWatcher } from "app/client/ui/transitions";
 import { cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme } from "app/client/ui2018/cssVars";
 import { isNarrowScreenObs } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
@@ -18,6 +18,7 @@ import {
   BindableValue,
   Computed,
   dom,
+  DomContents,
   DomElementArg,
   DomElementMethod,
   MultiHolder,
@@ -43,6 +44,10 @@ const DELAY_BEFORE_TESTING_FOCUS_CHANGE_MS = 12;
 const FULLY_COLLAPSED_PANEL_DATASET_KEY = "data-fully-collapsed";
 const FULLY_EXPANDED_PANEL_DATASET_KEY = "data-fully-expanded";
 
+export interface IInnerLeftPanel {
+  buildDom(): DomContents;
+}
+
 export interface PageSidePanel {
   /**
    * Width in pixels when panel is expanded.
@@ -67,6 +72,7 @@ export interface PageSidePanel {
 export interface PageContents {
   leftPanel?: PageSidePanel;      // If omitted, the left panel isn't shown at all.
   rightPanel?: PageSidePanel;     // If omitted, the right panel isn't shown at all.
+  innerLeftPanel?: PageSidePanel;
 
   headerMain: DomElementArg;
   contentMain: DomElementArg;
@@ -84,6 +90,7 @@ export function pagePanels(page: PageContents) {
   const testId = page.testId || noTestId;
   const left = page.leftPanel;
   const right = page.rightPanel;
+  const innerLeft = page.innerLeftPanel;
   const onResize = page.onResize || (() => null);
   const leftOverlap = Observable.create(null, false);
   const dragResizer = Observable.create(null, false);
@@ -94,8 +101,11 @@ export function pagePanels(page: PageContents) {
 
   let lastLeftOpen = left?.panelOpen.get() || false;
   let lastRightOpen = right?.panelOpen.get() || false;
+  let lastInnerLeftOpen = innerLeft?.panelOpen.get() || false;
   let leftPaneDom: HTMLElement;
   let rightPaneDom: HTMLElement;
+  let mainPaneDom: HTMLElement;
+  let pinLeftExpansion: (() => void) | null = null;
   let mainHeaderDom: HTMLElement;
   let contentTopDom: HTMLElement;
   let onLeftTransitionFinish = noop;
@@ -113,9 +123,11 @@ export function pagePanels(page: PageContents) {
     if (narrow) {
       lastLeftOpen = !left || leftOverlap.get() ? false : left.panelOpen.get();
       lastRightOpen = right?.panelOpen.get() || false;
+      lastInnerLeftOpen = innerLeft?.panelOpen.get() || false;
     }
     left?.panelOpen.set(narrow ? false : lastLeftOpen);
     right?.panelOpen.set(narrow ? false : lastRightOpen);
+    innerLeft?.panelOpen.set(narrow ? false : lastInnerLeftOpen);
 
     // overlap should always be OFF when switching screen mode
     leftOverlap.set(false);
@@ -147,6 +159,11 @@ export function pagePanels(page: PageContents) {
         reject(new Error("PagePanels leftPanelOpen called while left panel is undefined"));
         return;
       }
+      if (pinLeftExpansion) {
+        pinLeftExpansion();
+        resolve(undefined);
+        return;
+      }
 
       const watcher = new TransitionWatcher(leftPaneDom);
       watcher.onDispose(() => resolve(undefined));
@@ -162,6 +179,8 @@ export function pagePanels(page: PageContents) {
       watcher.onDispose(() => resolve(undefined));
       right.panelOpen.set(true);
     }),
+    innerLeftPanelOpen: () => innerLeft?.panelOpen.set(true),
+    innerLeftPanelClose: () => innerLeft?.panelOpen.set(false),
   }, null, true);
   let contentWrapper: HTMLElement;
   return cssPageContainer(
@@ -261,25 +280,63 @@ export function pagePanels(page: PageContents) {
 
             const owner = new MultiHolder();
             const startExpansion = () => {
+              // The panel may have been opened some other way (e.g. by closing the inner left
+              // panel) while we were waiting to expand. It's already open.
+              if (left.panelOpen.get()) {
+                stopExpandOnHover();
+                return;
+              }
               leftOverlap.set(true);
               pauseSavingLeft(true); // prevents from updating state in the window storage
               left.panelOpen.set(true);
-              onLeftTransitionFinish = noop;
+              // If the panel gets closed some other way while expanded on hover, stop overlapping
+              // and stop watching once it's collapsed.
+              onLeftTransitionFinish = () => {
+                if (left.panelOpen.get()) { return; }
+                pauseSavingLeft(false);
+                leftOverlap.set(false);
+                stopExpandOnHover();
+              };
+              // While expanded on hover, the leftPanelOpen command pins the panel open instead.
+              pinLeftExpansion = pinExpansion;
               watchBlur();
+            };
+            // Turns a hover expansion into a regular open panel. The panel stays where it is, and
+            // the main pane slides over to make room for it, starting from under the panel.
+            const pinExpansion = () => {
+              pauseSavingLeft(false);
+              prepareForTransition(mainPaneDom, () => {
+                mainPaneDom.style.marginLeft = `${leftCollapsedWidth.get() - left.panelWidth.get()}px`;
+                leftPaneDom.style.zIndex = "2";
+                leftOverlap.set(false);
+              });
+              mainPaneDom.style.transition = "margin-left 0.4s";
+              mainPaneDom.style.marginLeft = "";
+              const watcher = new TransitionWatcher(mainPaneDom);
+              watcher.onDispose(() => {
+                mainPaneDom.style.transition = "";
+                leftPaneDom.style.zIndex = "";
+                onResize();
+              });
+              onLeftTransitionFinish = noop;
+              stopExpandOnHover();
             };
             const startCollapse = () => {
               left.panelOpen.set(false);
               pauseSavingLeft(false);
               // turns overlap off only when the transition finishes
               onLeftTransitionFinish = once(() => leftOverlap.set(false));
-              clear();
+              stopExpandOnHover();
             };
-            const clear = () => {
+            const stopExpandOnHover = () => {
+              // Each hover has its own pinExpansion, and stopExpandOnHover() of an earlier hover
+              // may still run after a later one (e.g. on dispose). Only reset if it's our own.
+              if (pinLeftExpansion === pinExpansion) { pinLeftExpansion = null; }
               if (owner.isDisposed()) { return; }
               clearTimeout(timeoutId);
               owner.dispose();
             };
-            dom.onDisposeElem(elem, clear);
+            dom.onDisposeElem(elem, stopExpandOnHover);
 
             // updates isFocusInsideLeftPane and starts watch for blur on activeElement.
             const watchBlur = debounce(() => {
@@ -342,7 +399,7 @@ export function pagePanels(page: PageContents) {
           cssHideForNarrowScreen.cls("")),
       ] : null),
 
-      cssMainPane(
+      mainPaneDom = cssMainPane(
         mainHeaderDom = cssTopHeader(
           testId("top-header"),
           regionFocusSwitcher?.panelAttrs("top", t("Document header")),
@@ -383,10 +440,53 @@ export function pagePanels(page: PageContents) {
           dom.style("margin-bottom", use => use(bannerHeight) + "px"),
         ),
 
-        cssContentMainPane(
-          testId("main-content"),
-          regionFocusSwitcher?.panelAttrs("main", t("Main content")),
-          page.contentMain,
+        cssMainBody(
+          (innerLeft ? [
+            cssInnerLeftPane(
+              testId("inner-left-panel"),
+              innerLeft.content,
+
+              dom.style("width", (use) => {
+                if (!use(innerLeft.panelOpen) || use(isNarrowScreenObs())) { return ""; }
+                return use(innerLeft.panelWidth) + "px";
+              }),
+
+              cssInnerLeftPane.cls("-open", innerLeft.panelOpen),
+              dom.boolAttr(FULLY_EXPANDED_PANEL_DATASET_KEY, innerLeft.panelOpen),
+              dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(innerLeft.panelOpen)),
+              transition(use => (use(isNarrowScreenObs()) ? false : use(innerLeft.panelOpen)), {
+                // Called with transitions off.
+                prepare(elem, open) {
+                  // The pane already has its new width, so offset it by the panel width to keep the
+                  // layout as it was:
+                  //  - When opening, a negative margin cancels the new width, leaving the pane hidden
+                  //    under the main content.
+                  //  - When closing, a positive margin keeps the space the pane took up.
+                  elem.style.marginRight = (open ? -1 : 1) * innerLeft.panelWidth.get() + "px";
+                  onPanelTransitionStart(elem);
+                },
+                // Called with transitions on. Animate margin-right to 0, so the main content slides
+                // over to uncover the pane or to fill its space.
+                run(elem, open) { elem.style.marginRight = ""; },
+                finish(elem, open) {
+                  onResize();
+                  onPanelTransitionFinished(elem, open);
+                },
+              }),
+            ),
+
+            cssResizeFlexVHandle(
+              { target: "left", onSave: (val) => { innerLeft.panelWidth.set(val); onResize(); } },
+              testId("inner-left-resizer"),
+              dom.show(innerLeft.panelOpen),
+              cssHideForNarrowScreen.cls("")),
+          ] : null),
+
+          cssContentMainPane(
+            testId("main-content"),
+            regionFocusSwitcher?.panelAttrs("main", t("Main content")),
+            page.contentMain,
+          ),
         ),
 
         cssMainPane.cls("-left-overlap", leftOverlap),
@@ -445,6 +545,7 @@ export function pagePanels(page: PageContents) {
                 "FieldTextbox",
                 dom.on("click", () => {
                   right?.panelOpen.set(false);
+                  innerLeft?.panelOpen.set(false);
                   toggleObs(left.panelOpen);
                 }),
                 testId("left-opener-ns"),
@@ -459,6 +560,7 @@ export function pagePanels(page: PageContents) {
                 "Settings",
                 dom.on("click", () => {
                   left?.panelOpen.set(false);
+                  innerLeft?.panelOpen.set(false);
                   toggleObs(right.panelOpen);
                 }),
                 testId("right-opener-ns"),
@@ -512,8 +614,16 @@ const cssContentMain = styled(cssHBox, `
 
 // div wrapping the contentMain passed to pagePanels
 const cssContentMainPane = styled(cssVBox, `
-  flex-grow: 1;
+  flex: 1 1 0px;
+  min-width: 0px;
   overflow: auto;
+  background-color: ${theme.mainPanelBg};
+`);
+
+const cssMainBody = styled(cssHBox, `
+  flex: 1 1 0px;
+  min-height: 0;
+  isolation: isolate;
 `);
 
 export const cssLeftPane = styled(cssVBox, `
@@ -652,6 +762,53 @@ const cssLeftPaneHeader = styled(cssHeader, `
 const cssRightPaneHeader = styled(cssHeader, `
   background-color: ${theme.rightPanelBg};
   border-bottom: 0;
+`);
+const cssInnerLeftPane = styled(cssVBox, `
+  position: relative;
+  background-color: ${theme.mainPanelBg};
+  width: 0px;
+  margin-right: 0px;
+  overflow: hidden;
+  transition: margin-right 0.4s;
+  z-index: -1;
+
+  &[${FULLY_COLLAPSED_PANEL_DATASET_KEY}] {
+    visibility: hidden;
+  }
+  &-open {
+    width: 440px;
+    min-width: 400px;
+    max-width: 640px;
+  }
+  @media ${mediaSmall} {
+    & {
+      width: 100vw;
+      position: fixed;
+      z-index: 10;
+      top: 0;
+      bottom: ${bottomFooterHeightPx}px;
+      left: calc(-100vw - 15px);
+      visibility: hidden;
+      box-shadow: 10px 0 5px rgba(0, 0, 0, 0.2);
+      transition: left 0.4s, visibility 0.4s;
+      will-change: left;
+    }
+    &-open {
+      left: 0;
+      visibility: visible;
+      width: 100vw;
+      min-width: 0;
+      max-width: none;
+    }
+  }
+  @media print {
+    & {
+      display: none;
+    }
+  }
+  .interface-singlePage & {
+    display: none;
+  }
 `);
 const cssBottomFooter = styled("div", `
   height: ${bottomFooterHeightPx}px;

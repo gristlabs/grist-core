@@ -1,11 +1,14 @@
 import { makeT } from "app/client/lib/localization";
+import { AdminChecks, isChecking } from "app/client/models/AdminChecks";
 import {
+  buildStatusPill,
   cssIconWrapper as cssWellIcon,
   cssWell,
   cssWellContent,
   cssWellTitle,
+  RowStatus,
 } from "app/client/ui/AdminPanelCss";
-import { cssValueLabel } from "app/client/ui/SettingsLayout";
+import { SectionItem } from "app/client/ui/SettingsLayout";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
@@ -18,7 +21,7 @@ import {
   OutgoingRequestsProbeDetails,
 } from "app/common/BootProbe";
 
-import { dom, DomContents, styled } from "grainjs";
+import { Computed, Disposable, dom, DomContents, styled } from "grainjs";
 
 const t = makeT("OutgoingRequestsStatus");
 
@@ -59,18 +62,80 @@ function readDetails(result: BootProbeResult | undefined): OutgoingRequestsProbe
 }
 
 /**
- * One-word status badge shown next to the "Outgoing requests" item on the
- * admin panel.
+ * Status of the "Outgoing requests" item on the admin panel: the one-word pill and the problem
+ * listed at the top of the page.
  */
-export function buildOutgoingRequestsSummary(result: BootProbeResult | undefined): DomContents {
-  if (!result) { return cssValueLabel(t("checking")); }
+export function buildOutgoingRequestsStatus(result: BootProbeResult | undefined): RowStatus {
+  if (isChecking(result)) {
+    return { label: t("checking") };
+  }
+  const details = readDetails(result);
+  // Ids of the features with the given status, e.g. "request-function,webhooks".
+  const featuresWith = (status: string) =>
+    (details?.checks ?? []).filter(c => c.status === status).map(c => c.id).sort().join(",");
+
   // Render the probe's posture verbatim; never recompute from status/proxy.
-  switch (readDetails(result)?.posture ?? "inactive") {
-    case "filtered": return cssValueLabel(cssHappyText(t("filtered")));
-    case "unfiltered": return cssValueLabel(cssDangerText(t("unfiltered")));
-    case "review": return cssValueLabel(cssDangerText(t("review")));
-    case "bypassed": return cssValueLabel(cssDangerText(t("bypassed")));
-    default: return cssValueLabel(cssGrayed(t("not configured")));
+  switch (details?.posture ?? "inactive") {
+    case "filtered":
+      return { level: "success", label: t("filtered") };
+    case "unfiltered":
+      return {
+        level: "warning",
+        label: t("unfiltered"),
+        problem: {
+          key: "outgoing.unfiltered",
+          severity: "warning",
+          anchor: "outgoing-requests",
+          version: featuresWith("fault"),
+          title: t(BANNER_BY_POSTURE.unfiltered.title),
+          text: t(BANNER_BY_POSTURE.unfiltered.body),
+        },
+      };
+    case "review":
+      return {
+        level: "warning",
+        label: t("review"),
+        problem: {
+          key: "outgoing.review",
+          severity: "warning",
+          anchor: "outgoing-requests",
+          version: featuresWith("warning"),
+          title: t(BANNER_BY_POSTURE.review.title),
+          text: t(BANNER_BY_POSTURE.review.body),
+        },
+      };
+    case "bypassed":
+      return { level: "warning", label: t("bypassed") };
+    default:
+      return { level: "grayed", label: t("not configured") };
+  }
+}
+
+/**
+ * The "Outgoing requests" row of the Security Settings card in the admin panel.
+ */
+export class OutgoingRequestsSection extends Disposable {
+  public readonly status: Computed<RowStatus>;
+
+  private readonly _result: Computed<BootProbeResult | undefined>;
+
+  constructor(checks: AdminChecks) {
+    super();
+    this._result = Computed.create(this, (use) => {
+      const req = checks.requestCheckById(use, "outgoing-requests");
+      return req ? use(req.result) : undefined;
+    });
+    this.status = Computed.create(this, use => buildOutgoingRequestsStatus(use(this._result)));
+  }
+
+  public buildItem(): DomContents {
+    return SectionItem({
+      id: "outgoing-requests",
+      name: t("Outgoing requests"),
+      description: t("How user actions can reach the outside world"),
+      value: buildStatusPill(this.status),
+      expandedContent: dom.domComputed(this._result, result => buildOutgoingRequestsPanel(result)),
+    });
   }
 }
 
@@ -79,7 +144,7 @@ export function buildOutgoingRequestsSummary(result: BootProbeResult | undefined
  * Settings section. Also used by Storybook with synthetic probe fixtures.
  */
 export function buildOutgoingRequestsPanel(result: BootProbeResult | undefined): DomContents {
-  if (!result) { return dom("p", t("Checking…")); }
+  if (isChecking(result)) { return dom("p", t("Checking…")); }
   const details = readDetails(result);
   const checks = details?.checks || [];
 
@@ -247,18 +312,6 @@ function _buildProxyBox(proxy: OutgoingRequestsProbeDetails["proxy"] | undefined
     ),
   );
 }
-
-const cssHappyText = styled("span", `
-  color: ${theme.controlFg};
-`);
-
-const cssDangerText = styled("div", `
-  color: ${theme.dangerText};
-`);
-
-const cssGrayed = styled("div", `
-  color: ${theme.lightText};
-`);
 
 const cssOutReqContainer = styled("div", `
   display: flex;

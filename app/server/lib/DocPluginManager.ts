@@ -1,4 +1,5 @@
 import { ApplyUAResult } from "app/common/ActiveDocAPI";
+import { ApiError } from "app/common/ApiError";
 import { fromTableDataAction, TableColValues } from "app/common/DocActions";
 import * as gutil from "app/common/gutil";
 import { LocalPlugin } from "app/common/plugin";
@@ -137,7 +138,13 @@ export class DocPluginManager {
       }
     }
 
+    const ext = path.extname(fileName);
     if (messages.length) {
+      // An .xlsx that isn't a zip archive is usually an old-format .xls or an HTML export, renamed.
+      if (ext === ".xlsx" && /not a zip file/i.test(messages[0])) {
+        throw new ApiError("This file is not in the .xlsx format despite its extension. " +
+          "Re-save it from Excel as .xlsx.", 400);
+      }
       const extToType: Record<string, string> = {
         ".xlsx": "Excel",
         ".json": "JSON",
@@ -145,10 +152,16 @@ export class DocPluginManager {
         ".tsv": "TSV",
         ".dsv": "PSV",
       };
-      const fileType = extToType[path.extname(fileName)] || path.extname(fileName);
+      const fileType = extToType[ext] || ext;
       throw new Error(`Failed to parse ${fileType} file.\nError: ${messages.join("; ")}`);
     }
-    throw new Error(`File format is not supported.`);
+    const supported = "Grist can import Excel (.xlsx), CSV, TSV and JSON files.";
+    if (ext.toLowerCase() === ".xls") {
+      throw new ApiError(`The old Excel format (.xls) is not supported. ${supported} ` +
+        "Re-save the file from Excel as .xlsx.", 400);
+    }
+    const what = ext ? `${ext} files` : "Files without an extension";
+    throw new ApiError(`${what} are not supported. ${supported}`, 400);
   }
 
   /**

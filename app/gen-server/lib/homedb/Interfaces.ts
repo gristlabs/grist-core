@@ -67,6 +67,8 @@ export interface WorkspaceAccessChanges {
 export interface OrgAccessChanges {
   org: Organization;
   accessChanges: Omit<AccessChanges, "publicAccess" | "maxInheritedAccess">;
+  // Whether the change brought the site back under the member limit of its plan.
+  userLimitCleared: boolean;
 }
 
 export interface RoleGroupDescriptor {

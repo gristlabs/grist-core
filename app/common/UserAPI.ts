@@ -325,6 +325,9 @@ export interface PermissionData {
   public?: boolean;
   maxInheritedRole?: roles.BasicRole | null;
   users: UserAccessData[];
+  // For documents, and only for owners: set if Editors can bypass access rules, as last
+  // seen by the doc worker.
+  editorsBypassRules?: true;
 }
 
 // A structure for modifying managers of a billing account.

@@ -25,6 +25,7 @@ declare global {
     gristApp?: {
       topAppModel?: TopAppModel;
       testNumPendingApiRequests?: () => number;
+      testNumPendingScrolls?: () => number;
       testNumPendingChecks?: () => number;
       testNumPendingPastes?: () => number;
       testNumPendingMenuActions?: () => number;

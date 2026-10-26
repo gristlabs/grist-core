@@ -24,17 +24,19 @@ const t = makeT("ViewSectionMenu");
 // Handler for [Save] button.
 async function doSave(docModel: DocModel, viewSection: ViewSectionRec): Promise<void> {
   await docModel.docData.bundleActions(t("Update Sort&Filter settings"), () => Promise.all([
-    viewSection.activeSortJson.save(),      // Save sort
-    viewSection.saveFilters(),              // Save filter
-    viewSection.activeCustomOptions.save(), // Save widget options
+    viewSection.activeSortJson.save(),            // Save sort
+    viewSection.saveFilters(),                    // Save filter
+    viewSection.activeCustomOptions.save(),       // Save widget options
+    viewSection.activeCalendarPerspective.save(), // Save calendar view
   ]));
 }
 
 // Handler for [Revert] button.
 function doRevert(viewSection: ViewSectionRec) {
-  viewSection.activeSortJson.revert();      // Revert sort
-  viewSection.revertFilters();              // Revert filter
-  viewSection.activeCustomOptions.revert(); // Revert widget options
+  viewSection.activeSortJson.revert();            // Revert sort
+  viewSection.revertFilters();                    // Revert filter
+  viewSection.activeCustomOptions.revert();       // Revert widget options
+  viewSection.activeCalendarPerspective.revert(); // Revert calendar view
 }
 
 // [Filter Icon] - Filter toggle and all the components in the menu.
@@ -52,7 +54,8 @@ export function viewSectionMenu(
   const displaySaveObs: Computed<boolean> = Computed.create(owner, use => (
     use(viewSection.filterSpecChanged) ||
     !use(viewSection.activeSortJson.isSaved) ||
-    !use(viewSection.activeCustomOptions.isSaved)
+    !use(viewSection.activeCustomOptions.isSaved) ||
+    !use(viewSection.activeCalendarPerspective.isSaved)
   ));
 
   const save = () => { doSave(docModel, viewSection).catch(reportError); };
@@ -118,6 +121,9 @@ export function viewSectionMenu(
         // Widget options.
         dom.maybe(use => use(viewSection.effectiveWidgetType) === "custom", () =>
           makeCustomOptions(viewSection),
+        ),
+        dom.maybe(use => use(viewSection.effectiveWidgetType) === "calendar", () =>
+          makeCalendarOptions(viewSection),
         ),
         // [Save] [Revert] buttons
         dom.domComputed(displaySaveObs, displaySave => [
@@ -224,6 +230,13 @@ function makeCustomOptions(section: ViewSectionRec) {
       testId("custom-options"),
     ),
   ];
+}
+
+function makeCalendarOptions(section: ViewSectionRec) {
+  return dom.maybe(use => !use(section.activeCalendarPerspective.isSaved), () => [
+    cssMenuInfoHeader(t("Calendar view"), testId("heading-calendar-options")),
+    cssMenuText(t("(modified)"), cssMenuText.cls("-accent"), testId("calendar-options")),
+  ]);
 }
 
 const clsOldUI = styled("div", ``);

@@ -151,7 +151,7 @@ function buildCard(resource: LearningResource, ...args: DomElementArg[]): DomCon
     cssCardLink(resource.link ?? null, contents);
 }
 
-const cssCards = styled(cssSectionBody, `
+export const cssCards = styled(cssSectionBody, `
   flex: 1 1 auto;
   display: grid;
   gap: 12px;

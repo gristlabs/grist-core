@@ -1,8 +1,9 @@
 import { ApiError } from "app/common/ApiError";
-import { AssistanceRequestV1, AssistanceRequestV2 } from "app/common/Assistance";
+import { AssistanceRequestV1, AssistanceUserRequestV2 } from "app/common/Assistance";
 import { IOptions } from "app/common/BaseAPI";
 import { Features } from "app/common/Features";
 import { resetOrg } from "app/common/resetOrg";
+import { TelemetryMetadata } from "app/common/Telemetry";
 import { UserAPI, UserAPIImpl } from "app/common/UserAPI";
 import { BillingAccount } from "app/gen-server/entity/BillingAccount";
 import { Limit } from "app/gen-server/entity/Limit";
@@ -10,12 +11,14 @@ import { Organization } from "app/gen-server/entity/Organization";
 import { Product } from "app/gen-server/entity/Product";
 import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { GristObjCode } from "app/plugin/GristData";
+import { Telemetry } from "app/server/lib/Telemetry";
 import { TestServer } from "test/gen-server/apiUtils";
 import { configForUser, createUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";
 import fetch from "node-fetch";
+import * as sinon from "sinon";
 
 describe("limits", function() {
   let home: TestServer;
@@ -649,12 +652,12 @@ describe("limits", function() {
   });
 
   it("can enforce limits on assistant usage", async function() {
-    const setLimit = async (limit: number | undefined) => {
+    const setLimit = async (limit: number | undefined, usage = 0) => {
       await setFeatures({ baseMaxAssistantCalls: limit });
       if (limit !== undefined) {
         await dbManager.connection.createQueryBuilder()
           .update(Limit)
-          .set({ limit })
+          .set({ limit, usage })
           .where("billing_account_id = :billingId", { billingId })
           .execute();
       }
@@ -673,7 +676,7 @@ describe("limits", function() {
           colId: "",
         },
       };
-      const v2: AssistanceRequestV2 = {
+      const v2: AssistanceUserRequestV2 = {
         ...sharedPayload,
         context: {},
       };
@@ -689,15 +692,39 @@ describe("limits", function() {
     const docId = await api.newDoc({ name: "doc2" }, workspaces[0].id);
     const docApi = api.getDocAPI(docId);
 
-    await setLimit(0);
-    await sendAndAssert({ fulfilled: false });
+    const logged: TelemetryMetadata[] = [];
+    const statuses = () => logged.map(e => [e.feature, e.status]);
+    const stub = sinon.stub(Telemetry.prototype, "logEvent").callsFake((_req, event, metadata) => {
+      if (event === "limitStatusChanged") { logged.push(metadata!.full!); }
+    });
+    try {
+      await setLimit(0);
+      await sendAndAssert({ fulfilled: false });
+      assert.deepEqual(statuses(), []);
 
-    await setLimit(2);
-    await sendAndAssert({ fulfilled: true });
-    await sendAndAssert({ fulfilled: true });
-    await sendAndAssert({ fulfilled: false });
+      await setLimit(2);
+      await sendAndAssert({ fulfilled: true });
+      assert.deepEqual(statuses(), []);
+      await sendAndAssert({ fulfilled: true });
+      assert.deepEqual(statuses(), [["assistant", "exceeded"]]);
+      await sendAndAssert({ fulfilled: false });
+      assert.deepEqual(statuses(), [["assistant", "exceeded"]]);
 
-    await setLimit(undefined);
-    await sendAndAssert({ fulfilled: true });
+      // Approaching: with a limit of 20, the 19th call crosses 0.9.
+      await setLimit(20, 17);
+      await sendAndAssert({ fulfilled: true });   // usage 18: ratio 0.9, not above
+      assert.deepEqual(statuses(), [["assistant", "exceeded"]]);
+      await sendAndAssert({ fulfilled: true });   // usage 19: above 0.9
+      assert.deepEqual(statuses(), [["assistant", "exceeded"], ["assistant", "approaching"]]);
+      await sendAndAssert({ fulfilled: true });   // usage 20: exceeded
+      assert.deepEqual(statuses(),
+        [["assistant", "exceeded"], ["assistant", "approaching"], ["assistant", "exceeded"]]);
+      assert.isTrue(logged.every(e => e.planName === "test_product"));
+
+      await setLimit(undefined);
+      await sendAndAssert({ fulfilled: true });
+    } finally {
+      stub.restore();
+    }
   });
 });

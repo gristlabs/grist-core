@@ -63,8 +63,7 @@ describe("NewDocument.ntest", function() {
     await $(".test-notifier-toast-close").click();
     await assert.isPresent($(".test-notifier-toast-message"), false);
 
-    // Try a server command that should fail. We need a reasonble timeout for executeAsyncScript.
-    await driver.manage().setTimeouts({script: 500});
+    // Try a server command that should fail.
     let result = await driver.executeAsyncScript(() => {
       var cb = arguments[arguments.length - 1];
       window.gristApp.comm.showItemInFolder()

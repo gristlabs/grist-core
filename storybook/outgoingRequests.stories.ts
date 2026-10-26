@@ -1,6 +1,7 @@
+import { buildStatusPill } from "app/client/ui/AdminPanelCss";
 import {
   buildOutgoingRequestsPanel,
-  buildOutgoingRequestsSummary,
+  buildOutgoingRequestsStatus,
 } from "app/client/ui/OutgoingRequestsStatus";
 import {
   BootProbeResult,
@@ -40,7 +41,7 @@ function scenario(title: string, description: string, fixture: Fixture) {
       return cssStage(
         cssSummaryRow(
           cssSummaryLabel("Summary pill:"),
-          buildOutgoingRequestsSummary(result),
+          buildStatusPill(buildOutgoingRequestsStatus(result)),
         ),
         cssPanelFrame(buildOutgoingRequestsPanel(result)),
       );
@@ -156,7 +157,7 @@ export const Checking = {
   render: () => cssStage(
     cssSummaryRow(
       cssSummaryLabel("Summary pill:"),
-      buildOutgoingRequestsSummary(undefined),
+      buildStatusPill(buildOutgoingRequestsStatus(undefined)),
     ),
     cssPanelFrame(buildOutgoingRequestsPanel(undefined)),
   ),

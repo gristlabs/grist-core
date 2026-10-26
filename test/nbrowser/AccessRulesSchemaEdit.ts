@@ -9,7 +9,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import pick from "lodash/pick";
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, Key } from "mocha-webdriver";
 
 describe("AccessRulesSchemaEdit", function() {
   this.timeout(40000);
@@ -147,6 +147,54 @@ describe("AccessRulesSchemaEdit", function() {
     await assert.isFulfilled(editorApi.applyUserActions(docId, [["RenameTable", "Renamed2", "Table1"]]));
   });
 
+  it("should say when editors have owner-like data access", async function() {
+    const mainDocApi = api.getDocAPI(docId);
+
+    // Set up a table rule that limits Editors, leaving Editors able to edit structure.
+    await api.applyUserActions(docId, [
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Table1", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null,
+        { resource: -1, aclFormula: "user.Access == EDITOR", permissionsText: "-R" }],
+    ]);
+
+    // The sharing dialog says Editors have Owner-like data access.
+    await mainSession.loadDoc(`/doc/${docId}`);
+    assert.equal(await hasOwnerLikeDataNote("doc"), true);
+
+    // It says so from the home page too, where it relies on what the doc worker cached.
+    await gu.waitToPass(async () => {
+      await mainSession.loadDocMenu("/");
+      assert.equal(await hasOwnerLikeDataNote("home"), true);
+    }, 5000);
+
+    // Only Owners are told, since it hints that the rules hold something back.
+    assert.equal((await api.getDocAccess(docId)).editorsBypassRules, true);
+    assert.notProperty(await editorApi.getDocAccess(docId), "editorsBypassRules");
+
+    // The Access Rules page warns too.
+    await loadAccessRulesPage(mainSession, docId);
+    assert.equal(await getSchemaEditCheckbox().isSelected(), true);
+    assert.equal(await driver.find(".test-rule-schema-edit-warning").getText(),
+      "This option should be off unless you trust Editors as you would Owners on this document. Dismiss.");
+
+    // Turn off structure editing for Editors, and save.
+    await getSchemaEditCheckbox().click();
+    await saveRules();
+    assert.equal(await driver.find(".test-rule-schema-edit-warning").isPresent(), false);
+
+    // The sharing dialog no longer says it, in the document or from the home page.
+    await mainSession.loadDoc(`/doc/${docId}`);
+    assert.equal(await hasOwnerLikeDataNote("doc"), false);
+    await gu.waitToPass(async () => {
+      await mainSession.loadDocMenu("/");
+      assert.equal(await hasOwnerLikeDataNote("home"), false);
+    }, 5000);
+
+    // Remove the rules, to keep test cases independent.
+    const rules = await mainDocApi.getRecords("_grist_ACLRules");
+    await api.applyUserActions(docId, [["BulkRemoveRecord", "_grist_ACLRules", rules.map(r => r.id)]]);
+  });
+
   it("should handle existing rules that mix schemaEdit and other permissions", async function() {
     const editorEmailAddr = gu.translateUser("user2").email;
     const customAclFormula = `user.Email == "${editorEmailAddr}"`;
@@ -233,6 +281,29 @@ async function loadAccessRulesPage(session: gu.Session, docId: string) {
 async function reloadAccessRulesPage() {
   await driver.navigate().refresh();
   await driver.findWait(".test-rule-set", 5000);
+}
+// Opens the sharing dialog, from the open document or from the home page, then opens the role
+// menu for the Editor and checks for the note under Editor.
+async function hasOwnerLikeDataNote(from: "doc" | "home"): Promise<boolean> {
+  if (from === "doc") {
+    await gu.editDocAcls();
+  } else {
+    await gu.openDocDropdown("ACL-SchemaEdit");
+    await driver.find(".test-dm-doc-access").click();
+  }
+  await driver.findContentWait(".test-um-member", gu.translateUser("user2").email, 2000)
+    .find(".test-um-member-role").click();
+  await driver.findContentWait(".test-um-role-option", /Editor/, 500);
+  const result = await driver.find(".test-um-editor-owner-like-data-access").isPresent();
+  if (result) {
+    // Clicking the note's icon leaves the menu open, rather than picking Editor.
+    await driver.find(".test-um-editor-owner-like-data-access .test-info-tooltip").click();
+    assert.equal(await driver.find(".test-um-role-option").isDisplayed(), true);
+  }
+  await driver.sendKeys(Key.ESCAPE);
+  await driver.find(".test-um-cancel").click();
+  await gu.waitToPass(async () => assert.equal(await driver.find(".test-um-members").isPresent(), false));
+  return result;
 }
 async function getDefaultResourceRec(api: UserAPI, docId: string): Promise<TableRecordValue | undefined> {
   const records = await api.getDocAPI(docId).getRecords("_grist_ACLResources", { filters: { tableId: ["*"] } });

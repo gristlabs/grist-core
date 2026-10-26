@@ -1499,7 +1499,7 @@ namespace gristUtils {
   export async function canRemovePage(name: string | RegExp) {
     await openPageMenu(name);
     const isDisabled = await driver.find(".test-docpage-remove").matches(".disabled");
-    await driver.sendKeys(Key.ESCAPE);
+    await closeOpenMenu();
     return !isDisabled;
   }
 
@@ -2209,10 +2209,11 @@ namespace gristUtils {
   /**
  * Opens the row menu for the row with the given row number (1-based, as in row headers).
  */
-  export function openRowMenu(rowNum: number) {
+  export async function openRowMenu(rowNum: number) {
+    await waitForPendingOps("testNumPendingScrolls", "the grid to scroll", 2000);
     const row = driver.findContent(".active_section .gridview_data_row_num", String(rowNum));
-    return driver.withActions(actions => actions.contextClick(row))
-      .then(() => findOpenMenu(1000));
+    await driver.withActions(actions => actions.contextClick(row));
+    return findOpenMenu(1000);
   }
 
   export async function removeRow(rowNum: number) {
@@ -3611,13 +3612,10 @@ namespace gristUtils {
   }
 
   export async function copyAnchor() {
+    // Clear the last copied link, so that we wait for this copy rather than see an earlier one.
+    await driver.executeScript("if (window.testGrist) { delete window.testGrist.clipboard; }");
     await driver.find("body").sendKeys(Key.chord(Key.SHIFT, await modKey(), "a"));
-
-    await waitToPass(async () => {
-      assert.isTrue(
-        await driver.findContentWait(".test-notifier-toast-message", /Link copied to clipboard/, 100).isDisplayed(),
-      );
-    });
+    await driver.wait(async () => Boolean((await getTestState()).clipboard), 2000, "Timed out waiting for link copy");
     await wipeToasts();
   }
 
@@ -3759,7 +3757,7 @@ namespace gristUtils {
     await driver.find(".test-field-behaviour").click();
     await findOpenMenu();
     const list = await driver.findAll(".grist-floating-menu li", el => el.getText());
-    await driver.sendKeys(Key.ESCAPE);
+    await closeOpenMenu();
     return list;
   }
 
@@ -3914,7 +3912,7 @@ namespace gristUtils {
   ) {
     await openSectionMenu("viewLayout", section);
     const href = await driver.findWait(".test-download-section", 1000).getAttribute("href");
-    await driver.sendKeys(Key.ESCAPE);  // Close section menu
+    await closeOpenMenu();
     const resp = await axios.get(href, { responseType: "text", headers });
     return resp.data as string;
   }
@@ -4413,7 +4411,8 @@ namespace gristUtils {
 
   /**
    * Waits for an open menu to hold the focus, which is when it starts handling keys. A menu takes
-   * the focus a tick after it is shown, so an Escape sent before then leaves it open.
+   * the focus a tick after it is shown. Keys sent before then miss it: an Escape leaves it open,
+   * and letters typed into a select go to the select's button, which picks its own match.
    */
   export async function waitForMenuFocus(optTimeout: number = 1000) {
     const menuHasFocus = () => driver.executeScript<boolean>(() => {
@@ -4421,6 +4420,15 @@ namespace gristUtils {
       return Array.from(document.querySelectorAll(".grist-floating-menu")).some(m => m.contains(active));
     }).catch(() => false);
     await driver.wait(menuHasFocus, optTimeout, "the open menu did not take the focus");
+  }
+
+  /**
+   * Closes the open menu with Escape, once the menu is ready for it, and waits for it to go.
+   */
+  export async function closeOpenMenu() {
+    await waitForMenuFocus();
+    await driver.sendKeys(Key.ESCAPE);
+    await waitForMenuToClose(1000);
   }
 
   /**
@@ -4486,7 +4494,7 @@ namespace gristUtils {
         // Wait for the menu.
         await findOpenMenu();
         const options =  await findOpenMenuAllItems("li", el => el.getText());
-        await driver.sendKeys(Key.ESCAPE);
+        await closeOpenMenu();
         return options;
       },
       /**

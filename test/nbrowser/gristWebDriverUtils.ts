@@ -12,7 +12,7 @@ import { CommandName } from "app/client/components/commandList";
 import { DocAction, UserAction } from "app/common/DocActions";
 
 import escapeRegExp from "lodash/escapeRegExp";
-import { WebDriver, WebElement, WebElementPromise } from "mocha-webdriver";
+import { error, WebDriver, WebElement, WebElementPromise } from "mocha-webdriver";
 
 type SectionTypes = "Table" | "Card" | "Card List" | "Chart" | "Custom" | "Form";
 
@@ -287,22 +287,26 @@ export class GristWebDriverUtils {
    * Sends UserActions using client api from the browser.
    */
   public async sendActions(actions: (DocAction | UserAction)[], optTimeout: number = 5000) {
-    await this.driver.manage().setTimeouts({
-      script: optTimeout, /* milliseconds */
-    });
-
     // Make quick test that we have a list of actions not just a single action, by checking
     // if the first element is an array.
     if (actions.length && !Array.isArray(actions[0])) {
       throw new Error("actions argument should be a list of actions, not a single action");
     }
 
-    const result = await this.driver.executeAsyncScript(`
-    const done = arguments[arguments.length - 1];
-    const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
-    prom.then(() => done(null));
-    prom.catch((err) => done(String(err?.message || err)));
-  `);
+    // The browser outlives a test file, so put the script timeout back for whatever runs next.
+    const timeouts = await this.driver.manage().getTimeouts();
+    await this.driver.manage().setTimeouts({ script: optTimeout });
+    let result: unknown;
+    try {
+      result = await this.driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        const prom = gristDocPageModel.gristDoc.get().docModel.docData.sendActions(${JSON.stringify(actions)});
+        prom.then(() => done(null));
+        prom.catch((err) => done(String(err?.message || err)));
+      `);
+    } finally {
+      await this.driver.manage().setTimeouts(timeouts);
+    }
     if (result) {
       throw new Error(result as string);
     }
@@ -422,14 +426,19 @@ export class GristWebDriverUtils {
 
     // Take each cell from the row that shows its number. Reading the row numbers and the cells in
     // separate passes, and lining the two up by position, gives a cell from a layout that is gone
-    // when the section is rebuilt in between.
-    const cells = await this.driver.executeScript<(WebElement | null)[]>(
-      (elem: HTMLElement, wanted: number[], nthChildren: number[]) => wanted.flatMap((rowNum) => {
-        const row = Array.from(elem.querySelectorAll(".gridview_row")).find(r =>
-          parseInt(r.querySelector<HTMLElement>(".gridview_data_row_num")?.innerText ?? "", 10) === rowNum);
-        return nthChildren.map(nth =>
-          row?.querySelector(`.record:not(.column_names) .field:nth-child(${nth})`) ?? null);
-      }), sectionElem, rowNums, colIndexes.map(i => i + 1));
+    // when the section is rebuilt in between. Wait out any pending scroll to the cursor first.
+    const findCells = () => this.driver.executeScript<(WebElement | null)[] | false>(
+      (elem: HTMLElement, wanted: number[], nthChildren: number[]) => {
+        if ((window as any).gristApp?.testNumPendingScrolls?.()) { return false; }
+        return wanted.flatMap((rowNum) => {
+          const row = Array.from(elem.querySelectorAll(".gridview_row")).find(r =>
+            parseInt(r.querySelector<HTMLElement>(".gridview_data_row_num")?.innerText ?? "", 10) === rowNum);
+          return nthChildren.map(nth =>
+            row?.querySelector(`.record:not(.column_names) .field:nth-child(${nth})`) ?? null);
+        });
+      }, sectionElem, rowNums, colIndexes.map(i => i + 1));
+    const cells = await this.driver.wait(findCells, 2000, "Timed out waiting for the grid to scroll") as
+      (WebElement | null)[];
 
     // A row number that is not on screen has no cell, and read as undefined before this too.
     const read = mapper ?? ((el: WebElement) => el.getText());
@@ -449,7 +458,12 @@ export class GristWebDriverUtils {
     const options: IColSelect<WebElement> = (typeof colOrOptions === "object" ?
       { col: colOrOptions.col, rowNums: [colOrOptions.rowNum], section: colOrOptions.section, mapper } :
       { col: colOrOptions, rowNums: [rowNum!], section, mapper });
-    return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then(elems => elems[0]));
+    return new WebElementPromise(this.driver, this.getVisibleGridCells(options).then((elems) => {
+      if (!elems[0]) {
+        throw new error.NoSuchElementError(`Row ${options.rowNums[0]} is not rendered in the grid`);
+      }
+      return elems[0];
+    }));
   }
 
   /** Waits for the app's hidden clipboard element to hold the focus, or to have given it up. */

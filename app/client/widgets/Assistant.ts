@@ -7,8 +7,9 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { domAsync } from "app/client/lib/domAsync";
 import { makeT } from "app/client/lib/localization";
 import { sessionStorageBoolObs } from "app/client/lib/localStorageObs";
+import { logUpgradeClicked, logUpsellShown } from "app/client/lib/upsellTelemetry";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
-import { ChatHistory, ChatMessage } from "app/client/models/ChatHistory";
+import { ChatHistory, ChatMessage, ChatMessageError } from "app/client/models/ChatHistory";
 import { constructUrl, urlState } from "app/client/models/gristUrlState";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import { buildCodeHighlighter } from "app/client/ui/CodeHighlight";
@@ -64,6 +65,10 @@ interface AssistantOptions {
    */
   onApplyFormula?(formula: string): Promise<void>;
   onEscape?(): void;
+  /**
+   * Called when the user asks to start a new session. Defaults to clearing the conversation.
+   */
+  onNewSession?(): void;
   logTelemetryEvent?(event: TelemetryEvent, includeContext?: boolean, metadata?: TelemetryMetadata): void;
 }
 
@@ -73,13 +78,13 @@ interface AssistantOptions {
  * Displays a list of sent and received messages (`AssistantConversation`)
  * and inputs to send a new message.
  *
- * Used by both `FormulaAssistant` and `AssistantPopup`:
+ * Used by both `FormulaAssistant` and `AssistantPanel`:
  *  - The former is a panel shown in `FormulaEditor` when version 1
  *    of the AI assistant is configured in the backend. Available in all
  *    flavors of Grist.
- *  - The latter is a popup opened from the left panel when version 2
+ *  - The latter is a panel shown in the inner left panel when version 2
  *    of the AI assistant in configured in the backend. Available in SaaS
- *    and Enterprise flavors of Grist.
+ *    and full edition of Grist.
  */
 export class Assistant extends Disposable {
   private _history = this._options.history;
@@ -124,7 +129,7 @@ export class Assistant extends Disposable {
       history: this._history,
       gristDoc: this._gristDoc,
       buildIntroMessage: this._options.buildIntroMessage,
-      onClearConversation: this.clear.bind(this),
+      onNewSession: this._options.onNewSession ?? this.clear.bind(this),
       onApplyFormula: this._options.onApplyFormula,
     });
   }
@@ -140,6 +145,8 @@ export class Assistant extends Disposable {
   }
 
   public async send(message: string): Promise<void> {
+    if (this._conversation.thinking.get()) { return; }
+
     this._conversation.addQuestion(message);
     this._userInput.set("");
     await this._doAsk(message);
@@ -251,6 +258,7 @@ export class Assistant extends Disposable {
       return t("For higher limits, contact the site owner.");
     }
 
+    logUpsellShown(this._appModel, "assistantBanner", this._gristDoc.docId());
     return t("For higher limits, {{upgradeNudge}}.", {
       upgradeNudge: cssBannerLink(
         canUpgradeSite ?
@@ -258,8 +266,9 @@ export class Assistant extends Disposable {
           t("upgrade your plan"),
         dom.on("click", async () => {
           if (canUpgradeSite) {
-            this._gristDoc.appModel.showUpgradeModal().catch(reportError);
+            this._gristDoc.appModel.showUpgradeModal("assistantBanner").catch(reportError);
           } else {
+            logUpgradeClicked(this._appModel, "assistantBanner");
             await urlState().pushUrl({ billing: "billing" });
           }
         }),
@@ -499,7 +508,7 @@ class AssistantConversation extends Disposable {
       history: Observable<ChatHistory>;
       gristDoc: GristDoc;
       buildIntroMessage: (...args: DomElementArg[]) => DomContents;
-      onClearConversation: () => void;
+      onNewSession: () => void;
       onApplyFormula?: (formula: string) => void;
     },
   ) {
@@ -588,9 +597,9 @@ class AssistantConversation extends Disposable {
     this.scrollDown();
   }
 
-  public addError(error: ApiError) {
+  public addError({ message, status, details }: ApiError) {
     this.thinking.set(false);
-    const entry: ChatMessage = { message: "", error, sender: "ai" };
+    const entry: ChatMessage = { message: "", error: { message, status, details }, sender: "ai" };
     this.allMessages.push(entry);
     this.newMessages.push(entry);
     this.scrollDown();
@@ -619,7 +628,9 @@ class AssistantConversation extends Disposable {
   public buildDom() {
     return domAsync(
       AssistantConversation._marked!.get().then(() => {
-        return (this._element = cssHistory(
+        if (this.isDisposed()) { return null; }
+
+        return cssHistory(
           this._buildIntroMessage(),
           dom.forEach(this.allMessages, (entry) => {
             if (entry.sender === "user") {
@@ -670,33 +681,36 @@ class AssistantConversation extends Disposable {
               ),
             ),
           ),
-          () => { this.scrollDown({ smooth: false }); },
-        ));
+          (el) => {
+            this._element = el;
+            this.scrollDown({ smooth: false });
+          },
+        );
       }),
     );
   }
 
-  private _buildErrorMessage(error: ApiError) {
+  private _buildErrorMessage(error: ChatMessageError) {
     const code = error.details?.code;
     switch (code) {
       case "ContextLimitExceeded": {
         return dom("div",
           t(
-            "The conversation has become too long and I can no longer \
-respond effectively. Please {{startANewChatButton}} to continue \
+            "The session has become too long and I can no longer \
+respond effectively. Please {{startANewSessionButton}} to continue \
 receiving assistance.",
             {
-              startANewChatButton: textButton(
+              startANewSessionButton: textButton(
                 textButton.cls("-hover-bg-padding-sm"),
-                t("start a new chat"),
-                dom.on("click", () => this._options.onClearConversation()),
+                t("start a new session"),
+                dom.on("click", () => this._options.onNewSession()),
               ),
             },
           ),
         );
       }
       default: {
-        return this._render(error.details?.userError ?? error.message);
+        return this._render(error.details?.userError ?? error.message ?? "");
       }
     }
   }

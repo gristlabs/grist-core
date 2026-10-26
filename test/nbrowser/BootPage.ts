@@ -106,14 +106,14 @@ describe("BootPage", function() {
     it("reports server is in service in Admin Panel", async function() {
       await driver.get(`${server.getHost()}/admin`);
       await gu.waitForAdminPanel();
-      // Probe-driven badge starts at "checking" and settles asynchronously.
-      await driver.findContentWait(".test-admin-panel-item-value-service-status", "in service", 2000);
+      await gu.waitForAdminChecks();
+      assert.equal(await driver.find(".test-admin-panel-item-value-service-status").getText(), "in service");
       await toggleItem("service-status");
       assert.isFalse(await driver.find(".test-service-status-env-variable-notice").isPresent());
     });
 
     it("reports boot key is disabled in Admin Panel", async function() {
-      await driver.findContentWait(".test-admin-panel-item-value-boot-key", "disabled", 2000);
+      assert.equal(await driver.find(".test-admin-panel-item-value-boot-key").getText(), "disabled");
       await toggleItem("boot-key");
       assert.isFalse(await driver.find(".test-boot-key-status-remove-boot-key").isPresent());
       assert.isFalse(await driver.find(".test-boot-key-status-env-variable-notice").isPresent());
@@ -126,6 +126,7 @@ describe("BootPage", function() {
 
       await driver.get(`${server.getHost()}/admin`);
       await gu.waitForAdminPanel();
+      await gu.waitForAdminChecks();
       await toggleItem("service-status");
       await driver.find(".test-service-status-enter-maintenance-mode").click();
       await driver.find(".test-modal-confirm").click();
@@ -158,6 +159,7 @@ describe("BootPage", function() {
 
       await driver.get(`${server.getHost()}/admin?boot-key=abc123`);
       await gu.waitForAdminPanel();
+      await gu.waitForAdminChecks();
       await toggleItem("service-status");
       await driver.find(".test-service-status-restore-service").click();
       await driver.find(".test-modal-confirm").click();
@@ -275,7 +277,8 @@ describe("BootPage", function() {
 
       await driver.get(`${server.getHost()}/admin`);
       await gu.waitForAdminPanel();
-      await driver.findContentWait(".test-admin-panel-item-value-service-status", "out of service", 2000);
+      await gu.waitForAdminChecks();
+      assert.equal(await driver.find(".test-admin-panel-item-value-service-status").getText(), "out of service");
       await toggleItem("service-status");
       assert.isFalse(await driver.find(".test-service-status-env-variable-notice").isPresent());
     });
@@ -300,6 +303,7 @@ describe("BootPage", function() {
     });
 
     it("can restore service via Admin Panel", async function() {
+      await gu.waitForAdminChecks();
       await toggleItem("service-status");
       await driver.find(".test-service-status-restore-service").click();
       await driver.find(".test-modal-confirm").click();
@@ -324,11 +328,8 @@ describe("BootPage", function() {
       await driver.find(".test-boot-page-continue").click();
       await gu.waitForServer();
       await gu.waitForAdminPanel();
-
-      assert.equal(
-        await driver.findWait(".test-admin-panel-item-value-boot-key", 2000).getText(),
-        "enabled",
-      );
+      await gu.waitForAdminChecks();
+      assert.equal(await driver.find(".test-admin-panel-item-value-boot-key").getText(), "enabled");
 
       await toggleItem("boot-key");
       assert.isTrue(await driver.find(".test-boot-key-status-remove-boot-key").isDisplayed());
@@ -422,10 +423,8 @@ describe("BootPage", function() {
     it("reports server is out of service in Admin Panel", async function() {
       await driver.get(`${server.getHost()}/admin`);
       await gu.waitForAdminPanel();
-      assert.equal(
-        await driver.find(".test-admin-panel-item-value-service-status").getText(),
-        "out of service",
-      );
+      await gu.waitForAdminChecks();
+      assert.equal(await driver.find(".test-admin-panel-item-value-service-status").getText(), "out of service");
       await toggleItem("service-status");
       assert.isFalse(await driver.find(".test-service-status-env-variable-notice").isPresent());
     });
@@ -594,10 +593,8 @@ describe("BootPage", function() {
     it("reports server is in service in Admin Panel", async function() {
       await driver.get(`${server.getHost()}/admin?boot-key=abc123`);
       await gu.waitForAdminPanel();
-      assert.equal(
-        await driver.find(".test-admin-panel-item-value-service-status").getText(),
-        "in service",
-      );
+      await gu.waitForAdminChecks();
+      assert.equal(await driver.find(".test-admin-panel-item-value-service-status").getText(), "in service");
       await toggleItem("service-status");
       assert.match(
         await driver.find(".test-service-status-env-variable-notice").getText(),
@@ -612,10 +609,8 @@ describe("BootPage", function() {
 
       await driver.get(`${server.getHost()}/admin?boot-key=abc123`);
       await gu.waitForAdminPanel();
-      assert.equal(
-        await driver.findWait(".test-admin-panel-item-value-service-status", 2000).getText(),
-        "out of service",
-      );
+      await gu.waitForAdminChecks();
+      assert.equal(await driver.find(".test-admin-panel-item-value-service-status").getText(), "out of service");
       await toggleItem("service-status");
       assert.isTrue(await driver.find(".test-service-status-restore-service").isDisplayed());
       assert.isFalse(await driver.find(".test-service-status-env-variable-notice").isPresent());
@@ -662,7 +657,8 @@ describe("BootPage", function() {
     it("reports server is out of service in Admin Panel", async function() {
       await driver.get(`${server.getHost()}/admin?boot-key=abc123`);
       await gu.waitForAdminPanel();
-      await driver.findContentWait(".test-admin-panel-item-value-service-status", "out of service", 2000);
+      await gu.waitForAdminChecks();
+      assert.equal(await driver.find(".test-admin-panel-item-value-service-status").getText(), "out of service");
       await toggleItem("service-status");
       assert.match(
         await driver.find(".test-service-status-env-variable-notice").getText(),
@@ -677,7 +673,8 @@ describe("BootPage", function() {
 
       await driver.get(`${server.getHost()}/admin?boot-key=abc123`);
       await gu.waitForAdminPanel();
-      await driver.findContentWait(".test-admin-panel-item-value-service-status", "in service", 2000);
+      await gu.waitForAdminChecks();
+      assert.equal(await driver.find(".test-admin-panel-item-value-service-status").getText(), "in service");
       await toggleItem("service-status");
       assert.isTrue(await driver.find(".test-service-status-enter-maintenance-mode").isDisplayed());
       assert.isFalse(await driver.find(".test-service-status-env-variable-notice").isPresent());

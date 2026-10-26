@@ -8,7 +8,7 @@ import { createInstance, i18n } from "i18next";
 import { LanguageDetector } from "i18next-http-middleware";
 import merge from "lodash/merge";
 
-export function setupLocale(localeDirs: string[]): i18n {
+export function setupLocale(localeDirs: string[], options: { offerAllLanguages?: boolean } = {}): i18n {
   // We are using custom instance and leave the global object intact.
   const instance = createInstance();
   // The first directory holds the core files and must exist, unless the environment variable
@@ -69,7 +69,7 @@ export function setupLocale(localeDirs: string[]): i18n {
   // First sort by ns, which will put "client" first. That lets us check for a
   // client key which, if absent, means the language should be ignored.
   const preload = [...resources.values()].sort((a, b) => a.namespace.localeCompare(b.namespace));
-  const offerAll = appSettings.section("locale").flag("offerAllLanguages").readBool({
+  const offerAll = options.offerAllLanguages ?? appSettings.section("locale").flag("offerAllLanguages").readBool({
     envVar: "GRIST_OFFER_ALL_LANGUAGES",
   });
   const shouldIgnoreLng = new Set<string>();

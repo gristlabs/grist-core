@@ -4,7 +4,9 @@ import { mapGetOrSet, mapSetOrClear, MapWithTTL } from "app/common/AsyncCreate";
 import { ConfigKey, ConfigValue } from "app/common/Config";
 import { getDataLimitInfo } from "app/common/DocLimits";
 import { DocStateComparison } from "app/common/DocState";
-import { createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary } from "app/common/DocUsage";
+import {
+  createEmptyOrgUsageSummary, DocumentUsage, editorsBypassRules, OrgUsageSummary,
+} from "app/common/DocUsage";
 import { normalizeEmail } from "app/common/emails";
 import {
   ANONYMOUS_PLAN,
@@ -2238,6 +2240,7 @@ export class HomeDBManager implements HomeDBAuth {
   ): Promise<QueryResult<OrgAccessChanges>> {
     const { userId } = scope;
     const notifications: (() => Promise<void>)[] = [];
+    let userLimitCleared = false;
     const result = await this._connection.transaction(async (manager) => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
       let orgQuery = this.org(scope, orgKey, {
@@ -2278,7 +2281,11 @@ export class HomeDBManager implements HomeDBAuth {
         // the site would be left with.
         const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const usersAfter = removeRole(membersAfter);
-        this._restrictOrgMembers(org.billingAccount.getEffectiveFeatures(), usersBefore, usersAfter);
+        const features = org.billingAccount.getEffectiveFeatures();
+        this._restrictOrgMembers(features, usersBefore, usersAfter);
+        // Removing a member is the only way a site comes back under the cap just checked.
+        userLimitCleared = this._isOverUserLimit(features, usersBefore) &&
+          !this._isOverUserLimit(features, usersAfter);
         await manager.save(groups);
         // Fully remove any users being removed from the org.
         for (const deltaUser in userIdDelta) {
@@ -2306,6 +2313,7 @@ export class HomeDBManager implements HomeDBAuth {
           accessChanges: {
             users: getUserAccessChanges({ users, userIdDelta }),
           },
+          userLimitCleared,
         },
       };
     });
@@ -2573,6 +2581,25 @@ export class HomeDBManager implements HomeDBAuth {
     };
   }
 
+  /**
+   * The number of users granted access directly on the document, in any non-guest role.
+   * Reported in telemetry; the count is needed even for documents the caller cannot list
+   * shares of, so this reads the groups directly rather than going through getDocAccess().
+   */
+  public async getDocShareCount(docId: string): Promise<number> {
+    const doc = await this._connection.createQueryBuilder()
+      .select("docs")
+      .from(Document, "docs")
+      .leftJoinAndSelect("docs.aclRules", "acl_rules")
+      .leftJoinAndSelect("acl_rules.group", "groups")
+      .leftJoinAndSelect("groups.memberUsers", "users")
+      .where("docs.id = :docId", { docId })
+      .getOne();
+    if (!doc) { return 0; }
+    const userIds = getNonGuestGroups(doc).flatMap(group => group.memberUsers.map(user => user.id));
+    return new Set(userIds).size;
+  }
+
   // Returns UserAccessData for all users with any permissions on the ORG, as well as the
   // maxInheritedRole set on the doc. Note that information for all users in the org is given
   // to indicate which users have access to the org but not to this particular doc.
@@ -2717,12 +2744,17 @@ export class HomeDBManager implements HomeDBAuth {
       }
     }
 
+    // Owners get to know if Editors can bypass access rules, judging by what the doc worker
+    // last cached about them.
+    const bypass = roles.canEditAccess(docRealAccess) && editorsBypassRules(doc.usage?.acl);
+
     return {
       status: 200,
       data: {
         ...personalMetadata,
         maxInheritedRole: maxInheritedRole,
         users,
+        ...(bypass ? { editorsBypassRules: true as const } : {}),
       },
     };
   }
@@ -2794,7 +2826,7 @@ export class HomeDBManager implements HomeDBAuth {
       // no conflict.  Be careful about the merged personal org.
       if (oldWs.org.id !== doc.workspace.org.id) {
         doc.urlId = null;
-        await manager.delete(Alias, { doc: doc.id });
+        await manager.delete(Alias, { docId: doc.id });
       }
       // Forcibly remove the aliases relation from the document object, so that TypeORM
       // doesn't try to save it.  It isn't safe to do that because it was filtered by
@@ -5318,6 +5350,12 @@ export class HomeDBManager implements HomeDBAuth {
         message: "pay for more team members",
       }],
     });
+  }
+
+  // Whether this membership puts a site over the member limit of its plan.
+  private _isOverUserLimit(features: Features, users: User[]) {
+    const limit = features.maxUsersPerOrg;
+    return limit !== undefined && this._billableUsers(users).length > limit;
   }
 
   // The users among these that are billed for, which is the population the member limit

@@ -23,7 +23,7 @@ describe("saveViewSection", function() {
     await gu.renameSection("TABLE1", "Foo");
 
     // open right panel
-    await gu.toggleSidePanel("right");
+    await gu.toggleSidePanel("right", "open");
     await driver.find(".test-config-data").click();
 
     // check there is no groupedBy

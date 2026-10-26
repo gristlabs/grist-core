@@ -134,6 +134,8 @@ export class FloatingPopup extends Disposable {
     this._addPopupToDom();
   }
 
+  public get hidden(): Observable<boolean> { return this._isHidden; }
+
   public showPopup() {
     this._isHidden.set(false);
     this._repositionPopup();

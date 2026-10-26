@@ -1,7 +1,36 @@
-export interface DocumentUsage {
+// Size metrics of a document, shown to users and checked against plan limits.
+export interface DocUsageMetrics {
   rowCount?: RowCounts;
   dataSizeBytes?: number;
   attachmentsSizeBytes?: number;
+}
+
+/**
+ * Facts about a document, worked out by the doc worker and cached in the home database, so
+ * they are available without opening the document.
+ */
+export interface DocumentUsage extends DocUsageMetrics {
+  acl?: AclFacts;
+}
+
+/**
+ * Facts about what a document's access rules contain. These are stored, so keep them as plain
+ * descriptions of the rules, and judge what they mean in code.
+ */
+export interface AclFacts {
+  // Whether some rule written by a user denies a permission on data (read, update, create or
+  // delete). Conditions aren't checked, so this says nothing about who is denied.
+  hasDenyingDataRules: boolean;
+  // Whether some rule written by a user limits structure editing (the SchemaEdit permission).
+  hasSchemaEditRestriction: boolean;
+}
+
+/**
+ * Whether Editors can bypass access rules on data, as Owners can: some rule denies access to
+ * data, but Editors can still edit structure, which lets them get around it.
+ */
+export function editorsBypassRules(acl: AclFacts | undefined): boolean {
+  return Boolean(acl && acl.hasDenyingDataRules && !acl.hasSchemaEditRestriction);
 }
 
 export interface RowCounts {
@@ -16,7 +45,7 @@ export interface DataLimitInfo {
 }
 
 type DocUsageOrPending = {
-  [Metric in keyof Required<DocumentUsage>]: Required<DocumentUsage>[Metric] | "pending"
+  [Metric in keyof Required<DocUsageMetrics>]: Required<DocUsageMetrics>[Metric] | "pending"
 };
 
 export interface DocUsageSummary extends DocUsageOrPending {

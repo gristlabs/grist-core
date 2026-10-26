@@ -61,8 +61,11 @@ export class ScreenReaderAnnouncer extends Disposable {
 
   public listenToNotifier(notifier: Notifier) {
     const { toasts } = notifier.getStateForUI();
-    this.autoDispose(toasts.addListener((newToasts) => {
-      for (const toast of newToasts) {
+    this.autoDispose(toasts.addListener((newToasts, _oldToasts, splice) => {
+      // Only announce toasts that just appeared. The list also changes when a toast goes away,
+      // and the ones still showing were already announced.
+      const added = splice ? newToasts.slice(splice.start, splice.start + splice.numAdded) : newToasts;
+      for (const toast of added) {
         const { title, message } = toast.options;
         this.announce(
           t("Notification: {{notification}}", { notification: `${title ? `${title} - ` : ""}${message}` }),

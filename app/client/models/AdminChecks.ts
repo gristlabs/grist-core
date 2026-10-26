@@ -36,14 +36,17 @@ export class AdminChecks {
     const config = getGristConfig();
     const errMessage = config.errMessage;
     if (!errMessage) {
-      const _probes = await this._installAPI.getChecks().catch(reportError);
-      if (!this._parent.isDisposed()) {
-        // Currently, probes are forbidden if not admin.
-        // TODO: May want to relax this to allow some probes that help
-        // diagnose some initial auth problems.
-        this.probes.set(_probes ? _probes.probes : []);
-      }
-      return _probes;
+      // Counted as pending, since no check is requested until the list arrives.
+      return testPendingChecks.track(async () => {
+        const _probes = await this._installAPI.getChecks().catch(reportError);
+        if (!this._parent.isDisposed()) {
+          // Currently, probes are forbidden if not admin.
+          // TODO: May want to relax this to allow some probes that help
+          // diagnose some initial auth problems.
+          this.probes.set(_probes ? _probes.probes : []);
+        }
+        return _probes;
+      });
     }
     return [];
   }
@@ -139,6 +142,16 @@ export interface AdminCheckRequest {
 }
 
 /**
+ * Whether a check has yet to report. Until then its result is a placeholder with status "none",
+ * so this suits only checks that never answer "none" themselves.
+ */
+export function isChecking(
+  result: BootProbeResult | undefined,
+): result is undefined | (BootProbeResult & { status: "none" }) {
+  return !result || result.status === "none";
+}
+
+/**
  * Manage a single check.
  */
 export class AdminCheckRunner {
@@ -158,7 +171,8 @@ export class AdminCheckRunner {
       this.result.set(result);
     }).catch((e) => {
       if (this._abandoned()) { return; }
-      this.result.set({ status: "fault", details: { error: String(e) } });
+      // requestFailed tells a failed request apart from a check that ran and found a fault.
+      this.result.set({ status: "fault", details: { error: String(e), requestFailed: true } });
     }).finally(() => {
       // After the observable is set, so a count of zero means values are already written.
       testPendingChecks.end();

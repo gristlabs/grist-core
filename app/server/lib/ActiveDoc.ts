@@ -4,7 +4,7 @@
  * change events.
  */
 
-import { ACLRuleCollection } from "app/common/ACLRuleCollection";
+import { ACLRuleCollection, getAclFacts } from "app/common/ACLRuleCollection";
 import {
   getEnvContent,
   LocalActionBundle,
@@ -59,7 +59,12 @@ import {
   UserAction,
 } from "app/common/DocActions";
 import { DocData } from "app/common/DocData";
-import { getDataLimitInfo, getDataLimitRatio, getSeverity } from "app/common/DocLimits";
+import {
+  DataLimitTransitions,
+  getDataLimitInfo,
+  getDataLimitRatio,
+  getSeverity,
+} from "app/common/DocLimits";
 import { DocSnapshots } from "app/common/DocSnapshot";
 import {
   DocState,
@@ -92,7 +97,7 @@ import {
 import * as roles from "app/common/roles";
 import { schema, SCHEMA_VERSION } from "app/common/schema";
 import { MetaRowRecord, SingleCell } from "app/common/TableData";
-import { TelemetryEvent, TelemetryMetadataByLevel } from "app/common/Telemetry";
+import { LimitStatus, TelemetryEvent, TelemetryMetadataByLevel } from "app/common/Telemetry";
 import { FetchUrlOptions, UploadResult } from "app/common/uploads";
 import {
   ANONYMOUS_USER_EMAIL,
@@ -190,6 +195,7 @@ import imageSize from "image-size";
 import { Cancelable } from "lodash";
 import cloneDeep from "lodash/cloneDeep";
 import flatten from "lodash/flatten";
+import isEqual from "lodash/isEqual";
 import merge from "lodash/merge";
 import pick from "lodash/pick";
 import sum from "lodash/sum";
@@ -340,6 +346,9 @@ export class ActiveDoc extends EventEmitter {
   private _product?: Product;
   private _features?: Features;
   private _gracePeriodStart: Date | null = null;
+  // Logs data-limit transitions. The first check is the "Calculate" action every open applies,
+  // and only sets the baseline.
+  private _dataLimitTransitions = new DataLimitTransitions();
   private _isSnapshot: boolean;
   private _isForkOrSnapshot: boolean;
   private _onlyAllowMetaDataActionsOnDb: boolean = false;
@@ -728,6 +737,7 @@ export class ActiveDoc extends EventEmitter {
       throw new ApiError("Wrong type of assistance request", 400);
     }
     const limit = await dbManager.increaseUsage(scope, "assistant", { delta: 1 });
+    if (limit) { this._logAssistantLimit(docSession, limit); }
     return {
       ...result,
       limit: !limit ? undefined : {
@@ -920,7 +930,7 @@ export class ActiveDoc extends EventEmitter {
     await this._actionHistory.initialize();
     this._granularAccess = new GranularAccess(this.docData, this.docStorage, this.docClients, (query) => {
       return this._fetchQueryFromDB(query, false);
-    }, this.recoveryMode, this.getHomeDbManager(), this.docName);
+    }, this.recoveryMode, this.getHomeDbManager(), this.docName, () => this._updateAclFacts());
     await this._granularAccess.update();
     this._sharing = new Sharing(this, this._actionHistory, this._modificationLock);
     // Make sure there is at least one item in action history. The document will be perfectly
@@ -2314,7 +2324,7 @@ export class ActiveDoc extends EventEmitter {
   public async updateRowCount(rowCount: RowCounts, docSession: OptDocSession | null) {
     // Up-to-date row counts are included in every DocUserAction, so we can skip broadcasting here.
     await this._updateDocUsage({ rowCount }, { broadcastUsageToClients: false });
-    await this._checkDataLimitRatio();
+    await this._checkDataLimitRatio(docSession);
 
     // Calculating data size is potentially expensive, so skip calculating it unless the
     // user is currently being warned specifically about approaching or exceeding the data
@@ -2839,6 +2849,22 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
+  /**
+   * Caches in usage some facts about this document's access rules, so that the sharing dialog
+   * can tell if Editors can bypass them without opening the document. Called whenever the rules
+   * are reloaded.
+   */
+  private async _updateAclFacts() {
+    if (this.isFork || this._isSnapshot) { return; }
+    const rules = new ACLRuleCollection();
+    await rules.update(this.docData!, { log, pullOutSchemaEdit: true });
+    const acl = getAclFacts(rules);
+    if (isEqual(this._docUsage?.acl, acl)) { return; }
+    this._docUsage = { ...this._docUsage, acl };
+    // Sync soon: a stale value could hide the warning from an Owner choosing roles.
+    this._syncDocUsageToDatabase(true);
+  }
+
   private _syncDocUsageToDatabase(minimizeDelay = false) {
     this._docManager.storageManager.scheduleUsageUpdate(this._docName, this._docUsage, minimizeDelay);
   }
@@ -2893,13 +2919,44 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
-  private async _checkDataLimitRatio() {
+  private async _checkDataLimitRatio(docSession: OptDocSession | null) {
     const exceedingDataLimit = this.dataLimitRatio > 1;
     if (exceedingDataLimit && !this._gracePeriodStart) {
       await this._updateGracePeriodStart(new Date());
     } else if (!exceedingDataLimit && this._gracePeriodStart) {
       await this._updateGracePeriodStart(null);
     }
+    this._logDataLimitTransition(docSession);
+  }
+
+  private _logDataLimitTransition(docSession: OptDocSession | null) {
+    const transition = this._dataLimitTransitions.update({
+      docUsage: this._docUsage, productFeatures: this._features, gracePeriodStart: this._gracePeriodStart,
+    });
+    if (!transition) { return; }
+    this.logTelemetryEvent(docSession, "limitStatusChanged", {
+      full: { ...transition, planName: this._product?.name },
+    });
+  }
+
+  /**
+   * Log the credit threshold this call crossed, if any. Stateless, assuming usage grows by one
+   * per call: the call that consumes the last credit reports "exceeded" (the next call will be
+   * refused), and the first call past APPROACHING_LIMIT_RATIO reports "approaching".
+   */
+  private _logAssistantLimit(docSession: OptDocSession, { usage, limit }: { usage: number, limit: number }) {
+    if (limit < 0) { return; }
+    let status: LimitStatus;
+    if (usage >= limit) {
+      status = "exceeded";
+    } else if (usage / limit > APPROACHING_LIMIT_RATIO && (usage - 1) / limit <= APPROACHING_LIMIT_RATIO) {
+      status = "approaching";
+    } else {
+      return;
+    }
+    this.logTelemetryEvent(docSession, "limitStatusChanged", {
+      full: { feature: "assistant", status, planName: this._product?.name },
+    });
   }
 
   private async _checkDataSizeLimitRatio(docSession: OptDocSession | null) {
@@ -2914,7 +2971,7 @@ export class ActiveDoc extends EventEmitter {
       dataSizeBytes,
       timeToMeasure,
     });
-    await this._checkDataLimitRatio();
+    await this._checkDataLimitRatio(docSession);
   }
 
   /**
@@ -3191,6 +3248,14 @@ export class ActiveDoc extends EventEmitter {
 
   private async _logDocMetrics(docSession: OptDocSession, triggeredBy: DocMetricsTrigger) {
     const extraMetrics = this._drainMcpMetrics(triggeredBy);
+    let numDocShares: number | undefined;
+    if (!this._isForkOrSnapshot) {
+      try {
+        numDocShares = await this.getHomeDbManager()?.getDocShareCount(this.docName);
+      } catch (e) {
+        this._log.warn(docSession, "failed to get doc share count", e);
+      }
+    }
     this.logTelemetryEvent(docSession, "documentUsage", {
       limited: {
         triggeredBy,
@@ -3206,6 +3271,10 @@ export class ActiveDoc extends EventEmitter {
         ...this._getTableMetrics(),
         ...this._getCustomWidgetMetrics(),
         ...extraMetrics,
+      },
+      full: {
+        dataLimitStatus: this.dataLimitInfo.status,
+        numDocShares,
       },
     });
     // Log progress on making snapshots periodically, to catch anything

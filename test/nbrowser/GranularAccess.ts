@@ -1508,7 +1508,7 @@ describe("GranularAccess", function() {
     await driver.find(".test-right-tab-field").click();
     // Enter formula.
     await driver.find(".test-field-set-trigger").click();
-    await gu.waitAppFocus(false);
+    await gu.waitForAceEditor(driver, { hasFocus: true });
     await gu.sendKeys("user.SessionID", Key.ENTER);
     await gu.waitForServer();
 
@@ -1960,6 +1960,6 @@ async function getCsvHref(sectionTitle: string) {
   await gu.openSectionMenu("viewLayout", "JOBS");
   const href = await driver.findContentWait(".test-download-section", /Download as CSV/, 1000)
     .getAttribute("href");
-  await driver.sendKeys(Key.ESCAPE);
+  await gu.closeOpenMenu();
   return href;
 }

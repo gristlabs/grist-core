@@ -5,5 +5,5 @@ import { Disposable, DomContents } from "grainjs";
 
 export class TriggersPage extends Disposable {
   constructor(private _gristDoc: GristDoc) { super(); }
-  public buildDom(): DomContents { return buildAutomationsUpsell(this._gristDoc.appModel); }
+  public buildDom(): DomContents { return buildAutomationsUpsell(this._gristDoc.appModel, this._gristDoc.docId()); }
 }

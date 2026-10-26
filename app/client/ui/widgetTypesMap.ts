@@ -18,7 +18,14 @@ export const widgetTypesMap = new Map<IWidgetType, IWidgetTypeInfo>([
   // this entry they'd fall back to the "record" info and be labeled "Table".
   ["custom.calendar", { name: "Calendar", icon: "TypeCalendar", getLabel: () => t("Calendar") }],
   ["form", { name: "Form", icon: "Board", getLabel: () => t("Form") }],
+  // Grist has 3 types of custom widgets:
+  // 1. community custom widgets - widgets from official grist gallery
+  // 2. external custom widgets - widgets that are hosted elsewhere by users
+  // 3. in document custom widgets - widgets created within the current document
+  // First two use "custom" key, the third uses "creator" key, but they all share
+  // similar structure in the widgetTypesMap.
   ["custom", { name: "Custom", icon: "TypeCustom", getLabel: () => t("Custom") }],
+  ["creator", { name: "Widget Creator", icon: "Code", getLabel: () => t("Custom") }],
 ]);
 
 // Widget type info.

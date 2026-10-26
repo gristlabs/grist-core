@@ -58,7 +58,7 @@ export class CalendarView extends BaseView implements CalendarHost {
   private _selectedRecordId: number | null = null;
 
   private _perspective = Computed.create(this,
-    fromKo(this.viewSection.optionsObj.prop("calendarViewPerspective")),
+    fromKo(this.viewSection.activeCalendarPerspective),
     (_use, view) => (view && PERSPECTIVES.includes(view) ? view : "week"));
 
   private _resize = this.autoDispose(Delay.untilAnimationFrame(() => this._calendar?.render(), this));
@@ -372,9 +372,8 @@ export class CalendarView extends BaseView implements CalendarHost {
   }
 
   private _setPerspective(view: Perspective) {
-    // Persist the choice; this flows back through _perspective (toolbar active state) and its
-    // listener (changeView), since setAndSave updates the underlying option synchronously.
-    this.viewSection.optionsObj.prop("calendarViewPerspective").setAndSave(view).catch(reportError);
+    // Local until saved from the section menu, like sort and filter.
+    this.viewSection.activeCalendarPerspective(view);
   }
 
   // Builds the toolbar and the container the calendar draws into.

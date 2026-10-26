@@ -1,10 +1,10 @@
 import { makeT } from "app/client/lib/localization";
-import { AdminChecks } from "app/client/models/AdminChecks";
+import { AdminChecks, isChecking } from "app/client/models/AdminChecks";
 import { getHomeUrl } from "app/client/models/AppModel";
 import { reportError } from "app/client/models/errors";
-import { buildConfirmedRow, cssDangerText, cssErrorText, cssHappyText } from "app/client/ui/AdminPanelCss";
+import { buildConfirmedRow, buildStatusPill, RowStatus } from "app/client/ui/AdminPanelCss";
 import { quickSetupStepHeader } from "app/client/ui/QuickSetupStepHeader";
-import { cssValueLabel } from "app/client/ui/SettingsLayout";
+import { SectionCard, SectionItem } from "app/client/ui/SettingsLayout";
 import { buildBadge, buildHeroCard, buildItemCard, cssHeroActions, cssItemsContainer } from "app/client/ui/SetupCard";
 import { basicButton } from "app/client/ui2018/buttons";
 import { testId } from "app/client/ui2018/cssVars";
@@ -90,6 +90,8 @@ export interface BackupsSectionProps {
 export class BackupsSection extends Disposable {
   public readonly canProceed: Computed<boolean>;
 
+  public readonly status: Computed<RowStatus>;
+
   /**
    * Backups is currently informational -- enabling a backend is done out of
    * band by setting env vars and restarting. So nothing is ever pending here
@@ -144,6 +146,7 @@ export class BackupsSection extends Disposable {
     this.canProceed = Computed.create(this, use =>
       Boolean(use(this._selectedBackend)) && use(this._persist).answered,
     );
+    this.status = Computed.create(this, use => this._buildStatus(use));
 
     this._installAPI.getInstallPrefs()
       .then((prefs) => {
@@ -182,27 +185,59 @@ export class BackupsSection extends Disposable {
     );
   }
 
-  public buildStatusDisplay() {
-    return dom.domComputed((use) => {
-      // Storage that isn't known to be persistent matters more than which backup backend is set.
-      const { cardToShow, confirmed, fault } = use(this._persist);
-      if (cardToShow && !confirmed) {
-        const verdict = use(this._persistResult)?.verdict;
-        return fault ?
-          cssValueLabel(
-            cssErrorText(t("at risk")),
-            verdict ? { title: verdict } : undefined,
-            testId("admin-panel-value-label-error"),
-          ) :
-          cssValueLabel(cssDangerText(t("unconfirmed")), testId("admin-panel-value-label-danger"));
-      }
-      const backend = use(this._activeBackend);
-      if (backend) {
-        return cssValueLabel(cssHappyText(STORAGE_BACKENDS[backend].label));
-      } else {
-        return cssValueLabel(cssDangerText(t("Off")));
-      }
-    });
+  /**
+   * The Storage card of the admin panel, with the Backups row.
+   */
+  public buildAdminCard(): DomContents {
+    return SectionCard(t("Storage"), [
+      SectionItem({
+        id: "backups",
+        name: t("Backups"),
+        description: t("Back up documents externally"),
+        value: buildStatusPill(this.status),
+        expandedContent: this.buildDom(),
+      }),
+    ]);
+  }
+
+  private _buildStatus(use: UseCBOwner): RowStatus {
+    // Storage that isn't known to be persistent matters more than which backup backend is set.
+    const persist = use(this._persist);
+    const { cardToShow, confirmed, fault } = persist;
+    if (cardToShow && !confirmed) {
+      return fault ? {
+        label: t("at risk"),
+        level: "error",
+        tooltip: use(this._persistResult)?.verdict,
+        problem: {
+          key: "persist.ephemeral",
+          severity: "error",
+          anchor: "backups",
+          title: t("Your data may be lost."),
+          text: this._persistFix(persist),
+        },
+      } : { label: t("unconfirmed"), level: "warning" };
+    }
+
+    const req = this._props.checks.requestCheckById(use, "backups");
+    const result = req ? use(req.result) : undefined;
+    if (req && isChecking(result)) { return { label: t("checking") }; }
+    if (result?.details?.requestFailed) { return { label: t("unknown") }; }
+    const backend = use(this._activeBackend);
+    return {
+      label: backend ? STORAGE_BACKENDS[backend].label() : t("Off"),
+      level: backend ? "success" : "warning",
+    };
+  }
+
+  /** The short fix for a persistence fault. Memory is the more urgent of the two risks. */
+  private _persistFix({ inMemory, volumePaths }: { inMemory: boolean; volumePaths: string[] }): string {
+    return inMemory ? t("Grist is storing data in memory. Move it to a disk or volume.") :
+      volumePaths.length === 1 && volumePaths[0] === IMAGE_VOLUME ?
+        t("Mount a volume at /persist to keep your data.") :
+        t("Keep {{paths}} on a mounted volume so your data survives.", {
+          paths: volumePaths.join(", "),
+        });
   }
 
   /**
@@ -241,16 +276,7 @@ export class BackupsSection extends Disposable {
         buildHeroCard({
           indicator: "error",
           header: t("Your data may be lost."),
-          // Memory is the more urgent of the two risks.
-          text: (use) => {
-            const { inMemory, volumePaths } = use(this._persist);
-            return inMemory ? t("Grist is storing data in memory. Move it to a disk or volume.") :
-              volumePaths.length === 1 && volumePaths[0] === IMAGE_VOLUME ?
-                t("Mount a volume at /persist to keep your data.") :
-                t("Keep {{paths}} on a mounted volume so your data survives.", {
-                  paths: volumePaths.join(", "),
-                });
-          },
+          text: use => this._persistFix(use(this._persist)),
           extra: buttons,
           args: [testId("backups-persist-warning")],
         }) :

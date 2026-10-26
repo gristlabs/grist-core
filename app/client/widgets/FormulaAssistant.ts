@@ -111,7 +111,7 @@ export class FormulaAssistant extends Disposable {
     });
 
     this.autoDispose(commands.createGroup({
-      activateAssistant: () => {
+      openFormulaAssistant: () => {
         this._expandChatPanel();
         setTimeout(() => { this._chat.focus(); }, 0);
       },

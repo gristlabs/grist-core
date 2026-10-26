@@ -1,5 +1,6 @@
 import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
+import { logUpsellShown } from "app/client/lib/upsellTelemetry";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -126,13 +127,14 @@ enable Grist Enterprise. {{contactUsLink}} to learn more.",
       deploymentType === "saas" &&
       !this._appModel.currentFeatures?.teamAuditLogs
     ) {
+      logUpsellShown(this._appModel, "auditLogsPage");
       return t(
         "You can set up streaming of audit events from Grist to an external \
 SIEM (security information and event management) system if you \
 {{upgradePlanButton}}.",
         {
           upgradePlanButton: textButton(
-            dom.on("click", () => this._appModel.showUpgradeModal()),
+            dom.on("click", () => this._appModel.showUpgradeModal("auditLogsPage")),
             t("upgrade your plan"),
           ),
         },

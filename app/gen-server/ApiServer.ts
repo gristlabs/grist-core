@@ -1311,7 +1311,7 @@ export class ApiServer {
 
   private _logChangeSiteAccessEvents(
     req: RequestWithLogin,
-    { org, accessChanges: { users } }: OrgAccessChanges,
+    { org, accessChanges: { users }, userLimitCleared }: OrgAccessChanges,
   ) {
     this._gristServer.getAuditLogger().logEvent(req, {
       action: "site.change_access",
@@ -1325,6 +1325,17 @@ export class ApiServer {
         },
       },
     });
+    if (userLimitCleared) {
+      this._gristServer.getTelemetry().logEvent(req, "limitStatusChanged", {
+        full: {
+          feature: "siteUsers",
+          status: "cleared",
+          planName: org.billingAccount.product?.name,
+          siteId: org.id,
+          userId: req.userId,
+        },
+      });
+    }
   }
 
   private _logChangeUserNameEvents(

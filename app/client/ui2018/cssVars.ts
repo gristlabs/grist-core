@@ -72,6 +72,7 @@ export const zIndexes = {
   stickyHeaderZIndex: new CustomProp("sticky-header-z-index", "20"),
   insertColumnLineZIndex: new CustomProp("insert-column-line-z-index", "20"),
   emojiPickerZIndex: new CustomProp("modal-z-index", "20"),
+  gridFreeSpaceZIndex: new CustomProp("grid-free-space-z-index", "25"),
   newRecordButtonZIndex: new CustomProp("new-record-button-z-index", "30"),
   popupSectionBackdropZIndex: new CustomProp("popup-section-backdrop-z-index", "100"),
   menuZIndex: new CustomProp("menu-z-index", "999"),
