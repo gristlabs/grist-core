@@ -12,8 +12,8 @@ import { onClickOutside } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import * as koUtil from "app/client/lib/koUtil";
 import { makeT } from "app/client/lib/localization";
-import { testPendingChecks, testPendingMenuActions, testPendingPastes, testPendingScrolls,
-  testPendingViewLoads } from "app/client/lib/testPendingOps";
+import { testPendingChartRenders, testPendingChecks, testPendingMenuActions, testPendingPastes,
+  testPendingScrolls, testPendingViewLoads } from "app/client/lib/testPendingOps";
 import { reportError, TopAppModel, TopAppModelImpl } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { setUpErrorHandling } from "app/client/models/errors";
@@ -287,6 +287,10 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   public testNumPendingViewLoads(): number {
     return testPendingViewLoads.count;
+  }
+
+  public testNumPendingChartRenders(): number {
+    return testPendingChartRenders.count;
   }
 
   private _reloadPane() {

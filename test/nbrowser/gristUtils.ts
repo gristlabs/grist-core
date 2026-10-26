@@ -4447,6 +4447,18 @@ namespace gristUtils {
     await waitForPendingOps("testNumPendingMenuActions", "a menu action to run", optTimeout);
   }
 
+  /**
+   * Waits for charts to load their data and finish redrawing. A chart redraws after a debounce
+   * once its data or options change, so its plot can lag behind a change the server has already
+   * confirmed. A view queues its render in the same step that ends its load, so the second wait
+   * never sees a false zero. Both counts are zero before a chart view exists, so wait for its
+   * element first.
+   */
+  export async function waitForChartRenders(optTimeout: number = 5000) {
+    await waitForViewLoads(optTimeout);
+    await waitForPendingOps("testNumPendingChartRenders", "charts to render", optTimeout);
+  }
+
   /** Gets the value from the select component */
   export async function getSelectValue(selector: string) {
     return await driver.find(`${selector} .test-select-row`).getText();

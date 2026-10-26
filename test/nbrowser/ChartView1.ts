@@ -39,10 +39,8 @@ describe("ChartView1", function() {
 
     const layout = () => getChartData().then(d => d.layout);
 
-    await gu.waitToPass(async () => {
-      // Check to make sure initial values are correct.
-      assert.deepEqual((await layout()).xaxis.type, "linear");
-    });
+    // Check to make sure initial values are correct.
+    assert.deepEqual((await layout()).xaxis.type, "linear");
 
     // Now convert X to text.
     await gu.sendActions([
@@ -63,23 +61,55 @@ describe("ChartView1", function() {
     await gu.toggleSidePanel("right", "close");
   });
 
+  it("should treat a reference to text as category in bar charts", async function() {
+    const revert = await gu.begin();
+    await gu.sendActions([
+      ["AddTable", "Labels", [{ id: "Name", type: "Text" }]],
+      ["BulkAddRecord", "Labels", [1, 2], { Name: ["100", "200"] }],
+      ["AddTable", "Values", [
+        { id: "Label", type: "Ref:Labels" },
+        { id: "Y", type: "Int" },
+      ]],
+      ["BulkAddRecord", "Values", [1, 2], { Label: [1, 2], Y: [1, 2] }],
+    ]);
+    await gu.openPage("Values");
+    await gu.addNewSection("Chart", "Values");
+    // Showing Row ID, the reference is a category too.
+    assert.equal((await getChartData()).layout.xaxis.type, "category");
+
+    await gu.selectSectionByTitle("Values");
+    await gu.openColumnPanel("Label");
+    await gu.setRefShowColumn("Name");
+    // Numeric-looking text would otherwise get a linear axis.
+    assert.equal((await getChartData("Values Chart")).layout.xaxis.type, "category");
+
+    await revert();
+    await gu.toggleSidePanel("right", "close");
+  });
+
   it("should order categories on the x-axis of multiseries line charts", async function() {
     // The first series lacks "D2", which used to push "D2" to the end of the x-axis
     // (https://github.com/gristlabs/grist-core/issues/387).
     const revert = await gu.begin();
     await gu.sendActions([
+      ["AddTable", "Tests", [{ id: "Name", type: "Text" }]],
+      ["BulkAddRecord", "Tests", [1, 2, 3], { Name: ["D3", "D1", "D2"] }],
       ["AddTable", "Scores", [
         { id: "Person", type: "Text" },
         { id: "Test", type: "Text" },
+        { id: "TestRef", type: "Ref:Tests" },
         { id: "Score", type: "Int" },
       ]],
       ["BulkAddRecord", "Scores", [1, 2, 3, 4, 5], {
         Person: ["John", "John", "Paul", "Paul", "Paul"],
         Test: ["D1", "D3", "D1", "D2", "D3"],
+        TestRef: [2, 1, 2, 3, 1],
         Score: [1, 3, 1, 2, 3],
       }],
     ]);
     await gu.openPage("Scores");
+    await gu.openColumnPanel("TestRef");
+    await gu.setRefShowColumn("Name");
     await gu.addNewSection("Chart", "Scores");
     await gu.toggleSidePanel("right", "open");
     await selectChartType("Line chart");
@@ -87,7 +117,13 @@ describe("ChartView1", function() {
     await setSplitSeries("Person");
     await setYAxis(["Score"]);
 
-    const { layout } = await getChartData();
+    let { layout } = await getChartData();
+    assert.equal(layout.xaxis.categoryorder, "array");
+    assert.deepEqual(layout.xaxis.categoryarray, ["D1", "D2", "D3"]);
+
+    // Same for a reference column, ordered by the shown values.
+    await selectXAxis("TestRef");
+    ({ layout } = await getChartData());
     assert.equal(layout.xaxis.categoryorder, "array");
     assert.deepEqual(layout.xaxis.categoryarray, ["D1", "D2", "D3"]);
 
@@ -251,7 +287,6 @@ describe("ChartView1", function() {
     });
 
     // Make sure only y axis updates to the new column of data
-    await driver.sleep(50);
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, "bar");
     assert.deepEqual(data[0].x, [61, 5, 4, 3, 2, 1]);
@@ -282,7 +317,6 @@ describe("ChartView1", function() {
     });
 
     // Reverse the order of the columns and make sure the data updates to reflect that.
-    await driver.sleep(50);
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, "bar");
     assert.deepEqual(data[0].x, [22, 33, 11, 44, 55]);
@@ -391,23 +425,17 @@ describe("ChartView1", function() {
   it("should support Y-axis options", async function() {
     const chartDom = await driver.find(".test-chart-container");
     await selectChartType("Bar chart");
-    await gu.waitToPass(async () => {
-      checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0, 57);
-    });
+    checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0, 57);
 
     await driver.findContent("label", /Invert Y-axis/).find("input").click();
     await gu.waitForServer();
-    await gu.waitToPass(async () => {
-      checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 57, 0);
-    });
+    checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 57, 0);
 
     await driver.findContent("label", /Invert Y-axis/).find("input").click();
     await gu.waitForServer();
     await driver.findContent("label", /Log scale Y-axis/).find("input").click();
     await gu.waitForServer();
-    await gu.waitToPass(async () => {
-      checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0.22, 1.82);
-    });
+    checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0.22, 1.82);
 
     await gu.undo(4);
     await gu.waitToPass(async () => {
@@ -709,8 +737,7 @@ describe("ChartView1", function() {
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();
 
-    await driver.sleep(1000);
-    chartDom = await driver.findWait(".test-chart-container", 1000);
+    chartDom = await driver.findWait(".test-chart-container", 5000);
     assert.equal(await chartDom.isDisplayed(), true);
     data = (await getChartData(chartDom)).data;
     assert.lengthOf(data, 1);
@@ -726,7 +753,9 @@ describe("ChartView1", function() {
 
     // Add a chart section.
     await gu.addNewSection(/Chart/, /ChartData/);
-    const chart = await driver.findWait(".viewsection_content .svg-container", 1000);
+    await driver.findWait(".viewsection_content .test-chart-container", 1000);
+    await gu.waitForChartRenders();
+    const chart = await driver.find(".viewsection_content .svg-container");
     const initialRect = await chart.getRect();
     // We expect the left panel open initially.
     assert.equal(await gu.isSidePanelOpen("left"), true);
