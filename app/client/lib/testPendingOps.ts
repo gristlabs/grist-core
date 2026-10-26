@@ -56,3 +56,8 @@ export const testPendingMenuActions = new TestPendingOps();
  * Views waiting for data. Moving the cursor in one widget makes the widgets linked to it re-query.
  */
 export const testPendingViewLoads = new TestPendingOps();
+
+/**
+ * Chart renders. A chart redraws asynchronously after a debounce, once its data or options change.
+ */
+export const testPendingChartRenders = new TestPendingOps();
