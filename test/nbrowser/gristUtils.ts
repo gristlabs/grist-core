@@ -3612,13 +3612,10 @@ namespace gristUtils {
   }
 
   export async function copyAnchor() {
+    // Clear the last copied link, so that we wait for this copy rather than see an earlier one.
+    await driver.executeScript("if (window.testGrist) { delete window.testGrist.clipboard; }");
     await driver.find("body").sendKeys(Key.chord(Key.SHIFT, await modKey(), "a"));
-
-    await waitToPass(async () => {
-      assert.isTrue(
-        await driver.findContentWait(".test-notifier-toast-message", /Link copied to clipboard/, 100).isDisplayed(),
-      );
-    });
+    await driver.wait(async () => Boolean((await getTestState()).clipboard), 2000, "Timed out waiting for link copy");
     await wipeToasts();
   }
 
