@@ -24,6 +24,18 @@ export async function assertOptionsNotRendered() {
   assert.isFalse(await driver.find(".test-filter-menu-wrapper .grist-floating-menu").isPresent());
 }
 
+/**
+ * Waits for a bound's relative date options to open. They open on a timer after the bound is
+ * selected, and only then handle keys: until then, Enter opens them rather than moving to the
+ * next bound. The bound's aria-owns names the options list, which is in the page while open.
+ */
+export async function waitForBoundOptions(minMax: "min" | "max") {
+  await driver.wait(() => driver.executeScript((selector: string) => {
+    const listId = document.querySelector(selector)?.getAttribute("aria-owns");
+    return Boolean(listId && document.getElementById(listId));
+  }, `.test-filter-menu-${minMax}`), 1000, `${minMax} bound's options did not open`);
+}
+
 export async function isBoundSelected(minMax: "min" | "max") {
   return driver.find(`.test-filter-menu-${minMax}.selected`).isPresent();
 }
