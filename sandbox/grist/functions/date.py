@@ -372,8 +372,17 @@ def EDATE(start_date, months):
   datetime.date(2013, 1, 1)
   >>> EDATE(DATE(2012, 5, 1), -2)
   datetime.date(2012, 3, 1)
+
+  If the day of `start_date` is past the end of the resulting month, returns the last day of that
+  month.
+  >>> EDATE(DATE(2023, 1, 31), 1)
+  datetime.date(2023, 2, 28)
+  >>> EDATE(DATE(2024, 1, 31), 1)
+  datetime.date(2024, 2, 29)
+  >>> EDATE(DATE(2023, 3, 31), -1)
+  datetime.date(2023, 2, 28)
   """
-  return DATE(start_date.year, start_date.month + months, start_date.day)
+  return DATEADD(start_date, months=months)
 
 
 def DATEADD(start_date, days=0, months=0, years=0, weeks=0):
@@ -392,9 +401,22 @@ def DATEADD(start_date, days=0, months=0, years=0, weeks=0):
   datetime.date(2009, 3, 4)
   >>> DATEADD(DATE(1975, 4, 30), years=50, weeks=-5)
   datetime.date(2025, 3, 26)
+
+  Months and years are added first, keeping the day of the month but not going past the end of
+  the resulting month. Days and weeks are added after that.
+  >>> DATEADD(DATE(2023, 1, 31), months=1)
+  datetime.date(2023, 2, 28)
+  >>> DATEADD(DATE(2024, 2, 29), years=1)
+  datetime.date(2025, 2, 28)
+  >>> DATEADD(DATE(2023, 1, 31), months=1, days=1)
+  datetime.date(2023, 3, 1)
   """
-  return DATE(start_date.year + years, start_date.month + months,
-              start_date.day + days + weeks * 7)
+  months += years * 12
+  day = start_date.day
+  # Only days past the 28th can fall past the end of a month.
+  if months and day > 28:
+    day = min(day, EOMONTH(start_date, months).day)
+  return DATE(start_date.year, start_date.month + months, day + days + weeks * 7)
 
 
 def EOMONTH(start_date, months):
