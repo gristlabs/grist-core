@@ -150,6 +150,49 @@ describe("AccessRules4", function() {
     );
   });
 
+  it("should handle user using browser back button once without saving", async function() {
+    const session = await gu.session().personalSite.user("user1").login();
+    await session.tempNewDoc(cleanup);
+
+    await driver.find(".test-tools-raw").click();
+    await gu.waitForUrl(/data/, 2000);
+    await startEditingAccessRules();
+    await driver.navigate().back();
+    await driver.findWait(".test-modal-dialog", 500, "Unsaved changes modal should appear when pressing back button");
+    await driver.find(".test-modal-cancel").click();
+    assert.equal(await driver.find(".test-modal-dialog").isPresent(), false);
+    await assertChanged();
+    await driver.find(".test-rules-save").click();
+    await gu.waitForServer();
+    await assertSaved();
+    await driver.navigate().back();
+    // Make sure URL and actual content are synced
+    await driver.findWait(".test-raw-data-list", 2000);
+    await gu.waitForUrl(/data/, 2000);
+  });
+
+  it("should handle user using browser back button multiple times without saving", async function() {
+    const session = await gu.session().personalSite.user("user1").login();
+    await session.tempNewDoc(cleanup);
+
+    await driver.find(".test-tools-code").click();
+    await gu.waitForUrl(/code/, 2000);
+    await driver.find(".test-tools-raw").click();
+    await gu.waitForUrl(/data/, 2000);
+    await driver.find(".test-tools-settings").click();
+    await gu.waitForUrl(/settings/, 2000);
+    await startEditingAccessRules();
+    await driver.navigate().back();
+    await driver.findWait(".test-modal-dialog", 500, "Unsaved changes modal should appear when pressing back button");
+    // We press browser back button a couple times more while the unsaved changes warning modal is shown
+    await driver.navigate().back();
+    await driver.navigate().back();
+    // Confirming navigation (and loss of changes) should make us go back only once in the history stack
+    await driver.find(".test-modal-confirm").click();
+    await gu.waitForUrl(/settings/, 2000);
+    assert.isTrue(await driver.find(".test-admin-panel-item-locale").isPresent());
+  });
+
   it("pretends that example user does not exist", async function() {
     const session = await gu.session().personalSite.user("user1").login();
     await session.tempNewDoc(cleanup);
