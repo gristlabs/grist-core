@@ -1,5 +1,6 @@
 import { GristDoc } from "app/client/components/GristDoc";
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import koArray from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
@@ -173,7 +174,7 @@ export class SortConfig extends Disposable {
           label,
           dom.prop("disabled", !enabled),
         ),
-        dom.attr("aria-disabled", !enabled ? "true" : "false"),
+        ariaDisabled(!enabled),
         testId("option"),
         testId(`option-${flag}`),
       );

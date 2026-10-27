@@ -1,7 +1,7 @@
 import { allCommands } from "app/client/components/commands";
 import { showUndoDiscardNotification } from "app/client/components/Drafts";
 import { GristDoc } from "app/client/components/GristDoc";
-import { domDispatch, domOnCustom, makeTestId } from "app/client/lib/domUtils";
+import { ariaDisabled, domDispatch, domOnCustom, makeTestId } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { createObsArray } from "app/client/lib/koArrayWrap";
@@ -845,22 +845,22 @@ class Comment extends Disposable {
         menuItem(
           () => this.props.cell.resolve(comment),
           t("Resolve"),
-          dom.attr("aria-disabled", (use) => {
+          ariaDisabled((use) => {
             // Thread author or owner can resolve
             return (
               use(this.props.gristDoc.isReadonly) || (use(this._start.userRef) !== currentUser && !isDocOwner)
-            ) ? "true" : "false";
+            );
           }),
         ),
       !openVisible ? null :
         menuItem(
           () => this.props.cell.open(comment),
           t("Open"),
-          dom.attr("aria-disabled", (use) => {
+          ariaDisabled((use) => {
             // Thread author or owner can open
             return (
               use(this.props.gristDoc.isReadonly) || (use(this._start.userRef) !== currentUser && !isDocOwner)
-            ) ? "true" : "false";
+            );
           }),
         ),
       menuItem(
@@ -868,20 +868,20 @@ class Comment extends Disposable {
           return this.props.cell.remove(comment);
         },
         comment.root.peek() ? t("Remove thread") : t("Remove"),
-        dom.attr("aria-disabled", (use) => {
+        ariaDisabled((use) => {
           // Comment author or owner can delete
           return (
             (currentUser !== use(comment.userRef) && !isDocOwner) || use(this.props.gristDoc.isReadonly)
-          ) ? "true" : "false";
+          );
         }),
       ),
       // If comment is resolved, we can't edit it.
       !editVisible ? null : menuItem(
         () => this.setEditing(true),
         t("Edit"),
-        dom.attr("aria-disabled", (use) => {
+        ariaDisabled((use) => {
           // Only comment author can edit
-          return (currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly)) ? "true" : "false";
+          return currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly);
         }),
       ),
     ];

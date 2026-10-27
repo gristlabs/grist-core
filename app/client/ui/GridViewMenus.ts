@@ -2,6 +2,7 @@ import { allCommands } from "app/client/components/commands";
 import * as commands from "app/client/components/commands";
 import GridView from "app/client/components/GridView";
 import { GristDoc } from "app/client/components/GristDoc";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -746,14 +747,12 @@ export function calcFieldsCondition(
 export function buildColumnContextMenu(options: IColumnContextMenu) {
   const { disableModify, filterOpenFunc, colRowId, sortSpec, isReadonly } = options;
 
-  const disableForReadonlyColumn = dom.attr("aria-disabled",
-    Boolean(disableModify) || isReadonly ? "true" : "false",
-  );
+  const disableForReadonlyColumn = ariaDisabled(Boolean(disableModify) || isReadonly);
 
   const addToSortLabel = getAddToSortLabel(sortSpec, colRowId);
 
   const isVirtual = typeof colRowId === "string";
-  const disabledForVirtual = dom.attr("aria-disabled", isVirtual ? "true" : "false");
+  const disabledForVirtual = ariaDisabled(isVirtual);
 
   return [
     !isVirtual ? menuItemCmd(allCommands.fieldTabOpen, t("Column Options")) : null,
@@ -824,10 +823,8 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
  * makes sense.
  */
 export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
-  const disableForReadonlyColumn = dom.attr("aria-disabled",
-    Boolean(options.disableModify) || options.isReadonly ? "true" : "false",
-  );
-  const disableForReadonlyView = dom.attr("aria-disabled", options.isReadonly ? "true" : "false");
+  const disableForReadonlyColumn = ariaDisabled(Boolean(options.disableModify) || options.isReadonly);
+  const disableForReadonlyView = ariaDisabled(options.isReadonly);
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
     t("Reset {{count}} entire columns", { count: num }) :

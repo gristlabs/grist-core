@@ -1,7 +1,6 @@
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { menuItem, menuSubHeader } from "app/client/ui2018/menus";
-
-import { dom } from "grainjs";
 
 interface IFieldOptions {
   useSeparate: () => void;
@@ -22,7 +21,7 @@ export function FieldSettingsMenu(useColOptions: boolean, disableSeparate: boole
     useColOptions ? menuItem(
       actions.useSeparate,
       t("Use separate settings"),
-      dom.attr("aria-disabled", disableSeparate ? "true" : "false"),
+      ariaDisabled(disableSeparate),
     ) : [
       menuItem(actions.saveAsCommon, t("Save as common settings")),
       menuItem(actions.revertToCommon, t("Revert to common settings")),

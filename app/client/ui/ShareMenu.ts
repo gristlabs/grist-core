@@ -1,4 +1,5 @@
 import { hooks } from "app/client/Hooks";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { loadUserManager } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
@@ -190,7 +191,7 @@ function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
     menuItem(() => manageUsers(doc, pageModel),
       roles.canEditAccess(doc.access) ? t("Manage users") : t("Access Details"),
-      dom.attr("aria-disabled", doc.isFork ? "true" : "false"),
+      ariaDisabled(doc.isFork),
       testId("tb-share-option"),
     ),
     menuDivider(),
@@ -261,7 +262,7 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
     menuItem(replaceOriginal, t("Replace {{termToUse}}...", { termToUse }),
       // Disable if original is not writable, and also when comparing snapshots (since it's
       // unclear which of the versions to use).
-      dom.attr("aria-disabled", !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots ? "true" : "false"),
+      ariaDisabled(!roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
       testId("replace-original"),
     ),
     isTutorialFork ?

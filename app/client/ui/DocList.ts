@@ -1,5 +1,5 @@
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
-import { stopEvent } from "app/client/lib/domUtils";
+import { ariaDisabled, stopEvent } from "app/client/lib/domUtils";
 import { loadUserManager } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { getTimeFromNow } from "app/client/lib/timeUtils";
@@ -283,7 +283,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
     menuItem(
       () => showRenameDocModal({ home, doc }),
       t("Rename and set icon"),
-      dom.attr("aria-disabled", doc.disabledAt !== undefined || !roles.isOwner(doc) ? "true" : "false"),
+      ariaDisabled(doc.disabledAt !== undefined || !roles.isOwner(doc)),
       testId("rename-doc"),
     ),
     menuItem(
@@ -296,19 +296,19 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       // Having ACL edit access on the doc means the user is also powerful enough to remove
       // the doc, so this is the only access check required to move the doc out of this workspace.
       // The user must also have edit access on the destination, however, for the move to work.
-      dom.attr("aria-disabled", doc.disabledAt !== undefined || !roles.canEditAccess(doc.access) ? "true" : "false"),
+      ariaDisabled(doc.disabledAt !== undefined || !roles.canEditAccess(doc.access)),
       testId("move-doc"),
     ),
     menuItem(
       deleteDoc,
       t("Delete"),
-      dom.attr("aria-disabled", !roles.isOwner(doc) ? "true" : "false"),
+      ariaDisabled(!roles.isOwner(doc)),
       testId("delete-doc"),
     ),
     menuItem(
       () => home.pinUnpinDoc(doc.id, !doc.isPinned).catch(reportError),
       doc.isPinned ? t("Unpin") : t("Pin"),
-      dom.attr("aria-disabled", !roles.canEdit(orgAccess) ? "true" : "false"),
+      ariaDisabled(!roles.canEdit(orgAccess)),
       testId("pin-doc"),
     ),
     menuItem(
@@ -324,7 +324,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       menuItem(
         () => downloadDocModal(doc, home.app),
         menuIcon("Download"), t("Download document..."),
-        dom.attr("aria-disabled", doc.disabledAt !== undefined ? "true" : "false"),
+        ariaDisabled(doc.disabledAt !== undefined),
         testId("tb-share-option"))
     ),
   ];

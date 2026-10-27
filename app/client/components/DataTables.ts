@@ -1,7 +1,7 @@
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
-import { makeTestId } from "app/client/lib/domUtils";
+import { ariaDisabled, makeTestId } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { setTestState } from "app/client/lib/testState";
 import { TableRec } from "app/client/models/DocModel";
@@ -168,26 +168,22 @@ export class DataTables extends Disposable {
       menuItem(
         () => { isEditingName.set(true); },
         t("Rename table"),
-        dom.attr("aria-disabled", use => use(isReadonly) || use(table.summarySourceTable) !== 0 ? "true" : "false"),
+        ariaDisabled(use => use(isReadonly) || use(table.summarySourceTable) !== 0),
         testId("menu-rename-table"),
       ),
       menuItem(
         () => this._duplicateTable(table),
         t("Duplicate table"),
-        dom.attr("aria-disabled", use =>
-          (use(isReadonly) ||
-            use(table.isHidden) ||
-            use(table.summarySourceTable) !== 0) ? "true" : "false",
-        ),
+        ariaDisabled(use => use(isReadonly) || use(table.isHidden) || use(table.summarySourceTable) !== 0),
         testId("menu-duplicate-table"),
       ),
       menuItem(
         () => this._removeTable(table),
         t("Remove table"),
-        dom.attr("aria-disabled", use => use(isReadonly) || (
+        ariaDisabled(use => use(isReadonly) || (
           // Can't delete last visible table, unless it is a hidden table.
           use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
-        ) ? "true" : "false"),
+        )),
         testId("menu-remove-table"),
       ),
       dom.maybe(use => use(table.summarySourceTable) === 0, () => [
@@ -196,7 +192,7 @@ export class DataTables extends Disposable {
           () => this._editRecordCard(table),
           cssMenuItemIcon("TypeCard"),
           t("Edit record card"),
-          dom.attr("aria-disabled", use => use(isReadonly) ? "true" : "false"),
+          ariaDisabled(isReadonly),
           testId("menu-edit-record-card"),
         ),
         dom.domComputed(use => use(use(table.recordCardViewSection).disabled), (isDisabled) => {
@@ -209,7 +205,7 @@ export class DataTables extends Disposable {
               }
             },
             t("{{action}} Record Card", { action: isDisabled ? "Enable" : "Disable" }),
-            dom.attr("aria-disabled", use => use(isReadonly) ? "true" : "false"),
+            ariaDisabled(isReadonly),
             testId(`menu-${isDisabled ? "enable" : "disable"}-record-card`),
           );
         }),

@@ -2,6 +2,7 @@
  * Implements a widget showing 3-state boxes for permissions
  * (for Allow / Deny / Pass-Through).
  */
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { colors, testId, theme } from "app/client/ui2018/cssVars";
 import { cssIconButton, icon } from "app/client/ui2018/icons";
@@ -57,7 +58,7 @@ export function permissionsWidget(
       const isCustom = [allowAll, denyAll, readOnly, empty].every(ps => !isEqual(ps, pset.get()));
       return [
         (isCustom ?
-          cssMenuItem(() => null, dom.attr("aria-disabled", "true"), menuIcon("Tick"),
+          cssMenuItem(() => null, ariaDisabled(true), menuIcon("Tick"),
             cssMenuItemContent(
               "Custom",
               cssMenuItemDetails(dom.text(use => psetDescription(use(pset)))),
@@ -67,19 +68,19 @@ export function permissionsWidget(
         ),
         // If the set matches any recognized pattern, mark that item with a tick (checkmark).
         cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), t("Allow all"),
-          dom.attr("aria-disabled", options.disabled ? "true" : "false"),
+          ariaDisabled(options.disabled),
         ),
         cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), t("Deny all"),
-          dom.attr("aria-disabled", options.disabled ? "true" : "false"),
+          ariaDisabled(options.disabled),
         ),
         cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), t("Read only"),
-          dom.attr("aria-disabled", options.disabled ? "true" : "false"),
+          ariaDisabled(options.disabled),
         ),
         cssMenuItem(() => setPermissions(empty),
           // For the empty permission set, it seems clearer to describe it as "No Effect", but to
           // all it "Clear" when offering to the user as the action.
           isEqual(pset.get(), empty) ? [tick(true), "No Effect"] : [tick(false), "Clear"],
-          dom.attr("aria-disabled", options.disabled ? "true" : "false"),
+          ariaDisabled(options.disabled),
         ),
       ];
     })),

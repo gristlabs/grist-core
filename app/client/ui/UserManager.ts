@@ -9,6 +9,7 @@
 import { ACIndexImpl, normalizeText } from "app/client/lib/ACIndex";
 import { ACUserItem, buildACMemberEmail } from "app/client/lib/ACUserManager";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { markdown } from "app/client/lib/markdown";
 import { buildMultiUserManagerModal } from "app/client/lib/MultiUserManager";
@@ -346,7 +347,7 @@ export class UserManager extends Disposable {
                 menuItem(() => publicMember.access.set(roles.VIEWER), t("On"), testId(`um-public-option`)),
                 menuItem(() => publicMember.access.set(null), t("Off"),
                   // Disable null access if anonymous access is inherited.
-                  dom.attr("aria-disabled", use => use(publicMember.inheritedAccess) !== null ? "true" : "false"),
+                  ariaDisabled(use => use(publicMember.inheritedAccess) !== null),
                   testId(`um-public-option`),
                 ),
                 // If the 'Off' setting is disabled, show an explanation.
@@ -601,8 +602,8 @@ export class UserManager extends Disposable {
                 !isActiveUser ? " (inherited)" : ""),
             ),
             // Disable everything providing less access than the inherited access
-            dom.attr("aria-disabled", use =>
-              roles.getStrongestRole(_role.value, use(inherited)) !== _role.value ? "true" : "false"),
+            ariaDisabled(use =>
+              roles.getStrongestRole(_role.value, use(inherited)) !== _role.value),
             testId(`um-role-option`),
           ),
         ),

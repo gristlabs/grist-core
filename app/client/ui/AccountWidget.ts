@@ -1,4 +1,5 @@
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
@@ -244,7 +245,7 @@ export class AccountWidget extends Disposable {
       // TODO weasel menus should support disabling menuItemLink.
       (canViewBillingPage ?
         menuItemLink(urlState().setLinkUrl({ billing: "billing" }), t("Billing account")) :
-        menuItem(() => null, t("Billing account"), dom.attr("aria-disabled", "true"))
+        menuItem(() => null, t("Billing account"), ariaDisabled(true))
       ) :
       menuItem(() => this._appModel.showUpgradeModal("accountMenu"), t("Upgrade Plan"));
   }

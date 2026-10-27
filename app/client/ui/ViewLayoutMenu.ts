@@ -2,6 +2,7 @@ import { allCommands } from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { WidgetCreatorView } from "app/client/components/WidgetCreatorView";
 import { hooks } from "app/client/Hooks";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { urlState } from "app/client/models/gristUrlState";
@@ -32,7 +33,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     menuItemCmd(allCommands.deleteRecords,
       t("Delete record"),
       testId("section-delete-card"),
-      dom.attr("aria-disabled", (isReadonly || isAddRow) ? "true" : "false"),
+      ariaDisabled(isReadonly || isAddRow),
     ),
     menuItemCmd(allCommands.copyLink,
       t("Copy anchor link"),
@@ -95,7 +96,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
       t("Download as XLSX"), testId("download-section")),
     dom.maybe(use => ["detail", "single"].includes(use(viewSection.parentKey)), () =>
       menuItemCmd(allCommands.editLayout, t("Edit card layout"),
-        dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+        ariaDisabled(isReadonly),
       ),
     ),
 
@@ -113,14 +114,14 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
         testId("section-open-configuration")),
     ),
     menuItemCmd(allCommands.collapseSection, t("Collapse widget"),
-      dom.attr("aria-disabled", dontCollapseSection() ? "true" : "false"),
+      ariaDisabled(dontCollapseSection()),
       dom.hide(viewSection.isRecordCard),
       testId("section-collapse")),
     menuItemCmd(allCommands.duplicateSection, t("Duplicate widget"),
-      dom.attr("aria-disabled", use => dontDuplicateSection(use) ? "true" : "false"),
+      ariaDisabled(use => dontDuplicateSection(use)),
       testId("duplicate-section")),
     menuItemCmd(allCommands.deleteSection, t("Delete widget"),
-      dom.attr("aria-disabled", dontRemoveSection() ? "true" : "false"),
+      ariaDisabled(dontRemoveSection()),
       dom.hide(viewSection.isRecordCard),
       testId("section-delete")),
   ];
@@ -147,10 +148,10 @@ export function makeCollapsedLayoutMenu(viewSection: ViewSectionRec, gristDoc: G
     ),
     menuDivider(),
     menuItemCmd(allCommands.restoreSection, t("Add to page"),
-      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+      ariaDisabled(isReadonly),
       testId("section-expand")),
     menuItemCmd(allCommands.deleteCollapsedSection, t("Delete widget"),
-      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+      ariaDisabled(isReadonly),
       testId("section-delete")),
   ];
 }

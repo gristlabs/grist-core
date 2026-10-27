@@ -1,4 +1,4 @@
-import { makeTestId } from "app/client/lib/domUtils";
+import { ariaDisabled, makeTestId } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { getWelcomeHomeUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
@@ -158,7 +158,7 @@ export class AppHeader extends Disposable {
             (!this._docPageModel && this._currentOrg && !this._currentOrg.owner ?
               menuItem(() => manageTeamUsersApp({ app: this._appModel }),
                 t("Manage team"), testId("orgmenu-manage-team"),
-                dom.attr("aria-disabled", !roles.canEditAccess(this._currentOrg.access) ? "true" : "false")) :
+                ariaDisabled(!roles.canEditAccess(this._currentOrg.access))) :
               // Don't show on doc pages, or for personal orgs.
               null),
 
@@ -199,7 +199,7 @@ export class AppHeader extends Disposable {
         menuItem(
           () => null,
           t("Billing account"),
-          dom.attr("aria-disabled", "true"),
+          ariaDisabled(true),
           testId("orgmenu-billing"),
         )
       ) :

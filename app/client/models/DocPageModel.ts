@@ -1,6 +1,7 @@
 import { GristDoc, GristDocImpl } from "app/client/components/GristDoc";
 import { IUndoState } from "app/client/components/UndoStack";
 import { UnsavedChange } from "app/client/components/UnsavedChanges";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { loadGristDoc } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { createSessionObs, isBoolean } from "app/client/lib/sessionObs";
@@ -600,18 +601,18 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addNewPage(val).catch(reportError),
         { isNewPage: true, buttonLabel: t("Add page") }),
       menuIcon("Page"), t("Add page"), testId("dp-add-new-page"),
-      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+      ariaDisabled(isReadonly),
     ),
     menuItem(
       elem => openPageWidgetPicker(elem, gristDoc, val => gristDoc.addWidgetToPage(val).catch(reportError),
         { isNewPage: false, selectBy }),
       menuIcon("Widget"), t("Add widget to page"), testId("dp-add-widget-to-page"),
       // disable for readonly doc and all special views
-      dom.attr("aria-disabled", use => typeof use(gristDoc.activeViewId) !== "number" || isReadonly ? "true" : "false"),
+      ariaDisabled(use => typeof use(gristDoc.activeViewId) !== "number" || isReadonly),
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
       menuIcon("TypeTable"), t("Add empty table"), testId("dp-empty-table"),
-      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+      ariaDisabled(isReadonly),
     ),
     menuDivider(),
     buildImportMenu(importSources, isReadonly),
@@ -631,7 +632,7 @@ function buildImportMenu(importSources: ImportSource[], isReadonly: boolean): Do
       menuIcon("Import"),
       t("Import from {{importSource}}", { importSource: importSource.label }),
       testId("dp-import-option"),
-      dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+      ariaDisabled(isReadonly),
     );
   }
   return menuItemSubmenu(
@@ -640,7 +641,7 @@ function buildImportMenu(importSources: ImportSource[], isReadonly: boolean): Do
         menuItem(importSource.action,
           importSource.label,
           testId(`dp-import-option`),
-          dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+          ariaDisabled(isReadonly),
         ),
       ),
       testId("dp-import-menu-items"),
@@ -648,7 +649,7 @@ function buildImportMenu(importSources: ImportSource[], isReadonly: boolean): Do
     {},
     menuIcon("Import"), t("Import from..."),
     testId("dp-import-menu"),
-    dom.attr("aria-disabled", isReadonly ? "true" : "false"),
+    ariaDisabled(isReadonly),
   );
 }
 
