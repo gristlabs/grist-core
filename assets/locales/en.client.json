@@ -3521,7 +3521,9 @@
         "We couldn't submit your details or your request to be kept up to date. Please try again.": "We couldn't submit your details or your request to be kept up to date. Please try again.",
         "We saved your details, but couldn't subscribe you to updates.": "We saved your details, but couldn't subscribe you to updates.",
         "We subscribed you for product updates, but couldn't save your other details.": "We subscribed you for product updates, but couldn't save your other details.",
-        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.",
+        "Grist needs restarting": "Grist needs restarting",
+        "We couldn't submit your details or your request to be kept up to date.": "We couldn't submit your details or your request to be kept up to date."
     },
     "InstallationIdBlock": {
         "Copy": "Copy",
