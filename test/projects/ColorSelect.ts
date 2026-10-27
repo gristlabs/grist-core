@@ -259,8 +259,8 @@ describe("ColorSelect", function() {
     // send ESC
     await driver.sendKeys(Key.ESCAPE);
 
-    // check panel is closed
-    assert.isFalse(await driver.find(".test-text-palette").isPresent());
+    // check panel is closed; it closes on a timer
+    await gu.waitForNotPresent(".test-text-palette", 1000);
 
     // check current colors and options were reverted
     await checkCurrentColor("#00FF00", "#FF0000");
@@ -383,8 +383,8 @@ describe("ColorSelect", function() {
       // press enter again
       await driver.sendKeys(Key.ENTER);
 
-      // check the picker is closed
-      assert.equal(await driver.find(".test-text-hex").isPresent(), false);
+      // check the picker is closed; it closes on a timer
+      await gu.waitForNotPresent(".test-text-hex", 1000);
 
       // check value was saved
       await checkCurrentColor(white, pink);
@@ -414,8 +414,8 @@ describe("ColorSelect", function() {
       // press Escape
       await driver.sendKeys(Key.ESCAPE);
 
-      // check the picker is closed
-      assert.equal(await driver.find(".test-text-hex").isPresent(), false);
+      // check the picker is closed; it closes on a timer
+      await gu.waitForNotPresent(".test-text-hex", 1000);
 
       // check value was reverted to #FF00FF
       await checkCurrentColor(white, pink);
