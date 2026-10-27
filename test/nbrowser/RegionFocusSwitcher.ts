@@ -312,6 +312,7 @@ describe("RegionFocusSwitcher", function() {
 
     await gu.enterCell("test");
     await driver.find(".test-undo").click();
+    await gu.waitForServer();
     await assertPanelFocus("top", false);
     await assertTabMovesInTable();
   });
