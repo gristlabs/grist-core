@@ -220,7 +220,7 @@ describe("HomeIntro", function() {
     await gu.waitForDocToLoad();
     assert.match(await gu.getCell("Company", 1).getText(), /Sporer/);
     assert.match(await driver.find(".test-bc-doc").value(), /Lightweight CRM/);
-    await driver.navigate().back();
+    await gu.goBack();
     await gu.waitForDocMenuToLoad();
   }
 
@@ -309,7 +309,7 @@ async function testEmptyWorkspace() {
   await waitAndDismiss();
   await emptyDocChecker();
   // Check that we don't see the "No documents..." message anymore.
-  await driver.navigate().back();
+  await gu.goBack();
   await gu.waitForDocMenuToLoad();
   await gu.dismissBehavioralPrompts();
   assert.isFalse(await driver.find(".test-dm-no-docs-message").isPresent());
@@ -327,8 +327,7 @@ async function checkDocAndRestore(
   await waitAndDismiss();
   await docChecker();
   for (let i = 0; i < stepsBackToDocMenu; i++) {
-    await driver.navigate().back();
-    if (await gu.isAlertShown()) { await gu.acceptAlert(); }
+    await gu.goBack({ skipAlert: true });
   }
   await gu.waitForDocMenuToLoad();
   // If not logged in, we create docs "unsaved" and don't see them in doc-menu.

@@ -123,7 +123,7 @@ describe("FieldEditor", function() {
     assert.equal(await driver.find(".cell_editor").isPresent(), false);
 
     // Navigate back to see the value saved.
-    await driver.navigate().back();
+    await gu.goBack();
     await gu.waitForDocToLoad();
     assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "FieldEditor3");
   });

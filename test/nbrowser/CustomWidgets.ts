@@ -333,7 +333,7 @@ describe("CustomWidgets", function() {
 
       // Switch the theme to GristDark.
       await gu.setGristTheme({ themeName: "GristDark", syncWithOS: false });
-      await driver.navigate().back();
+      await gu.goBack();
       await gu.waitForDocToLoad();
 
       // Check that the span is using the text color from the GristDark theme.
@@ -341,7 +341,7 @@ describe("CustomWidgets", function() {
 
       // Switch back to GristLight.
       await gu.setGristTheme({ themeName: "GristLight", syncWithOS: false });
-      await driver.navigate().back();
+      await gu.goBack();
       await gu.waitForDocToLoad();
 
       // Check that the widget is back to using the GristLight text color.
@@ -853,7 +853,7 @@ describe("CustomWidgets", function() {
         await languageMenu().click();
         await gu.findOpenMenuItem("li",  lang, 100).click();
         await gu.waitForServer();
-        await driver.navigate().back();
+        await gu.goBack();
         await gu.waitForServer();
       }
 

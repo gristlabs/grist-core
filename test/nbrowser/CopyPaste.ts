@@ -184,7 +184,7 @@ describe("CopyPaste", function() {
     await driver.findWait(".test-settings-locale-autocomplete", 500).click();
     await driver.sendKeys("Germany", Key.ENTER);
     await gu.waitForServer();
-    await driver.navigate().back();
+    await gu.goBack();
 
     // Same data, just formatted differently
     // Currency sign has moved to the end

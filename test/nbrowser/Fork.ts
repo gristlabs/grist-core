@@ -453,7 +453,7 @@ describe("Fork", function() {
         const forkUrl = await driver.getCurrentUrl();
         assert.equal(await driver.findWait(".test-unsaved-tag", 4000).isPresent(), true);
 
-        await driver.executeScript("history.back()");
+        await gu.goBack();
         await gu.waitForUrl(/\/m\/fork/);
         assert.equal(await driver.getCurrentUrl(), initialUrl);
         await gu.waitForDocToLoad();
@@ -497,7 +497,7 @@ describe("Fork", function() {
         await gu.waitForUrl(/~/);
 
         // navigate back history
-        await driver.navigate().back();
+        await gu.goBack();
         await gu.waitForDocToLoad();
 
         // check number of entries in add new menu are the same
