@@ -4,6 +4,8 @@ export interface InstallPrefs extends PendingChanges {
   telemetry?: TelemetryPrefs;
   envVars?: Record<string, any>;
   checkForLatestVersion?: boolean;
+  /** Whether an install admin has confirmed that Grist's storage is persistent. */
+  persistenceConfirmed?: boolean;
 }
 
 export interface PendingChanges {

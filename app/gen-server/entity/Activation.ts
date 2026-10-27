@@ -82,6 +82,10 @@ export class Activation extends BaseEntity {
         this.prefs.checkForLatestVersion = props.prefs.checkForLatestVersion;
       }
 
+      if (props.prefs.persistenceConfirmed !== undefined) {
+        this.prefs.persistenceConfirmed = props.prefs.persistenceConfirmed;
+      }
+
       if (props.prefs.onRestartSetAdminEmail !== undefined) {
         this.prefs.onRestartSetAdminEmail = props.prefs.onRestartSetAdminEmail;
       }
