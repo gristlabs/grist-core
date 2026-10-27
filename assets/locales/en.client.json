@@ -3158,7 +3158,20 @@
         "Back up documents externally": "Back up documents externally",
         "Storage": "Storage",
         "checking": "checking",
-        "unknown": "unknown"
+        "unknown": "unknown",
+        "Check storage to continue": "Check storage to continue",
+        "Grist can't check this for itself.": "Grist can't check this for itself.",
+        "Grist is storing data in memory. Move it to a disk or volume.": "Grist is storing data in memory. Move it to a disk or volume.",
+        "I will check later": "I will check later",
+        "Is your data on persistent storage?": "Is your data on persistent storage?",
+        "Keep {{paths}} on a mounted volume so your data survives.": "Keep {{paths}} on a mounted volume so your data survives.",
+        "Mount a volume at /persist to keep your data.": "Mount a volume at /persist to keep your data.",
+        "My storage is persistent": "My storage is persistent",
+        "Persistent storage confirmed": "Persistent storage confirmed",
+        "You'll check storage later": "You'll check storage later",
+        "Your data may be lost.": "Your data may be lost.",
+        "at risk": "at risk",
+        "unconfirmed": "unconfirmed"
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Allow anonymous access",
