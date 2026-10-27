@@ -75,7 +75,9 @@
         "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Kringgå alla läsbegränsningar och tillåt alla att kopiera hela dokumentet, eller läsa det i experiment läge. Använd bara för exempel och mallar, inte för dokument med känsliga data.",
         "Permission to access the document in full by all users": "Behörighet att komma åt hela dokumentet för alla användare",
         "Permission to access the document in full by unrestricted users": "Behörighet att komma åt hela dokumentet för användare utan begränsningar",
-        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Hindra alla utom Ägare från att kopiera eller ladda ner hela dokumentet. Notera: detta påverkar användare utan begränsningar för läsning, eftersom andra kommer att begränsar oavsett denna inställning."
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Hindra alla utom Ägare från att kopiera eller ladda ner hela dokumentet. Notera: detta påverkar användare utan begränsningar för läsning, eftersom andra kommer att begränsar oavsett denna inställning.",
+        "Allow Editors to edit structure (e.g. modify and delete tables and columns, and edit formulas, pages, widgets, and settings).  Important: if checked, Editors may be able to bypass table and column access rules, and to read and change all data!": "Tillåt Redigerare att ändra strukturen (som att ändra och ta bort tabeller, kolumner och redigera formler, sidor, widgetar och inställningar).  Viktigt: om vald, så kan Redigerare att kunna komma förbi formler behörighetsregler för tabeller och kolumner och då läsa och ändra all data!",
+        "Dismiss.": "Avfärda."
     },
     "AccountPage": {
         "API": "API",
@@ -1077,7 +1079,10 @@
         "SELECT BY": "VAL AV",
         "{{table}} grouped by… (press to select fields)": "{{table}} grupperad på...(tryck för att välja fällt)",
         "Press Space to add fields": "Tryck på mellanslag för att lägga till fällt",
-        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Använd upp- och nerpils knapparna för att bläddra igenom alternativen. Tryck Enter och Esc för att växla mellan olika steg."
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Använd upp- och nerpils knapparna för att bläddra igenom alternativen. Tryck Enter och Esc för att växla mellan olika steg.",
+        "Create your own": "Skapa din egen",
+        "More": "Mer",
+        "NEW": "NY"
     },
     "Pages": {
         "Delete": "Radera",
@@ -1705,7 +1710,8 @@
         "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Din {{resourceType}} kommer att vara tillgänglig för vem som helst med länken, oavsett om den delas direkt eller hittas via en sökmotor.\n Säkerställ att din {{resourceType}} inte innehåller någon känslig data innan du delar.",
         "Configure notifications": "Ställa in notiser",
         "Invitation emails are not enabled on this installation.": "Inbjudnings e-post är inte aktiverad i denna Gristinstallation.",
-        "Invitation emails are not sent on Grist Community edition.": "Inbjudningse-post skickas inte ut i öppen version av Grist."
+        "Invitation emails are not sent on Grist Community edition.": "Inbjudningse-post skickas inte ut i öppen version av Grist.",
+        "Owner-like data access": "Åtkomstbehörighet lik dokumentägarens"
     },
     "SearchModel": {
         "Search all pages": "Sök på alla sidor",
@@ -2057,7 +2063,21 @@
         "Switch to Community edition?": "Växla till Öppen version?",
         "Switch to full Grist?": "Växla till komplett Grist?",
         "This will also apply your other pending changes:": "Detta kommer också att applicera andra väntande ändringar du gjort:",
-        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist kör i en miljö som inte stöder omstart från administrationspanelen. Din ändring kommer att sparas nu och blir aktiverad nästa gång du startar om Grist mauellt."
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist kör i en miljö som inte stöder omstart från administrationspanelen. Din ändring kommer att sparas nu och blir aktiverad nästa gång du startar om Grist mauellt.",
+        "Any document can run code with full access to this server.": "Alla dokument kan köra kod med full åtkomst till denna server.",
+        "Anyone can open this server": "Vem som helst kan öppna denna server",
+        "Could not read admin accounts": "Kunde inte läsa in administratörskonton",
+        "Could not run the {{name}} check": "Kunde inte köra {{name}} kontrollen",
+        "Formulas are not sandboxed": "Formler körs inte isolerade",
+        "Health check is failing": "Hälsokontrollen går inte igenom",
+        "No install admin": "Ingen installatörsadministratör",
+        "No sign-in method": "Ingen inloggningsmetod",
+        "No sign-in method is set up. Anyone who can reach this server can see all data.": "Ingen inloggningsmetod är inställd. Vem som helst kan komma åt denna server och se all data.",
+        "Only the admin can sign in": "Bara administratören kan logga in",
+        "Sandbox is not working": "Isoleringen fungerar inte",
+        "Sandbox {{flavor}} is set up but fails to start.": "Isoleringen {{flavor}} är inställd men startar inte.",
+        "Set GRIST_ADMIN_EMAIL so that someone can manage this server.": "Ställ in GRIST_ADMIN_EMAIL så att någon kan hantera denna server.",
+        "Sign-in is broken": "Inloggningen fungerar inte"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
