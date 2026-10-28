@@ -76,7 +76,10 @@
         "Permission to access the document in full by unrestricted users": "Permission d'accéder à l'entièreté du document pour les utilisateurs non soumis à une permission avancée",
         "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Empêche les non-Propriétaires de copier ou télécharger l'entièreté du document. N.B. : cela n'affecte que les utilisateurs sans restriction de lecture, comme les autres seront déjà empêchés sans tenir compte de ce réglage.",
         "Special rules for templates": "Règle spéciale pour les modèles",
-        "This options should be off if Editors' access is to be limited. ": "Cette option ne devrait pas être activée si les accès des Éditeurs doivent être limités. "
+        "This options should be off if Editors' access is to be limited. ": "Cette option ne devrait pas être activée si les accès des Éditeurs doivent être limités. ",
+        "Allow Editors to edit structure (e.g. modify and delete tables and columns, and edit formulas, pages, widgets, and settings).  Important: if checked, Editors may be able to bypass table and column access rules, and to read and change all data!": "Autoriser les Éditeurs à modifier la structure (ex. modifier et supprimer des tables et des colonnes, et modifier les formules, les pages, les vues et les paramètres).  Important : si cette option est cochée, les Éditeurs peuvent contourner les Permissions Avancées sur les tables et les colonnes, et lire et modifier toutes les données !",
+        "Dismiss.": "Ignorer.",
+        "This option should be off unless you trust Editors as you would Owners on this document. ": "Cette option doit rester désactivée, sauf si vous faites autant confiance aux Éditeurs qu'aux Propriétaires sur ce document. "
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
@@ -1997,7 +2000,24 @@
         "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist s'exécute dans un environnement qui ne permet pas de redémarrer depuis l'interface d'administration. Votre changement va être enregistré maintenant, et prendra effet la prochaine fois que vous redémarrerez Grist manuellement.",
         "Switch to Community edition?": "Basculer sur l'édition communautaire ?",
         "Switch to full Grist?": "Basculer sur la version complète ?",
-        "This will also apply your other pending changes:": "Cela appliquera également vos autres modifications en attente :"
+        "This will also apply your other pending changes:": "Cela appliquera également vos autres modifications en attente :",
+        "Any document can run code with full access to this server.": "N'importe quel document peut exécuter du code avec un accès complet à ce serveur.",
+        "Anyone can open this server": "Tout le monde peut accéder à ce serveur",
+        "Could not read admin accounts": "Impossible de lire les comptes d'administration",
+        "Could not run the {{name}} check": "Impossible d'exécuter la vérification {{name}}",
+        "Formulas are not sandboxed": "L'exécution des formules n'est pas isolée",
+        "Health check is failing": "La vérification de l'état échoue",
+        "No install admin": "Aucun administrateur de l'installation",
+        "No sign-in method": "Aucune méthode de connexion",
+        "No sign-in method is set up. Anyone who can reach this server can see all data.": "Aucune méthode de connexion n'est configurée. Toute personne qui peut joindre ce serveur peut voir toutes les données.",
+        "Only the admin can sign in": "Seul l'administrateur peut se connecter",
+        "Sandbox is not working": "L'isolation de l'exécution des formules ne fonctionne pas",
+        "Sandbox {{flavor}} is set up but fails to start.": "L'isolation {{flavor}} est configurée mais ne démarre pas.",
+        "Set GRIST_ADMIN_EMAIL so that someone can manage this server.": "Définissez GRIST_ADMIN_EMAIL pour que quelqu'un puisse administrer ce serveur.",
+        "Sign-in is broken": "La connexion ne fonctionne pas",
+        "Sign-in works only with the boot key. Set up a sign-in method so that other users can sign in.": "La connexion ne fonctionne qu'avec la clé d'amorçage. Configurez une méthode de connexion pour que les autres utilisateurs puissent se connecter.",
+        "The server cannot open a websocket to its own public URL. Check your reverse proxy.": "Le serveur ne peut pas ouvrir de connexion websocket vers sa propre URL publique. Vérifiez votre reverse proxy.",
+        "Websockets do not work": "Les websockets ne fonctionnent pas"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -3194,7 +3214,31 @@
         "Stores document snapshots on the local filesystem. For tests only, not production.": "Sauvegarde les instantanés des documents sur le système de fichier local. Uniquement pour les tests, ne pas mettre en production.",
         "Action needed": "Action nécéssaire",
         "To preserve it, mount a volume at /persist.": "Pour le préserver, montez un volume sur /persist.",
-        "Your data may not survive a container restart.": "Vos données ne survivrons pas au redémarrage du conteneur."
+        "Your data may not survive a container restart.": "Vos données ne survivrons pas au redémarrage du conteneur.",
+        "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Tout service de stockage compatible S3 qui prend en charge le versionnage des buckets, par exemple RustFS, ou directement AWS S3.",
+        "S3-compatible": "Compatible S3",
+        "Set these environment variables and restart Grist to enable S3-compatible storage:": "Définissez ces variables d'environnement et redémarrez Grist pour activer le stockage compatible S3 :",
+        "To preserve it, mount a volume at ": {
+            "persist.": "Pour le préserver, montez un volume sur /persist."
+        },
+        "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Conserver les sauvegardes des documents sur un service externe, comme S3 ou Azure. Vos données sont ainsi protégées si le disque du serveur tombe en panne.",
+        "Back up documents externally": "Sauvegarder les documents sur un service externe",
+        "Storage": "Stockage",
+        "checking": "vérification en cours",
+        "unknown": "inconnu",
+        "Check storage to continue": "Vérifier le stockage pour pouvoir continuer",
+        "Grist can't check this for itself.": "Grist ne peut pas le vérifier par lui-même.",
+        "Grist is storing data in memory. Move it to a disk or volume.": "Grist stocke actuellement les données en mémoire. Déplacez-les sur un disque ou un volume.",
+        "I will check later": "Je vérifierai plus tard",
+        "Is your data on persistent storage?": "Vos données sont-elles sur un stockage persistant ?",
+        "Keep {{paths}} on a mounted volume so your data survives.": "Placez {{paths}} sur un volume monté pour que vos données soient conservées.",
+        "Mount a volume at /persist to keep your data.": "Montez un volume sur /persist pour conserver vos données.",
+        "My storage is persistent": "Mon stockage est persistant",
+        "Persistent storage confirmed": "Stockage persistant confirmé",
+        "You'll check storage later": "Vous vérifierez le stockage plus tard",
+        "Your data may be lost.": "Vos données risquent d'être perdues.",
+        "at risk": "à risque",
+        "unconfirmed": "non confirmé"
     },
     "ScreenReaderAnnouncer": {
         "Notification: {{notification}}": "Notification : {{notification}}"
