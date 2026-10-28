@@ -280,7 +280,6 @@ describe("TypeChange.ntest", function() {
     // Convert Date to DateTime and check that we are getting midnight in selected timezone.
     await gu.setType("DateTime");
     await gu.timeFormat("HH:mm z");
-    await gu.waitForServer();
     assert.deepEqual(await gu.getGridValues({rowNums: [1, 2], cols: [2], mapper: valText}), [
       "04/02/1993 00:00 EST", "04/26/2016 00:00 EDT"
     ]);
