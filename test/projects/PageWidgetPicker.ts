@@ -1,5 +1,5 @@
 import { delay } from "app/common/delay";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
@@ -29,7 +29,7 @@ describe("PageWidgetPicker", () => {
 
   before(async function() {
     this.timeout(60000);
-    await driver.get(`${server.getHost()}/PageWidgetPicker`);
+    await openFixture("PageWidgetPicker");
   });
 
   it("should reflect `.value` on open", async function() {

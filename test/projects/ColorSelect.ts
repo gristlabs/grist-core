@@ -1,6 +1,6 @@
 import { swatches } from "app/client/ui2018/ColorPalette";
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { addToRepl, assert, driver, Key, stackWrapFunc, WebElement } from "mocha-webdriver";
 
@@ -25,7 +25,7 @@ describe("ColorSelect", function() {
 
   before(async function() {
     this.timeout(60000);
-    await driver.get(`${server.getHost()}/ColorSelect`);
+    await openFixture("ColorSelect");
   });
 
   beforeEach(async function() {

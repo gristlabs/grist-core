@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key, stackWrapFunc, WebElement } from "mocha-webdriver";
 
@@ -10,7 +10,7 @@ describe("UI2018", () => {
 
   before(async function() {
     this.timeout(1200000);      // Set a longer default timeout.
-    await driver.get(`${server.getHost()}/UI2018`);
+    await openFixture("UI2018");
     actionText = await driver.find("#action-text");
     actionReset = await driver.find("#action-reset");
   });

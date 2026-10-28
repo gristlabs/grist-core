@@ -1,5 +1,5 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { delay } from "bluebird";
 import { addToRepl, assert, driver, WebElementPromise } from "mocha-webdriver";
@@ -10,7 +10,7 @@ describe("TreeViewComponent", () => {
 
   before(async function() {
     this.timeout(60000);
-    await driver.get(`${server.getHost()}/TreeViewComponent`);
+    await openFixture("TreeViewComponent");
   });
 
   it("should display correct tree view", async function() {

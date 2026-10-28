@@ -1,5 +1,5 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key, Origin, stackWrapFunc } from "mocha-webdriver";
 
@@ -24,9 +24,7 @@ describe("PagePanels", function() {
 
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
-    await driver.get(`${server.getHost()}/PagePanels`);
-    // Wait for some element to load
-    await driver.findWait(".test-pp-addNew", 1000);
+    await openFixture("PagePanels");
   });
 
   async function dragByX(x: number) {
