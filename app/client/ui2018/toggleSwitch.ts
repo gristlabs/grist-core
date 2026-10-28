@@ -2,6 +2,7 @@ import { testId, theme } from "app/client/ui2018/cssVars";
 import { components } from "app/common/ThemePrefs";
 
 import { dom, DomElementArg, Observable, styled } from "grainjs";
+import { cssMenuItem } from "popweasel";
 
 interface ToggleSwitchOptions {
   label?: string;
@@ -127,6 +128,11 @@ const cssSwitchSlider = styled("div", `
     border-radius: 13px;
   }
 
+  /* in menus, make pill border color always contrasted with the background */
+  .${cssMenuItem.className}-sel &::after {
+    box-shadow: inset 0 0 0 1px ${theme.menuItemSelectedFg} !important;
+  }
+
   .${cssInput.className}:focus-visible + .${cssSwitch.className} > & {
     outline: 2px solid ${components.kbFocusHighlight};
     outline-offset: 1px;
@@ -188,4 +194,8 @@ const cssLabel = styled("span", `
   font-weight: 400;
   line-height: 16px;
   overflow-wrap: anywhere;
+
+  .${cssMenuItem.className}-sel & {
+    color: ${theme.menuItemSelectedFg};
+  }
 `);

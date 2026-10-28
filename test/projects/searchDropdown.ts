@@ -1,4 +1,4 @@
-import { server } from "test/fixtures/projects/webpack-test-server";
+import { openFixture, server } from "test/projects/testUtils";
 
 import { assert, driver, Key, useServer } from "mocha-webdriver";
 
@@ -10,7 +10,7 @@ describe("searchDropdown", function() {
   });
 
   before(async function() {
-    await driver.get(`${server.getHost()}/searchDropdown`);
+    await openFixture("searchDropdown");
   });
 
   async function open() {

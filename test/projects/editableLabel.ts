@@ -1,4 +1,4 @@
-import { server } from "test/fixtures/projects/webpack-test-server";
+import { openFixture, server } from "test/projects/testUtils";
 
 import { assert, driver, Key, useServer, WebElement } from "mocha-webdriver";
 
@@ -6,7 +6,7 @@ describe("editableLabel", function() {
   useServer(server);
 
   before(async function() {
-    await driver.get(`${server.getHost()}/editableLabel`);
+    await openFixture("editableLabel");
   });
 
   beforeEach(async function() {

@@ -9,7 +9,6 @@ import {
   hasAddNewColumMenu,
   hasLookupMenu,
   hasShortcuts,
-  isMenuPresent,
   MAX,
   MIN,
   PERCENT,
@@ -557,8 +556,7 @@ describe("GridViewNewColumnMenu", function() {
         await gu.clearInput();
         await checkResult(["B", "C", "New1", "New2", "New3", "New4"]);
 
-        await gu.sendKeys(Key.ESCAPE);
-        assert.isFalse(await isMenuPresent());
+        await closeAddColumnMenu();
 
         // Show it once again and add B and C.
         await clickAddColumn();

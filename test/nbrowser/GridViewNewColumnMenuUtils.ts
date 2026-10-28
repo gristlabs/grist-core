@@ -18,8 +18,14 @@ export async function isMenuPresent() {
 }
 
 export async function closeAddColumnMenu() {
-  await driver.sendKeys(Key.ESCAPE);
-  await gu.waitToPass(async () => assert.isFalse(await isMenuPresent(), "menu is still present"));
+  // Press Esc until the whole menu is gone (we might be in a nested submenu, each
+  // Esc press closes only the current submenu)
+  await gu.waitToPass(async () => {
+    if (await isMenuPresent()) {
+      await driver.sendKeys(Key.ESCAPE);
+    }
+    assert.isFalse(await isMenuPresent(), "menu is still present");
+  });
 }
 
 export async function hasAddNewColumMenu() {

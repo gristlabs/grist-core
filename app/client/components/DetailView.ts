@@ -109,6 +109,11 @@ export default class DetailView extends BaseView {
     this.viewPane = this.buildDom();
     this.onDispose(() => { dom.domDispose(this.viewPane); this.viewPane.remove(); });
 
+    // A change of row scrolls to its card and then the field; a change of field only scrolls the
+    // field, after the DOM marks the newly selected one.
+    this.autoDispose(this.cursor.rowIndex.subscribe(() => this.scrollToCursor(false).catch(reportError)));
+    this.autoDispose(this.cursor.fieldIndex.subscribe(() => setTimeout(() => this._scrollFieldIntoView(), 0)));
+
     // --------------------------------------------------
     // Set up DOM event handling.
     this._twoLastFieldIdsSelected = [null, null];
@@ -368,7 +373,6 @@ export default class DetailView extends BaseView {
       dom.maybe(use => !use(this.recordLayout.isEditingLayout), () => {
         if (!this._isSingle) {
           return this.scrollPane = dom("div.detailview_scroll_pane.flexitem",
-            kd.scrollChildIntoView(this.cursor.rowIndex),
             dom.onDispose(() => {
               // Save the previous scroll values to the section.
               if (this.scrolly()) {
@@ -515,8 +519,14 @@ export default class DetailView extends BaseView {
   }
 
   public async scrollToCursor(sync: boolean = true): Promise<void> {
-    if (!this.scrollPane) { return; }
-    return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync);
+    const rowScrolled = this.scrollPane ?
+      kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync) : Promise.resolve();
+    if (sync) {
+      // Callers may open an editor right away, so the field needs to be in place now.
+      this._scrollFieldIntoView();
+      return rowScrolled;
+    }
+    return rowScrolled.then(() => this._scrollFieldIntoView());
   }
 
   protected async _duplicateRows(): Promise<number[] | undefined> {
@@ -570,6 +580,24 @@ export default class DetailView extends BaseView {
       `Hide fields ${actions.map(a => a[1]).join(", ")} ` +
       `from ${this.tableModel.tableData.tableId}.`,
     );
+  }
+
+  /**
+   * Keeps the selected field visible in a card larger than its section.
+   */
+  protected _scrollFieldIntoView() {
+    if (this.isDisposed() || !this.viewSection.hasFocus.peek()) { return; }
+    const fieldDom = this.viewPane.querySelector(".selected_cursor")?.closest(".g_record_detail_el");
+    if (!fieldDom) { return; }
+    const pane = this.scrolly.peek() ? this.scrollPane : this.viewPane;
+    const fieldBox = fieldDom.getBoundingClientRect();
+    const paneBox = pane.getBoundingClientRect();
+    if (fieldBox.top < paneBox.top) {
+      pane.scrollTop -= paneBox.top - fieldBox.top;
+    } else if (fieldBox.bottom > paneBox.bottom) {
+      // A field taller than the pane gets its top shown.
+      pane.scrollTop += Math.min(fieldBox.bottom - paneBox.bottom, fieldBox.top - paneBox.top);
+    }
   }
 
   protected _clearSelection() {

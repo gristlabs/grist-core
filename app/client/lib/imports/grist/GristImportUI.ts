@@ -48,7 +48,7 @@ import { isNarrowScreenObs, testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import {
-  IOption, menuDivider, menuSubHeader, selectMenu, selectOption, selectWithLoader,
+  IOption, menuDivider, menuGroup, selectMenu, selectOption, selectWithLoader,
 } from "app/client/ui2018/menus";
 import { cssModalBody } from "app/client/ui2018/modals";
 import {
@@ -441,36 +441,40 @@ export class GristImport extends Disposable {
     };
 
     return [
-      menuSubHeader(t("Choose destination")),
-      selectOption(
-        () => setDestination(IMPORT_TABLE_AND_DATA),
-        t("New table"),
-        "Plus",
-        cssAccentIconColor.cls(""),
-      ),
-      selectOption(
-        () => setDestination({ type: "new-table", structureOnly: true }),
-        t("New table: structure only"),
-        "Plus",
-        cssAccentIconColor.cls(""),
-      ),
-      selectOption(
-        () => {
-          mapping.destination.set(null);
-        },
-        t("Skip"),
-        "CrossBig",
-        cssAccentIconColor.cls(""),
+      menuGroup(
+        t("Choose destination"),
+        selectOption(
+          () => setDestination(IMPORT_TABLE_AND_DATA),
+          t("New table"),
+          "Plus",
+          cssAccentIconColor.cls(""),
+        ),
+        selectOption(
+          () => setDestination({ type: "new-table", structureOnly: true }),
+          t("New table: structure only"),
+          "Plus",
+          cssAccentIconColor.cls(""),
+        ),
+        selectOption(
+          () => {
+            mapping.destination.set(null);
+          },
+          t("Skip"),
+          "CrossBig",
+          cssAccentIconColor.cls(""),
+        ),
       ),
       dom.domComputed(this._existingTables, existingTables => existingTables.length > 0 ? [
         menuDivider(),
-        menuSubHeader(t("Existing tables")),
-        existingTables.map(({ id, name }) =>
-          selectOption(
-            () => setDestination({ type: "existing-table", tableId: id }),
-            name || id,
-            "FieldTable",
-            cssAccentIconColor.cls(""),
+        menuGroup(
+          t("Existing tables"),
+          existingTables.map(({ id, name }) =>
+            selectOption(
+              () => setDestination({ type: "existing-table", tableId: id }),
+              name || id,
+              "FieldTable",
+              cssAccentIconColor.cls(""),
+            ),
           ),
         ),
       ] : null),

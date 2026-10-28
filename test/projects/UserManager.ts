@@ -1,5 +1,5 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
@@ -9,7 +9,7 @@ describe("UserManager", () => {
 
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
-    await driver.get(`${server.getHost()}/UserManager`);
+    await openFixture("UserManager");
   });
 
   async function getMemberEmail(member: WebElement) {

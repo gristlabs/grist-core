@@ -1,4 +1,5 @@
 import { hooks } from "app/client/Hooks";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { loadUserManager } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
@@ -20,13 +21,13 @@ import { primaryButton } from "app/client/ui2018/buttons";
 import { mediaXSmall, testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import {
+  bareMenuText,
   menu,
   menuDivider,
   menuIcon,
   menuItem,
   menuItemLink,
   menuItemSubmenu,
-  menuText,
 } from "app/client/ui2018/menus";
 import { buildUrlId, isFeatureEnabled, parseUrlId } from "app/common/gristUrls";
 import * as roles from "app/common/roles";
@@ -190,7 +191,7 @@ function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
     menuItem(() => manageUsers(doc, pageModel),
       roles.canEditAccess(doc.access) ? t("Manage users") : t("Access Details"),
-      dom.cls("disabled", doc.isFork),
+      ariaDisabled(doc.isFork),
       testId("tb-share-option"),
     ),
     menuDivider(),
@@ -237,19 +238,31 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
     replaceTrunkWithFork(doc, pageModel, origUrlId).catch(reportError);
   }
   return [
-    isTutorialFork ? null : cssMenuSplitLink({ href: originalUrl },
-      cssMenuSplitLinkText(t("Return to {{termToUse}}", { termToUse })),
-      cssMenuIconLink({ href: originalUrl, target: "_blank" },
+    isTutorialFork ? null : cssMenuSplitRow(
+      menuItemLink(
+        dom.cls(cssMenuSplitLink.className),
+        { href: originalUrl },
+        cssMenuSplitLinkText(t("Return to {{termToUse}}", { termToUse })),
+        dom.on("click", () => { pageModel.clearUnsavedChanges(); }),
+        testId("return-to-original"),
+      ),
+      menuItemLink(
+        // Note: this is only used to apply the class to a weasel menuItem, the element is not directly used
+        dom.cls(cssMenuIconLink.className),
+        {
+          "href": originalUrl,
+          "target": "_blank",
+          "aria-label": t("Return to {{termToUse}} (new tab)", { termToUse }),
+        },
         cssMenuIcon("FieldLink"),
+        dom.on("click", () => { pageModel.clearUnsavedChanges(); }),
         testId("open-original"),
       ),
-      dom.on("click", () => { pageModel.clearUnsavedChanges(); }),
-      testId("return-to-original"),
     ),
     menuItem(replaceOriginal, t("Replace {{termToUse}}...", { termToUse }),
       // Disable if original is not writable, and also when comparing snapshots (since it's
       // unclear which of the versions to use).
-      dom.cls("disabled", !roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
+      ariaDisabled(!roles.canEdit(doc.trunkAccess || null) || comparingSnapshots),
       testId("replace-original"),
     ),
     isTutorialFork ?
@@ -290,8 +303,9 @@ function menuWorkOnCopy(pageModel: DocPageModel, options?: {
 
   const label = options?.suggestChanges ? t("Suggest changes") : t("Work on a copy");
   return [
-    menuItem(makeUnsavedCopy, label, testId("work-on-copy")),
-    menuText(
+    menuItem(makeUnsavedCopy, label, testId("work-on-copy"), { "aria-describedby": "sharemenu-work-on-copy-help" }),
+    bareMenuText(
+      { id: "sharemenu-work-on-copy-help" },
       withInfoTooltip(
         t("Edit without affecting the original"),
         "workOnACopy",
@@ -450,9 +464,16 @@ const cssShareIcon = styled(cssTopBarBtn, `
   width: 30px;
 `);
 
-const cssMenuSplitLink = styled(menuItemLink, `
+const cssMenuSplitRow = styled("div", `
+  display: flex;
+  align-items: stretch;
+`);
+
+// This is only used to apply the class to a weasel menuItem, the element is not directly used
+const cssMenuSplitLink = styled("span", `
   padding: 0;
   align-items: stretch;
+  flex: auto;
 `);
 
 const cssMenuSplitLinkText = styled("div", `
@@ -462,19 +483,25 @@ const cssMenuSplitLinkText = styled("div", `
     background-color: ${theme.menuBg};
     color: ${theme.menuItemFg};
   }
+
+  .${cssMenuItem.className}-sel & {
+    background-color: ${theme.menuItemSelectedBg};
+    color: ${theme.menuItemSelectedFg};
+  }
 `);
 
-const cssMenuIconLink = styled("a", `
+// This is only used to apply the class to a weasel menuItem, the element is not directly used
+const cssMenuIconLink = styled("span", `
   display: block;
   flex: none;
   padding: 8px 24px;
   --icon-color: ${theme.controlFg};
 
-  .${cssMenuItem.className}-sel > & {
+  &.${cssMenuItem.className}-sel {
     --icon-color: ${theme.menuItemIconSelectedFg};
   }
 
-  .${cssMenuItem.className}.disabled & {
+  &.${cssMenuItem.className}[aria-disabled="true"] {
     --icon-color: ${theme.menuItemDisabledFg};
   }
 `);

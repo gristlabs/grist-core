@@ -7,7 +7,7 @@
  * Assertions read textContent, not getText(): the per-row pointers live in collapsed
  * (max-height: 0) bodies, where rendered text is empty by design.
  */
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, WebElement } from "mocha-webdriver";
 
@@ -32,8 +32,7 @@ describe("NotificationsNudge", function() {
 
   before(async function() {
     this.timeout(60000);
-    await driver.get(`${server.getHost()}/NotificationsNudge`);
-    await driver.findWait(".test-storyboard-panel", 5000);
+    await openFixture("NotificationsNudge");
     panels = await driver.findAll(".test-storyboard-panel");
   });
 
