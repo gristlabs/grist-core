@@ -889,7 +889,8 @@
     "PermissionsWidget": {
         "Allow all": "Allow all",
         "Deny all": "Deny all",
-        "Read only": "Read only"
+        "Read only": "Read only",
+        "Checked": "Checked"
     },
     "PluginScreen": {
         "Import failed: ": "Import failed: "
