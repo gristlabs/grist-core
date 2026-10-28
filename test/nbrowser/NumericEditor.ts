@@ -25,6 +25,7 @@ describe("NumericEditor", function() {
     valPlain: string;
     valFmt: string;
     expKeypad: string;
+    expKeypadStart: string;
   }
 
   describe("locale en-US", testSuite({
@@ -42,6 +43,7 @@ describe("NumericEditor", function() {
     valPlain: "-4.4",
     valFmt: "(1,234.56)",
     expKeypad: "3.125",
+    expKeypadStart: ".5",
   }));
 
   describe("locale de-DE", testSuite({
@@ -59,6 +61,7 @@ describe("NumericEditor", function() {
     valPlain: "-4,4",
     valFmt: "(1.234,56)",
     expKeypad: "3,125",
+    expKeypadStart: ",5",
   }));
 
   function testSuite(options: TestOpts) {
@@ -142,6 +145,17 @@ describe("NumericEditor", function() {
         await gu.sendKeys("3", Key.DECIMAL, "125", Key.ENTER);
         await gu.waitForServer();
         assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), options.expKeypad);
+        await gu.undo();
+      });
+
+      it("should treat the keypad decimal key as the decimal separator when it opens the editor", async function() {
+        await gu.getCell({ rowNum: 1, col: 0 }).click();
+        await gu.waitAppFocus();
+        await gu.sendKeys(Key.DECIMAL, "5");
+        assert.equal(await driver.find(".celleditor_text_editor").value(), options.expKeypadStart);
+        await gu.sendKeys(Key.ENTER);
+        await gu.waitForServer();
+        assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), options.expKeypadStart.replace(/^/, "0"));
         await gu.undo();
       });
 

@@ -271,6 +271,7 @@ export class FieldEditor extends Disposable {
       rowId: this._editRow.id(),
       formulaError: error,
       editValue,
+      event: this._event,
       cursorPos,
       state,
       canDetach: true,
