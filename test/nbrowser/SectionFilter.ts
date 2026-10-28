@@ -160,7 +160,7 @@ describe("SectionFilter", function() {
       // Reset the filter
       menu = await gu.openColumnMenu("A", "Filter");
       assert.deepEqual(
-        await driver.findAll(".test-filter-menu-bulk-action:not([class*=-disabled])", e => e.getText()),
+        await driver.findAll('.test-filter-menu-bulk-action:not([aria-disabled="true"])', e => e.getText()),
         ["All", "None"]);
       await driver.findContent(".test-filter-menu-bulk-action", /All/).click();
       await menu.find(".test-filter-menu-apply-btn").click();

@@ -237,7 +237,7 @@ describe("AccessRules2", function() {
     await ruleSet.find(".test-rule-part-and-memo:nth-child(1) .test-rule-remove").click();
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).isPresent(), true);
-    assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).matches(".disabled"), false);
+    assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).matches('[aria-disabled="true"]'), false);
     await driver.sendKeys(Key.ESCAPE);
 
     // Save

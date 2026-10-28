@@ -1,6 +1,17 @@
 import { useBindable } from "app/common/gutil";
 
-import { BindableValue, Computed, dom, EventCB, IDisposable, IDisposableOwner, Observable, UseCB } from "grainjs";
+import {
+  BindableValue,
+  Computed,
+  dom,
+  DomElementMethod,
+  EventCB,
+  IDisposable,
+  IDisposableOwner,
+  Observable,
+  subscribeElem,
+  UseCB,
+} from "grainjs";
 
 /**
  * Version of makeTestId that can be appended conditionally.
@@ -196,4 +207,15 @@ export function isEventOnLink(event: Event): boolean {
   if (event.type !== "dblclick") { return false; }
   const { clientX, clientY } = event as MouseEvent;
   return Boolean(document.elementFromPoint(clientX, clientY)?.closest("a"));
+}
+
+/**
+ * A shorter way of writing `dom.attr("aria-disabled", something ? "true" : "false")` that works with
+ * observables and boolean values.
+ */
+export function ariaDisabled(disabled: BindableValue<boolean>): DomElementMethod {
+  return elem =>
+    subscribeElem(elem, disabled, val =>
+      elem.setAttribute("aria-disabled", val ? "true" : "false"),
+    );
 }

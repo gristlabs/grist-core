@@ -1,4 +1,5 @@
 import { GristDoc } from "app/client/components/GristDoc";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { BEHAVIOR, ColumnRec } from "app/client/models/entities/ColumnRec";
 import { buildHighlightedCode, cssCodeBlock } from "app/client/ui/CodeHighlight";
@@ -220,7 +221,7 @@ export function buildFormulaConfig(
   const convertToDataAll = () => selectOption(
     () => convertIsFormula(selectedColumnIds(), { toFormula: false, noRecalc: true }),
     "Convert columns to data", "Database",
-    dom.cls("disabled", isSummaryTable),
+    ariaDisabled(isSummaryTable),
   );
 
   // Menu helper that will show normal menu with some default options
@@ -279,7 +280,7 @@ export function buildFormulaConfig(
   const convertToDataOption = () => selectOption(
     convertToData,
     t("Convert column to data"), "Database",
-    dom.cls("disabled", isSummaryTable),
+    ariaDisabled(isSummaryTable),
   );
 
   // Clears the column

@@ -8,6 +8,7 @@ import { aclSelect } from "app/client/aclui/ACLSelect";
 import { ACLUsersPopup } from "app/client/aclui/ACLUsers";
 import { permissionsWidget } from "app/client/aclui/PermissionsWidget";
 import { GristDoc } from "app/client/components/GristDoc";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { inlineMarkdown, markdown } from "app/client/lib/markdown";
 import { ISuggestionWithSubAttrs } from "app/client/lib/Suggestions";
@@ -494,7 +495,7 @@ export class AccessRules extends Disposable {
               // synchronously, which prevents the menu from closing on click.
               menuItemAsync(() => this._addTableRules(tableId),
                 this.getTableTitle(tableId),
-                dom.cls("disabled", use => use(this._tableRules).some(tr => tr.tableId === tableId)),
+                ariaDisabled(use => use(this._tableRules).some(tr => tr.tableId === tableId)),
               ),
             ),
           ),

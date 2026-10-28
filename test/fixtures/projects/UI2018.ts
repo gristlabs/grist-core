@@ -162,7 +162,7 @@ function setupTest() {
         menu.menuItem(() => { console.log("Menu item: Hello"); }, "Log 'Hello'"),
         menu.menuDivider(),
         menu.menuSubHeader("Subheader"),
-        menu.menuItem(() => undefined, dom.cls("disabled", true), "Disabled"),
+        menu.menuItem(() => undefined, dom.attr("aria-disabled", "true"), "Disabled"),
         menu.menuItem(() => { console.log("Menu item: World"); }, "Log 'World'"),
       ]),
     ),

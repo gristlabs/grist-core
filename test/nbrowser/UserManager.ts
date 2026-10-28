@@ -215,8 +215,8 @@ describe("UserManager", function() {
     await driver.get(`${server.getHost()}/o/fish`);
     await gu.waitForDocMenuToLoad();
     await gu.openWsDropdown("Small");
-    assert(await driver.findWait(".test-dm-rename-workspace", 1000).matches(".disabled"));
-    assert(await driver.find(".test-dm-delete-workspace").matches(".disabled"));
+    assert(await driver.findWait(".test-dm-rename-workspace", 1000).matches('[aria-disabled="true"]'));
+    assert(await driver.find(".test-dm-delete-workspace").matches('[aria-disabled="true"]'));
     await canEditAccess(driver.find(".test-dm-workspace-access"), false);
 
     // Log in with Chimpy once again.
@@ -291,8 +291,8 @@ describe("UserManager", function() {
     const chimpy = driver.findContent(".test-um-member", /chimpy@getgrist.com/);
     await chimpy.find(".test-um-member-role").click();
     await gu.findOpenMenu();
-    assert(await driver.findContent(".test-um-role-option", /Editor/).matches(".disabled"));
-    assert(await driver.findContent(".test-um-role-option", /Viewer/).matches(".disabled"));
+    assert(await driver.findContent(".test-um-role-option", /Editor/).matches('[aria-disabled="true"]'));
+    assert(await driver.findContent(".test-um-role-option", /Viewer/).matches('[aria-disabled="true"]'));
     // Click away to close the menu
     await driver.find(`.test-um-members`).click();
 
@@ -429,8 +429,8 @@ describe("UserManager", function() {
     const chimpy = driver.findContent(".test-um-member", /chimpy@getgrist.com/);
     await chimpy.find(".test-um-member-role").click();
     await gu.findOpenMenu();
-    assert(await driver.findContent(".test-um-role-option", /Editor/).matches(".disabled"));
-    assert(await driver.findContent(".test-um-role-option", /Viewer/).matches(".disabled"));
+    assert(await driver.findContent(".test-um-role-option", /Editor/).matches('[aria-disabled="true"]'));
+    assert(await driver.findContent(".test-um-role-option", /Viewer/).matches('[aria-disabled="true"]'));
     // Click away to close the menu
     await driver.find(`.test-um-members`).click();
 

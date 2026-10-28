@@ -5,6 +5,7 @@
  */
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { kbFocusHighlighterClass } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
@@ -274,14 +275,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           return [
             cssSelectAll(
               dom.text(searchValue ? t("All shown") : t("All")),
-              dom.attr("aria-disabled", isEquivalentFilter(state, allSpec) ? "true" : "false"),
+              ariaDisabled(isEquivalentFilter(state, allSpec)),
               dom.on("click", () => !isEquivalentFilter(state, allSpec) && columnFilter.setState(allSpec)),
               testId("bulk-action"),
             ),
             cssDotSeparator("•"),
             cssSelectAll(
               searchValue ? t("All except") : t("None"),
-              dom.attr("aria-disabled", isEquivalentFilter(state, noneSpec) ? "true" : "false"),
+              ariaDisabled(isEquivalentFilter(state, noneSpec)),
               dom.on("click", () => !isEquivalentFilter(state, noneSpec) && columnFilter.setState(noneSpec)),
               testId("bulk-action"),
             ),

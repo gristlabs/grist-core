@@ -106,35 +106,39 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
       const insertMenu = (where: typeof above) => () => {
         return [
-          menus.menuSubHeader(t("New question")),
-          ...commonTypes()
-            .filter(isQuick)
-            .filter(isEnabled)
-            .map(ct => menus.menuItem(where({ add: ct.colType }), menus.menuIcon(ct.icon!), ct.displayName)),
-          menus.menuItemSubmenu(
-            () => commonTypes()
-              .filter(notQuick)
+          menus.menuGroup(
+            t("New question"),
+            ...commonTypes()
+              .filter(isQuick)
               .filter(isEnabled)
-              .map(ct => menus.menuItem(
-                where({ add: ct.colType }),
-                menus.menuIcon(ct.icon!),
-                ct.displayName,
-              )),
-            {},
-            menus.menuIcon("Dots"),
-            dom("span", t("More"), dom.style("margin-right", "8px")),
+              .map(ct => menus.menuItem(where({ add: ct.colType }), menus.menuIcon(ct.icon!), ct.displayName)),
+            menus.menuItemSubmenu(
+              () => commonTypes()
+                .filter(notQuick)
+                .filter(isEnabled)
+                .map(ct => menus.menuItem(
+                  where({ add: ct.colType }),
+                  menus.menuIcon(ct.icon!),
+                  ct.displayName,
+                )),
+              {},
+              menus.menuIcon("Dots"),
+              dom("span", t("More"), dom.style("margin-right", "8px")),
+            ),
           ),
           dom.maybe(oneTo5, () => [
             menus.menuDivider(),
-            menus.menuSubHeader(t("Unmapped fields")),
-            dom.domComputed(unmapped, uf =>
-              uf.map(({ label, icon, colId }) => menus.menuItem(
-                where({ show: colId }),
-                menus.menuIcon(icon),
-                label,
-                testId("unmapped"),
-                testId("unmapped-" + colId),
-              )),
+            menus.menuGroup(
+              t("Unmapped fields"),
+              dom.domComputed(unmapped, uf =>
+                uf.map(({ label, icon, colId }) => menus.menuItem(
+                  where({ show: colId }),
+                  menus.menuIcon(icon),
+                  label,
+                  testId("unmapped"),
+                  testId("unmapped-" + colId),
+                )),
+              ),
             ),
           ]),
           dom.maybe(moreThan5, () => [
@@ -153,11 +157,13 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
             ),
           ]),
           menus.menuDivider(),
-          menus.menuSubHeader(t("Building blocks")),
-          menus.menuItem(where(struct("Header")), menus.menuIcon("Headband"), t("Header")),
-          menus.menuItem(where(struct("Paragraph")), menus.menuIcon("Paragraph"), t("Paragraph")),
-          menus.menuItem(where(struct("Columns")), menus.menuIcon("Columns"), t("Columns")),
-          menus.menuItem(where(struct("Separator")), menus.menuIcon("Separator"), t("Separator")),
+          menus.menuGroup(
+            t("Building blocks"),
+            menus.menuItem(where(struct("Header")), menus.menuIcon("Headband"), t("Header")),
+            menus.menuItem(where(struct("Paragraph")), menus.menuIcon("Paragraph"), t("Paragraph")),
+            menus.menuItem(where(struct("Columns")), menus.menuIcon("Columns"), t("Columns")),
+            menus.menuItem(where(struct("Separator")), menus.menuIcon("Separator"), t("Separator")),
+          ),
 
           props.customItems ? menus.menuDivider() : null,
           ...(props.customItems ?? []),

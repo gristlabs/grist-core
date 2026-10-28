@@ -1,4 +1,5 @@
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { getLoginOrSignupUrl, getLoginUrl, getLogoutUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
@@ -140,9 +141,12 @@ export class AccountWidget extends Disposable {
     const users = this._appModel.topAppModel.users;
     const isExternal = user?.loginMethod === "External";
     return [
+      { "aria-labelledby": "usermenu-name" },
       cssUserInfo(
         createUserImage(user, "large"),
-        cssUserName(dom("span", user.name, testId("usermenu-name")),
+        cssUserName(
+          { id: "usermenu-name" },
+          dom("span", user.name, testId("usermenu-name")),
           cssEmail(user.email, testId("usermenu-email")),
         ),
       ),
@@ -179,7 +183,10 @@ export class AccountWidget extends Disposable {
       // org-listing UI below.
       this._appModel.topAppModel.isSingleOrg || !isFeatureEnabled("multiAccounts") ? [] : [
         menuDivider(),
-        menuSubHeader(dom.text(use => use(users).length > 1 ? t("Switch Accounts") : t("Accounts"))),
+        menuSubHeader(
+          dom.text(use => use(users).length > 1 ?
+            t("Switch Accounts") : t("Accounts")),
+          { role: "presentation" }),
         dom.forEach(users, (_user) => {
           if (_user.id === user.id) { return null; }
           return menuItem(() => this._switchAccount(_user),
@@ -238,7 +245,7 @@ export class AccountWidget extends Disposable {
       // TODO weasel menus should support disabling menuItemLink.
       (canViewBillingPage ?
         menuItemLink(urlState().setLinkUrl({ billing: "billing" }), t("Billing account")) :
-        menuItem(() => null, t("Billing account"), dom.cls("disabled", true))
+        menuItem(() => null, t("Billing account"), ariaDisabled(true))
       ) :
       menuItem(() => this._appModel.showUpgradeModal("accountMenu"), t("Upgrade Plan"));
   }

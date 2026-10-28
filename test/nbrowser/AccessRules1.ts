@@ -449,9 +449,10 @@ describe("AccessRules1", function() {
     await driver.findWait(".test-rule-set", 2000);
     await driver.find(".test-dp-add-new").doClick();
     await gu.findOpenMenu();
-    assert.includeMembers(await driver.findAll(".test-dp-add-new-menu > li.disabled", imp => imp.getText()), [
-      "Add widget to page",
-    ]);
+    assert.includeMembers(
+      await driver.findAll('.test-dp-add-new-menu > li[aria-disabled="true"]', imp => imp.getText()),
+      ["Add widget to page"],
+    );
     await gu.closeOpenMenu();
     await gu.waitAppFocus();
   });

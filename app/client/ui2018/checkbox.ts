@@ -18,6 +18,7 @@
 import { testId, theme } from "app/client/ui2018/cssVars";
 
 import { Computed, dom, DomArg, DomContents, Observable, styled } from "grainjs";
+import { cssMenuItem } from "popweasel";
 
 export const cssLabel = styled("label", `
   position: relative;
@@ -32,6 +33,15 @@ export const cssLabel = styled("label", `
   --color: ${theme.checkboxBorder};
   &:hover {
     --color: ${theme.checkboxBorderHover};
+  }
+
+  .${cssMenuItem.className} & {
+    flex: 1;
+  }
+
+  .${cssMenuItem.className}.disabled &,
+  .${cssMenuItem.className}[aria-disabled="true"] & {
+    cursor: not-allowed;
   }
 `);
 
@@ -101,6 +111,11 @@ export const cssCheckboxSquare = styled("input", `
     -webkit-mask-repeat: no-repeat;
     background-color: ${theme.controlPrimaryFg};
   }
+
+  .${cssMenuItem.className}-sel &::before,
+  .${cssMenuItem.className}-sel &::after {
+    border-color: ${theme.menuItemSelectedFg};
+  }
 `);
 
 export const cssCheckboxCircle = styled(cssCheckboxSquare, `
@@ -114,6 +129,15 @@ export const cssLabelText = styled("span", `
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 16px;
+
+  .${cssMenuItem.className}-sel & {
+    color: ${theme.menuItemSelectedFg};
+  }
+
+  .${cssMenuItem.className}.disabled &,
+  .${cssMenuItem.className}[aria-disabled="true"] & {
+    color: ${theme.menuItemDisabledFg};
+  }
 `);
 
 type CheckboxArg = DomArg<HTMLInputElement>;

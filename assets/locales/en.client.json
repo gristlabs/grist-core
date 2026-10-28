@@ -1009,7 +1009,8 @@
         "Download document...": "Download document...",
         "Suggest changes": "Suggest changes",
         "current version": "current version",
-        "original": "original"
+        "original": "original",
+        "Return to {{termToUse}} (new tab)": "Return to {{termToUse}} (new tab)"
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
@@ -1077,7 +1078,8 @@
         "Cancel": "Cancel",
         "Close": "Close",
         "Current field ": "Current field ",
-        "OK": "OK"
+        "OK": "OK",
+        "Select fields": "Select fields"
     },
     "TypeTransformation": {
         "Apply": "Apply",
