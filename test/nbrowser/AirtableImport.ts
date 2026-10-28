@@ -245,6 +245,7 @@ describe("AirtableImport", function() {
         await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
 
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+        await bases.findWait(".test-import-airtable-name", 2000);
         assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
           ["Product planning", "Sales CRM"]);
         assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
@@ -258,6 +259,7 @@ describe("AirtableImport", function() {
         await gu.reloadDoc();
         await openAirtableDocImporter();
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+        await bases.findWait(".test-import-airtable-name", 2000);
         assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
           ["Product planning", "Sales CRM"]);
         assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
@@ -275,6 +277,7 @@ describe("AirtableImport", function() {
 
         await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+        await bases.findWait(".test-import-airtable-name", 2000);
         assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
           ["Product planning", "Sales CRM"]);
         assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
@@ -303,6 +306,7 @@ describe("AirtableImport", function() {
         await editorSession.loadDoc(`/doc/${otherDocId}`);
         await openAirtableDocImporter();
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
+        await bases.findWait(".test-import-airtable-name", 2000);
         assert.deepEqual(await bases.findAll(".test-import-airtable-name", el => el.getText()),
           ["Product planning", "Sales CRM"]);
         assert.deepEqual(await bases.findAll(".test-import-airtable-id", el => el.getText()),
@@ -338,7 +342,7 @@ describe("AirtableImport", function() {
         await openAirtableDocImporter("home");
 
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
-        await bases.findContent(".test-import-airtable-name", "Product planning").click();
+        await bases.findContentWait(".test-import-airtable-name", "Product planning", 2000).click();
         await driver.find(".test-import-airtable-continue").click();
 
         await driver.findWait(".test-import-airtable-mappings", 2000).isDisplayed();
@@ -480,7 +484,7 @@ describe("AirtableImport", function() {
           "", "", "", "", "", "",
         ]);
 
-        await gu.getPageItem("Suppliers").click();
+        await gu.openPage("Suppliers");
         assert.deepEqual(await gu.getColumnNames(), [
           "Airtable Id",
           "Name",
@@ -509,7 +513,7 @@ describe("AirtableImport", function() {
         await openAirtableDocImporter("doc");
 
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
-        await bases.findContent(".test-import-airtable-name", "Product planning").click();
+        await bases.findContentWait(".test-import-airtable-name", "Product planning", 2000).click();
         await driver.find(".test-import-airtable-continue").click();
         await driver.findWait(".test-import-airtable-mappings", 2000).isDisplayed();
 
@@ -588,7 +592,7 @@ describe("AirtableImport", function() {
           "", "", "", "", "", "",
         ]);
 
-        await gu.getPageItem("Suppliers").click();
+        await gu.openPage("Suppliers");
         assert.deepEqual(await gu.getColumnNames(), [
           "Airtable Id",
           "Name",
@@ -601,7 +605,7 @@ describe("AirtableImport", function() {
           "", "", "", "",
         ]);
 
-        await gu.getPageItem("Orders").click();
+        await gu.openPage("Orders");
         assert.deepEqual(await gu.getColumnNames(), [
           "Airtable Id",
           "Order Number",
@@ -639,7 +643,7 @@ describe("AirtableImport", function() {
         await openAirtableDocImporter("doc");
         await driver.findWait(".test-import-airtable-connect:not(:disabled)", 2000).click();
         const bases = await driver.findWait(".test-import-airtable-bases", 2000);
-        await bases.findContent(".test-import-airtable-name", "Product planning").click();
+        await bases.findContentWait(".test-import-airtable-name", "Product planning", 2000).click();
         await driver.find(".test-import-airtable-continue").click();
 
         // Make sure Table2 isn't shown.
@@ -657,7 +661,7 @@ describe("AirtableImport", function() {
 
         assert.deepEqual(await gu.getPageNames(), ["Table1", "Products", "Suppliers", "Brand", "Orders"]);
 
-        await gu.getPageItem("Products").click();
+        await gu.openPage("Products");
         assert.deepEqual(await gu.getColumnNames(), [
           "Airtable Id",
           "Name",
@@ -672,7 +676,7 @@ describe("AirtableImport", function() {
           "", "", "", "", "", "",
         ]);
 
-        await gu.getPageItem("Suppliers").click();
+        await gu.openPage("Suppliers");
         assert.deepEqual(await gu.getColumnNames(), [
           "Airtable Id",
           "Name",
@@ -685,7 +689,7 @@ describe("AirtableImport", function() {
           "", "", "", "",
         ]);
 
-        await gu.getPageItem("Orders").click();
+        await gu.openPage("Orders");
         assert.deepEqual(await gu.getColumnNames(), [
           "Airtable Id",
           "Order Number",
