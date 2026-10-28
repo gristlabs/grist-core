@@ -1656,13 +1656,6 @@
   dependencies:
     i18next "^21.0.1"
 
-"@types/image-size@0.0.29":
-  version "0.0.29"
-  resolved "https://registry.npmjs.org/@types/image-size/-/image-size-0.0.29.tgz"
-  integrity sha512-d47SGzTnoUXSLRn3Kej43FZXLduZjHJqkb26BmxKp9fQveCvjfirtpk7a5iLCGkJ/rur9kxUf7DwD2eKlPxjMg==
-  dependencies:
-    "@types/node" "*"
-
 "@types/jquery@*":
   version "3.5.5"
   resolved "https://registry.npmjs.org/@types/jquery/-/jquery-3.5.5.tgz"

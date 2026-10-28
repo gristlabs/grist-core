@@ -22,9 +22,12 @@ import { addAllScenarios, addAttachmentsToDoc, TestContext } from "test/server/l
 import * as testUtils from "test/server/testUtils";
 import { readFixtureDoc } from "test/server/testUtils";
 
+import * as path from "path";
+
 import axios, { AxiosResponse } from "axios";
 import { assert } from "chai";
 import decompress from "decompress";
+import * as fse from "fs-extra";
 import * as _ from "lodash";
 
 describe("DocApiAttachments", function() {
@@ -61,6 +64,24 @@ function addAttachmentsTests(getCtx: () => TestContext) {
         { name: "hello.png", contents: "abcdef" },
       ], chimpy);
       assert.deepEqual(upload2Resp.data, [3]);
+    });
+
+    it("POST /docs/{did}/attachments records image dimensions", async function() {
+      const { homeUrl, userApi, chimpy } = getCtx();
+      const docId = await userApi.newDoc({ name: "ImageDims" }, await getWorkspaceId("Private"));
+      const png = await fse.readFile(path.resolve(testUtils.fixturesRoot, "uploads/gplaypattern.png"));
+      const formData = new FormData();
+      formData.append("upload", new File([new Uint8Array(png)], "pattern.png"));
+      formData.append("upload", new File(["123456"], "world.jpg"));
+      let resp = await axios.post(`${homeUrl}/api/docs/${docId}/attachments`, formData, chimpy);
+      assert.equal(resp.status, 200);
+
+      resp = await axios.get(`${homeUrl}/api/docs/${docId}/tables/_grist_Attachments/records`, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data.records.map((r: ApiRecord) => _.pick(r.fields, ["imageWidth", "imageHeight"])), [
+        { imageWidth: 188, imageHeight: 178 },
+        { imageWidth: 0, imageHeight: 0 },
+      ]);
     });
 
     it("GET /docs/{did}/attachments lists attachment metadata", async function() {

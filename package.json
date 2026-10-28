@@ -74,7 +74,6 @@
     "@types/glob": "7.1.1",
     "@types/http-proxy": "1.17.9",
     "@types/i18next-fs-backend": "1.1.2",
-    "@types/image-size": "0.0.29",
     "@types/js-yaml": "4.0.9",
     "@types/jsdom": "21.1.6",
     "@types/jsesc": "3.0.1",
