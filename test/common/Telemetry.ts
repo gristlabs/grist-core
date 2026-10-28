@@ -136,7 +136,7 @@ describe("Telemetry", function() {
       );
       assert.throws(
         () => checker("documentUsage", { attachmentTypes: [".txt", 1, true] }),
-        /Telemetry metadata attachmentTypes of event documentUsage expected a value of type string\[\] but received a value of type object\[\]/,
+        /Telemetry metadata attachmentTypes of event documentUsage expected a value of type string\[\] but received an array containing an element of type number/,
       );
     });
 

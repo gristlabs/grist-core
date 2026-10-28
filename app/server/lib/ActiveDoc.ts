@@ -2715,7 +2715,7 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._syncDocUsageToDatabase(true);
-      await this._logDocMetrics(docSession, "docClose");
+      await safeCallAndWait("_logDocMetrics", () => this._logDocMetrics(docSession, "docClose"));
 
       await safeCallAndWait("storageManager.closeDocument",
         () => this._docManager.storageManager.closeDocument(this.docName));
@@ -3399,14 +3399,14 @@ export class ActiveDoc extends EventEmitter {
     const viewSectionRecords = viewSections?.getRecords() ?? [];
     const customWidgetIds: string[] = [];
     for (const r of viewSectionRecords) {
-      const { customView } = safeJsonParse(r.options, {});
+      const { customView } = safeJsonParse(r.options, {}) ?? {};
       if (!customView) { continue; }
 
-      const { pluginId, url } = safeJsonParse(customView, {});
-      if (!url) { continue; }
+      const { pluginId, url } = safeJsonParse(customView, {}) ?? {};
+      if (typeof url !== "string" || !url) { continue; }
 
       const isGristLabsWidget = url.startsWith(commonUrls.gristLabsCustomWidgets);
-      customWidgetIds.push(isGristLabsWidget ? pluginId : "externalId");
+      customWidgetIds.push(isGristLabsWidget ? (typeof pluginId === "string" ? pluginId : "") : "externalId");
     }
     const numCustomWidgets = customWidgetIds.length;
 
@@ -3466,7 +3466,11 @@ export class ActiveDoc extends EventEmitter {
         this._log.warn(docSession, "failed to initialize doc usage", e);
       }
     }
-    await this._logDocMetrics(docSession, "docOpen");
+    try {
+      await this._logDocMetrics(docSession, "docOpen");
+    } catch (e) {
+      this._log.warn(docSession, "failed to log doc metrics", e);
+    }
   }
 
   private _getAuditEventProperties<Action extends AuditEventAction>(): Partial<AuditEventProperties<Action>> {
@@ -3746,7 +3750,7 @@ export class ActiveDoc extends EventEmitter {
       limited: {
         forkIdDigest: fork.forkId,
         forkDocIdDigest: fork.docId,
-        trunkIdDigest: document.trunkId,
+        trunkIdDigest: document.id,
         isTemplate: document.type === "template",
         lastActivity: document.updatedAt,
       },
