@@ -251,7 +251,8 @@ describe("Proposals", function() {
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
       // The Ref points at a row this proposal adds, so it is held back
-      // from the Add and set by an update later in the same bundle.
+      // from the BulkAddRecord and set by an update later in the same
+      // bundle.
       assert.sameDeepMembers(actions, [
         { kind: "add", tableId: "Customers", count: 1 },
         { kind: "add", tableId: "Orders", count: 1 },
@@ -287,8 +288,8 @@ describe("Proposals", function() {
       ]);
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
-      // One Add for both rows, since the reply's self-Ref is kept out of
-      // it, then that Ref is set once both temp ids are known.
+      // One BulkAddRecord for both rows, since the reply's self-Ref is
+      // kept out of it, then that Ref is set once both temp ids are known.
       assert.sameDeepMembers(actions, [
         { kind: "add", tableId: "Comments", count: 2 },
         { kind: "update", tableId: "Comments", count: 1 },
@@ -373,7 +374,7 @@ describe("Proposals", function() {
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
       // The RefList names rows this proposal adds, so the whole cell is
-      // held back and set after both tables' Adds.
+      // held back and set after both tables' BulkAddRecords.
       assert.sameDeepMembers(actions, [
         { kind: "add", tableId: "Tags", count: 2 },
         { kind: "add", tableId: "Articles", count: 1 },
@@ -421,7 +422,7 @@ describe("Proposals", function() {
       ]);
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
-      // There is no table ordering left to lock: every Add lands before
+      // There is no table ordering left to lock: every BulkAddRecord lands before
       // any Ref cell is set, so the chain resolves whatever order the
       // summary happens to list the tables in. What matters is the phase
       // order, so assert that separately from the contents.
@@ -481,7 +482,7 @@ describe("Proposals", function() {
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
       // Neither side of the cycle is privileged: both Refs are held back
-      // from their Adds and set once both rows have landed, so both
+      // from their BulkAddRecords and set once both rows have landed, so both
       // directions come out right rather than one being nulled.
       assert.deepEqual(actions.map(a => a.kind), ["add", "add", "update", "update"]);
       assert.sameDeepMembers(actions, [
@@ -604,7 +605,7 @@ describe("Proposals", function() {
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
       // All three add together, since A's self-RefList is kept out of the
-      // Add. It is set afterwards.
+      // BulkAddRecord. It is set afterwards.
       assert.sameDeepMembers(actions, [
         { kind: "add", tableId: "Articles", count: 3 },
         { kind: "update", tableId: "Articles", count: 1 },
@@ -675,7 +676,7 @@ describe("Proposals", function() {
       });
       // A is added first (lowest fork row id) and later updated to point
       // at B, C, and the shared ancestor row. The whole list is kept out of
-      // A's Add, so all three rows add together, and it is set in full by
+      // A's BulkAddRecord, so all three rows add together, and it is set in full by
       // the update, preserving the passthrough ancestor id and the order.
       const rA = await fork.applyUserActions([
         ["AddRecord", "Articles", null, { title: "A" }],
@@ -886,7 +887,7 @@ describe("Proposals", function() {
 
     it("keeps added rows in the order they were made", async function() {
       // Rex and Kit name a new customer, so their Ref waits for an update,
-      // and they write different columns in their Adds than Tom does.
+      // and they write different columns in their BulkAddRecords than Tom does.
       const { trunk, fork } = await setupForkWithAdvance({
         trunkSeed: [
           ["AddTable", "Customers", [{ id: "name", type: "Text", isFormula: false }]],
@@ -949,7 +950,7 @@ describe("Proposals", function() {
     it("sets held-back columns separately when they differ across rows", async function() {
       // Regression: two rows setting the same columns, but with the Refs
       // to new rows in different ones. A single BulkUpdate would null out
-      // each row's Ref to "ancestor", which went in with its Add.
+      // each row's Ref to "ancestor", which went in with its BulkAddRecord.
       const { trunk, fork } = await setupForkWithAdvance({
         trunkSeed: [
           ["AddTable", "Comments", [
@@ -979,7 +980,8 @@ describe("Proposals", function() {
       ]);
       const proposal = await fork.makeProposal();
       const actions = await applyAndGetActions(trunk, proposal.shortId);
-      // What goes in each Add differs too, so 2 Adds + 2 updates.
+      // What goes in each BulkAddRecord differs too, so 2 BulkAddRecords
+      // + 2 updates.
       assert.sameDeepMembers(actions, [
         { kind: "add", tableId: "Comments", count: 1 },
         { kind: "add", tableId: "Comments", count: 1 },
@@ -1290,7 +1292,7 @@ describe("Proposals", function() {
 
         it("hands an owner over to a new pet", async function() {
           const { trunk, fork } = await setup({ oneToOne: true });
-          // The Add for Kit comes before the update that frees Ann.
+          // The BulkAddRecord for Kit comes before the update that frees Ann.
           await fork.applyUserActions([
             ["UpdateRecord", "Pets", 1, { owner: 0 }],
             ["AddRecord", "Pets", null, { name: "Kit", owner: 1 }],
