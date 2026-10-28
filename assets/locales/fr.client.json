@@ -133,7 +133,9 @@
         "Sign up": "S'inscrire",
         "Use This Template": "Utiliser ce modèle",
         "Site settings": "Paramètres du site",
-        "Account settings": "Paramètres du compte"
+        "Account settings": "Paramètres du compte",
+        "Audit Logs": "Journal d'audit",
+        "New": "Nouveau"
     },
     "ActionLog": {
         "Action Log failed to load": "Impossible de charger le journal des actions",
@@ -381,7 +383,8 @@
         "You have read-only access to this site. Currently there are no documents.": "Vous avez accès en lecture seule à cet espace. Actuellement il n'y a aucun document.",
         "personal site": "espace personnel",
         "Grid view": "Vue icônes",
-        "List view": "Vue liste"
+        "List view": "Vue liste",
+        "Documents": "Documents"
     },
     "DocPageModel": {
         "Error accessing document": "Erreur lors de l'accès au document",
@@ -394,7 +397,9 @@
         "Add widget to page": "Ajouter une vue à la page",
         "Add empty table": "Ajouter une table vide",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
-        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Veuillez recharger le document et si l'erreur persiste, contactez les propriétaires du document pour tenter une récupération du document. [{{error}}]"
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Veuillez recharger le document et si l'erreur persiste, contactez les propriétaires du document pour tenter une récupération du document. [{{error}}]",
+        "Import from {{importSource}}": "Importer depuis {{importSource}}",
+        "Import from...": "Importer depuis ..."
     },
     "DocTour": {
         "No valid document tour": "Visite de document invalide",
@@ -664,7 +669,9 @@
         "go to webhook settings": "Aller aux paramétrages des points d’ancrage Web",
         "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Les nouvelles modifications sont temporairement suspendues. La file d'attente des points d'ancrage est saturée. Veuillez vérifier les paramètres des points d'ancrage , supprimer les points d'ancrage non valides et nettoyer la file d'attente.",
         "Import from Airtable": "Importer depuis Airtable",
-        "{{title}} widget": "vue {{title}}"
+        "{{title}} widget": "vue {{title}}",
+        "Airtable": "Airtable",
+        "File": "Fichier"
     },
     "HomeIntro": {
         "Sign up": "S'inscrire",
@@ -693,7 +700,8 @@
         "Sign in": "Connexion",
         "To use Grist, please either sign up or sign in.": "Pour utiliser Grist, connectez-vous ou créez-vous un compte.",
         "Learn more in our {{helpCenterLink}}.": "Pour en savoir plus, consultez notre {{helpCenterLink}}.",
-        "Only show documents": "Afficher des documents seulement"
+        "Only show documents": "Afficher des documents seulement",
+        "Create a document": "Créer un document"
     },
     "HomeLeftPane": {
         "All documents": "Tous les documents",
@@ -713,7 +721,10 @@
         "Terms of service": "CGU",
         "Grist Resources": "Ressources Grist",
         "context menu - {{- workspaceName }}": "menu contextuel - {{- workspaceName }}",
-        "Import from Airtable": "Importer depuis Airtable"
+        "Import from Airtable": "Importer depuis Airtable",
+        "Airtable": "Airtable",
+        "Import from {{importSource}}": "Importer depuis {{importSource}}",
+        "Import from...": "Importer depuis ..."
     },
     "Importer": {
         "Update existing records": "Mettre à jour les enregistrements existants",
@@ -818,7 +829,10 @@
         "SELECT BY": "SÉLECTIONNÉ PAR",
         "{{table}} grouped by… (press to select fields)": "{{table}} groupé par… (appuyer pour choisir les champs)",
         "Press Space to add fields": "Appuyer sur Espace pour ajouter des champs",
-        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Utilisez les flèches haut et bas pour naviguer dans les options. Appuyez sur Entrée et Échap pour naviguer entre les étapes."
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Utilisez les flèches haut et bas pour naviguer dans les options. Appuyez sur Entrée et Échap pour naviguer entre les étapes.",
+        "Create your own": "Créez le vôtre",
+        "More": "Plus",
+        "NEW": "NOUVEAU"
     },
     "Pages": {
         "The following tables will no longer be visible_one": "La donnée source ne sera plus visible",
@@ -970,7 +984,8 @@
         "Sort in ascending order (current: descending)": "Trier par ordre croissant (actuellement : ordre décroissant)",
         "Sort in descending order (current: ascending)": "Trier par ordre décroissant (actuellement : ordre croissant)",
         "Sort options - {{- columnName }} column": "Options de tri - colonne {{- columnName }}",
-        "{{- columnName }} column": "colonne {{- columnName }}"
+        "{{- columnName }} column": "colonne {{- columnName }}",
+        "Empty values first": "Valeurs vides en premier"
     },
     "SortFilterConfig": {
         "Save": "Enregistrer",
@@ -1086,7 +1101,8 @@
         "Custom options": "Options personnalisées",
         "SORT": "TRI",
         "FILTER": "FILTRE",
-        "Sort and filter": "Trier et filtrer"
+        "Sort and filter": "Trier et filtrer",
+        "Calendar view": "Vue Calendrier"
     },
     "VisibleFieldsConfig": {
         "Hidden Fields cannot be reordered": "Les champs masqués ne peuvent pas être réordonnés",
@@ -1168,7 +1184,11 @@
         "suggestions": "suggestions",
         "You will no longer receive email notifications about {{automations}} in {{docName}} at {{email}}.": "Vous ne recevrez plus de notifications à l'adresse {{email}} à propos de l'automatisation {{automations}} dans le document {{docName}}.",
         "You have been unsubscribed from automation notifications for {{docName}}. You can update your preferences anytime in the document settings.": "Vous avez été désabonné·e des notifications concernant les automatisations du document {{docName}}. Vous pouvez changer vos préférences à tout moment dans les paramètres du document.",
-        "automations": "automatisations"
+        "automations": "automatisations",
+        "You have been unsubscribed from notifications about any comments in {{docName}}, including mentions of you and replies to your comments. You can update your preferences anytime in the document settings.": "Vous vous êtes désabonné(e) des notifications pour tous les commentaires dans {{docName}}, y compris les mentions vous concernant et les réponses à vos commentaires. Vous pouvez modifier vos préférences à tout moment dans les paramètres du document.",
+        "You have been unsubscribed from notifications about changes to {{docName}}. You can update your preferences anytime in the document settings.": "Vous êtes maintenant désabonné(e) des notifications concernant les modifications apportées à {{docName}}. Vous pouvez modifier vos préférences à tout moment dans les paramètres du document.",
+        "You have been unsubscribed from notifications about comments in {{docName}}, except for mentions of you and replies to your comments. You can update your preferences anytime in the document settings.": "Vous avez été désabonné(e) des notifications concernant les commentaires sur {{docName}}, à l'exception des mentions vous concernant et des réponses à vos commentaires. Vous pouvez modifier vos préférences à tout moment dans les paramètres du document.",
+        "You have been unsubscribed from notifications about suggestions to {{docName}}. You can update your preferences anytime in the document settings.": "Vous êtes désormais désabonné(e) des notifications concernant les suggestions sur {{docName}}. Vous pouvez modifier vos préférences à tout moment dans les paramètres du document."
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
@@ -1188,7 +1208,8 @@
         "Any": "Non défini",
         "Search columns": "Chercher des colonnes",
         "By Name": "Par Nom",
-        "By Date Modified": "Par Date de modification"
+        "By Date Modified": "Par Date de modification",
+        "Loading...": "Chargement en cours ..."
     },
     "modals": {
         "Save": "Enregistrer",
@@ -1324,7 +1345,8 @@
         "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Définissez des options de formatage de la colonne, des formules ou bien les types de la colonne (dates, liste à choix unique, pièce jointe etc.) ",
         "Use {{helpCenter}} for documentation or questions.": "Cliquez sur {{helpCenter}} pour voir la documentation et poser vos questions.",
         "creator panel": "menu latéral",
-        "AI Assistant": "Assistant IA"
+        "AI Assistant": "Assistant IA",
+        "Understand, modify and work with your data and formulas with the help of Grist's AI Assistant!": "Comprenez, modifiez et manipulez plus facilement vos données et formules grâce à l'Assistant IA de Grist !"
     },
     "TypeTransformation": {
         "Cancel": "Annuler",
@@ -1489,7 +1511,12 @@
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Lorsqu'il est coché, la valeur par défaut de ce champ peut-être préremplie à partir de l'URL en utilisant ses paramètres de requête.",
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Avec les suggestions, les utilisateurs font des modifications dans une copie personnelle sans modifier le document original, puis ils soumettent ces suggestions à la revue du propriétaire du document avant leur intégration.",
         "Unpin to hide the button while keeping the filter.": "Désépingler pour masquer le bouton tout en conservant le filtre.",
-        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Les IDs de ligne sont des identifiants numériques stables et uniques, utilisés par les colonnes de référence pour identifier les enregistrements."
+        "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Les IDs de ligne sont des identifiants numériques stables et uniques, utilisés par les colonnes de référence pour identifier les enregistrements.",
+        "To configure your calendar, select columns for start": {
+            "end dates and event titles. Note each column's type.": "Pour configurer votre calendrier, sélectionnez les colonnes pour les dates de début/fin et les titres des événements. Attention à bien vérifier le type de chaque colonne."
+        },
+        "Editors can edit structure, so they, like Owners, may bypass table and column access rules and read and change any data in this document. Turn off structure editing in Access Rules to limit them.": "Les éditeurs peuvent modifier la structure. Ils peuvent donc, tout comme les Propriétaires du document, contourner les règles d'accès aux tables et aux colonnes, et lire ou modifier n'importe quelle donnée de ce document. Désactivez la modification de la structure dans les Règles d'accès pour restreindre leurs droits.",
+        "This widget is one file of HTML and JavaScript, saved in this document. It reads the rows of the table you pick.": "Ce widget est un fichier unique contenant du HTML et du JavaScript, enregistré dans ce document. Il lit les lignes de la table que vous sélectionnez."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1687,7 +1714,8 @@
         "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Votre {{resourceType}} sera accessible par toute personne ayant le lien, que ce soit via un partage directe ou à travers un moteur de recherche.\n Assurez vous que votre {{resourceType}} ne contienne pas de données sensible avant de partager.",
         "Configure notifications": "Configurer les notifications",
         "Invitation emails are not enabled on this installation.": "Les mails d'invitation ne sont pas activés sur cette installation.",
-        "Invitation emails are not sent on Grist Community edition.": "Les mails d'invitation ne sont pas envoyés dans la version communautaire de Grist."
+        "Invitation emails are not sent on Grist Community edition.": "Les mails d'invitation ne sont pas envoyés dans la version communautaire de Grist.",
+        "Owner-like data access": "Droits d'accès aux données identiques à ceux du Propriétaire du document"
     },
     "SearchModel": {
         "Search all tables": "Rechercher toutes les tables",
@@ -2209,12 +2237,22 @@
     "markdown": {
         "The toggle is **off**": "L'interrupteur est sur **désactivé**",
         "The toggle is **on**": "L'interrupteur est sur **activé**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ du [Markdown hibituel](https://markdownguide.org) *à l'intérieur*\n *      d'un Élément Grainjs."
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ du [Markdown hibituel](https://markdownguide.org) *à l'intérieur*\n *      d'un Élément Grainjs.",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ [du Markdown habituel](https://markdownguide.org) *à l'intérieur*\n *      d'un élément Grainjs."
+            }
+        }
     },
     "markdown.d": {
         "The toggle is **off**": "L'interrupteur est sur **désactivé**",
         "The toggle is **on**": "L'interrupteur est sur **activé**",
-        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ [avec la syntaxe Markdown](https://markdownguide.org) *directement*\n *      dans un élément Grainjs."
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https://markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ [avec la syntaxe Markdown](https://markdownguide.org) *directement*\n *      dans un élément Grainjs.",
+        "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
+            "": {
+                "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ [du Markdown habituel](https://markdownguide.org) *à l'intérieur*\n *      d'un élément Grainjs."
+            }
+        }
     },
     "HomeIntroCards": {
         "3 minute video tour": "Visite guidée de 3 minutes",
@@ -2386,7 +2424,9 @@
         "For higher limits, contact the site owner.": "Pour des limites plus élevées, contactez le propriétaire du site.",
         "Sign Up for Free": "Inscrivez-vous gratuitement",
         "Apply": "Appliquer",
-        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "La conversation est devenue trop longue et je ne peux plus répondre efficacement. Veuillez {{startANewChatButton}} pour continuer à recevoir de l'aide."
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "La conversation est devenue trop longue et je ne peux plus répondre efficacement. Veuillez {{startANewChatButton}} pour continuer à recevoir de l'aide.",
+        "The session has become too long and I can no longer respond effectively. Please {{startANewSessionButton}} to continue receiving assistance.": "La session est devenue trop longue et je ne peux plus répondre efficacement. Veuillez {{startANewSessionButton}} pour continuer à recevoir de l'aide.",
+        "start a new session": "Commencer une nouvelle session"
     },
     "apiconsole": {
         "Type DELETE here if you wish to proceed.": "Tapez DELETE si vous souhaitez continuer.",
@@ -2480,7 +2520,10 @@
         "It is good practice not to run Grist as the root user.": "C'est une bonne pratique de ne pas faire tourner Grist en tant qu'utilisateur root.",
         "The main page of Grist should be available.": "La page principale de Grist devrait être disponible.",
         "APP_HOME_URL is the base URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "APP_HOME_URL est l'URL de base à laquelle les utilisateurs et les intégrations peuvent joindre votre serveur Grist. Les requêtes d'authentification, les liens d'API et les notifications par courriel dépendent toutes de ce paramètre pour fonctionner correctement.",
-        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Si vous faites tourner un conteneur sans stockage externe ou avec la base de donnée par défaut, /persit devrait être monté comme volume. Dans le cas contraire les documents Grist et les métadonnées seront perdues à l'arrêt du conteneur."
+        "If running in a container without external storage or with default database, /persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Si vous faites tourner un conteneur sans stockage externe ou avec la base de donnée par défaut, /persit devrait être monté comme volume. Dans le cas contraire les documents Grist et les métadonnées seront perdues à l'arrêt du conteneur.",
+        "If running in a container without external storage or with default database, ": {
+            "persist should be a mounted volume. Otherwise Grist documents and metadata will be lost when the container stops.": "Si vous exécutez l'application dans un conteneur sans stockage externe ou avec une base de données par défaut, /persist doit être un volume monté. Sinon, les documents et les métadonnées Grist seront perdus à l'arrêt du conteneur."
+        }
     },
     "ChoiceListEntry": {
         "Edit": "Modifier",
@@ -2691,7 +2734,12 @@
         "Open the current row menu": "Ouvrir le menu de la ligne actuelle",
         "When focused on a page panel, focus next landmark": "Quand le focus est dans un panneau, placer le focus sur le prochain repère",
         "When focused on a page panel, focus previous landmark": "Quand le focus est dans un panneau, placer le focus sur le repère précédent",
-        "When focused on a widget, move focus between widget and widget header": "Quand le focus est dans une vue, basculer le focus entre la vue et l'en-tête de la vue"
+        "When focused on a widget, move focus between widget and widget header": "Quand le focus est dans une vue, basculer le focus entre la vue et l'en-tête de la vue",
+        "Open the formula assistant": "Ouvrir l'assistant de formule",
+        "Shortcut to close the inner left panel": "Raccourci pour fermer le panneau latéral gauche",
+        "Shortcut to open the inner left panel": "Raccourci pour ouvrir le panneau latéral gauche",
+        "Toggle the assistant": "Afficher/masquer l'assistant",
+        "Save the code of a custom widget in its editor": "Enregistrer le code d'un widget personnalisé dans son éditeur"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "format 12-heures",
@@ -2732,7 +2780,10 @@
         "Week of year": "Semaine de l'année",
         "Year": "Année",
         "Years since": "Années depuis",
-        "Years until": "Années jusque"
+        "Years until": "Années jusque",
+        "AM": {
+            "PM": "AM/PM"
+        }
     },
     "selectBy": {
         "Select widget": "Choisir une vue"
@@ -2868,7 +2919,49 @@
         "Anyone can access all data without signing in. Only suitable for private networks and temporary setups.": "Tout le monde peut accéder aux données sans connexion. Viable uniquement sur les réseaux privés ou pour des installations temporaires.",
         "Anyone who can reach this server can access all data without signing in. Choose a sign-in method below.": "Toute personne ayant accès à ce serveur pourra accéder à la donnée sans se connecter. Choisissez l'une des méthodes de connexion ci-dessous.",
         "Hide installation ID": "Masquer l'Identifiant d'installation",
-        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Le single sign-on avec **OIDC** ou **SAML** est officiellement supporté dans la version complète de Grist et nécessite une clé d'activation — voir [le tableau de prix]({{pricingLink}}). Les particuliers et les petites organisations peuvent demander une [clé d'activation gratuite]({{faqLink}})."
+        "Single sign-on with **OIDC** or **SAML** is officially supported in the full Grist edition, and requires an activation key — see [pricing]({{pricingLink}}). Individuals and small organizations may request a [free Grist activation key]({{faqLink}}).": "Le single sign-on avec **OIDC** ou **SAML** est officiellement supporté dans la version complète de Grist et nécessite une clé d'activation — voir [le tableau de prix]({{pricingLink}}). Les particuliers et les petites organisations peuvent demander une [clé d'activation gratuite]({{faqLink}}).",
+        "To set up **Grist Connect**, follow the instructions in [the Grist support article for Grist Connect](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "grist-connect": {
+                            ").": "Pour configurer **Grist Connect**, suivez les instructions de [l'article de support Grist pour Grist Connect](https://support.getgrist.com/install/grist-connect/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **OIDC**, follow the instructions in [the Grist support article for OIDC](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "oidc).": "Pour configurer **OIDC**, suivez les instructions de [l'article de support Grist pour OIDC](https://support.getgrist.com/install/oidc)."
+                    }
+                }
+            }
+        },
+        "To set up **SAML**, follow the instructions in [the Grist support article for SAML](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "saml": {
+                            ").": "Pour configurer**SAML**, suivez les instructions de [l'article de support Grist pour SAML](https://support.getgrist.com/install/saml/)."
+                        }
+                    }
+                }
+            }
+        },
+        "To set up **forwarded headers**, follow the instructions in [the Grist support article for forwarded headers](https:": {
+            "": {
+                "support.getgrist.com": {
+                    "install": {
+                        "forwarded-headers": {
+                            ").": "Pour configurer** les en-têtes transférés**, suivez les instructions de [l'article de support Grist pour les en-têtes transférés](https://support.getgrist.com/install/forwarded-headers/)."
+                        }
+                    }
+                }
+            }
+        }
     },
     "DetailView": {
         "This row is unavailable or does not exist": "Cette ligne est indisponible ou n’existe pas"
@@ -2962,7 +3055,10 @@
         "The boot key should only be used as a temporary means of authentication until a more secure and robust authentication method is configured via Security Settings → Authentication. We recommend removing the boot key once you've finished setting up Grist.": "La clé d'amorçage ne devrait être utilisée que comme une solution temporaire d'authentification en attendant la mise en place d'une méthode d'authentification plus robuste et sécurisée via le menu Paramètres de sécurité → Authentification. Nous vous recommandons de supprimer la clé d'amorçage après avoir terminé la configuration de Grist.",
         "This setting is currently being managed by an environment variable (`GRIST_BOOT_KEY`).": "Ce paramètre est actuellement géré par une variable d'environnement (`GRIST_BOOT_KEY`).",
         "Unset the environment variable to manage this setting via the Admin Panel.": "Désactivez la variable d'environnement pour gérer ce paramètre via le portail d'administration.",
-        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Vous ne pourrez plus vous authentifier en tant qu'administrateur de l'installation sur la page `/boot-key`."
+        "You will no longer be able to authenticate as the install admin on the `/boot-key` page.": "Vous ne pourrez plus vous authentifier en tant qu'administrateur de l'installation sur la page `/boot-key`.",
+        "You will no longer be able to authenticate as the install admin on the `": {
+            "boot-key` page.": "Vous ne pourrez plus vous authentifier en tant qu'administrateur d'installation sur la page /boot-key."
+        }
     },
     "PermissionsSetupSection": {
         "Users can create their own personal sites with documents. Turn off to restrict all documents to team sites managed by admins.": "Les utilisateurs peuvent créer leurs propres espaces personnels avec des documents. Désactivez pour permettre l'ajout de documents uniquement dans des espaces d'équipe gérés par des administrateurs.",
@@ -3016,7 +3112,12 @@
         "Sandbox": "Bac à sable",
         "No sandbox": "Pas de sandbox",
         "macOS sandbox": "Sandbox macOS",
-        "Revert": "Annuler"
+        "Revert": "Annuler",
+        "Formulas have full system access. Only appropriate when you trust every document and its authors.": "Les formules disposent d'un accès système complet. À n'utiliser que si vous faites entièrement confiance à chaque document et à ses auteurs.",
+        "Formulas run in WebAssembly, fully compatible but slower than gVisor. Works on any platform.": "Les formules s'exécutent dans WebAssembly, ce qui assure une compatibilité totale mais les rend plus lentes que gVisor. Fonctionne sur toutes les plates-formes.",
+        "Grist runs user formulas as Python code. Sandboxing isolates this execution to protect your server. Without it, document formulas can access the full system.": "Les formules de Grist s'exécutent en code Python. Le bac à sable (sandboxing) isole cette exécution pour protéger votre serveur. Sans cela, les formules des documents peuvent accéder à l'ensemble du système.",
+        "Sandbox type is set via the GRIST_SANDBOX_FLAVOR environment variable and cannot be changed here. Remove the variable and restart to configure via this wizard.": "Le type de bac à sable est défini via la variable d'environnement GRIST_SANDBOX_FLAVOR et ne peut pas être modifié ici. Supprimez cette variable et redémarrez pour procéder à la configuration via cet assistant.",
+        "The fastest and most battle-tested sandbox. Each document's formulas run in their own isolated container.": "Le bac à sable (sandbox) le plus rapide et le plus éprouvé. Les formules de chaque document s'exécutent dans leur propre conteneur isolé."
     },
     "AdminPanelCss": {
         "Confirmed": "Confirmé",
@@ -3041,7 +3142,12 @@
         "not set": "non défini",
         "set": "défini",
         "Leave automatic": "Laisser en automatique",
-        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "L'URL à laquelle les utilisateurs et les intégrations peuvent joindre ce serveur Grist. Les appels d'authentification, les liens d'API et les notifications par courriel dépendent tous de la bonne configuration de ce paramètre."
+        "The URL where users and integrations reach this Grist server. Auth callbacks, API links, and email notifications all depend on this being correct.": "L'URL à laquelle les utilisateurs et les intégrations peuvent joindre ce serveur Grist. Les appels d'authentification, les liens d'API et les notifications par courriel dépendent tous de la bonne configuration de ce paramètre.",
+        "https:": {
+            "": {
+                "grist.example.com": "https://grist.example.com"
+            }
+        }
     },
     "EditionSection": {
         "Choose which edition of Grist to run on this server": "Choisir la version de Grist à utiliser sur ce serveur",
@@ -3093,7 +3199,10 @@
         "You may downgrade at any time to the Community edition. You will not lose your data or need to reinstall Grist.": "Vous pouvez revenir à tout moment vers l'édition communautaire. Vous ne perdrez pas vos données et n'aurez pas à réinstaller Grist.",
         "Your server will restart automatically once finished.": "Votre serveur redémarrera automatiquement à la fin de l'opération.",
         "{{freeKeysLink}} are available to individuals and orgs under US $1M total annual funding. For larger orgs see {{pricingLink}}. Start your 30-day free trial today.": "{{freeKeysLink}} sont disponibles pour les particuliers et les structures totalisant moins de 1 million de dollars de financements annuels. Pour de plus grandes structures, voir {{pricingLink}}. Démarrez dès maintenant votre essai de 30 jours.",
-        "The Community edition is set via environment variable.": "L'édition communautaire est définie via une variable d'environnement."
+        "The Community edition is set via environment variable.": "L'édition communautaire est définie via une variable d'environnement.",
+        "For automations, MCP server, AI assistant, OIDC": {
+            "SAML support, email notifications, admin controls, audit logging and more, switch to the full Grist edition.": "Pour bénéficier des automatisations, du serveur MCP, de l'assistant IA, de la prise en charge d'OIDC/SAML, des notifications par e-mail, des contrôles d'administration, du journal d'audit et bien plus encore, passez à l'édition complète de Grist."
+        }
     },
     "QuickSetupServerStep": {
         "Apply and Continue": "Appliquer et poursuivre",
@@ -3302,7 +3411,9 @@
         "filtered": "filtré",
         "not configured": "non configuré",
         "review": "revue",
-        "unfiltered": "non filtré"
+        "unfiltered": "non filtré",
+        "How user actions can reach the outside world": "Comment les actions des utilisateurs peuvent atteindre le monde extérieur",
+        "Outgoing requests": "Requêtes sortantes"
     },
     "McpConnectBanner": {
         "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Nouveau !** Connectez Grist à Claude et ChatGPT. [Essayer maintenant]({{mcp}})"
@@ -3393,7 +3504,22 @@
         "Select…": "Sélectionner…",
         "Send me product and security updates": "Envoyez-moi des notifications de sécurité et des informations sur le produit",
         "Social media": "Réseaux sociaux",
-        "What best describes you?": "Qu'est-ce qui vous décrit le mieux ?"
+        "What best describes you?": "Qu'est-ce qui vous décrit le mieux ?",
+        "Conference": {
+            "event": "Conférence / événement"
+        },
+        "Developer": {
+            "IT": "Développeur / IT"
+        },
+        "Education": {
+            "Research Institute": "Enseignement / Institut de recherche"
+        },
+        "Friend": {
+            "colleague": "Ami / collègue"
+        },
+        "Reddit": {
+            "forum": "Reddit / forum"
+        }
     },
     "QuickSetupApplyStep": {
         "Apply and go live!": "Appliquez et lancez !",
@@ -3408,7 +3534,9 @@
         "We couldn't submit your details or your request to be kept up to date. Please try again.": "Nous n'avons pas pu soumettre vos informations ou votre demande d'être tenu informé des mises à jour. Merci de réessayer.",
         "We saved your details, but couldn't subscribe you to updates.": "Nous avons enregistré vos informations, mais n'avons pas pu vous abonner aux mises à jour.",
         "We subscribed you for product updates, but couldn't save your other details.": "Nous vous avons abonné aux mises à jour du produit, mais n'avons pas pu sauvegarder vos autres informations.",
-        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Vos changements de configuration ont été appliqués et le serveur a été redémarré. Grist est désormais en service et disponible pour les utilisateurs."
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Vos changements de configuration ont été appliqués et le serveur a été redémarré. Grist est désormais en service et disponible pour les utilisateurs.",
+        "Grist needs restarting": "Grist doit être redémarré",
+        "We couldn't submit your details or your request to be kept up to date.": "Nous n'avons pas pu transmettre vos coordonnées ni votre demande pour être tenu informé(e)."
     },
     "InstallationIdBlock": {
         "Copy": "Copier",
@@ -3468,5 +3596,172 @@
         "You've asked for this.": "Vous avez demandé cela.",
         "{{count}} people have asked for this._one": "{{count}} personnes ont demandé cela.",
         "{{count}} people have asked for this._other": "{{count}} personnes ont demandé cela."
+    },
+    "AdminServersSection": {
+        "1 document": "1 document",
+        "1 other server has stopped reporting that it is running.": "1 autre serveur a cessé d'indiquer qu'il est en cours d'exécution.",
+        "1 other server is registered but not accepting new documents.": "1 autre serveur est enregistré mais n'accepte pas de nouveaux documents.",
+        "1 server": "1 serveur",
+        "Another server has the same address, so requests meant for one may reach the other.": "Un autre serveur possède la même adresse ; les requêtes destinées à l'un risquent donc d'atteindre l'autre.",
+        "Could not reach the server": "Impossible de contacter le serveur",
+        "Each document is held by one of these servers. Fleet-style routing.": "Chaque document est hébergé par l'un de ces serveurs. Routage de type flotte.",
+        "Each document is held by one of these servers. Worker-pool routing.": "Chaque document est hébergé par l'un de ces serveurs. Routage par pool de workers.",
+        "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET est défini, mais cette version ne peut pas relayer les documents entre les serveurs ; les documents sont donc uniquement accessibles sur le serveur qui leur est assigné.",
+        "Give each server an address its peers can route to, and that no other server uses. Until then, requests for documents on these servers may reach the wrong one and fail.": "Attribuez à chaque serveur une adresse à laquelle ses pairs peuvent acheminer les requêtes et qu'aucun autre serveur n'utilise. Jusqu'à ce que cela soit fait, les requêtes concernant des documents sur ces serveurs risquent d'atteindre le mauvais serveur et d'échouer.",
+        "Grist Fleet is an easy and well-supported way to scale Grist horizontally, so a pool of servers can shard load intelligently by document. With it, this section lists each server, the documents it holds, and whether it is running.": "Grist Fleet est un moyen simple, éprouvé et recommandé de faire évoluer Grist horizontalement, afin qu'un pool de serveurs puisse répartir intelligemment la charge par document. Grâce à cela, cette section liste chaque serveur, les documents qu'il héberge et son état de fonctionnement.",
+        "Grist Fleet is not in your activation key": "Grist Fleet n'est pas inclus dans votre clé d'activation",
+        "Has not said it is running for far longer than it should. A running server says so every few seconds, whether or not anyone asks.": "N'a pas indiqué être en cours d'exécution depuis beaucoup plus longtemps que prévu. Un serveur en cours d'exécution le signale toutes les quelques secondes, qu'il soit sollicité ou non.",
+        "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.": "Aucun document ne peut être ouvert tant qu'aucun serveur n'est enregistré pour l'héberger. Vérifiez qu'au moins un serveur fonctionne en tant que worker de document (doc worker) et qu'il peut contacter Redis.",
+        "No servers are registered to hold documents": "Aucun serveur n'est enregistré pour héberger des documents",
+        "Refresh": "Rafraîchir",
+        "Refreshing…": "Rafraîchissement en cours …",
+        "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.": "Enregistré et conservant les documents qu'il héberge, mais n'en acceptant aucun nouveau. Comportement normal pendant l'arrêt d'un serveur.",
+        "Said it is running within the last few seconds.": "A indiqué être en cours d'exécution au cours des dernières secondes.",
+        "Server pool found": "Pool de serveurs détecté",
+        "Servers": "Serveurs",
+        "Servers have stopped reporting that they are running": "Les serveurs ont cessé d'indiquer qu'ils sont en cours d'exécution",
+        "Set options through the environment rather than on this page, so that every server is configured the same way.": "Définissez les options via les variables d'environnement plutôt que sur cette page, afin que chaque serveur soit configuré de la même manière.",
+        "Shares an address with {{list}}": "Partage une adresse avec {{list}}",
+        "Some servers share an address": "Certains serveurs partagent la même adresse",
+        "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.": "Le processus Grist est peut-être arrêté, incapable de joindre Redis, ou tout simplement trop occupé pour répondre. Arrêtez définitivement le serveur avant toute intervention, sous peine qu'un serveur temporairement surchargé ne reprenne son activité et n'écrive dans des documents désormais pris en charge par un autre serveur.",
+        "The list below is from the last successful check. Press Refresh to try again.": "La liste ci-dessous provient de la dernière vérification réussie. Cliquez sur Actualiser pour réessayer.",
+        "The servers registered to hold documents": "Les serveurs enregistrés pour héberger des documents",
+        "This build does not support Grist Fleet": "Cette version ne prend pas en charge Grist Fleet",
+        "checking": "Vérification en cours",
+        "draining": "Drainage en cours",
+        "group {{group}}": "groupe {{group}}",
+        "no proxy": "Aucun proxy",
+        "no servers": "Aucun serveur",
+        "running": "En cours d'exécution",
+        "shared address": "Adresse partagée",
+        "this server": "Ce serveur",
+        "{{count}} documents_one": "{{count}} document",
+        "{{count}} documents_other": "{{count}} documents",
+        "{{count}} of {{total}} not reporting_one": "{{count}} sur {{total}} ne répondent pas",
+        "{{count}} of {{total}} not reporting_other": "{{count}} sur {{total}} ne répondent pas",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} autre serveur est enregistré mais n'accepte plus de nouveaux documents.",
+        "{{count}} other servers are registered but not accepting new documents._other": "{{count}} autres serveurs sont enregistrés mais n'acceptent plus de nouveaux documents.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} autre serveur a cessé de répondre.",
+        "{{count}} other servers have stopped reporting that they are running._other": "{{count}} autres serveurs ont cessé de répondre.",
+        "{{count}} servers_one": "{{count}} serveur",
+        "{{count}} servers_other": "{{count}} serveurs",
+        "{{percent}}% load": "Charge : {{percent}} %",
+        "not reporting": "ne répond pas"
+    },
+    "GristImportEntryPoints": {
+        "Copy data from another document": "Copier les données d'un autre document"
+    },
+    "GristImportUI": {
+        "1 warning": "1 alerte",
+        "Cancel": "Annuler",
+        "Choose destination": "Choisir la destination",
+        "Continue": "Continuer",
+        "Copy 1 table": "Copier 1 table",
+        "Copy from {{docName}} in progress. Do not navigate away from this page.": "Copie depuis {{docName}} en cours. Ne quittez pas cette page.",
+        "Copy tables": "Copier les tables",
+        "Copy {{count}} tables_one": "Copier {{count}} tables de données",
+        "Copy {{count}} tables_other": "Copier {{count}} tables de données",
+        "Copying data from another document is available in the full edition of Grist.": "La copie de données depuis un autre document est disponible dans l'édition complète de Grist.",
+        "Copying data from another document is available on Business plans and above.": "La copie de données d'un autre document est disponible pour les forfaits Business et supérieurs.",
+        "Copying tables...": "Copie des tables de données en cours ...",
+        "Destination": "Destination",
+        "Document": "Document",
+        "Existing tables": "Tables de données existantes",
+        "Failed to fetch document tables": "Échec de la récupération des tables de données du document",
+        "New table": "Nouvelle table de données",
+        "New table: structure only": "Nouvelle table de données : structure uniquement",
+        "No documents available in this workspace.": "Aucun document disponible dans cet espace d'équipe.",
+        "No workspaces available in this site.": "Aucun espace d'équipe disponible sur ce site.",
+        "Select tables to copy from {{docName}}": "Sélectionner les tables de données à copier depuis {{docName}}",
+        "Select the Grist document to copy data from.": "Sélectionner le document Grist source à partir duquel copier les données.",
+        "Site": "Site",
+        "Skip": "Passer",
+        "Source tables": "Tables de données source",
+        "Structure only": "Structure uniquement",
+        "Try for free": "Essayer gratuitement",
+        "Try full Grist": "Essayer la version complète de Grist",
+        "Workspace": "Espace d'équipe",
+        "loading your tables...": "Chargement de vos tables de données en cours ...",
+        "{{count}} warnings_one": "{{count}} alertes",
+        "{{count}} warnings_other": "{{count}} alertes"
+    },
+    "HomeLearningResources": {
+        "A 3 minute tour of Grist": "Découvrir Grist en 3 minutes",
+        "Grist Tutorial": "Tutoriels Grist",
+        "Help Center": "Centre d'aide",
+        "Learn Grist": "Découvrir et progresser sur Grist",
+        "Learn the basics, step by step": "Apprendre les bases, étape par étape",
+        "Learning resources": "Documentation",
+        "Tutorials and live sessions": "Tutoriels et sessions en direct",
+        "Tutorials, docs, guides and videos": "Tutoriels, documentation, guides et vidéos",
+        "Video Tour": "Visite guidée en vidéo",
+        "Webinars": "Webinaires"
+    },
+    "HomeNewDocBlock": {
+        "Blank document": "Document vide",
+        "Import file": "Importer un fichier",
+        "Templates": "Modèles"
+    },
+    "startDocGristImport": {
+        "Copy data from another document": "Copier les données depuis un autre document Grist"
+    },
+    "startHomeGristImport": {
+        "Copy data from another document": "Copier les données d'un autre document Grist",
+        "Data can't be copied to the current workspace.": "Impossible de copier les données dans l'espace d'équipe actuel."
+    },
+    "TopProblems": {
+        "{{count}} problems need attention_one": "{{count}} problème nécessite votre attention",
+        "{{count}} problems need attention_other": "{{count}} problèmes nécessitent votre attention",
+        "{{count}} warnings_one": "{{count}} alerte",
+        "{{count}} warnings_other": "{{count}} alertes",
+        "{{count}} dismissed_one": "{{count}} ignoré",
+        "{{count}} dismissed_other": "{{count}} ignoré",
+        "Click to show them again.": "Cliquer pour afficher à nouveau.",
+        "Dismiss": "Ignorer",
+        "Grist may not be safe or may not work until these are fixed.": "Grist risque de ne pas être sécurisé ou de ne pas fonctionner tant que ces problèmes ne sont pas résolus.",
+        "Show": "Voir",
+        "These may be fine for your setup, but check them.": "Ces éléments sont peut-être corrects pour votre configuration, mais veuillez les vérifier."
+    },
+    "WidgetCreatorSectionConfig": {
+        "Ask assistant": "Demander à l'Assistant",
+        "Close editor": "Fermer l'éditeur",
+        "Edit code": "Editer le code",
+        "Edit source": "Editer la source de données",
+        "In-document custom widget": "Widget personnalisé intégré dans le document",
+        "Its code is saved in this document, so copies and exports keep it.": "Son code est enregistré dans ce document, de sorte que les copies et les exportations le conservent.",
+        "Use assistant": "Utiliser l'Assistant",
+        "WIDGET": "VUE"
+    },
+    "WidgetCreatorView": {
+        "Ask the assistant": "Demander à l'Assistant",
+        "Close editor": "Fermer l'éditeur",
+        "Copy error": "Copier l'erreur",
+        "Don't save": "Ne pas sauvegarder",
+        "Edit source": "Modifier la source de données",
+        "Empty": "Vide",
+        "Error copied": "Erreur copiée",
+        "Error on line {{line}}: {{- message}}": "Erreur à la ligne {{line}} : {{- message}}",
+        "Error: {{- message}}": "Erreur : {{- message}}",
+        "Expand the widget": "Agrandir la vue",
+        "Fix this error in the widget code: {{- error}}": "Corriger cette erreur dans le code du widget : {{- error}}",
+        "Learn more": "En savoir plus",
+        "Open the code": "Ouvrir le code",
+        "Save": "Enregistrer",
+        "Save the code ({{shortcut}})": "Enregistrer le code ({{shortcut}})",
+        "Save your changes?": "Enregistrer les modifications ?",
+        "Saved": "Enregistré",
+        "Send to assistant": "Envoyer à l'Assistant",
+        "Source": "Source",
+        "The widget has changes that are not saved. If you close the editor without saving, they are lost.": "Le widget contient des modifications non enregistrées. Si vous fermez l'éditeur sans enregistrer, elles seront perdues.",
+        "This widget is empty.": "Le widget est vide.",
+        "Toggle preview": "Activer/Désactiver l'aperçu",
+        "Too narrow for the code": "Espace insuffisant pour afficher le code",
+        "Too narrow for the code. Expand to see and edit it.": "Espace insuffisant pour afficher le code. Agrandissez la fenêtre pour l'afficher et le modifier.",
+        "Use assistant": "Utiliser l'Assistant",
+        "What should this widget show?": "Que souhaitez-vous afficher dans ce widget ?",
+        "Write html and js code": "Ecrire du code HTML et JavaScript",
+        "or": "ou",
+        "write it yourself": "Rédigez-le vous-même",
+        "{{ask}}, or {{write}}": "{{ask}}, ou {{write}}"
     }
 }
