@@ -1,3 +1,5 @@
+import { isRtl } from "app/client/lib/direction";
+
 import { Disposable, dom, Emitter } from "grainjs";
 
 export interface ISize {
@@ -41,6 +43,10 @@ export class EditorPlacement extends Disposable {
   private _maxRect: IRect;
   private _cellRect: IRect;
   private _margins: IMargins;
+  // The editor is anchored to the cell's start edge and grows toward its end edge, so it needs
+  // to know which way the cell is laid out. The editor lives outside the cell's DOM, so it also
+  // carries that direction itself rather than inheriting it.
+  private _rtl: boolean;
 
   // - editorDom is the DOM to attach. It gets destroyed when EditorPlacement is disposed.
   // - cellElem is the cell being mirrored by the editor; the editor generally expands to match
@@ -68,7 +74,9 @@ export class EditorPlacement extends Disposable {
       this.onReposition.emit();
     }));
 
-    const editorRoot = this._editorRoot = dom("div.cell_editor", { id: "floating-editor" }, editorDom);
+    this._rtl = isRtl(this._cellElem);
+    const editorRoot = this._editorRoot = dom("div.cell_editor", { id: "floating-editor" },
+      dom.attr("dir", this._rtl ? "rtl" : "ltr"), editorDom);
     // To hide from the user the incorrectly-sized element, we set visibility to hidden, and
     // reset it in _calcEditorSize() as soon as we have the sizes.
     editorRoot.style.visibility = "hidden";
@@ -89,11 +97,19 @@ export class EditorPlacement extends Disposable {
     const maxRect = this._maxRect;
     const margin = this._margins;
 
-    const noShiftMaxWidth = maxRect.right - margin.right - this._cellRect.left;
+    // Horizontal placement is computed from the cell's start edge: the editor covers the cell and
+    // grows toward the end edge, shifting back only when it would run past the window.
+    const rtl = this._rtl;
+    const startMargin = rtl ? margin.right : margin.left;
+    const endMargin = rtl ? margin.left : margin.right;
+    const noShiftMaxWidth = rtl ?
+      this._cellRect.right - margin.left - maxRect.left :
+      maxRect.right - margin.right - this._cellRect.left;
     const maxWidth = Math.min(maxRect.width - margin.left - margin.right, Math.max(maxShiftWidth, noShiftMaxWidth));
     const width = Math.min(maxWidth, Math.max(this._cellRect.width, desiredSize.width));
-    const left = Math.max(margin.left,
-      Math.min(this._cellRect.left - maxRect.left, maxRect.width - margin.right - width));
+    // Offset of the editor's start edge from the window's start edge.
+    const cellStart = rtl ? maxRect.right - this._cellRect.right : this._cellRect.left - maxRect.left;
+    const start = Math.max(startMargin, Math.min(cellStart, maxRect.width - endMargin - width));
 
     const noShiftMaxHeight = maxRect.bottom - margin.bottom - this._cellRect.top;
     const maxHeight = Math.min(maxRect.height - margin.top - margin.bottom, Math.max(maxShiftHeight, noShiftMaxHeight));
@@ -106,7 +122,8 @@ export class EditorPlacement extends Disposable {
     if (!options.calcOnly) {
       Object.assign(this._editorRoot.style, {
         "visibility": "visible",
-        "left": left + "px",
+        "left": rtl ? "auto" : start + "px",
+        "right": rtl ? start + "px" : "auto",
         "top": top + "px",
         // Set the width (but not the height) of the outer container explicitly to accommodate the
         // particular setup where a formula may include error details below -- these should
