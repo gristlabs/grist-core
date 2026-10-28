@@ -110,6 +110,7 @@ export interface AssistanceContextV1 {
   colId: string;
   evaluateCurrentFormula?: boolean;
   rowId?: number;
+  specificInstructions?: string;
 }
 
 /** What the user has open when they write to the document assistant. */
