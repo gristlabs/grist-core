@@ -18,6 +18,7 @@ import {
   getReferencedTableId,
   isBlankValue,
   isFullReferencingType,
+  isHiddenCol,
   isRaisedException,
 } from "app/common/gristTypes";
 import { buildUrlId, parseUrlId, SHARE_KEY_PREFIX } from "app/common/gristUrls";
@@ -257,10 +258,7 @@ export class DocWorkerApi {
         if (!opts?.includeId && k === "id") {
           return false;
         }
-        if (
-          !opts?.includeHidden &&
-          (k === "manualSort" || k.startsWith("gristHelper_"))
-        ) {
+        if (!opts?.includeHidden && isHiddenCol(k)) {
           return false;
         }
         return true;

@@ -3778,7 +3778,7 @@ export class ActiveDoc extends EventEmitter {
     const columns: ColumnMetadata[] = [];
     (columnData.colId as string[]).forEach((id, index) => {
       const hasNoId = !id;
-      const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
+      const isHidden = hasNoId || isHiddenCol(id);
       const fromDifferentTable = columnData.parentId[index] !== tableRef;
       const skip = (isHidden && !includeHidden) || hasNoId || fromDifferentTable;
       if (skip) {
