@@ -21,7 +21,7 @@ import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { ViewRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
-import { getAssistantViewOptions } from "app/client/ui/AssistantDocBlock";
+import { getAssistantViewOptions } from "app/client/ui/assistant/AssistantDocBlock";
 import { getTelemetryWidgetTypeFromVS } from "app/client/ui/widgetTypesMap";
 import { cssRadioCheckboxOptions, radioCheckboxOption } from "app/client/ui2018/checkbox";
 import { isNarrowScreen, mediaSmall, testId, theme } from "app/client/ui2018/cssVars";

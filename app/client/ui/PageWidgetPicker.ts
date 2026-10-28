@@ -16,6 +16,7 @@ import { getWidgetTypes } from "app/client/ui/widgetTypesMap";
 import { bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { DELAY_BEFORE_SPINNER_MS } from "app/client/ui2018/loaders";
 import { spinnerModal } from "app/client/ui2018/modals";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { isLongerThan, nativeCompare } from "app/common/gutil";
@@ -150,11 +151,6 @@ function isValidSelection(table: TableRef,
 }
 
 export type ISaveFunc = (val: IPageWidget) => Promise<any>;
-
-// Delay in milliseconds, after a user click on the save btn, before we start showing a modal
-// spinner. If saving completes before this time elapses (which is likely to happen for regular
-// table) we don't show the modal spinner.
-const DELAY_BEFORE_SPINNER_MS = 500;
 
 // Attaches the page widget picker to elem to open on 'click' on the left.
 export function attachPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, onSave: ISaveFunc,

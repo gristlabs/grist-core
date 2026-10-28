@@ -1,8 +1,8 @@
 import { makeT } from "app/client/lib/localization";
 import { HomeModel } from "app/client/models/HomeModel";
 import { productPill } from "app/client/ui/AppHeader";
+import { buildHomeAssistantComposer, hasHomeAssistantComposer } from "app/client/ui/assistant/HomeAssistant";
 import * as css from "app/client/ui/DocMenuCss";
-import { buildHomeAssistantComposer, hasHomeAssistantComposer } from "app/client/ui/HomeAssistant";
 import { buildLearningResources, cssCards } from "app/client/ui/HomeLearningResources";
 import { buildNewDocumentBlock, cssNewDocBlock } from "app/client/ui/HomeNewDocBlock";
 import { buildSectionHead, cssSectionBody, reveal, revealed } from "app/client/ui/HomeSection";

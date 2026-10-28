@@ -8,6 +8,7 @@ import { reportMessage, UserError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { getUserPrefObs } from "app/client/models/UserPrefs";
 import { ownerName } from "app/client/models/WorkspaceInfo";
+import { DELAY_BEFORE_SPINNER_MS } from "app/client/ui2018/loaders";
 import { IHomePage, isFeatureEnabled } from "app/common/gristUrls";
 import { isLongerThan } from "app/common/gutil";
 import { SortPref, UserOrgPrefs, ViewPref } from "app/common/Prefs";
@@ -18,8 +19,6 @@ import { Document, Organization, RenameDocOptions, Workspace } from "app/common/
 import { bundleChanges, Computed, Disposable, Observable, subscribe } from "grainjs";
 import flatten from "lodash/flatten";
 import sortBy from "lodash/sortBy";
-
-const DELAY_BEFORE_SPINNER_MS = 500;
 
 export interface HomeModel {
   // PageType value, one of the discriminated union values used by AppModel.

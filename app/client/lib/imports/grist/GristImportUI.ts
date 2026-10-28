@@ -46,7 +46,7 @@ import { bigBasicButton, bigPrimaryButton, bigPrimaryButtonLink } from "app/clie
 import { triStateSquareCheckbox } from "app/client/ui2018/checkbox";
 import { isNarrowScreenObs, testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { loadingSpinner } from "app/client/ui2018/loaders";
+import { DELAY_BEFORE_SPINNER_MS, loadingSpinner } from "app/client/ui2018/loaders";
 import {
   IOption, menuDivider, menuGroup, selectMenu, selectOption, selectWithLoader,
 } from "app/client/ui2018/menus";
@@ -74,8 +74,6 @@ type GristToGristMapping = ImportTableMapping<NewTable | ExistingTable>;
 type GristImportStep = "select-doc" | "select-tables";
 
 type LoadingState = boolean | "slow";
-
-const DELAY_BEFORE_SPINNER_MS = 500;
 
 type Destination =
   { type: "existing-doc", docId: string, docSchema?: Computed<DocSchema> } |

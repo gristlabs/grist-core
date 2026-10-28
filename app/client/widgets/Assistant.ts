@@ -9,6 +9,7 @@ import { makeT } from "app/client/lib/localization";
 import { sessionStorageBoolObs } from "app/client/lib/localStorageObs";
 import { logUpgradeClicked, logUpsellShown } from "app/client/lib/upsellTelemetry";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
+import { AppModel } from "app/client/models/AppModel";
 import { ChatHistory, ChatMessage, ChatMessageError } from "app/client/models/ChatHistory";
 import { constructUrl, urlState } from "app/client/models/gristUrlState";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
@@ -43,6 +44,7 @@ import {
   Observable,
   styled,
   subscribeElem,
+  UseCB,
 } from "grainjs";
 import { marked, Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
@@ -65,10 +67,6 @@ interface AssistantOptions {
    */
   onApplyFormula?(formula: string): Promise<void>;
   onEscape?(): void;
-  /**
-   * Called when the user asks to start a new session. Defaults to clearing the conversation.
-   */
-  onNewSession?(): void;
   logTelemetryEvent?(event: TelemetryEvent, includeContext?: boolean, metadata?: TelemetryMetadata): void;
 }
 
@@ -78,13 +76,9 @@ interface AssistantOptions {
  * Displays a list of sent and received messages (`AssistantConversation`)
  * and inputs to send a new message.
  *
- * Used by both `FormulaAssistant` and `AssistantPanel`:
- *  - The former is a panel shown in `FormulaEditor` when version 1
- *    of the AI assistant is configured in the backend. Available in all
- *    flavors of Grist.
- *  - The latter is a panel shown in the inner left panel when version 2
- *    of the AI assistant in configured in the backend. Available in SaaS
- *    and full edition of Grist.
+ * Used by `FormulaAssistant`, a panel shown in `FormulaEditor` when version 1
+ * of the AI assistant is configured in the backend. Available in all flavors
+ * of Grist.
  */
 export class Assistant extends Disposable {
   private _history = this._options.history;
@@ -99,14 +93,7 @@ export class Assistant extends Disposable {
   // Input wrapper element (used for resizing).
   private _inputWrapper: HTMLElement;
   /** Whether the low credit limit banner should be shown. */
-  private _showApproachingLimitBanner = this.autoDispose(
-    sessionStorageBoolObs(
-      `org:${
-        this._appModel.currentOrg?.id ?? 0
-      };assistantShowApproachingLimitBanner`,
-      true,
-    ),
-  );
+  private _showApproachingLimitBanner = this.autoDispose(showApproachingLimitBannerObs(this._appModel));
 
   private _showUpgradeBanner = Computed.create(this, (use) => {
     const { assistant, deploymentType } = getGristConfig();
@@ -129,7 +116,7 @@ export class Assistant extends Disposable {
       history: this._history,
       gristDoc: this._gristDoc,
       buildIntroMessage: this._options.buildIntroMessage,
-      onNewSession: this._options.onNewSession ?? this.clear.bind(this),
+      onNewSession: this.clear.bind(this),
       onApplyFormula: this._options.onApplyFormula,
     });
   }
@@ -140,16 +127,8 @@ export class Assistant extends Disposable {
       this._conversation.buildDom(),
       this._appModel.currentValidUser ?
         this._buildChatInput() :
-        this._buildSignupNudge(),
+        buildAssistantSignupNudge(),
     ];
-  }
-
-  public async send(message: string): Promise<void> {
-    if (this._conversation.thinking.get()) { return; }
-
-    this._conversation.addQuestion(message);
-    this._userInput.set("");
-    await this._doAsk(message);
   }
 
   public clear() {
@@ -172,10 +151,6 @@ export class Assistant extends Disposable {
     }
   }
 
-  public scrollToBottom(options: { smooth?: boolean; sync?: boolean } = {}) {
-    this._conversation.scrollDown(options);
-  }
-
   public get conversationId() {
     return this._conversation.id.get();
   }
@@ -194,37 +169,10 @@ export class Assistant extends Disposable {
 
   private _buildBanner() {
     return dom.domComputed((use) => {
-      const numCredits = use(this._numRemainingCredits);
-      if (numCredits === 0) {
-        return dom.create(Banner, {
-          content: buildBannerMessage(
-            t("You have used all available credits."),
-            " ",
-            this._buildBannerUpgradeMessage(),
-            testId("banner-message"),
-          ),
-          style: "error",
-          bannerCssClass: cssBanner.className,
-        });
-      } else if (
-        numCredits !== null &&
-        numCredits <= LOW_CREDITS_WARNING_BANNER_THRESHOLD &&
-        use(this._showApproachingLimitBanner)
-      ) {
-        return dom.create(Banner, {
-          content: buildBannerMessage(
-            t("You have {{numCredits}} remaining credits.", { numCredits }),
-            " ",
-            this._buildBannerUpgradeMessage(),
-            testId("banner-message"),
-          ),
-          style: "warning",
-          showCloseButton: true,
-          onClose: () => {
-            this._showApproachingLimitBanner.set(false);
-          },
-          bannerCssClass: cssBanner.className,
-        });
+      const creditsBanner = buildAssistantCreditsBanner(use, this._appModel, this._gristDoc.docId(),
+        use(this._numRemainingCredits), this._showApproachingLimitBanner);
+      if (creditsBanner) {
+        return creditsBanner;
       } else if (use(this._showUpgradeBanner)) {
         return dom.create(Banner, {
           content: buildBannerMessage(
@@ -245,34 +193,6 @@ export class Assistant extends Disposable {
           bannerCssClass: cssBanner.className,
         });
       }
-    });
-  }
-
-  private _buildBannerUpgradeMessage() {
-    const canUpgradeSite =
-      this._appModel.isOwner() &&
-      Boolean(this._appModel.planName && isFreePlan(this._appModel.planName));
-    const isBillingManager =
-      this._appModel.isBillingManager() || this._appModel.isSupport();
-    if (!canUpgradeSite && !isBillingManager) {
-      return t("For higher limits, contact the site owner.");
-    }
-
-    logUpsellShown(this._appModel, "assistantBanner", this._gristDoc.docId());
-    return t("For higher limits, {{upgradeNudge}}.", {
-      upgradeNudge: cssBannerLink(
-        canUpgradeSite ?
-          t("upgrade to the Pro Team plan") :
-          t("upgrade your plan"),
-        dom.on("click", async () => {
-          if (canUpgradeSite) {
-            this._gristDoc.appModel.showUpgradeModal("assistantBanner").catch(reportError);
-          } else {
-            logUpgradeClicked(this._appModel, "assistantBanner");
-            await urlState().pushUrl({ billing: "billing" });
-          }
-        }),
-      ),
     });
   }
 
@@ -365,14 +285,6 @@ export class Assistant extends Disposable {
         cssInputWrapper.cls("-disabled", this._conversation.thinking),
       ),
     ));
-  }
-
-  /**
-   * Builds the signup nudge shown to anonymous users at the bottom of the chat.
-   */
-  private _buildSignupNudge() {
-    const { deploymentType } = getGristConfig();
-    return deploymentType === "saas" ? buildSignupNudge() : buildAnonNudge();
   }
 
   private _handleChatEnterKeyDown(ev: KeyboardEvent) {
@@ -610,19 +522,16 @@ class AssistantConversation extends Disposable {
     this.id.set(uuidv4());
   }
 
-  public scrollDown(options: { smooth?: boolean; sync?: boolean } = {}) {
+  public scrollDown(options: { smooth?: boolean; } = {}) {
     if (!this._element) { return; }
 
-    const { smooth = true, sync = false } = options;
-    const scrollToOptions: ScrollToOptions = {
-      top: 99999,
-      behavior: smooth ? "smooth" : "auto",
-    };
-    if (sync) {
-      this._element.scroll(scrollToOptions);
-    } else {
-      setTimeout(() => this._element.scroll(scrollToOptions), 0);
-    }
+    const { smooth = true } = options;
+    setTimeout(() => {
+      this._element.scroll({
+        top: 99999,
+        behavior: smooth ? "smooth" : "auto",
+      });
+    }, 0);
   }
 
   public buildDom() {
@@ -739,6 +648,95 @@ receiving assistance.",
       }),
     );
   }
+}
+
+/**
+ * Returns whether to show the banner about approaching the credit limit. Stored in session storage
+ * per org, so that dismissing the banner hides it for the rest of the session.
+ */
+export function showApproachingLimitBannerObs(appModel: AppModel) {
+  return sessionStorageBoolObs(`org:${appModel.currentOrg?.id ?? 0};assistantShowApproachingLimitBanner`, true);
+}
+
+/**
+ * Builds a banner for when the user has run out of credits, or has few left (unless dismissed via
+ * `showApproachingLimitBanner`). Returns null if no banner should be shown.
+ */
+export function buildAssistantCreditsBanner(
+  use: UseCB,
+  appModel: AppModel,
+  docId: string,
+  numCredits: number | null,
+  showApproachingLimitBanner: Observable<boolean>,
+): DomContents {
+  if (numCredits === 0) {
+    return dom.create(Banner, {
+      content: buildBannerMessage(
+        t("You have used all available credits."),
+        " ",
+        buildBannerUpgradeMessage(appModel, docId),
+        testId("banner-message"),
+      ),
+      style: "error",
+      bannerCssClass: cssBanner.className,
+    });
+  } else if (
+    numCredits !== null &&
+    numCredits <= LOW_CREDITS_WARNING_BANNER_THRESHOLD &&
+    use(showApproachingLimitBanner)
+  ) {
+    return dom.create(Banner, {
+      content: buildBannerMessage(
+        t("You have {{numCredits}} remaining credits.", { numCredits }),
+        " ",
+        buildBannerUpgradeMessage(appModel, docId),
+        testId("banner-message"),
+      ),
+      style: "warning",
+      showCloseButton: true,
+      onClose: () => {
+        showApproachingLimitBanner.set(false);
+      },
+      bannerCssClass: cssBanner.className,
+    });
+  }
+  return null;
+}
+
+function buildBannerUpgradeMessage(appModel: AppModel, docId: string) {
+  const canUpgradeSite =
+    appModel.isOwner() &&
+    Boolean(appModel.planName && isFreePlan(appModel.planName));
+  const isBillingManager =
+    appModel.isBillingManager() || appModel.isSupport();
+  if (!canUpgradeSite && !isBillingManager) {
+    return t("For higher limits, contact the site owner.");
+  }
+
+  logUpsellShown(appModel, "assistantBanner", docId);
+  return t("For higher limits, {{upgradeNudge}}.", {
+    upgradeNudge: cssBannerLink(
+      canUpgradeSite ?
+        t("upgrade to the Pro Team plan") :
+        t("upgrade your plan"),
+      dom.on("click", async () => {
+        if (canUpgradeSite) {
+          appModel.showUpgradeModal("assistantBanner").catch(reportError);
+        } else {
+          logUpgradeClicked(appModel, "assistantBanner");
+          await urlState().pushUrl({ billing: "billing" });
+        }
+      }),
+    ),
+  });
+}
+
+/**
+ * Builds the nudge shown to anonymous users in place of the chat input.
+ */
+export function buildAssistantSignupNudge() {
+  const { deploymentType } = getGristConfig();
+  return deploymentType === "saas" ? buildSignupNudge() : buildAnonNudge();
 }
 
 function buildSignupNudge() {

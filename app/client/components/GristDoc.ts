@@ -44,6 +44,7 @@ import { getFilterFunc, QuerySetManager } from "app/client/models/QuerySet";
 import { getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen } from "app/client/models/UserPrefs";
 import { UserPresenceModel, UserPresenceModelImpl } from "app/client/models/UserPresenceModel";
 import { App } from "app/client/ui/App";
+import { buildAssistantPanel } from "app/client/ui/assistant/AssistantPanel";
 import { TriggersPage } from "app/client/ui/Automations/TriggersPage";
 import { buildCalendarSetupModal } from "app/client/ui/CalendarConfigModal";
 import { showCustomWidgetGallery } from "app/client/ui/CustomWidgetGallery";
@@ -66,7 +67,6 @@ import { isNarrowScreen, mediaSmall, mediaXSmall, testId, theme } from "app/clie
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { invokePrompt } from "app/client/ui2018/modals";
-import { buildAssistantPanel } from "app/client/widgets/AssistantPanel";
 import { CommentMonitor, DiscussionPanel } from "app/client/widgets/DiscussionEditor";
 import { FieldEditor } from "app/client/widgets/FieldEditor";
 import { MinimalActionGroup } from "app/common/ActionGroup";
