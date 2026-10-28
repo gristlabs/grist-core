@@ -160,8 +160,8 @@ export class QuickSetupApplyStep extends Disposable {
       if (this.isDisposed()) { return; }
       this._error.set(String(e));
       // Sections are applied before the restart is attempted, so a server that can't
-      // restart itself has still saved everything else. Send the survey anyway, since
-      // the user won't reach the success page that normally sends it.
+      // restart itself has still saved everything else. Show the restart-needed page
+      // and send the survey, as after a successful restart.
       if (e instanceof ApiError && e.details?.code === "RestartUnavailable") {
         restartErrored = true;
       } else {

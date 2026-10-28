@@ -1,3 +1,4 @@
+import { InstallAPIImpl } from "app/common/InstallAPI";
 import { Activation } from "app/gen-server/entity/Activation";
 import { OUTGOING_REQUEST_ENV_VARS } from "app/server/lib/outgoingRequests";
 import * as gu from "test/nbrowser/gristUtils";
@@ -24,7 +25,8 @@ describe("AdminTopProblems", function() {
     process.env.GRIST_ENABLE_REQUEST_FUNCTION = "1";
     useFastSandboxProbe();
     await server.restart(true);
-    await gu.session().personalSite.login();
+    const session = await gu.session().personalSite.login({ retainExistingLogin: false });
+    await session.createApi(InstallAPIImpl).updateInstallPrefs({ persistenceConfirmed: true });
     await openAdminPanel();
     // Start without anything dismissed by earlier runs.
     await driver.executeScript("window.localStorage.clear(); window.sessionStorage.clear();");

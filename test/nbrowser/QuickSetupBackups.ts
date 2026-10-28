@@ -34,7 +34,7 @@ describe("QuickSetupBackups", function() {
 
   async function restart() {
     await server.restart(true); // clear database
-    const session = await gu.session().personalSite.login();
+    const session = await gu.session().personalSite.login({ retainExistingLogin: false });
     installApi = session.createApi(InstallAPIImpl);
   }
 

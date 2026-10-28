@@ -125,7 +125,8 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     const serverLog = process.env.VERBOSE ? "inherit" : nodeLogFd;
     const workerId = parseInt(workerIdText, 10);
     const corePort = String(8295 + workerId * 2);
-    const untrustedPort = String(8295 + workerId * 2 + 1);
+    const untrustedPort = (process.env.APP_UNTRUSTED_URL && new URL(process.env.APP_UNTRUSTED_URL).port) ||
+      String(8295 + workerId * 2 + 1);
     const env: Record<string, string> = {
       TYPEORM_DATABASE: this._getDatabaseFile(),
       GRIST_DATA_DIR: this.testDocDir,
