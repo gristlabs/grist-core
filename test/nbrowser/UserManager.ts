@@ -402,6 +402,8 @@ describe("UserManager", function() {
     assert.equal(await driver.findContent(".test-dm-doc", /Shark/).isPresent(), true);
     await driver.findContent(".test-dm-doc", /Shark/).click();
     assert.match(await driver.findWait(".test-error-header", 2000).getText(), /Access denied/);
+    // The logo is rebuilt once the list of sites arrives.
+    await gu.waitForServer();
     assert.equal(await driver.find(".test-dm-logo").isDisplayed(), true);
 
     // Log in with Chimpy again and return roles to the initial state.
