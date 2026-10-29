@@ -175,6 +175,9 @@ describe("uploads", function() {
         sandbox.stub(Deps, "INACTIVITY_CLEANUP_MS").value(tmpTimeout);
 
         const uploadSet = new UploadSet();
+        // Cleanups run on a timer and remove files asynchronously. This waits for those started.
+        const cleanupSpy = sandbox.spy(uploadSet, "cleanup");
+        const cleanupsDone = () => Promise.all(cleanupSpy.returnValues);
 
         // Register upload, get id 0.
         const { tmpDir: tmpDir0, cleanupCallback: cleanupCallback0 } = await createTmpDir({});
@@ -202,6 +205,7 @@ describe("uploads", function() {
 
         // Wait a bit longer.
         await delay(250);
+        await cleanupsDone();
 
         // Upload 1 should now be cleaned out, but not the recently touched upload 0.
         assert.isFalse(await fse.pathExists(tmpDir1));
@@ -209,6 +213,7 @@ describe("uploads", function() {
 
         // Wait a bit longer still; now the other one should be clean too.
         await delay(200);
+        await cleanupsDone();
         assert.isFalse(await fse.pathExists(tmpDir0));
       } finally {
         sandbox.restore();
