@@ -7,29 +7,19 @@ describe("Search2", async function() {
   this.timeout(20000);
   setupTestSuite();
   gu.bigScreen();
-  let closedSize: ClientRect;
-  const waitForClose = async () => {
-    await driver.wait(async () => {
-      const currentSize = await driver.find(".test-tb-search-wrapper").rect();
-      return currentSize.width === closedSize.width;
-    });
-  };
 
   before(async function() {
     // Log in and open the doc 'World'.
     await server.simulateLogin("Chimpy", "chimpy@getgrist.com", "nasa");
     await gu.importFixturesDoc("chimpy", "nasa", "Horizon", "World.grist");
     await gu.waitForDocToLoad();
-    closedSize = await driver.find(".test-tb-search-wrapper").rect();
   });
 
   it("should handle sending Cmd+f repeatedly", async () => {
     await gu.getPageItem(/City/).click();
     await gu.waitForServer();
 
-    // open search
-    await driver.find(".test-tb-search-icon").doClick();
-    await driver.sleep(500);
+    await gu.openSearch();
 
     // click multiPage options
     await driver.find(".test-tb-search-option-all-pages").click();
@@ -44,11 +34,12 @@ describe("Search2", async function() {
     }
 
     // unclick multiPage options
+    await gu.waitForSearch();
     await driver.find(".test-tb-search-icon").doClick();
-    await driver.sleep(500);
+    await gu.searchIsOpened();
     await driver.find(".test-tb-search-option-all-pages").click();
     await driver.sendKeys(Key.ESCAPE);
-    await waitForClose();
+    await gu.searchIsClosed();
 
     // check for any js errors
     await gu.checkForErrors();
@@ -73,7 +64,7 @@ describe("Search2", async function() {
 
     // Leave search
     await driver.sendKeys(Key.ESCAPE);
-    await waitForClose();
+    await gu.searchIsClosed();
 
     // Make sure linked sections ended up where we'd expect, and consistent
     await gu.selectSectionByTitle("CITY Card List");
@@ -94,7 +85,7 @@ describe("Search2", async function() {
       await gu.search("Aruba");
       // Leave search
       await driver.sendKeys(Key.ESCAPE);
-      await waitForClose();
+      await gu.searchIsClosed();
       // First row should be scrolled into, and we should be able to click it.
       await gu.getCell(0, 1).click();
       // check for any js errors
