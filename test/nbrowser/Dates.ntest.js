@@ -120,12 +120,10 @@ describe("Dates.ntest", function() {
 
     // Change format and check that date is reformatted
     await gu.dateFormat("MMMM Do, YYYY");
-    await gu.waitForServer();
     assert.equal(await cell.text(), "January 8th, 2016");
 
     // Try another format
     await gu.dateFormat("DD MMM YYYY");
-    await gu.waitForServer();
     assert.equal(await cell.text(), "08 Jan 2016");
 
     // Change to custom format and check that the date is reformatted
@@ -192,6 +190,7 @@ describe("Dates.ntest", function() {
     await gu.waitForServer();
     await gu.waitAppFocus();
     await gu.getCellRC(0, 3).click();
+    await gu.waitAppFocus();
     await gu.sendKeys("=");
     await gu.waitAppFocus(false);
     await gu.sendKeys("$B", $.ENTER);
