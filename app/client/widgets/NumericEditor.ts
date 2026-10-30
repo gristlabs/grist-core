@@ -9,7 +9,10 @@ export class NumericEditor extends NTextEditor {
     // On many keyboard layouts the keypad's decimal key produces "." even where the locale's decimal
     // separator is ",". Insert the locale's separator instead, as spreadsheets do.
     const { decimalSeparator } = NumberParse.fromSettings(options.field.documentSettings.peek());
-    if (options.event instanceof KeyboardEvent && isKeypadDecimalToRemap(options.event, decimalSeparator)) {
+    if (options.event instanceof KeyboardEvent && isKeypadDecimalToRemap(options.event, decimalSeparator) &&
+      // The event stays with the editor when it is rebuilt (e.g. switching to or from a formula), so
+      // only swap the value that the keystroke itself typed.
+      options.editValue === options.event.key) {
       options = { ...options, editValue: decimalSeparator };
     }
     if (options.editValue === undefined && typeof options.cellValue === "number") {

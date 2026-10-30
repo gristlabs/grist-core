@@ -155,8 +155,21 @@ describe("NumericEditor", function() {
         assert.equal(await driver.find(".celleditor_text_editor").value(), options.expKeypadStart);
         await gu.sendKeys(Key.ENTER);
         await gu.waitForServer();
-        assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), options.expKeypadStart.replace(/^/, "0"));
+        assert.equal(await gu.getCell({ rowNum: 1, col: 0 }).getText(), "0" + options.expKeypadStart);
         await gu.undo();
+      });
+
+      it("should keep the typed value when the editor is rebuilt", async function() {
+        // An empty Numeric column lets "=" at the start switch to a formula, and Backspace switch back.
+        await api.applyUserActions(docId, [["AddVisibleColumn", "Table1", "Keypad", { type: "Numeric" }]]);
+        const col = entriesByColumn.length;
+        await gu.getCell({ rowNum: 1, col }).click();
+        await gu.waitAppFocus();
+        await gu.sendKeys(Key.DECIMAL, "5", Key.HOME, "=", Key.BACK_SPACE);
+        assert.equal(await driver.find(".celleditor_text_editor").value(), "=" + options.expKeypadStart);
+        await gu.sendKeys(Key.ESCAPE);
+        await api.applyUserActions(docId, [["RemoveColumn", "Table1", "Keypad"]]);
+        await gu.waitForServer();
       });
 
       it("should allow editing and saving a formatted value", async function() {
