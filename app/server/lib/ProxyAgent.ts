@@ -5,18 +5,59 @@ import fetch, { RequestInit } from "node-fetch";
 import { ProxyAgent, ProxyAgentOptions } from "proxy-agent";
 
 /**
+ * Returns true if requests to `requestUrl` should skip the proxy according to a
+ * `no_proxy`-style bypass list, using the de-facto standard semantics:
+ *
+ *  - the list is separated by commas and/or whitespace;
+ *  - `*` on its own bypasses the proxy for every host;
+ *  - an entry matches when it equals the request host or is a dot-suffix of it
+ *    (a leading dot on the entry is not significant: `.example.com` == `example.com`);
+ *  - an optional `:port` suffix on an entry must match the request's port
+ *    (defaulting to 80 for http and 443 for https).
+ *
+ * Matching is case-insensitive on the host.
+ */
+export function shouldProxyBypass(requestUrl: URL | string, noProxy: string | undefined): boolean {
+  if (!noProxy) { return false; }
+  const url = new URL(requestUrl);
+  const host = url.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  const port = url.port || (url.protocol === "https:" ? "443" : url.protocol === "http:" ? "80" : "");
+
+  for (let entry of noProxy.split(/[\s,]+/)) {
+    if (!entry) { continue; }
+    if (entry === "*") { return true; }
+    entry = entry.toLowerCase();
+    const portMatch = /^(.*):(\d+)$/.exec(entry);
+    if (portMatch) {
+      if (portMatch[2] !== port) { continue; }
+      entry = portMatch[1];
+    }
+    entry = entry.replace(/^\.+/, "");
+    if (!entry) { continue; }
+    if (host === entry || host.endsWith("." + entry)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * GristProxyAgent derives from ProxyAgent which is a class that is responsible for proxying the request using either
  * HttpProxyAgent or HttpsProxyAgent (or other supported proxy agents)
  * depending on the URL requested when using fetch().
  *
  * We configure the getProxyForUrl to not let ProxyAgent magically read the env variables
  * itself (using `proxy-from-env` module), we already do that ourselves and need to keep the control for that.
+ *
+ * `noProxy` holds a `no_proxy`-style bypass list (see `shouldProxyBypass`); requests whose URL
+ * matches it are made directly instead of through the proxy.
  */
 export class GristProxyAgent extends ProxyAgent {
-  constructor(public readonly proxyUrl: string, opts?: Omit<ProxyAgentOptions, "getProxyForUrl">) {
+  constructor(public readonly proxyUrl: string, public readonly noProxy?: string,
+    opts?: Omit<ProxyAgentOptions, "getProxyForUrl">) {
     super({
       ...opts,
-      getProxyForUrl: () => this.proxyUrl,
+      getProxyForUrl: (url: string) => shouldProxyBypass(url, this.noProxy) ? "" : this.proxyUrl,
     });
   }
 }
@@ -32,14 +73,20 @@ export function getProxyAgentConfiguration() {
     preferredEnvVar: "GRIST_PROXY_FOR_UNTRUSTED_URLS",
   });
 
+  const noProxy = appSettings.section("proxy").readString({
+    envVar: ["NO_PROXY", "no_proxy"],
+    preferredEnvVar: "NO_PROXY",
+  });
+
   return {
     proxyForTrustedRequestsUrl,
     proxyForUntrustedRequestsUrl,
+    noProxy,
   };
 }
 
 function generateProxyAgents() {
-  const { proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl } = getProxyAgentConfiguration();
+  const { proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl, noProxy } = getProxyAgentConfiguration();
 
   if (process.env.GRIST_HTTPS_PROXY) {
     log.warn("GRIST_HTTPS_PROXY is deprecated in favor of GRIST_PROXY_FOR_UNTRUSTED_URLS. " +
@@ -47,9 +94,9 @@ function generateProxyAgents() {
   }
 
   return {
-    trusted: proxyForTrustedRequestsUrl ? new GristProxyAgent(proxyForTrustedRequestsUrl) : undefined,
+    trusted: proxyForTrustedRequestsUrl ? new GristProxyAgent(proxyForTrustedRequestsUrl, noProxy) : undefined,
     untrusted: (proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct") ?
-      new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined,
+      new GristProxyAgent(proxyForUntrustedRequestsUrl, noProxy) : undefined,
   };
 }
 
