@@ -513,6 +513,6 @@ async function setGlobalTimezone(name) {
   await $(`.test-acselect-dropdown li:contains(${name})`).click();
   await driver.sleep(100); // the request is not always triggered immediately, we wait a little bit.
   await gu.waitForServer();
-  await driver.navigate().back();
+  await gu.goBack();
   await gu.waitForDocToLoad();
 }
