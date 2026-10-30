@@ -1651,6 +1651,47 @@ describe("ActiveDoc", async function() {
       assert.deepEqual(deltas, [1, 0, 1]);
     });
   });
+
+  describe("syncSyncs", function() {
+    it("returns the doc's syncs and swallows a home db failure", async function() {
+      const activeDoc = await docTools.createDoc("sync-shared-config");
+      await activeDoc.applyUserActions(fakeSession, [
+        ["AddRecord", "_grist_Syncs", null, {
+          syncId: "s1",
+          options: JSON.stringify({ sourceTableIds: ["Table1", "Table2"] }),
+          status: JSON.stringify({ lastSyncSourceHash: "hash1", lastSyncedAtMs: 1700000000000 }),
+        }],
+        // A user can hand-edit these JSON columns, so unparseable values must read as defaults.
+        ["AddRecord", "_grist_Syncs", null, { syncId: "s2", options: "{not json", status: "{not json" }],
+      ]);
+      const expected = [
+        {
+          id: 1,
+          syncId: "s1",
+          options: { sourceTableIds: ["Table1", "Table2"] },
+          status: { lastSyncSourceHash: "hash1", lastSyncedAtMs: 1700000000000 },
+        },
+        {
+          id: 2,
+          syncId: "s2",
+          options: { sourceTableIds: [] },
+          status: { lastSyncSourceHash: null, lastSyncedAtMs: null },
+        },
+      ];
+      const syncSyncs = sandbox.stub().rejects(new Error("syncs are down"));
+      const getHomeDbManager = sandbox.stub(activeDoc, "getHomeDbManager")
+        .returns({ syncSyncs } as any);
+
+      // A sync run's own bundle triggers the syncs half, so it may not reject the caller.
+      assert.deepEqual(await activeDoc.syncSyncs(fakeSession), expected);
+      assert.deepEqual(syncSyncs.firstCall.args, [activeDoc.docName, expected]);
+
+      // With no home db there is nothing to reconcile into.
+      getHomeDbManager.returns(null);
+      assert.deepEqual(await activeDoc.syncSyncs(fakeSession), expected);
+      assert.equal(syncSyncs.callCount, 1);
+    });
+  });
 });
 
 async function dumpTables(path: string): Promise<string> {

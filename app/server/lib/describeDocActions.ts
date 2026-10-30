@@ -85,6 +85,7 @@ const categoryMap: { [tableId in keyof SchemaTypes]: DocActionCategory | typeof 
   _grist_Filters: "layouts",
   _grist_Cells: IGNORE,                  // ignore comments for the purpose of notifications.
   _grist_Shares: "forms",
+  _grist_Syncs: IGNORE,                  // sync bookkeeping - avoid notifications as they'd show for no-op sync runs.
 };
 
 function getTableName(tableId: string, docData: DocData) {

@@ -33,8 +33,12 @@ export interface DocWorkerEndpointOptions {
   app: Application;
   dbManager: HomeDBManager;
   docWorkerMap: IDocWorkerMap;
+  /** Rejects unless the document exists and the user may view it. */
+  canView: RequestHandler;
   /** Rejects unless the document exists and the user may edit it. */
   canEdit: RequestHandler;
+  /** Rejects unless the document exists, is writable, and the user owns it. */
+  isOwnerWrite: RequestHandler;
   /** Wraps a handler so it runs against the request's loaded ActiveDoc, with throttling. */
   withDoc(callback: WithDocHandler): RequestHandler;
 }

@@ -297,6 +297,35 @@ export interface ShareInfo {
 }
 
 /**
+ * Document-specific options for a sync.
+ */
+export interface SyncOptions {
+  /** Source tableIds that should be synced. */
+  sourceTableIds: string[];
+  /** Set at the start of deletion to mark the sync as invalid and block future operations. */
+  deletePending?: boolean;
+}
+
+/**
+ * Status of a sync and all its owned tables in this Grist document.
+ */
+export interface SyncStatus {
+  /** Source history HEAD as of the last successful sync; null before the first one. */
+  lastSyncSourceHash: string | null;
+  lastSyncedAtMs: number | null;
+}
+
+/**
+ * Details of a sync in this document.
+ */
+export interface SyncRecord {
+  /** The sync's identity outside this document */
+  syncId: string;
+  options: SyncOptions;
+  status: SyncStatus;
+}
+
+/**
  * Share information from the Grist home database.
  */
 export interface RemoteShareInfo {

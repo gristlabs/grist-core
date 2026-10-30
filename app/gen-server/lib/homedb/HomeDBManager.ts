@@ -1,4 +1,4 @@
-import { ShareInfo } from "app/common/ActiveDocAPI";
+import { ShareInfo, SyncRecord, SyncStatus } from "app/common/ActiveDocAPI";
 import { ApiError, ApiTip, LimitType } from "app/common/ApiError";
 import { mapGetOrSet, mapSetOrClear, MapWithTTL } from "app/common/AsyncCreate";
 import { ConfigKey, ConfigValue } from "app/common/Config";
@@ -64,6 +64,7 @@ import { Proposal } from "app/gen-server/entity/Proposal";
 import { Secret } from "app/gen-server/entity/Secret";
 import { ServiceAccount } from "app/gen-server/entity/ServiceAccount";
 import { Share } from "app/gen-server/entity/Share";
+import { Sync, SyncHomeConfig } from "app/gen-server/entity/Sync";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { HomeDBCaches } from "app/gen-server/lib/homedb/Caches";
@@ -2989,6 +2990,27 @@ export class HomeDBManager implements HomeDBAuth {
       .getOne() || undefined;
   }
 
+  /**
+   * Retrieves the document's organization's numeric id and the domain to address it by in a URL.
+   */
+  public async getDocOrg(docId: string): Promise<{ orgId: number, orgDomain: string }> {
+    const doc = await this._connection.createQueryBuilder()
+      .select("docs")
+      .from(Document, "docs")
+      .innerJoinAndSelect("docs.workspace", "workspace")
+      .innerJoinAndSelect("workspace.org", "org")
+      .leftJoinAndSelect("org.owner", "owner")
+      .where("docs.id = :docId", { docId })
+      .getOne();
+    if (!doc) { throw new ApiError("document not found", 404); }
+    const org = doc.workspace.org;
+    return {
+      orgId: org.id,
+      // A personal org has no domain of its own, and normalizes to the merged org's.
+      orgDomain: this.normalizeOrgDomain(org.id, org.domain, org.owner?.id),
+    };
+  }
+
   public getAnonymousUser() {
     return this._usersManager.getAnonymousUser();
   }
@@ -3244,6 +3266,82 @@ export class HomeDBManager implements HomeDBAuth {
           .execute();
       }
     });
+  }
+
+  /**
+   * Updates sync statuses and deletes syncs that no longer exist for a given document.
+   *
+   * Avoids inserting or modifying config, owner or source doc id: these columns are authorization
+   * and should only be added explicitly via an endpoint call.
+   */
+  public async syncSyncs(docId: string, syncs: Pick<SyncRecord, "syncId" | "status">[]) {
+    for (const sync of syncs) {
+      try {
+        await this._connection.createQueryBuilder()
+          .update(Sync)
+          .set({ status: sync.status })
+          .where("dest_doc_id = :docId and sync_id = :syncId", { docId, syncId: sync.syncId })
+          .execute();
+      } catch (e) {
+        log.warn(`syncSyncs failed to update status of doc ${docId} sync ${sync.syncId}: ${e}`);
+      }
+    }
+    const dbSyncs = await this._connection.createQueryBuilder()
+      .select("syncs")
+      .from(Sync, "syncs")
+      .where("dest_doc_id = :docId", { docId })
+      .getMany();
+    const activeSyncIds = new Set(syncs.map(sync => sync.syncId));
+    const oldSyncs = dbSyncs.filter(sync => !activeSyncIds.has(sync.syncId));
+    if (oldSyncs.length > 0) {
+      await this._connection.createQueryBuilder()
+        .delete()
+        .from("syncs")
+        .whereInIds(oldSyncs.map(sync => sync.id))
+        .execute();
+    }
+  }
+
+  /**
+   * Creates a sync or updates a sync's settings in the home database.
+   * Should only be called after auth: this row grants permissions for documents
+   * to impersonate users and fetch specific tables on their behalf.
+   */
+  public async createOrRepairSync(params: {
+    destDocId: string,
+    syncId: string,
+    sourceDocId: string | null,
+    ownerId: number | null,
+    options: SyncHomeConfig,
+    status: SyncStatus,
+  }) {
+    const { destDocId, syncId, sourceDocId, ownerId, status } = params;
+    // Stored canonicalized so ordering and duplicates aren't ever concerns.
+    const options: SyncHomeConfig = {
+      authorizedTableIds: [...new Set(params.options.authorizedTableIds)].sort(),
+    };
+    await this._connection.createQueryBuilder()
+      .insert()
+      .into(Sync)
+      .values({ destDocId, syncId, sourceDocId, ownerId, options, status })
+      .orUpdate(["source_doc_id", "owner_id", "options", "status"], ["dest_doc_id", "sync_id"])
+      .execute();
+  }
+
+  public async getSync(destDocId: string, syncId: string): Promise<Sync | null> {
+    return this._connection.createQueryBuilder()
+      .select("syncs")
+      .from(Sync, "syncs")
+      .where("syncs.dest_doc_id = :destDocId and syncs.sync_id = :syncId", { destDocId, syncId })
+      .getOne();
+  }
+
+  public async deleteSync(destDocId: string, syncId: string) {
+    await this._connection.createQueryBuilder()
+      .delete()
+      .from(Sync)
+      .where("dest_doc_id = :destDocId and sync_id = :syncId", { destDocId, syncId })
+      .execute();
   }
 
   public async getShareByKey(key: string) {

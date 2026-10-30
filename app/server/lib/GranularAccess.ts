@@ -108,7 +108,7 @@ function isAttachmentRenameAction(a: DocAction): boolean {
 const STRUCTURAL_TABLES = new Set(["_grist_Tables", "_grist_Tables_column", "_grist_Views",
   "_grist_Views_section", "_grist_Views_section_field",
   "_grist_ACLResources", "_grist_ACLRules",
-  "_grist_Shares", "_grist_Pages"]);
+  "_grist_Shares", "_grist_Syncs", "_grist_Pages"]);
 
 // Actions that won't be allowed (yet) for a user with nuanced access to a document.
 // A few may be innocuous, but that hasn't been figured out yet.
@@ -3349,7 +3349,7 @@ export class CensorshipInfo {
 
   public filter(a: DataAction) {
     const tableId = getTableId(a);
-    if (["_grist_ACLResources", "_grist_ACLRules", "_grist_Shares"].includes(tableId)) {
+    if (["_grist_ACLResources", "_grist_ACLRules", "_grist_Shares", "_grist_Syncs"].includes(tableId)) {
       if (!this._canViewACLs && a[0] === "TableData") {
         a[2] = [];
         a[3] = {};
@@ -3375,13 +3375,13 @@ export class CensorshipInfo {
 function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
   switch (tableId) {
     case "_grist_Tables":
-      return rec => rec.set("tableId", "");
+      return rec => rec.set("tableId", "").set("options", "");
     case "_grist_Views":
       return rec => rec.set("name", "");
     case "_grist_Views_section":
       return rec => rec.set("title", "").set("tableRef", 0);
     case "_grist_Tables_column":
-      return rec => rec.set("label", "").set("colId", "").set("widgetOptions", "")
+      return rec => rec.set("label", "").set("colId", "").set("widgetOptions", "").set("options", "")
         .set("formula", "").set("type", "Any").set("parentId", 0);
     case "_grist_Views_section_field":
       return rec => rec.set("widgetOptions", "").set("filter", "").set("parentId", 0);

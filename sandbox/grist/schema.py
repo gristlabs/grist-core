@@ -13,7 +13,7 @@ from collections import OrderedDict, namedtuple
 
 import actions
 
-SCHEMA_VERSION = 47
+SCHEMA_VERSION = 48
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -62,6 +62,12 @@ def schema_create_actions():
 
       make_column("rawViewSectionRef", "Ref:_grist_Views_section"),
       make_column("recordCardViewSectionRef", "Ref:_grist_Views_section"),
+
+      # For a table mirrored from another document by syncing, the owning row in _grist_Syncs.
+      make_column("syncRef", "Ref:_grist_Syncs"),
+
+      # JSON string of table settings, described by the "TableOptions" interface
+      make_column("options", "Text"),
     ]),
 
     # All columns in all user tables.
@@ -102,6 +108,10 @@ def schema_create_actions():
       # List of fields that should trigger a calculation of a formula in a data column. Only
       # applies when recalcWhen is RecalcWhen.DEFAULT, and defaults to the empty list.
       make_column("recalcDeps",       "RefList:_grist_Tables_column"),
+
+      # JSON string of column settings that are not display configuration,
+      # described by the "ColumnOptions" interface
+      make_column("options",          "Text"),
     ]),
 
     # DEPRECATED: Previously used to keep import options, and allow the user to change them.
@@ -384,6 +394,17 @@ def schema_create_actions():
       make_column('options',        'Text'),
       make_column('label',          'Text'),
       make_column('description',    'Text'),
+    ]),
+
+    actions.AddTable('_grist_Syncs', [
+      # The sync's identity (UUID) across document boundaries.
+      make_column('syncId',         'Text'),
+      # JSON representation of this sync's configuration. Only for settings that should travel
+      # with the document. Contents specified by the `SyncOptions` interface.
+      make_column('options',        'Text'),
+      # JSON representation of the sync's current state.
+      # Contents specified by the `SyncStatus` interface.
+      make_column('status',         'Text'),
     ]),
   ]
 

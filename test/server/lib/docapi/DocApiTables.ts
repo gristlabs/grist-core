@@ -178,6 +178,8 @@ function addTablesTests(getCtx: () => TestContext) {
               locked: false,
               summarySourceTable: 0,
               tableRef: 1,
+              syncRef: 0,
+              options: "",
             },
           },
           // New tables start here
@@ -191,6 +193,8 @@ function addTablesTests(getCtx: () => TestContext) {
               locked: false,
               summarySourceTable: 0,
               tableRef: 2,
+              syncRef: 0,
+              options: "",
             },
           },
           {
@@ -203,6 +207,8 @@ function addTablesTests(getCtx: () => TestContext) {
               locked: false,
               summarySourceTable: 0,
               tableRef: 3,
+              syncRef: 0,
+              options: "",
             },
           },
           {
@@ -215,6 +221,8 @@ function addTablesTests(getCtx: () => TestContext) {
               locked: false,
               summarySourceTable: 0,
               tableRef: 4,
+              syncRef: 0,
+              options: "",
             },
           },
           {
@@ -227,6 +235,8 @@ function addTablesTests(getCtx: () => TestContext) {
               locked: false,
               summarySourceTable: 0,
               tableRef: 5,
+              syncRef: 0,
+              options: "",
             },
           },
           // NewTable2_2 is hidden by ACL

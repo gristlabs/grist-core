@@ -34,7 +34,7 @@ import {
   PatchLog,
   PermissionDataWithExtraUsers,
   QueryResult,
-  ServerQuery,
+  ServerQuery, SyncRecord,
   TableFetchResult,
   TransformRule,
   VisibleUserProfile,
@@ -289,10 +289,7 @@ export class ActiveDoc extends EventEmitter {
   public static keepDocOpen(target: ActiveDoc, propertyKey: string, descriptor: PropertyDescriptor) {
     const origFunc = descriptor.value;
     descriptor.value = function(this: ActiveDoc) {
-      const result = origFunc.apply(this, arguments);
-      this._inactivityTimer.disableUntilFinish(timeoutReached(Deps.KEEP_DOC_OPEN_TIMEOUT_MS, result))
-        .catch(() => {});
-      return result;
+      return this.keepDocOpenWhileRunning(() => origFunc.apply(this, arguments));
     };
   }
 
@@ -590,6 +587,14 @@ export class ActiveDoc extends EventEmitter {
       productFeatures: this._features,
       gracePeriodStart: this._gracePeriodStart,
     });
+  }
+
+  public keepDocOpenWhileRunning<R>(task: () => Promise<R>): Promise<R> {
+    const result = task();
+    this._inactivityTimer.disableUntilFinish(timeoutReached(Deps.KEEP_DOC_OPEN_TIMEOUT_MS, result))
+      .catch(() => {});
+
+    return result;
   }
 
   public getDocUsageSummary(): DocUsageSummary {
@@ -1410,6 +1415,15 @@ export class ActiveDoc extends EventEmitter {
   // True if nothing in this doc would be censored for this user.
   public async canReadEverything(docSession: OptDocSession) {
     return this._granularAccess.canReadEverything(docSession);
+  }
+
+  // True if nothing in these tables would be censored for this user.
+  public async canReadEverythingInTables(docSession: OptDocSession, tableIds: string[]) {
+    const access = await Promise.all(
+      tableIds.map(tableId => this._granularAccess.getTableAccess(docSession, tableId)),
+    );
+
+    return access.every(value => value.perms.read === "allow");
   }
 
   // Check if it is appropriate for the user to be treated as an owner of
@@ -2445,6 +2459,34 @@ export class ActiveDoc extends EventEmitter {
     ));
   }
 
+  public getSyncs(): (SyncRecord & { id: number })[] {
+    const docData = this.docData;
+    if (!docData) {
+      throw new Error("Cannot read syncs: document is not loaded");
+    }
+    const syncsTable = docData.getMetaTable("_grist_Syncs");
+    // Defensive against this code running duration weird situations (earlier docs, migrations)
+    if (!syncsTable) {
+      this._log.warn(null, "Unable to fetch syncs from the document: table _grist_Syncs is not loaded");
+      return [];
+    }
+    return docData.getMetaTable("_grist_Syncs").getRecords().map(row => ({
+      id: row.id,
+      syncId: row.syncId,
+      // A user can edit these columns, so treat unparseable JSON as an empty object rather
+      // than letting it throw out of a read.
+      options: {
+        sourceTableIds: [],
+        ...safeJsonParse(row.options, {}),
+      },
+      status: {
+        lastSyncSourceHash: null,
+        lastSyncedAtMs: null,
+        ...safeJsonParse(row.status, {}),
+      },
+    }));
+  }
+
   /**
    * Make sure the shares listed for the doc in the home db and the
    * shares listed within the doc itself are in sync. If skipIfNoShares
@@ -2469,6 +2511,24 @@ export class ActiveDoc extends EventEmitter {
       await this._getHomeDbManagerOrFail().syncShares(this.docName, goodShares);
     }
     return goodShares;
+  }
+
+  /**
+   * Sends the document's sync statuses to the home database for updates and pruning.
+   * Does not throw on failure to update the home db: runs on a best-effort basis so
+   * a failure to update the home db doesn't break a whole sync run.
+   */
+  public async syncSyncs(docSession: OptDocSession) {
+    const syncs = this.getSyncs();
+    const dbManager = this.getHomeDbManager();
+    if (dbManager) {
+      try {
+        await dbManager.syncSyncs(this.docName, syncs);
+      } catch (e) {
+        this._log.warn(docSession, `syncSyncs failed: ${e}`);
+      }
+    }
+    return syncs;
   }
 
   public async getShare(_docSession: OptDocSession, linkId: string): Promise<Share | null> {
@@ -3246,6 +3306,8 @@ export class ActiveDoc extends EventEmitter {
         // This looks be the first time this installation of Grist is touching
         // the document. If it has any shares, the home db needs to know.
         // TODO: could offer a UI to control whether shares are activated.
+        // Syncs first: a shares failure reaches the caller and must not skip the syncs half.
+        await this.syncSyncs(docSession);
         await this.syncShares(docSession, { skipIfNoShares: true });
       }
       await this._initializeDocUsage(docSession);

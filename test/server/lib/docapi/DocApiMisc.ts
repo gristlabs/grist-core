@@ -81,6 +81,7 @@ function addMiscTests(getCtx: () => TestContext) {
             recalcWhen: 0,
             recalcDeps: null,
             reverseCol: 0,
+            options: "",
           },
         },
       ],

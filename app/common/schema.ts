@@ -6,7 +6,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 47;
+export const SCHEMA_VERSION = 48;
 
 export const schema = {
 
@@ -27,6 +27,8 @@ export const schema = {
     locked              : "Bool",
     rawViewSectionRef   : "Ref:_grist_Views_section",
     recordCardViewSectionRef: "Ref:_grist_Views_section",
+    syncRef             : "Ref:_grist_Syncs",
+    options             : "Text",
   },
 
   "_grist_Tables_column": {
@@ -47,6 +49,7 @@ export const schema = {
     reverseCol          : "Ref:_grist_Tables_column",
     recalcWhen          : "Int",
     recalcDeps          : "RefList:_grist_Tables_column",
+    options             : "Text",
   },
 
   "_grist_Imports": {
@@ -236,6 +239,12 @@ export const schema = {
     description         : "Text",
   },
 
+  "_grist_Syncs": {
+    syncId              : "Text",
+    options             : "Text",
+    status              : "Text",
+  },
+
 };
 
 export interface SchemaTypes {
@@ -257,6 +266,8 @@ export interface SchemaTypes {
     locked: boolean;
     rawViewSectionRef: number;
     recordCardViewSectionRef: number;
+    syncRef: number;
+    options: string;
   };
 
   "_grist_Tables_column": {
@@ -277,6 +288,7 @@ export interface SchemaTypes {
     reverseCol: number;
     recalcWhen: number;
     recalcDeps: [GristObjCode.List, ...number[]]|null;
+    options: string;
   };
 
   "_grist_Imports": {
@@ -464,6 +476,12 @@ export interface SchemaTypes {
     options: string;
     label: string;
     description: string;
+  };
+
+  "_grist_Syncs": {
+    syncId: string;
+    options: string;
+    status: string;
   };
 
 }

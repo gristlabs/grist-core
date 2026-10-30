@@ -1,12 +1,13 @@
 import { delay } from "app/common/delay";
 import { UserAPI } from "app/common/UserAPI";
 import { AccessTokenResult } from "app/plugin/GristAPI";
-import { Deps as AccessTokensDeps } from "app/server/lib/AccessTokens";
+import { AccessTokenInfo, AccessTokens, Deps as AccessTokensDeps } from "app/server/lib/AccessTokens";
 import { TestServer } from "test/gen-server/apiUtils";
 import { GristClient, openClient } from "test/server/gristClient";
 import * as testUtils from "test/server/testUtils";
 
 import { assert } from "chai";
+import * as jwt from "jsonwebtoken";
 import fetch from "node-fetch";
 import { RequestInit } from "node-fetch";
 import * as sinon from "sinon";
@@ -117,6 +118,20 @@ describe("AccessTokens", function() {
     assert.equal(result.status, 403);
     result = await fetch(home.serverUrl + `/api/docs/${docId}/tables/Table1/records?auth=${token}`);
     assert.equal(result.status, 200);
+  });
+
+  it("signs tokens with the requested expiry, defaulting to the nominal TTL", async function() {
+    const tokens = new AccessTokens(null);
+    const content: AccessTokenInfo = { userId: 1, docId: "doc-ttl", readOnly: true };
+    try {
+      const decodeTimes = (token: string) => jwt.decode(token) as { iat: number, exp: number };
+      const shortLived = decodeTimes(await tokens.sign(content, { ttlMsecs: 2 * 60 * 1000 }));
+      assert.equal(shortLived.exp - shortLived.iat, 120);
+      const defaultTtl = decodeTimes(await tokens.sign(content));
+      assert.equal(defaultTtl.exp - defaultTtl.iat, 15 * 60);
+    } finally {
+      await tokens.close();
+    }
   });
 
   // These tests exercise how token-authenticated requests are treated and reported. Since

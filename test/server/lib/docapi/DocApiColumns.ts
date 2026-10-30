@@ -55,6 +55,7 @@ function addColumnsTests(getCtx: () => TestContext) {
             recalcWhen: 0,
             recalcDeps: null,
             reverseCol: 0,
+            options: "",
           },
         },
         {
@@ -77,6 +78,7 @@ function addColumnsTests(getCtx: () => TestContext) {
             recalcWhen: 0,
             recalcDeps: null,
             reverseCol: 0,
+            options: "",
           },
         },
         {
@@ -99,6 +101,7 @@ function addColumnsTests(getCtx: () => TestContext) {
             recalcWhen: 0,
             recalcDeps: null,
             reverseCol: 0,
+            options: "",
           },
         },
         {
@@ -121,6 +124,7 @@ function addColumnsTests(getCtx: () => TestContext) {
             recalcWhen: 0,
             recalcDeps: null,
             reverseCol: 0,
+            options: "",
           },
         },
         {
@@ -143,6 +147,7 @@ function addColumnsTests(getCtx: () => TestContext) {
             recalcWhen: 0,
             recalcDeps: null,
             reverseCol: 0,
+            options: "",
           },
         },
       ],

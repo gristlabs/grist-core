@@ -184,11 +184,14 @@ export class Sharing {
         await this._activeDoc.handleTriggers(localActionBundle) :
         summarizeAction(localActionBundle);
 
-      // Opportunistically use actionSummary to see if _grist_Shares was
-      // changed.
+      // Opportunistically use actionSummary to see if _grist_Shares or _grist_Syncs was changed.
+      if (actionSummary.tableDeltas._grist_Syncs) {
+        // Shouldn't throw - an unavailable homedb prevents updating, but this shouldn't be critical to correctness.
+        await this._activeDoc.syncSyncs(makeExceptionalDocSession("system"));
+        insightLog?.mark("syncSyncs");
+      }
       if (actionSummary.tableDeltas._grist_Shares) {
-        // This is a little risky, since it entangles us with home db
-        // availability. But we aren't doing a lot...?
+        // A little risky as it entangles us with home db availability: a failed request will throw.
         await this._activeDoc.syncShares(makeExceptionalDocSession("system"));
         insightLog?.mark("syncShares");
       }

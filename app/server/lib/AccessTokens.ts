@@ -36,8 +36,8 @@ export interface AccessTokenInfo extends AccessTokenOptions {
    *  - the OAuth scopes set in the token
    *
    * This is intended to facilitate more granular checks than standard access tokens.
-   * It is only ever set server-side (e.g. MCP signed URLs), and deliberately not part
-   * of AccessTokenOptions: it must never be accepted from callers.
+   * It is only ever set server-side, and deliberately not part of AccessTokenOptions:
+   * it must never be accepted from callers.
    */
   oauth?: {
     orgId: number;
@@ -53,9 +53,10 @@ export interface AccessTokenInfo extends AccessTokenOptions {
 export interface IAccessTokens {
   /**
    * Sign the content of an access token, returning a plain jwt-format
-   * string. A per-document secret will be used for signing.
+   * string. A per-document secret will be used for signing. The token
+   * expires after ttlMsecs, defaulting to the nominal TTL.
    */
-  sign(content: AccessTokenInfo): Promise<string>;
+  sign(content: AccessTokenInfo, options?: { ttlMsecs?: number }): Promise<string>;
 
   /**
    * Read the content of a token, verifying its signature.
@@ -123,9 +124,14 @@ export class AccessTokens implements IAccessTokens {
   }
 
   // Sign a token. We use JWT, and use its built-in expiration time.
-  public async sign(content: AccessTokenInfo): Promise<string> {
+  public async sign(content: AccessTokenInfo, options?: { ttlMsecs?: number }): Promise<string> {
     const encoder = await this._getOrCreateSecret(content.docId);
-    return jwt.sign(content, encoder, { expiresIn: this._dtMsec / 1000.0 });
+    // A ttlMsecs longer than _dtMsec risks outliving the secret that signed the token - keep it shorter.
+    if (options?.ttlMsecs && options.ttlMsecs > this._dtMsec) {
+      throw new Error(`Cannot mint an access token with a lifetime longer than ${this._dtMsec}ms`);
+    }
+    const ttlMsecs = options?.ttlMsecs ?? this._dtMsec;
+    return jwt.sign(content, encoder, { expiresIn: ttlMsecs / 1000.0 });
   }
 
   /**

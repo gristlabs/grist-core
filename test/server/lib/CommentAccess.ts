@@ -122,7 +122,7 @@ describe("CommentAccess", function() {
 
     // We don't have comments yet, so we should have empty snapshot.
     let snapshot = await access.createSnapshotWithCells([]);
-    assert.equal(snapshot.getTables().size, 27);
+    assert.equal(snapshot.getTables().size, 28);
     assert.equal(snapshot.getTable("_grist_Cells")?.getRowIds().length, 0);
     assert.equal(snapshot.getTable("Chat")?.getRowIds().length, 0);
     assert.equal(snapshot.getTable("_grist_Tables")?.getRowIds().length, 3);

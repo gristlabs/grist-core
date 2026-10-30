@@ -573,9 +573,27 @@ export function addCountsToMap<T>(valueCounts: Map<T, number>, values: Iterable<
 /**
  * Returns whether one Set is a subset of another.
  */
-export function isSubset(smaller: Set<any>, larger: Set<any>): boolean {
+export function isSubset(smaller: Iterable<any>, larger: Set<any> | any[]): boolean {
+  const largerSet = larger instanceof Set ? larger : new Set(larger);
+
   for (const value of smaller) {
-    if (!larger.has(value)) {
+    if (!largerSet.has(value)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function isSameSet(collectionA: Iterable<any>, collectionB: Set<any> | any[]): boolean {
+  const setA = collectionA instanceof Set ? collectionA : new Set([...collectionA]);
+  const setB = collectionB instanceof Set ? collectionB : new Set(collectionB);
+
+  if (setA.size !== setB.size) {
+    return false;
+  }
+
+  for (const value of setA) {
+    if (!setB.has(value)) {
       return false;
     }
   }

@@ -203,7 +203,9 @@ export class DocWorkerApi {
       app: this._app,
       dbManager: this._dbManager,
       docWorkerMap: this._docWorkerMap,
+      canView,
       canEdit,
+      isOwnerWrite,
       withDoc,
     });
     // Apply user actions to a document.

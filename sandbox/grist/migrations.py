@@ -1411,3 +1411,22 @@ def migration47(tdset):
   return tdset.apply_doc_actions([
     add_column('_grist_Tables', 'locked', 'Bool'),
   ])
+
+
+@migration(schema_version=48)
+def migration48(tdset):
+  """
+  Adds the table holding one-way table sync configuration, and the column marking a table as
+  mirrored from another document by pointing at the sync that owns it. Also adds the options
+  columns on tables and columns, which carry the rest of a sync's bookkeeping as JSON.
+  """
+  return tdset.apply_doc_actions([
+    actions.AddTable('_grist_Syncs', [
+      schema.make_column('syncId', 'Text'),
+      schema.make_column('options', 'Text'),
+      schema.make_column('status', 'Text'),
+    ]),
+    add_column('_grist_Tables', 'syncRef', 'Ref:_grist_Syncs'),
+    add_column('_grist_Tables', 'options', 'Text'),
+    add_column('_grist_Tables_column', 'options', 'Text'),
+  ])
