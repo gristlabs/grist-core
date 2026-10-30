@@ -101,6 +101,10 @@ export class Clipboard extends Disposable {
   // of the cut, rather than new data from outside.
   private _cutData: string | null = null;
 
+  // The most recent keydown, forwarded with the "input" event it produces so the editor can tell
+  // which key was typed.
+  private _lastKeydown?: KeyboardEvent;
+
   constructor(private _app: App) {
     super();
     this.copypasteField = dom("textarea",
@@ -125,7 +129,10 @@ export class Clipboard extends Disposable {
         elem.value = "";
         event.stopPropagation();
         event.preventDefault();
-        commands.allCommands.input.run(value);
+        // Forward the keydown only when it produced this text, and at most once.
+        const keydown = this._lastKeydown?.key === value ? this._lastKeydown : undefined;
+        this._lastKeydown = undefined;
+        commands.allCommands.input.run(value, keydown);
       }),
       dom.on("copy", this._onCopy.bind(this)),
       dom.on("cut", this._onCut.bind(this)),
@@ -138,6 +145,7 @@ export class Clipboard extends Disposable {
       // On Mac, no contextmenu event is triggered when pressing usual shortcuts, so we
       // manually check for Shift+F10 or Ctrl+Enter (the default ContextMenu shortcut on macOS)
       dom.on("keydown", (event) => {
+        this._lastKeydown = event;
         if (!isMac) {
           return;
         }
