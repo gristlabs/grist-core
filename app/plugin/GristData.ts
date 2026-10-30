@@ -64,6 +64,6 @@ export interface RowRecords {
   [colId: string]: CellValue[];
 }
 
-export type GristType = "Any" | "Attachments" | "Blob" | "Bool" | "Choice" | "ChoiceList" |
+export type GristType = "Any" | "Attachments" | "Blob" | "Bool" | "Button" | "Choice" | "ChoiceList" |
   "Date" | "DateTime" |
   "Id" | "Int" | "ManualSortPos" | "Numeric" | "PositionNumber" | "Ref" | "RefList" | "Text";

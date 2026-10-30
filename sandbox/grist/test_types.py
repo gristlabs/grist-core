@@ -4,10 +4,21 @@ import logging
 
 import testutil
 import test_engine
+import usertypes
 
 log = logging.getLogger(__name__)
 
 class TestTypes(test_engine.EngineTestCase):
+  def test_button_type_only_accepts_button_definitions(self):
+    self.assertTrue(usertypes.Button.is_right_type(None))
+    self.assertTrue(usertypes.Button.is_right_type([
+      {"button": "Complete", "actions": [["UpdateRecord", "Tasks", 1, {"Done": True}]]}
+    ]))
+    self.assertFalse(usertypes.Button.is_right_type("plain value"))
+    self.assertFalse(usertypes.Button.is_right_type([
+      {"button": "Invalid", "actions": [[None]]}
+    ]))
+
   sample = testutil.parse_test_sample({
     "SCHEMA": [
       [1, "Types", [

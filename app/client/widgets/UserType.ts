@@ -20,6 +20,20 @@ export const typeDefs: any = {
     },
     default: "TextBox",
   },
+  Button: {
+    label: "Button",
+    icon: "FieldAny",
+    widgets: {
+      Button: {
+        cons: "ButtonWidget",
+        icon: "FieldAny",
+        options: {
+          wrap: undefined,
+        },
+      },
+    },
+    default: "Button",
+  },
   Text: {
     label: "Text",
     icon: "FieldText",
@@ -275,5 +289,5 @@ export const typeDefs: any = {
 };
 
 // Extract widgets type to a type from the json above
-export type WidgetType = "TextBox" | "Markdown" | "HyperLink" | "Spinner" |
+export type WidgetType = "TextBox" | "Markdown" | "HyperLink" | "Spinner" | "Button" |
   "CheckBox" | "Switch" | "Reference" | "Attachments";

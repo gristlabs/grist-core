@@ -22,6 +22,7 @@ const _defaultValues: { [key in GristType]: [CellValue, string] } = {
   Any: [null,  "NULL"],
   Attachments: [null,  "NULL"],
   Blob: [null,  "NULL"],
+  Button: [null,  "NULL"],
   // Bool is only supported by SQLite as 0 and 1 values.
   Bool: [false, "0"],
   Choice: ["",    "''"],
@@ -194,6 +195,21 @@ function isNormalValue(value: CellValue) {
   return !abnormalValueTypes.includes(getObjCode(value)!);
 }
 
+function isButtonValue(value: CellValue): boolean {
+  if (value === null) { return true; }
+  if (!isList(value)) { return false; }
+  return value.slice(1).every(button => {
+    if (!Array.isArray(button) || button[0] !== GristObjCode.Dict) { return false; }
+    const fields = button[1] as { [key: string]: CellValue } | undefined;
+    const actions = fields?.actions;
+    return typeof fields?.button === "string" && Boolean(fields.button.trim()) &&
+      isList(actions as CellValue) &&
+      (actions as [GristObjCode.List, ...CellValue[]]).slice(1).every(action =>
+        isList(action) && typeof action[1] === "string",
+      );
+  });
+}
+
 /**
  * Map of Grist type to an "isRightType" checker function, which determines if a given values type
  * matches the declared type of the column.
@@ -203,6 +219,7 @@ const rightType: { [key in GristType]: (value: CellValue) => boolean } = {
   Attachments: isListOrNull,
   Text: isString,
   Blob: isString,
+  Button: isButtonValue,
   Int: isNumberOrNull,
   Bool: isBooleanOrNull,
   Date: isNumberOrNull,
