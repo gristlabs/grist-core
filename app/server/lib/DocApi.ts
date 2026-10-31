@@ -1518,6 +1518,7 @@ export class DocWorkerApi {
           const dropdownCondition = options.dropdownCondition;
           if (!dropdownCondition?.parsed) { return values; }
 
+          let predicate: ReturnType<typeof compilePredicateFormula>;
           try {
             const parsed = JSON.parse(dropdownCondition.parsed);
             const { recColIds } = getPredicateFormulaProperties(parsed);
@@ -1527,11 +1528,17 @@ export class DocWorkerApi {
             // options endpoint; preserve the current behavior for those conditions for now.
             if (recColIds?.length) { return values; }
 
-            const predicate = compilePredicateFormula(parsed, { variant: "dropdown-condition" });
-            const user = (await activeDoc.getUser(docSession)).toUserInfo();
-            const refTableData = toTableDataAction(refTableId, await predicateTableData(refTableId));
-            const rowIndexes = new Map(refTableData[2].map((rowId, index) => [rowId, index]));
+            predicate = compilePredicateFormula(parsed, { variant: "dropdown-condition" });
+          } catch {
+            // Match the regular reference editor's fail-closed behavior for invalid conditions.
+            return [];
+          }
 
+          const user = (await activeDoc.getUser(docSession)).toUserInfo();
+          const refTableData = toTableDataAction(refTableId, await predicateTableData(refTableId));
+          const rowIndexes = new Map(refTableData[2].map((rowId, index) => [rowId, index]));
+
+          try {
             return values.filter(([id]) => {
               const rowIndex = rowIndexes.get(id);
               if (rowIndex === undefined) { return false; }
