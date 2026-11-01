@@ -140,5 +140,15 @@ describe("UserAPI", function() {
       assert.deepEqual(users.sort(compareUsersForDisplay).map(u => u.email),
         ["sam1@example.com", "sam2@example.com"]);
     });
+
+    it("breaks ties between names differing only by case or accents by email", function() {
+      const users = [
+        { name: "Émile", email: "b@example.com" },
+        { name: "Emile", email: "c@example.com" },
+        { name: "emile", email: "a@example.com" },
+      ];
+      assert.deepEqual(users.sort(compareUsersForDisplay).map(u => u.email),
+        ["a@example.com", "b@example.com", "c@example.com"]);
+    });
   });
 });
