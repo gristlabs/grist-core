@@ -2,6 +2,7 @@
 
 // Grist client libs
 import { DocComm } from "app/client/components/DocComm";
+import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { checkBrowserUploadSizeLimit, selectPicker } from "app/client/lib/uploads";
 import { DocData } from "app/client/models/DocData";
@@ -185,7 +186,9 @@ export class AttachmentsEditor extends NewBaseEditor {
               ),
               dom.maybe(this._selected, () =>
                 cssButton(cssButtonIcon("Remove"), t("Delete"),
-                  dom.on("click", () => this._remove()),
+                  // Removing replaces or removes this button, which drops the focus. Take it back
+                  // right away so that the next key reaches the editor.
+                  dom.on("click", (ev, elem) => { this._remove(); FocusLayer.grabFocus(elem); }),
                   testId("pw-remove"),
                 ),
               ),
