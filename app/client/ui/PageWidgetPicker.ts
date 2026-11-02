@@ -114,6 +114,9 @@ export interface ICompatibleTypes {
 
   // true if can be summarized
   summarize: boolean;
+
+  // true if the selected existing table refuses new records
+  noNewRecords?: boolean;
 }
 
 const testId = makeTestId("test-wselect-");
@@ -121,7 +124,7 @@ const testId = makeTestId("test-wselect-");
 // The picker disables some choices that do not make much sense. This function return the list of
 // compatible types given the tableId and whether user is creating a new page or not.
 function getCompatibleTypes(tableId: TableRef,
-  { isNewPage, summarize }: ICompatibleTypes): IWidgetType[] {
+  { isNewPage, summarize, noNewRecords }: ICompatibleTypes): IWidgetType[] {
   let compatibleTypes: IWidgetType[] = [];
   if (tableId !== "New Table") {
     compatibleTypes = [...mainSectionTypes, ...moreSectionTypes];
@@ -132,22 +135,37 @@ function getCompatibleTypes(tableId: TableRef,
     // The type 'chart' makes little sense when creating a new table.
     compatibleTypes = ["record", "single", "detail", "form"];
   }
-  return summarize ? compatibleTypes.filter(el => isSummaryCompatible(el)) : compatibleTypes;
+  return summarize || noNewRecords ?
+    compatibleTypes.filter(el => isNoNewRecordsCompatible(el)) :
+    compatibleTypes;
 }
 
 // The Picker disables some choices that do not make much sense.
-// This function return a boolean telling if summary can be used with this type.
-function isSummaryCompatible(widgetType: IWidgetType): boolean {
-  // Forms add records, which a summary table does not accept.
+// Returns true only if the type can be used with a table that does not
+// accept new records (e.g. a summary table or locked table).
+function isNoNewRecordsCompatible(widgetType: IWidgetType): boolean {
+  // Forms only exist to add records.
   const incompatibleTypes: IWidgetType[] = ["form"];
   return !incompatibleTypes.includes(widgetType);
+}
+
+// Whether an already-chosen widget type rules out a table that refuses new records.
+function isTableDisabledForType(noNewRecords: boolean, type: IWidgetType): boolean {
+  return noNewRecords && !isNoNewRecordsCompatible(type);
+}
+
+// Whether the selected existing table refuses new records. Reads the flag without subscribing to
+// it, as the picker is a transient popup; "New Table" always accepts records.
+function tableHasNoNewRecords(tables: TableRec[], table: TableRef): boolean {
+  if (typeof table !== "number") { return false; }
+  return Boolean(tables.find(t => t.id() === table)?.disableAddRemoveRows());
 }
 
 // Whether table and type make for a valid selection whether the user is creating a new page or not.
 function isValidSelection(table: TableRef,
   type: IWidgetType,
-  { isNewPage, summarize }: ICompatibleTypes) {
-  return table !== null && getCompatibleTypes(table, { isNewPage, summarize }).includes(type);
+  { isNewPage, summarize, noNewRecords }: ICompatibleTypes) {
+  return table !== null && getCompatibleTypes(table, { isNewPage, summarize, noNewRecords }).includes(type);
 }
 
 export type ISaveFunc = (val: IPageWidget) => Promise<any>;
@@ -248,6 +266,7 @@ export function buildPageWidgetPicker(
       {
         isNewPage: options.isNewPage,
         summarize: value.summarize.get(),
+        noNewRecords: tableHasNoNewRecords(tables.get(), value.table.get()),
       });
   }
 
@@ -353,7 +372,8 @@ export class PageWidgetSelect extends Disposable {
   private _isNewTableDisabled = Computed.create(this, this._value.type, (use, type) => !isValidSelection(
     "New Table", type, { isNewPage: this._options.isNewPage, summarize: use(this._value.summarize) }));
 
-  private _isSummaryDisabled = Computed.create(this, this._value.type, (_use, type) => !isSummaryCompatible(type));
+  private _isSummaryDisabled = Computed.create(this, this._value.type,
+    (_use, type) => !isNoNewRecordsCompatible(type));
 
   private _rootEl: HTMLElement | undefined;
 
@@ -460,40 +480,55 @@ export class PageWidgetSelect extends Disposable {
             dom.prop("disabled", use => use(this._isNewTableDisabled)),
             testId("table"),
           ),
-          dom.forEach(this._tables, table => dom("div",
-            cssEntryWrapper(
-              cssEntry(
-                dom.data("tid", String(table.id())),
-                cssIcon("TypeTable"),
-                cssLabel(dom.text(table.tableNameDef), overflowTooltip()),
-                dom.on("click", () => this._selectTable(table.id())),
-                cssEntry.cls("-selected", use => use(this._value.table) === table.id()),
-                dom.attr("aria-pressed", use => use(this._value.table) === table.id() ? "true" : undefined),
-                testId("table-label"),
-              ),
-              cssPivot(
-                dom.attr("data-kb-zone", "pivot"),
-                dom.data("pivot-tid", String(table.id())),
-                dom.attr("aria-label", use =>
-                  t("{{table}} grouped by… (press to select fields)", {
-                    table: use(table.tableNameDef),
+          dom.forEach(this._tables, (table) => {
+            // Greyed out while the selected type rules the table out, so the clash shows here
+            // rather than only on the disabled submit button.
+            const disabled = computed(this._value.type,
+              (use, type) => isTableDisabledForType(use(table.disableAddRemoveRows), type),
+            );
+            return dom("div",
+              cssEntryWrapper(
+                cssEntry(
+                  dom.autoDispose(disabled),
+                  dom.data("tid", String(table.id())),
+                  cssIcon("TypeTable"),
+                  cssLabel(dom.text(table.tableNameDef), overflowTooltip()),
+                  dom.on("click", () => {
+                    if (disabled.get()) {
+                      return;
+                    }
+                    this._selectTable(table.id());
                   }),
+                  cssEntry.cls("-selected", use => use(this._value.table) === table.id()),
+                  dom.attr("aria-pressed", use => use(this._value.table) === table.id() ? "true" : undefined),
+                  cssEntry.cls("-disabled", disabled),
+                  dom.prop("disabled", disabled),
+                  testId("table-label"),
                 ),
-                cssBigIcon("Pivot"),
-                cssEntry.cls("-selected", use => use(this._value.summarize) &&
-                  use(this._value.table) === table.id(),
+                cssPivot(
+                  dom.attr("data-kb-zone", "pivot"),
+                  dom.data("pivot-tid", String(table.id())),
+                  dom.attr("aria-label", use =>
+                    t("{{table}} grouped by… (press to select fields)", {
+                      table: use(table.tableNameDef),
+                    }),
+                  ),
+                  cssBigIcon("Pivot"),
+                  cssEntry.cls("-selected", use => use(this._value.summarize) &&
+                    use(this._value.table) === table.id(),
+                  ),
+                  dom.attr("aria-pressed", use => use(this._value.summarize) &&
+                    use(this._value.table) === table.id() ? "true" : undefined),
+                  cssEntry.cls("-disabled", this._isSummaryDisabled),
+                  dom.prop("disabled", this._isSummaryDisabled),
+                  dom.on("click", (_ev, el) =>
+                    !this._isSummaryDisabled.get() && this._selectPivot(table.id(), el as HTMLElement)),
+                  testId("pivot"),
                 ),
-                dom.attr("aria-pressed", use => use(this._value.summarize) &&
-                  use(this._value.table) === table.id() ? "true" : undefined),
-                cssEntry.cls("-disabled", this._isSummaryDisabled),
-                dom.prop("disabled", this._isSummaryDisabled),
-                dom.on("click", (_ev, el) =>
-                  !this._isSummaryDisabled.get() && this._selectPivot(table.id(), el as HTMLElement)),
-                testId("pivot"),
+                testId("table"),
               ),
-              testId("table"),
-            ),
-          )),
+            );
+          }),
         ),
         cssPanel(
           {
@@ -563,6 +598,7 @@ export class PageWidgetSelect extends Disposable {
               {
                 isNewPage: this._options.isNewPage,
                 summarize: use(this._value.summarize),
+                noNewRecords: tableHasNoNewRecords(use(this._tables), use(this._value.table)),
               }),
             ),
             dom.on("click", () => this._onSave().catch(reportError)),
@@ -648,7 +684,11 @@ export class PageWidgetSelect extends Disposable {
     if (table === null) {
       return false;
     }
-    return !getCompatibleTypes(table, { isNewPage: this._options.isNewPage, summarize: isSummaryOn }).includes(type);
+    return !getCompatibleTypes(table, {
+      isNewPage: this._options.isNewPage,
+      summarize: isSummaryOn,
+      noNewRecords: tableHasNoNewRecords(this._tables.get(), table),
+    }).includes(type);
   }
 
   private _getFocusedZone(): KeyboardZone | undefined {
@@ -744,6 +784,12 @@ export class PageWidgetSelect extends Disposable {
     const activeEl = document.activeElement;
     const table = activeEl && dom.getData(activeEl, "tid") as TableRef | undefined;
     if (table === "New Table" && this._isNewTableDisabled.get()) {
+      return false;
+    }
+    // Mirrors the per-table greying in buildDom; keyboard activation calls us directly rather than
+    // synthesizing a click, so the click guard does not cover it.
+    if (table && table !== "New Table" && isTableDisabledForType(
+      tableHasNoNewRecords(this._tables.get(), Number(table)), this._value.type.get())) {
       return false;
     }
     if (table) {

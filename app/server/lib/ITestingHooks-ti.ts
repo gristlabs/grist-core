@@ -42,6 +42,7 @@ export const ITestingHooks = t.iface([], {
   }))),
   "resetEnv": t.func("void"),
   "captureLog": t.func(t.array("CapturedLogEntry"), t.param("capture", "boolean")),
+  "applySystemUserActions": t.func("void", t.param("docId", "string"), t.param("actions", t.array("UserAction"))),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

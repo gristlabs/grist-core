@@ -21,6 +21,9 @@
 .readonly_editor::before {
   content: "";
   position: absolute;
+  /* The formula editor's content is a flex item with z-index 10 and an opaque background, which
+   * would otherwise paint over this lock icon. */
+  z-index: 11;
   top: 0;
   left: 0;
   margin: 4px 3px 0 3px;

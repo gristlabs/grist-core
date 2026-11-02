@@ -2506,6 +2506,10 @@ export class FlexServer implements GristServer {
         if (process.env.GRIST_WORKER_GROUP) {
           this.worker.group = process.env.GRIST_WORKER_GROUP;
         }
+        if (process.env.GRIST_TESTING_SOCKET) {
+          // Only set on the object when there is a value so the string "undefined" doesn't get written to Redis
+          this.worker.testingSocket = process.env.GRIST_TESTING_SOCKET;
+        }
         this.info.push(["docWorkerId", this.worker.id]);
         this.info.push(["docWorkerInternalUrl", this.worker.internalUrl]);
         this.info.push(["docWorkerAddressSource", identity.addressSource]);

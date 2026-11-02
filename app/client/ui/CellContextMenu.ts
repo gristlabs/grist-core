@@ -17,12 +17,11 @@ export interface ICellContextMenu {
 
 export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMultiColumnContextMenu) {
   const { disableInsert, disableDelete, isViewSorted, numRows, onlyAddRowSelected } = cellOptions;
-  const { numColumns, disableModify, isReadonly, isFiltered } = colOptions;
+  const { numColumns, disableModify, isReadonly, disableInsertColumn, isFiltered } = colOptions;
 
-  // disableModify is true if the column is a summary column or is being transformed.
   // isReadonly is true for readonly mode.
   const disableForReadonlyColumn = ariaDisabled(Boolean(disableModify) || isReadonly);
-  const disableForReadonlyView = ariaDisabled(isReadonly);
+  const disableForReadonlyTable = ariaDisabled(isReadonly || disableInsertColumn);
 
   const nameClearColumns = isFiltered ?
     t("Reset {{count}} entire columns", { count: numColumns }) :
@@ -80,9 +79,9 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
     menuItemCmd(allCommands.duplicateRows, t("Duplicate rows", { count: numRows }),
       ariaDisabled(disableInsert || numRows === 0)),
     menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"),
-      disableForReadonlyView),
+      disableForReadonlyTable),
     menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"),
-      disableForReadonlyView),
+      disableForReadonlyTable),
 
     menuDivider(),
 

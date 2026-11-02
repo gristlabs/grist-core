@@ -470,13 +470,20 @@ function buildFormula(
     { tabIndex: "-1" },
     // Focus event use used by a user to edit an existing formula.
     // It can also be triggered manually to open up the editor.
-    dom.on("focus", (_, refElem) => buildEditor({
-      refElem,
-      editValue: undefined,
-      canDetach,
-      onSave,
-      onCancel,
-    })),
+    dom.on("focus", (_, refElem) => {
+      // Saving the formula sends ModifyColumn, so don't even open the editor.
+      if (disabled.get()) {
+        refElem.blur();
+        return;
+      }
+      buildEditor({
+        refElem,
+        editValue: undefined,
+        canDetach,
+        onSave,
+        onCancel,
+      });
+    }),
     ...args,
   );
 }

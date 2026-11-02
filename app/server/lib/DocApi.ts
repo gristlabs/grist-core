@@ -1445,6 +1445,13 @@ export class DocWorkerApi {
           throw new ApiError("Form not found", 404, { code: "FormNotFound" });
         }
 
+        // Covers both access paths (share and in-doc preview), so a form whose records would be
+        // refused is never served.
+        this._assertFormTableAcceptsRecords({
+          docData: activeDoc.docData,
+          tableRef: section.tableRef,
+        });
+
         const Views_section_field = metaTable("_grist_Views_section_field");
         const Tables_column = metaTable("_grist_Tables_column");
         const fields = Views_section_field
@@ -1638,6 +1645,24 @@ export class DocWorkerApi {
 
     // Finally, check that both the section and share are published.
     if (!sectionShareOptions.publish || !safeJsonParse(share.options, {})?.publish) {
+      throw new ApiError("Form not published", 404, { code: "FormNotPublished" });
+    }
+  }
+
+  /**
+   * Throws if the form's table cannot accept new records, which a form exists to create.
+   */
+  private _assertFormTableAcceptsRecords(params: {
+    docData: DocData,
+    tableRef: number,
+  }) {
+    const { docData, tableRef } = params;
+
+    // Use unfiltered metadata so ACLs don't affect errors.
+    const table = docData.getMetaTable("_grist_Tables").getRecord(tableRef);
+    if (!table) { throw new ApiError("Form not found", 404, { code: "FormNotFound" }); }
+
+    if (Boolean(table.summarySourceTable) || Boolean(table.locked)) {
       throw new ApiError("Form not published", 404, { code: "FormNotPublished" });
     }
   }

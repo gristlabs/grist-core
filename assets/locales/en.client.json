@@ -1172,6 +1172,7 @@
         "Override widget title": "Override widget title",
         "Provide a table name": "Provide a table name",
         "Save": "Save",
+        "This table is managed by Grist and cannot be modified": "This table is managed by Grist and cannot be modified",
         "WIDGET TITLE": "WIDGET TITLE",
         "WIDGET DESCRIPTION": "WIDGET DESCRIPTION"
     },
@@ -1811,6 +1812,7 @@
         "Save your document to publish this form.": "Save your document to publish this form.",
         "Share": "Share",
         "Share this form": "Share this form",
+        "This table does not accept new records.": "This table does not accept new records.",
         "View": "View",
         "# **Form Title**": "# **Form Title**",
         "Your form description goes here.": "Your form description goes here.",

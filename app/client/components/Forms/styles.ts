@@ -606,6 +606,12 @@ export const cssFormEditBody = styled("div", `
   padding: 20px;
 `);
 
+// Facilitates an overlay that covers the form editor.
+export const cssFormEditBodyWrapper = styled("div", `
+  position: relative;
+  width: 100%;
+`);
+
 export const cssRemoveButton = styled("div", `
   position: absolute;
   right: 11px;

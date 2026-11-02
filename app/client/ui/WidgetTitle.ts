@@ -4,9 +4,10 @@ import { makeT } from "app/client/lib/localization";
 import { ViewSectionRec } from "app/client/models/entities/ViewSectionRec";
 import { autoGrow } from "app/client/ui/forms";
 import { cssInput, cssLabel, cssRenamePopup, cssTextArea } from "app/client/ui/RenamePopupStyles";
-import { descriptionInfoTooltip } from "app/client/ui/tooltips";
+import { descriptionInfoTooltip, hoverTooltip } from "app/client/ui/tooltips";
 import { basicButton, cssButton, primaryButton } from "app/client/ui2018/buttons";
 import { theme } from "app/client/ui2018/cssVars";
+import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
 import { ModalControl } from "app/client/ui2018/modals";
 
@@ -119,6 +120,7 @@ function buildRenamableTitle(
       },
       openOnClick ? dom.on("click", (ev) => { ev.stopPropagation(); ev.preventDefault(); }) : null,
     ),
+    dom.maybe(use => use(use(vs.table).locked), () => buildLockedTableIcon(testId("lock"))),
     dom.maybe(description, () => [
       descriptionInfoTooltip(description.get(), "widget"),
     ]),
@@ -126,10 +128,22 @@ function buildRenamableTitle(
   );
 }
 
+/** Marks a title as belonging to a locked table, and explains on hover what that means. */
+export function buildLockedTableIcon(...domArgs: DomElementArg[]) {
+  return cssLockIcon(
+    "Lock",
+    hoverTooltip(t("This table is managed by Grist and cannot be modified")),
+    ...domArgs,
+  );
+}
+
 function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, options: RenamableTitleOptions) {
   const tableRec = vs.table.peek();
   // If the table is a summary table.
   const isSummary = Boolean(tableRec.summarySourceTable.peek());
+  const disableRename = tableRec.disableRenameTable.peek();
+  // The engine turns a raw view section's title save into a table rename, so disable if renames are blocked.
+  const isTitleLocked = disableRename && vs.isRaw.peek();
   // Table name, for summary table it contains also a grouping description, but it is not editable.
   // Example: Table1 or Table1 [by B, C]
   const tableName = [tableRec.tableNameDef.peek(), tableRec.groupDesc.peek()]
@@ -162,7 +176,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
 
   const saveTableName = async () => {
     // For summary table ignore - though we could rename primary table.
-    if (isSummary) { return; }
+    if (disableRename) { return; }
     // Can't save an empty name - there are actually no good reasons why we can't have empty table name,
     // unfortunately there are some use cases that really on the empty name:
     // - For ACL we sometimes may check if tableId is empty (and sometimes if table name).
@@ -175,6 +189,7 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
   };
 
   const saveWidgetTitle = async () => {
+    if (isTitleLocked) { return; }
     const newTitle = inputWidgetTitle.get()?.trim() ?? "";
     // If value was changed.
     if (newTitle !== vs.title.peek()) {
@@ -289,14 +304,15 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
       tableInput = cssInput(
         inputTableName,
         updateOnKey,
-        { disabled: isSummary, placeholder: t("Provide a table name") },
+        { disabled: disableRename, placeholder: t("Provide a table name") },
         testId("table-name-input"),
         commandGroup.attach(),
       ),
     ]),
     dom.maybe(!options.widgetNameHidden, () => [
       cssLabel(t("WIDGET TITLE")),
-      widgetInput = cssInput(inputWidgetTitle, updateOnKey, { placeholder: inputWidgetPlaceholder },
+      widgetInput = cssInput(inputWidgetTitle, updateOnKey,
+        { disabled: isTitleLocked, placeholder: inputWidgetPlaceholder },
         testId("section-name-input"),
         commandGroup.attach(),
       ),
@@ -341,6 +357,16 @@ const cssTitleContainer = styled("div", `
     width: 13px;
     height: 13px;
   }
+`);
+
+const cssLockIcon = styled(icon, `
+  flex: none;
+  align-self: center;
+  width: 11px;
+  height: 11px;
+  margin-left: 4px;
+  cursor: default;
+  --icon-color: ${theme.lightText};
 `);
 
 const cssTitle = styled("div", `

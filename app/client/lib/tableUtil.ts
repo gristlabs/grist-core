@@ -189,12 +189,15 @@ export function fillSelectionDown(selection: CopySelection, tableModel: TableMod
   if (rowIds.length <= 1) {
     return;
   }
-  const nonFormulaColumns = selection.fields.map(f => f.column.peek()).filter(col => !col.isFormula.peek());
-  if (nonFormulaColumns.length === 0) {
+  const editableColumns = selection.fields
+    .filter(f => !f.disableEditData.peek())
+    .map(f => f.column.peek())
+    .filter(col => !col.isFormula.peek());
+  if (editableColumns.length === 0) {
     return;
   }
   const colInfo: BulkColValues = {};
-  for (const col of nonFormulaColumns) {
+  for (const col of editableColumns) {
     const colId = col.colId.peek();
     const val = tableModel.tableData.getValue(rowIds[0], colId)!;
     colInfo[colId] = rowIds.map(() => val);

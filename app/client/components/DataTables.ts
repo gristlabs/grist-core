@@ -8,7 +8,7 @@ import { TableRec } from "app/client/models/DocModel";
 import { docListHeader, docMenuTrigger } from "app/client/ui/DocMenuCss";
 import { duplicateTable, DuplicateTableResponse } from "app/client/ui/DuplicateTable";
 import { hoverTooltip, showTransientTooltip } from "app/client/ui/tooltips";
-import { buildTableName } from "app/client/ui/WidgetTitle";
+import { buildLockedTableIcon, buildTableName } from "app/client/ui/WidgetTitle";
 import * as css from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { loadingDots } from "app/client/ui2018/loaders";
@@ -137,13 +137,17 @@ export class DataTables extends Disposable {
       const rawViewSectionRef = use(fromKo(table.rawViewSectionRef));
       const isSummaryTable = use(table.summarySourceTable) !== 0;
       const isReadonly = use(this._gristDoc.isReadonly);
-      if (!rawViewSectionRef || isSummaryTable || isReadonly) {
-        // Some very old documents might not have a rawViewSection, and raw summary
-        // tables can't currently be renamed.
+      const isRenameDisabled = use(table.disableRenameTable);
+      // Some very old documents might not have a rawViewSection, and neither raw summary tables
+      // nor locked tables can be renamed.
+      if (!rawViewSectionRef || isReadonly || isRenameDisabled) {
         const tableName = [
           use(table.tableNameDef), isSummaryTable ? use(table.groupDesc) : "",
         ].filter(p => Boolean(p?.trim())).join(" ");
-        return cssTableName(tableName);
+        return [
+          cssTableName(tableName),
+          use(table.locked) ? buildLockedTableIcon(testId("lock")) : null,
+        ];
       } else {
         return cssFlexRow(
           dom.domComputed(fromKo(table.rawViewSection), vs =>
@@ -168,7 +172,7 @@ export class DataTables extends Disposable {
       menuItem(
         () => { isEditingName.set(true); },
         t("Rename table"),
-        ariaDisabled(use => use(isReadonly) || use(table.summarySourceTable) !== 0),
+        ariaDisabled(use => use(isReadonly) || use(table.disableRenameTable)),
         testId("menu-rename-table"),
       ),
       menuItem(
@@ -180,7 +184,7 @@ export class DataTables extends Disposable {
       menuItem(
         () => this._removeTable(table),
         t("Remove table"),
-        ariaDisabled(use => use(isReadonly) || (
+        ariaDisabled(use => use(isReadonly) || use(table.disableRemoveTable) || (
           // Can't delete last visible table, unless it is a hidden table.
           use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
         )),

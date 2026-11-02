@@ -153,7 +153,8 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
         dom("div", primaryButton(
           kd.text(() => table.onDemand() ? t("Unmark On-Demand") : t("Make On-Demand")),
           kd.style("margin-top", "1rem"),
-          dom.on("click", () => this._makeOnDemand(table)),
+          dom.on("click", () => table.locked() || this._makeOnDemand(table)),
+          kd.boolAttr("disabled", () => Boolean(table.locked())),
           dom.testId("ViewConfig_onDemandBtn"),
         )),
       ),

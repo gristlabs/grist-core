@@ -1,3 +1,4 @@
+import { UserAction } from "app/common/DocActions";
 import { UserProfile } from "app/common/LoginSessionAPI";
 
 export interface ClientJsonMemoryLimits {
@@ -40,4 +41,5 @@ export interface ITestingHooks {
   addEnv(env: { [key: string]: string }): Promise<void>;
   resetEnv(): Promise<void>;
   captureLog(capture: boolean): Promise<CapturedLogEntry[]>;
+  applySystemUserActions(docId: string, actions: UserAction[]): Promise<void>;
 }

@@ -74,7 +74,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
       dom.cls("field_clip"),
       dragOverClass("attachment_drag_over"),
-      dom.maybe(use => !use(use(this.field.column).isRealFormula), () => [
+      dom.maybe(use => !use(use(this.field.column).isRealFormula) && !use(this.field.disableEditData), () => [
         cssAttachmentIcon(
           cssAttachmentIcon.cls("-hover", use => use(values).length > 0),
           dom.on("click", async (ev) => {
@@ -97,7 +97,10 @@ export class AttachmentsWidget extends NewAbstractWidget {
           { title: t("Uploading, please wait…") },
         ),
       ),
-      dom.on("drop", ev => this._uploadAndSave(row, cellValue, ev.dataTransfer!.files)),
+      dom.on("drop", (ev) => {
+        if (this.field.disableEditData()) { return; }
+        return this._uploadAndSave(row, cellValue, ev.dataTransfer!.files);
+      }),
       testId("attachment-widget"),
     );
   }

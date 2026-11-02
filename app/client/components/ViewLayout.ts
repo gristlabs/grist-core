@@ -368,7 +368,10 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     const tableName = () => viewSection.table.peek().tableNameDef.peek();
 
-    const needPrompt = isUserTable() && notInAnyOtherSection();
+    // Removing the widget is the only option when the table itself can't be removed.
+    const disableRemoveTable = () => viewSection.table.peek().disableRemoveTable.peek();
+
+    const needPrompt = isUserTable() && notInAnyOtherSection() && !disableRemoveTable();
 
     const decision = needPrompt ?
       widgetRemovalPrompt(tableName()) :

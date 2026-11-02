@@ -724,6 +724,8 @@ export interface IMultiColumnContextMenu {
   disableModify: boolean | "mixed";
 
   isReadonly: boolean;
+  // Blocks adding columns, but - unlike isReadonly - leaves view-layer items (sort, filter) enabled.
+  disableInsertColumn: boolean;
   isRaw: boolean;
   isFiltered: boolean; // If this view shows a proper subset of all rows in the table.
   isFormula: boolean | "mixed";
@@ -825,6 +827,7 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
 export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
   const disableForReadonlyColumn = ariaDisabled(Boolean(options.disableModify) || options.isReadonly);
   const disableForReadonlyView = ariaDisabled(options.isReadonly);
+  const disableForReadonlyTable = ariaDisabled(options.isReadonly || options.disableInsertColumn);
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
     t("Reset {{count}} entire columns", { count: num }) :
@@ -848,8 +851,8 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
     menuDivider(),
-    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"), disableForReadonlyView),
-    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyView),
+    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"), disableForReadonlyTable),
+    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyTable),
   ];
 }
 

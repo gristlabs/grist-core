@@ -38,6 +38,13 @@ export class ConditionalStyle extends Disposable {
     return rulesCols.map((col, i) => [col, i]);
   });
 
+  // Adding or removing a rule adds or removes a hidden formula column. The rule styles themselves
+  // are widgetOptions, so they stay editable.
+  private _disableAddRemoveRules: Computed<boolean> = Computed.create(this, (use) => {
+    const table = this._gristDoc.docModel.getTableModel(use(this._ruleOwner.tableId))?.tableMetaRow;
+    return table ? use(table.disableAddRemoveColumns) : false;
+  });
+
   constructor(
     private _label: string,
     private _ruleOwner: RuleOwner,
@@ -87,7 +94,8 @@ export class ConditionalStyle extends Disposable {
             t("Add conditional style"),
             testId("add-conditional-style"),
             dom.on("click", () => this._ruleOwner.addEmptyRule()),
-            dom.prop("disabled", this._disabled),
+            dom.prop("disabled", use =>
+              use(this._disableAddRemoveRules) || (this._disabled ? use(this._disabled) : false)),
           ),
           this._label === t("Row Style") ? "addRowConditionalStyle" : "addColumnConditionalStyle",
         ),
@@ -111,7 +119,8 @@ export class ConditionalStyle extends Disposable {
         textButton(t("Add another rule"),
           dom.on("click", () => this._ruleOwner.addEmptyRule()),
           testId("add-another-rule"),
-          dom.prop("disabled", use => this._disabled && use(this._disabled)),
+          dom.prop("disabled", use =>
+            use(this._disableAddRemoveRules) || (this._disabled ? use(this._disabled) : false)),
         ),
         dom.show(use => use(this._ruleOwner.hasRules)),
       ),
@@ -185,6 +194,7 @@ export class ConditionalStyle extends Disposable {
           "Remove",
           testId(`remove-rule-${index}`),
           dom.on("click", () => this._ruleOwner.removeRule(index)),
+          dom.hide(this._disableAddRemoveRules),
         ),
       ),
     );
@@ -243,8 +253,14 @@ export class ConditionalStyle extends Disposable {
       dom.cls("formula_field_sidepane"),
       dom.cls(cssFieldFormula.className),
       dom.cls(cssErrorBorder.className, hasError),
+      cssFieldFormula.cls("-disabled", this._disableAddRemoveRules),
       { tabIndex: "-1" },
       dom.on("focus", (_, refElem) => {
+        // Saving the formula sends ModifyColumn, so don't even open the editor.
+        if (this._disableAddRemoveRules.get()) {
+          refElem.blur();
+          return;
+        }
         const section = this._gristDoc.viewModel.activeSection();
         const vsi = section.viewInstance();
         const editorHolder = openFormulaEditor({

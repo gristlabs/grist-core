@@ -3,7 +3,7 @@ import { FormLayoutNodeType } from "app/client/components/FormRenderer";
 import * as components from "app/client/components/Forms/elements";
 import { FormView } from "app/client/components/Forms/FormView";
 import { BoxModel, Place } from "app/client/components/Forms/Model";
-import { makeTestId, stopEvent } from "app/client/lib/domUtils";
+import { ariaDisabled, makeTestId, stopEvent } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { getColumnTypes as getNewColumnTypes } from "app/client/ui/GridViewMenus";
@@ -103,6 +103,10 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
       const isQuick = ({ colType}: { colType: string }) => quick.includes(colType);
       const notQuick = ({ colType}: { colType: string }) => !quick.includes(colType);
       const isEnabled = ({ colType}: { colType: string }) => !disabled.includes(colType);
+      // A new question adds a column, which a locked table refuses. Existing (unmapped) columns and
+      // building blocks only touch the form layout, so they stay available.
+      const disableAddColumns = viewSection.table().disableAddRemoveColumns();
+      const disableNewQuestion = ariaDisabled(disableAddColumns);
 
       const insertMenu = (where: typeof above) => () => {
         return [
@@ -111,7 +115,12 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
             ...commonTypes()
               .filter(isQuick)
               .filter(isEnabled)
-              .map(ct => menus.menuItem(where({ add: ct.colType }), menus.menuIcon(ct.icon!), ct.displayName)),
+              .map(ct => menus.menuItem(
+                where({ add: ct.colType }),
+                menus.menuIcon(ct.icon!),
+                ct.displayName,
+                disableNewQuestion,
+              )),
             menus.menuItemSubmenu(
               () => commonTypes()
                 .filter(notQuick)
@@ -120,6 +129,7 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
                   where({ add: ct.colType }),
                   menus.menuIcon(ct.icon!),
                   ct.displayName,
+                  disableNewQuestion,
                 )),
               {},
               menus.menuIcon("Dots"),
@@ -176,8 +186,11 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
       return [
         disableInsert ? null : [
-          menus.menuItemSubmenu(insertMenu(above), { action: above({ add: "Text" }) }, t("Insert question above")),
-          menus.menuItemSubmenu(insertMenu(below), { action: below({ add: "Text" }) }, t("Insert question below")),
+          // Clicking these adds a Text column, so when locked we leave only the submenu.
+          menus.menuItemSubmenu(insertMenu(above),
+            disableAddColumns ? {} : { action: above({ add: "Text" }) }, t("Insert question above")),
+          menus.menuItemSubmenu(insertMenu(below),
+            disableAddColumns ? {} : { action: below({ add: "Text" }) }, t("Insert question below")),
           menus.menuDivider(),
         ],
         menus.menuItemCmd(allCommands.contextMenuCopy, t("Copy")),

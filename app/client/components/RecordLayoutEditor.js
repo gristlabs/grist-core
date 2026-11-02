@@ -3,6 +3,7 @@ var BackboneEvents = require("backbone").Events;
 
 var dispose = require("app/client/lib/dispose");
 var {makeT} = require("app/client/lib/localization");
+const {ariaDisabled} = require("app/client/lib/domUtils");
 var commands = require("./commands");
 var LayoutEditor = require("./LayoutEditor");
 
@@ -95,7 +96,8 @@ RecordLayoutEditor.prototype.buildEditorDom = function() {
   return cssControls(
     basicButton(t("Add field"), cssCollapseIcon("Collapse"),
       menu((ctl) => [
-        menuItem(() => addNewField(), t("Create new field")),
+        menuItem(() => addNewField(), t("Create new field"),
+          ariaDisabled((use) => use(this.recordLayout.viewSection.table().disableAddRemoveColumns))),
         dom.maybe((use) => use(this._hiddenColumns).length > 0,
           () => menuDivider()),
         dom.forEach(this._hiddenColumns, (col) =>

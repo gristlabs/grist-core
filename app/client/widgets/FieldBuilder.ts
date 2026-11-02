@@ -323,6 +323,8 @@ export class FieldBuilder extends Disposable {
             use(this._isTransformingFormula) ||
             // If this is a summary column
             use(this.origColumn.disableModifyBase) ||
+            // If this is a two-way reference and the other half can't be modified (type change modifies other col)
+            (use(this.origColumn.hasReverse) && use(use(this.origColumn.reverseColModel).disableModify)) ||
             // If there are multiple column selected, but all have different type than Any.
             (use(this.field.config.multiselect) && !use(allFormulas)) ||
             // If we are waiting for a server response
@@ -352,6 +354,7 @@ export class FieldBuilder extends Disposable {
         grainjsDom.cls(cssBlockedCursor.className, use =>
           use(this.origColumn.disableModifyBase) ||
           use(this._isTransformingFormula) ||
+          (use(this.origColumn.hasReverse) && use(use(this.origColumn.reverseColModel).disableModify)) ||
           (use(this.field.config.multiselect) && !use(allFormulas)),
         ),
       ),
@@ -438,7 +441,9 @@ export class FieldBuilder extends Disposable {
       })),
     );
     const isDisabled = Computed.create(null, (use) => {
-      return use(this.origColumn.disableModifyBase) || use(this.field.config.multiselect);
+      // Retargeting the reference rewrites the reverse column, so it must be modifiable too.
+      return use(this.origColumn.disableModifyBase) || use(this.field.config.multiselect) ||
+        (use(this.origColumn.hasReverse) && use(use(this.origColumn.reverseColModel).disableModify));
     });
     return [
       cssLabel(t("DATA FROM TABLE"),

@@ -275,7 +275,8 @@ export class SortConfig extends Disposable {
           testId("update"),
           dom.show(use => (
             use(use(this._section.table).supportsManualSort) &&
-            !use(this._gristDoc.isReadonly)
+            !use(this._gristDoc.isReadonly) &&
+            !use(use(this._section.table).disableEditData)
           )),
         ),
       ),

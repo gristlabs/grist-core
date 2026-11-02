@@ -21,6 +21,10 @@ export interface DocWorkerInfo {
 
   // If set, worker should accept work only for this named group.
   group?: string;
+
+  // Path of the worker's testing-hooks unix socket (GRIST_TESTING_SOCKET).
+  // Set only under the test harness for testing hooks to use, only reachable from the same host
+  testingSocket?: string;
 }
 
 /** One doc worker, as the worker map has it. */

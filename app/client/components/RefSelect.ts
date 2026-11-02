@@ -11,7 +11,7 @@ import { menu, menuItem, menuText } from "app/client/ui2018/menus";
 import { FieldBuilder } from "app/client/widgets/FieldBuilder";
 import * as gutil from "app/common/gutil";
 
-import { Disposable, dom, fromKo, styled } from "grainjs";
+import { Disposable, dom, fromKo, Observable, styled } from "grainjs";
 import ko from "knockout";
 
 const t = makeT("RefSelect");
@@ -33,6 +33,8 @@ export class RefSelect extends Disposable {
   private _validCols: ko.Computed<ColumnRec[]>;
   private _added: KoArray<Item>;
   private _addedSet: ko.Computed<Set<string>>;
+  // Adding or removing a display column adds or removes a column of this table.
+  private _addRemoveColumnsDisabled: Observable<boolean>;
 
   constructor(options: {
     docModel: DocModel,
@@ -78,6 +80,9 @@ export class RefSelect extends Disposable {
 
     // Set of added colIds.
     this._addedSet = this.autoDispose(ko.computed(() => new Set(this._added.all().map(item => item.value))));
+
+    this._addRemoveColumnsDisabled = this.autoDispose(fromKo(this.autoDispose(
+      ko.pureComputed(() => this._origColumn.table().disableAddRemoveColumns()))));
   }
 
   /**
@@ -92,12 +97,14 @@ export class RefSelect extends Disposable {
           cssColumnLabel(dom.text(col.label)),
           cssRemoveIcon("Remove",
             dom.on("click", () => this._removeFormulaField(col)),
+            dom.hide(this._addRemoveColumnsDisabled),
             testId("ref-select-remove"),
           ),
           testId("ref-select-item"),
         ),
       ),
       cssAddLink(cssAddIcon("Plus"), t("Add column"),
+        cssAddLink.cls("-disabled", this._addRemoveColumnsDisabled),
         menu(() => [
           ...this._validCols.peek()
             .filter(col => !this._addedSet.peek().has(col.colId.peek()))
@@ -242,6 +249,12 @@ const cssAddLink = styled("div", `
   &:hover, &:focus, &:active {
     color: ${theme.controlHoverFg};
     --icon-color: ${theme.controlHoverFg};
+  }
+  &-disabled, &-disabled:hover {
+    color: ${theme.controlSecondaryDisabledFg};
+    --icon-color: ${theme.controlSecondaryDisabledFg};
+    cursor: not-allowed;
+    pointer-events: none;
   }
 `);
 

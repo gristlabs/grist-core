@@ -146,7 +146,8 @@ export class CalendarView extends BaseView implements CalendarHost {
   // CalendarHost: CalendarWrapper calls this and the on* methods when the user acts on the grid. It
   // passes row ids and dates, and turning those into Grist actions is this class's job.
   public isReadOnly(): boolean {
-    return this.gristDoc.isReadonly.get() || this.disableEditing.peek();
+    return this.gristDoc.isReadonly.get() || this.disableEditing.peek() ||
+      this.viewSection.table().disableEditData.peek();
   }
 
   // Move the grid cursor (and active section) to a row, so clicking an event lights up its row.

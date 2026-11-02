@@ -44,6 +44,12 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
 
   tableColor: string;
   disableAddRemoveRows: ko.Computed<boolean>;
+  // Blocks adding/removing any column - including hidden helper ones, e.g. conditional style rules.
+  disableAddRemoveColumns: ko.Computed<boolean>;
+  disableRenameTable: ko.Computed<boolean>;
+  disableRemoveTable: ko.Computed<boolean>;
+  // Table-level gate on writing data. Per-column reasons live on ColumnRec.
+  disableEditData: ko.Computed<boolean>;
   supportsManualSort: ko.Computed<boolean>;
 }
 
@@ -87,7 +93,17 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
     seed: typeof this.id() === "number" ? 5 * this.id() : this.id(),
   });
 
-  this.disableAddRemoveRows = ko.pureComputed(() => Boolean(this.summarySourceTable()));
+  this.disableAddRemoveRows = ko.pureComputed(() =>
+    Boolean(this.summarySourceTable()) || Boolean(this.locked()));
+
+  this.disableAddRemoveColumns = ko.pureComputed(() => Boolean(this.locked()));
+
+  this.disableRenameTable = ko.pureComputed(() =>
+    Boolean(this.summarySourceTable()) || Boolean(this.locked()));
+
+  this.disableRemoveTable = ko.pureComputed(() => Boolean(this.locked()));
+
+  this.disableEditData = ko.pureComputed(() => Boolean(this.locked()));
 
   this.supportsManualSort = ko.pureComputed(() => this.columns().all().some(c => c.colId() === MANUALSORT));
 

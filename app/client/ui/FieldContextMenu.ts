@@ -15,17 +15,18 @@ export interface IFieldContextMenu {
 
 export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
   const { disableModify, isReadonly, field, isAddRow } = fieldOptions;
-  const disableForReadonlyColumn = ariaDisabled(disableModify || isReadonly);
+  const disableForNoModifyColumn = ariaDisabled(disableModify || isReadonly);
+  const disableForReadonlyColumn = ariaDisabled(isReadonly);
 
   const isVirtual = typeof field.colRef.peek() === "string";
   const disabledForVirtual = ariaDisabled(isVirtual);
 
   return [
-    menuItemCmd(allCommands.contextMenuCut, t("Cut"), disableForReadonlyColumn),
+    menuItemCmd(allCommands.contextMenuCut, t("Cut"), disableForNoModifyColumn),
     menuItemCmd(allCommands.contextMenuCopy, t("Copy")),
-    menuItemCmd(allCommands.contextMenuPaste, t("Paste"), disableForReadonlyColumn),
+    menuItemCmd(allCommands.contextMenuPaste, t("Paste"), disableForNoModifyColumn),
     menuDivider(),
-    menuItemCmd(allCommands.clearValues, t("Clear field"), disableForReadonlyColumn),
+    menuItemCmd(allCommands.clearValues, t("Clear field"), disableForNoModifyColumn),
     menuItemCmd(allCommands.hideCardFields, t("Hide field"), disableForReadonlyColumn),
     menuDivider(),
     menuItemCmd(allCommands.openDiscussion, t("Comment"),

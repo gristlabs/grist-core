@@ -74,7 +74,9 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
 
   const isCard = (use: UseCB) => use(viewSection.widgetType) === WidgetType.Card;
   const showCreateForm = (use: UseCB) => use(viewSection.widgetType) === WidgetType.Table &&
-    Boolean(viewRec.getRowId()) && !isReadonly;
+    Boolean(viewRec.getRowId()) && !isReadonly &&
+    // Forms exist to add records, so disable forms if records can't be added.
+    !use(use(viewSection.table).disableAddRemoveRows);
 
   return [
     viewInstance instanceof WidgetCreatorView ? widgetCreatorMenuItems(viewInstance) : null,

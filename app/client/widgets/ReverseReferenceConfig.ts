@@ -29,7 +29,8 @@ export class ReverseReferenceConfig extends Disposable {
   private _reverseTable: Computed<string>;
   private _reverseColumn: Computed<string>;
   private _reverseType: Computed<string>;
-  private _disabled: Computed<boolean>;
+  private _disableAdd: Computed<boolean>;
+  private _disableRemove: Computed<boolean>;
   private _tooltip: Computed<Tooltip>;
 
   constructor(private _field: ViewFieldRec) {
@@ -53,13 +54,28 @@ export class ReverseReferenceConfig extends Disposable {
       const reverseCol = use(column.reverseColModel);
       return reverseCol ? use(reverseCol.pureType) : "";
     });
-    this._disabled = Computed.create(this, (use) => {
+
+    // Adding or removing the reverse column adds or removes a column in the referenced table as
+    // well as in this one, so either being locked forbids it.
+    this._disableRemove = Computed.create(this, this._refTable, (use, refTable) => {
+      const column = use(this._field.column);
+      return Boolean(
+        use(use(column.table).disableAddRemoveColumns) ||
+        refTable && use(refTable.disableAddRemoveColumns),
+      );
+    });
+    this._disableAdd = Computed.create(this, this._refTable, (use, refTable) => {
       // If is formula or is trigger formula.
       const column = use(this._field.column);
-      return Boolean(use(column.formula));
+      return Boolean(
+        use(column.formula) ||
+        use(use(column.table).disableAddRemoveColumns) ||
+        refTable && use(refTable.disableAddRemoveColumns),
+      );
     });
     this._tooltip = Computed.create(this, (use) => {
-      return use(this._disabled) ?
+      // Only the formula case has an explanatory tooltip - a locked table gets none.
+      return use(use(this._field.column).formula) ?
         "twoWayReferencesDisabled" :
         "twoWayReferences";
     });
@@ -70,13 +86,13 @@ export class ReverseReferenceConfig extends Disposable {
       dom.maybe(not(this._isConfigured), () => [
         cssRow(
           dom.style("margin-top", "16px"),
-          cssRow.cls("-disabled", this._disabled),
+          cssRow.cls("-disabled", this._disableAdd),
           withInfoTooltip(
             textButton(
               t("Add two-way reference"),
               dom.on("click", e => this._toggle(e)),
               testId("add-reverse-columm"),
-              dom.prop("disabled", this._disabled),
+              dom.prop("disabled", this._disableAdd),
             ),
             this._tooltip,
           ),
@@ -96,6 +112,7 @@ export class ReverseReferenceConfig extends Disposable {
             icon("Remove"),
             dom.on("click", e => this._toggle(e)),
             dom.style("cursor", "pointer"),
+            dom.hide(this._disableRemove),
             testId("remove-reverse-column"),
           ),
         ),
@@ -135,8 +152,10 @@ export class ReverseReferenceConfig extends Disposable {
   private async _toggle(e: Event) {
     e.stopPropagation();
     e.preventDefault();
+    const isConfigured = this._isConfigured.get();
+    if (isConfigured && this._disableRemove.get() || !isConfigured && this._disableAdd.get()) { return; }
     const column = this._field.column.peek();
-    if (!this._isConfigured.get()) {
+    if (!isConfigured) {
       await column.addReverseColumn();
       return;
     }
