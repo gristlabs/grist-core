@@ -84,6 +84,8 @@ describe("AccessRules2", function() {
       ["AddRecord", "Zones", null, { Email: email2, City: "Boston" }],
       ["AddRecord", "Zones", null, { Email: "fast@speed.com", City: "Cambridge" }],
       ["AddRecord", "Zones", null, { Email: "slow@speed.com", City: "Springfield" }],
+      // Added last, so that it is listed first only if users are sorted.
+      ["AddRecord", "Zones", null, { Email: "aaa@speed.com", City: "Albany" }],
     ]);
     const records = await mainSession.createHomeApi().applyUserActions(docId, [
       ["AddRecord", "_grist_ACLRules", null, {
@@ -102,11 +104,11 @@ describe("AccessRules2", function() {
     await driver.findContentWait("button", /View as/, 3000).click();
     await gu.findOpenMenu();
 
-    // Check users from attribute table are present.
+    // Check users from attribute table are present, sorted alphabetically.
     assert.deepEqual(
       (await driver.findAll(".test-acl-user-item span", e => e.getText()))
         .filter(txt => txt.includes("@speed")),
-      ["fast@speed.com", "slow@speed.com"]);
+      ["aaa@speed.com", "fast@speed.com", "slow@speed.com"]);
 
     // 'View As' is present, except for current user.
     assert.equal(await driver.findContent(".test-acl-user-item", email1)
