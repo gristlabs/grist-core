@@ -117,8 +117,10 @@ describe("PubSubManager", function() {
       assert.deepEqual(cbA2.args, [["foo"]]);
       resetHistory();
 
-      // Subscribe a callback on the other manager.
-      void manager2.subscribe("testChanA", cbB1);
+      // Subscribe a callback on the other manager. Wait for the subscription to be confirmed
+      // active before publishing below, or messages published right after can be missed if the
+      // underlying Redis SUBSCRIBE hasn't completed yet.
+      await manager2.subscribe("testChanA", cbB1);
       assert.deepEqual(subSpy.args, [[`${prefix}testChanA`], [`${prefix}testChanA`]]);
 
       // Messages from either manager should be seen on both.

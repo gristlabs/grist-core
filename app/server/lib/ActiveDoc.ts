@@ -2996,11 +2996,12 @@ export class ActiveDoc extends EventEmitter {
       throw new ApiError(`Attachments must not exceed ${byteString(limit)}`, 413);
     }
 
+    const fileContents = await readFile(fileData.absPath);
     let dimensions: { width?: number, height?: number } = {};
     // imageSize returns an object with a width, height and type property if the file is an image.
     // The width and height properties are integers representing width and height in pixels.
     try {
-      dimensions = await bluebird.fromCallback((cb: any) => imageSize(fileData.absPath, cb));
+      dimensions = imageSize(fileContents);
     } catch (err) {
       // Non-images will fail in some way, and that's OK.
       dimensions.height = 0;
@@ -3008,7 +3009,7 @@ export class ActiveDoc extends EventEmitter {
     }
     const attachmentStoreId = this._getDocumentSettings().attachmentStoreId;
     const addFileResult = await this._attachmentFileManager
-      .addFile(attachmentStoreId, fileData.ext, await readFile(fileData.absPath));
+      .addFile(attachmentStoreId, fileData.ext, fileContents);
     this._log.info(
       docSession, "addAttachment: store: '%s', file: '%s' (image %sx%s) %s",
       attachmentStoreId ?? "local document", addFileResult.fileIdent, dimensions.width, dimensions.height,
