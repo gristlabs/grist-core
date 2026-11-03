@@ -354,12 +354,12 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         }),
         cssFooterButtons(
           dom("div",
-            cssPrimaryButton("Close", testId("apply-btn"),
+            cssPrimaryButton(t("Close"), testId("apply-btn"),
               dom.on("click", () => {
                 onClose();
               }),
             ),
-            basicButton("Cancel", testId("cancel-btn"),
+            basicButton(t("Cancel"), testId("cancel-btn"),
               dom.on("click", () => {
                 cancel = true;
                 onClose();
