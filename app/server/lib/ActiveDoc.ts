@@ -132,6 +132,7 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive,
 } from "app/server/lib/Archive";
+import { AssistanceTracker } from "app/server/lib/AssistanceTracker";
 import { getAndRemoveAssistantStatePermit } from "app/server/lib/AssistantStatePermit";
 import { AttachmentFileManager, MismatchedFileHashError } from "app/server/lib/AttachmentFileManager";
 import { IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
@@ -344,6 +345,7 @@ export class ActiveDoc extends EventEmitter {
   private _fullyLoaded: boolean = false;
   private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
+  private _assistanceTracker = new AssistanceTracker();
   private _docUsage: DocumentUsage | null = null;
   private _mcpToolCalls = 0;
   private _mcpUsers = new Set<number>();
@@ -724,31 +726,36 @@ export class ActiveDoc extends EventEmitter {
       userId,
       org: docSession.org,
     };
-    await dbManager.increaseUsage(scope, "assistant", { delta: 1, dryRun: true });
+    const getResponse = async (delta: number): Promise<AssistanceResponse> => {
+      await dbManager.increaseUsage(scope, "assistant", { delta, dryRun: true });
 
-    const assistant = this._server.getAssistant();
-    if (!assistant) {
-      throw new Error("Please set ASSISTANT_CHAT_COMPLETION_ENDPOINT OPENAI_API_KEY");
-    }
+      const assistant = this._server.getAssistant();
+      if (!assistant) {
+        throw new Error("Please set ASSISTANT_CHAT_COMPLETION_ENDPOINT OPENAI_API_KEY");
+      }
 
-    let result: AssistanceResponse;
-    if (isAssistantV2(assistant) && isAssistanceRequestV2(params)) {
-      result = await assistant.getAssistance(docSession, this, params);
-    } else if (!isAssistantV2(assistant) && !isAssistanceRequestV2(params)) {
-      // Same code, different types.
-      result = await assistant.getAssistance(docSession, this, params);
-    } else {
-      throw new ApiError("Wrong type of assistance request", 400);
-    }
-    const limit = await dbManager.increaseUsage(scope, "assistant", { delta: 1 });
-    if (limit) { this._logAssistantLimit(docSession, limit); }
-    return {
-      ...result,
-      limit: !limit ? undefined : {
-        usage: limit.usage,
-        limit: limit.limit,
-      },
+      let result: AssistanceResponse;
+      if (isAssistantV2(assistant) && isAssistanceRequestV2(params)) {
+        result = await assistant.getAssistance(docSession, this, params);
+      } else if (!isAssistantV2(assistant) && !isAssistanceRequestV2(params)) {
+        // Same code, different types.
+        result = await assistant.getAssistance(docSession, this, params);
+      } else {
+        throw new ApiError("Wrong type of assistance request", 400);
+      }
+      const limit = await dbManager.increaseUsage(scope, "assistant", { delta });
+      if (limit && delta > 0) { this._logAssistantLimit(docSession, limit); }
+      return {
+        ...result,
+        limit: !limit ? undefined : {
+          usage: limit.usage,
+          limit: limit.limit,
+        },
+      };
     };
+    return isAssistanceRequestV2(params) ?
+      await this._assistanceTracker.track(userId, params, continuesTurn => getResponse(continuesTurn ? 0 : 1)) :
+      await getResponse(1);
   }
 
   /**
@@ -2696,6 +2703,7 @@ export class ActiveDoc extends EventEmitter {
 
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
+      this._assistanceTracker.clear();
 
       await Promise.all(this._intervals.map(interval =>
         safeCallAndWait("interval.disableAndFinish", () => interval.disableAndFinish())));

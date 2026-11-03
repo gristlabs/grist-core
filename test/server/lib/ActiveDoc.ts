@@ -1,7 +1,7 @@
 import { PermissionSet } from "app/common/ACLPermissions";
 import { getEnvContent } from "app/common/ActionBundle";
 import { ServerQuery } from "app/common/ActiveDocAPI";
-import { AssistanceTraceEvent } from "app/common/Assistance";
+import { AssistanceMessage, AssistanceRequestV2, AssistanceTraceEvent } from "app/common/Assistance";
 import { CommDocChatter } from "app/common/CommTypes";
 import { delay } from "app/common/delay";
 import { BulkColValues, CellValue, fromTableDataAction, UserAction } from "app/common/DocActions";
@@ -1604,6 +1604,38 @@ describe("ActiveDoc", async function() {
     it("does nothing for a session without a client", async function() {
       const activeDoc = await docTools.createDoc("trace-no-client");
       await activeDoc.sendAssistanceTraceNotification(makeOptDocSession(null), event);
+    });
+  });
+
+  describe("getAssistance", function() {
+    it("charges one credit for a turn, and none for a failed request", async function() {
+      const activeDoc = await docTools.createDoc("assistance-credits");
+      const increaseUsage = sandbox.stub().resolves({ usage: 1, limit: 10 });
+      sandbox.stub(activeDoc, "getHomeDbManager").returns({ getAnonymousUserId: () => 0, increaseUsage } as any);
+      const getAssistance = sandbox.stub();
+      sandbox.stub((activeDoc as any)._server, "getAssistant").returns({ version: 2, getAssistance });
+      const history: AssistanceMessage[] = [
+        { role: "system", content: "" },
+        { role: "user", content: "Make a widget" },
+        { role: "assistant", content: null, tool_calls: [{ id: "call-1", function: { name: "f", arguments: "{}" } }] },
+      ];
+      getAssistance.onCall(0).resolves({ state: { messages: history } });
+      getAssistance.onCall(1).rejects(new Error("Failed"));
+      getAssistance.resolves({ reply: "Done" });
+
+      const ask = (request: AssistanceRequestV2) => activeDoc.getAssistance(makeOptDocSession(null), request);
+      const continuation: AssistanceRequestV2 = {
+        conversationId: "c1",
+        context: {},
+        state: { messages: [...history, { role: "tool", tool_call_id: "call-1", content: "{}" }] },
+      };
+      await ask({ conversationId: "c1", context: {}, text: "Make a widget" });
+      await assert.isRejected(ask(continuation), /Failed/);
+      await ask(continuation);
+      await ask(continuation);
+
+      const deltas = increaseUsage.getCalls().filter(call => !call.args[2].dryRun).map(call => call.args[2].delta);
+      assert.deepEqual(deltas, [1, 0, 1]);
     });
   });
 });
