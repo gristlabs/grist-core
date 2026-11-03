@@ -41,6 +41,11 @@ const searchWrapper = styled("div", `
     width: 100% !important;
     border: 1px solid ${theme.searchBorder};
   }
+  @media (prefers-reduced-motion: reduce) {
+    & {
+      transition: none;
+    }
+  }
   @media ${mediaSmall} {
     & {
       width: 32px;
@@ -66,6 +71,11 @@ const expandedSearch = styled("div", `
     flex-grow: 1;
     opacity: 1;
   }
+  @media (prefers-reduced-motion: reduce) {
+    & {
+      transition: none;
+    }
+  }
 `);
 
 const searchInput = styled(input, `
@@ -82,6 +92,11 @@ const searchInput = styled(input, `
   transition: width ${EXPAND_TIME}s;
   .${searchWrapper.className}-expand & {
     width: 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    & {
+      transition: none;
+    }
   }
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
@@ -175,6 +190,11 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
 
   const toggleMenu = debounce((_value?: boolean) => {
     model.isOpen.set(_value === undefined ? !model.isOpen.get() : _value);
+    // With reduced motion there is no transition to end, so the bar settles right away.
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      model.isExpanded.set(model.isOpen.get());
+      model.isCollapsed.set(!model.isOpen.get());
+    }
 
     // when we open the searchbar: focus the input, and make sure outside clicks will close the searchbar
     if (model.isOpen.get()) {

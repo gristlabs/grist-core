@@ -24,11 +24,11 @@ export interface SearchModel {
   value: Observable<string>;       // string in the search input
   isOpen: Observable<boolean>;     // indicates whether the search bar is expanded to show the input
   /**
-   * True when the search menu is fully expanded (transition has finished)
+   * True when the search menu is fully expanded (any transition has finished)
    */
   isExpanded: Observable<boolean>;
   /**
-   * True when the search menu is fully collapsed (transition has finished)
+   * True when the search menu is fully collapsed (any transition has finished)
    */
   isCollapsed: Observable<boolean>;
   noMatch: Observable<boolean>;    // indicates if there are no search matches
