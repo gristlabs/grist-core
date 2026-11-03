@@ -62,7 +62,7 @@ module.exports = {
       path.resolve("."),
       path.resolve("./ext"),
       path.resolve("./stubs"),
-      path.resolve("./node_modules"),
+      "node_modules",
       base,
       ...extraModulePaths,
     ],
@@ -85,6 +85,8 @@ module.exports = {
       },
       { test: /\.js$/,
         use: ["source-map-loader"],
+        // rehype-harden publishes a source map without the sources it points to.
+        exclude: /node_modules\/rehype-harden\//,
         enforce: "pre"
       },
       {

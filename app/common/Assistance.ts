@@ -228,6 +228,8 @@ export type AssistanceTraceEvent = {
  */
 export type AssistanceTraceEventPayload =
   AssistanceTraceText |
+  AssistanceTraceTextDelta |
+  AssistanceTraceTextReset |
   AssistanceTraceToolCall |
   AssistanceTraceToolResult;
 
@@ -237,6 +239,22 @@ export type AssistanceTraceEventPayload =
 export interface AssistanceTraceText {
   type: "text";
   text: string;
+}
+
+/**
+ * Text the model is replying with, sent as it streams in. Deltas with the same `textId` are
+ * parts of the same text.
+ */
+export interface AssistanceTraceTextDelta {
+  type: "text-delta";
+  textId: string;
+  delta: string;
+}
+
+/** Discards unfinished text with this `textId` from a failed completion before retrying it. */
+export interface AssistanceTraceTextReset {
+  type: "text-reset";
+  textId: string;
 }
 
 /**

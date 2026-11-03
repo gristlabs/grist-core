@@ -1583,8 +1583,9 @@ describe("ActiveDoc", async function() {
       const client = new Client(null as any, null as any, null!);
       const session = client.addDocSession(
         activeDoc, new DocSessionPrecursor(client, new DummyAuthorizer("owners", docName), {}));
+      const isConnected = sandbox.stub(client, "isConnected").returns(true);
       const sendMessageOrInterrupt = sandbox.stub(client, "sendMessageOrInterrupt").resolves();
-      return { activeDoc, session, sendMessageOrInterrupt };
+      return { activeDoc, session, isConnected, sendMessageOrInterrupt };
     }
 
     it("sends the event to the requesting client only", async function() {
@@ -1599,6 +1600,18 @@ describe("ActiveDoc", async function() {
         data: { assistant: event },
       };
       assert.deepEqual(sendMessageOrInterrupt.firstCall.args[0], expected);
+    });
+
+    it("skips text deltas for a disconnected client", async function() {
+      const { activeDoc, session, isConnected, sendMessageOrInterrupt } = await setup("trace-disconnected");
+      isConnected.returns(false);
+      const delta: AssistanceTraceEvent = { ...event, type: "text-delta", textId: "text-1", delta: "Hi" };
+
+      await activeDoc.sendAssistanceTraceNotification(session, delta);
+      assert.equal(sendMessageOrInterrupt.callCount, 0);
+
+      await activeDoc.sendAssistanceTraceNotification(session, event);
+      assert.equal(sendMessageOrInterrupt.callCount, 1);
     });
 
     it("does nothing for a session without a client", async function() {

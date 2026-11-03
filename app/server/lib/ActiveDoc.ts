@@ -2406,6 +2406,9 @@ export class ActiveDoc extends EventEmitter {
   public async sendAssistanceTraceNotification(docSession: OptDocSession, event: AssistanceTraceEvent) {
     if (!(docSession instanceof DocSession)) { return; }
 
+    // Deltas could overflow a disconnected client's queue of missed messages.
+    if (event.type === "text-delta" && !docSession.client.isConnected()) { return; }
+
     await docSession.client.sendMessageOrInterrupt({
       type: "docChatter",
       docFD: docSession.fd,
