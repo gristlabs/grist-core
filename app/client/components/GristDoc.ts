@@ -1437,6 +1437,9 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue."))
     if (message.data.trigger) {
       this.trigger("trigger", message.data.trigger);
     }
+    if (message.data.assistant) {
+      this.trigger("assistant", message.data.assistant);
+    }
   }
 
   /**

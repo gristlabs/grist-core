@@ -1,5 +1,6 @@
 import { ActionGroup } from "app/common/ActionGroup";
 import { VisibleUserProfile } from "app/common/ActiveDocAPI";
+import { AssistanceTraceEvent } from "app/common/Assistance";
 import { DocAction } from "app/common/DocActions";
 import { FilteredDocUsageSummary } from "app/common/DocUsage";
 import { Product } from "app/common/Features";
@@ -117,6 +118,7 @@ export interface CommDocChatter extends CommMessageBase {
       rows: { rowId: number; data: Record<string, any> }[];
       actions: { id: string; type: string; blocked?: string }[];
     };
+    assistant?: AssistanceTraceEvent;
   };
 }
 

@@ -41,7 +41,11 @@ import {
 } from "app/common/ActiveDocAPI";
 import { ApiError } from "app/common/ApiError";
 import {
-  AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2,
+  AssistanceContextV1,
+  AssistanceRequest,
+  AssistanceResponse,
+  AssistanceTraceEvent,
+  isAssistanceRequestV2,
 } from "app/common/Assistance";
 import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { AttachmentColumns, gatherAttachmentIds, getAttachmentColumns } from "app/common/AttachmentColumns";
@@ -2385,6 +2389,20 @@ export class ActiveDoc extends EventEmitter {
       timing: {
         status: this.isTimingOn ? "active" : "disabled",
       },
+    });
+  }
+
+  /**
+   * Sends a step of an in-progress assistance request to the client that made the request. Does
+   * nothing if the request didn't come from a client (e.g. if it was made via the REST API).
+   */
+  public async sendAssistanceTraceNotification(docSession: OptDocSession, event: AssistanceTraceEvent) {
+    if (!(docSession instanceof DocSession)) { return; }
+
+    await docSession.client.sendMessageOrInterrupt({
+      type: "docChatter",
+      docFD: docSession.fd,
+      data: { assistant: event },
     });
   }
 

@@ -1,6 +1,8 @@
 import { PermissionSet } from "app/common/ACLPermissions";
 import { getEnvContent } from "app/common/ActionBundle";
 import { ServerQuery } from "app/common/ActiveDocAPI";
+import { AssistanceTraceEvent } from "app/common/Assistance";
+import { CommDocChatter } from "app/common/CommTypes";
 import { delay } from "app/common/delay";
 import { BulkColValues, CellValue, fromTableDataAction, UserAction } from "app/common/DocActions";
 import * as gristTypes from "app/common/gristTypes";
@@ -18,7 +20,12 @@ import { AuthCredential } from "app/server/lib/AuthCredential";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { Client } from "app/server/lib/Client";
 import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
-import { makeExceptionalDocSession, makeOptDocSession, OptDocSession } from "app/server/lib/DocSession";
+import {
+  DocSessionPrecursor,
+  makeExceptionalDocSession,
+  makeOptDocSession,
+  OptDocSession,
+} from "app/server/lib/DocSession";
 import { getSandboxFlavor } from "app/server/lib/gristSettings";
 import { guessExt } from "app/server/lib/guessExt";
 import log from "app/server/lib/log";
@@ -1558,6 +1565,45 @@ describe("ActiveDoc", async function() {
       const { activeDoc, session } = await setup("webhook-wrong-table");
       const addPerson: UserAction = ["AddRecord", "People", null, { Name: "x" }];
       await assert.isRejected(activeDoc.applyWebhookActions(session, [addPerson]), /_grist_Triggers/);
+    });
+  });
+
+  describe("sendAssistanceTraceNotification", function() {
+    const event: AssistanceTraceEvent = {
+      conversationId: "conversation-1",
+      runId: "run-1",
+      type: "tool-call",
+      toolCallId: "call-1",
+      toolName: "get_tables",
+      argsText: "{}",
+    };
+
+    async function setup(docName: string) {
+      const activeDoc = await docTools.createDoc(docName);
+      const client = new Client(null as any, null as any, null!);
+      const session = client.addDocSession(
+        activeDoc, new DocSessionPrecursor(client, new DummyAuthorizer("owners", docName), {}));
+      const sendMessageOrInterrupt = sandbox.stub(client, "sendMessageOrInterrupt").resolves();
+      return { activeDoc, session, sendMessageOrInterrupt };
+    }
+
+    it("sends the event to the requesting client only", async function() {
+      const { activeDoc, session, sendMessageOrInterrupt } = await setup("trace-send");
+
+      await activeDoc.sendAssistanceTraceNotification(session, event);
+
+      assert.equal(sendMessageOrInterrupt.callCount, 1);
+      const expected: CommDocChatter = {
+        type: "docChatter",
+        docFD: session.fd,
+        data: { assistant: event },
+      };
+      assert.deepEqual(sendMessageOrInterrupt.firstCall.args[0], expected);
+    });
+
+    it("does nothing for a session without a client", async function() {
+      const activeDoc = await docTools.createDoc("trace-no-client");
+      await activeDoc.sendAssistanceTraceNotification(makeOptDocSession(null), event);
     });
   });
 });

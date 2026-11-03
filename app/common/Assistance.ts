@@ -2,6 +2,9 @@ import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { DocAction } from "app/common/DocActions";
 import { StringUnion } from "app/common/StringUnion";
 
+import findLastIndex from "lodash/findLastIndex";
+import truncate from "lodash/truncate";
+
 /**
  * State related to a request for assistance.
  *
@@ -52,6 +55,7 @@ export interface AssistanceRequestV1 extends BaseAssistanceRequest {
 interface BaseAssistanceRequestV2 extends BaseAssistanceRequest {
   context: AssistanceContextV2;
   developerPromptVersion?: DeveloperPromptVersion;
+  requestId?: string;
 }
 
 /** A message from the user to the document assistant. */
@@ -93,6 +97,14 @@ export function isToolRequest(req: AssistanceRequest): req is AssistanceToolRequ
   return isAssistanceRequestV2(req) && !("text" in req);
 }
 
+/** The tool calls of the last model message that have no answer yet. */
+export function getUnansweredToolCalls(state: AssistanceState | undefined): AssistanceToolCall[] {
+  const messages = state?.messages ?? [];
+  const lastIndex = findLastIndex(messages, message => message.role === "assistant");
+  const answered = new Set(messages.slice(lastIndex + 1).map(message => message.tool_call_id));
+  return (messages[lastIndex]?.tool_calls ?? []).filter(call => !answered.has(call.id));
+}
+
 /** Which system prompt the document assistant starts with, for example for a new document. */
 export const DeveloperPromptVersion = StringUnion(
   "default",
@@ -131,6 +143,8 @@ export interface AssistanceResponseV1 extends BaseAssistanceResponse {
 export interface AssistanceResponseV2 extends BaseAssistanceResponse {
   appliedActions?: ApplyUAResult[];
   confirmationRequired?: boolean;
+  /** Id of the run that produced this response. Matches the `runId` of its trace events. */
+  runId?: string;
 }
 
 /** Widget Creator tools the browser runs, on its open editor, when called with `draft: true`. */
@@ -155,4 +169,74 @@ interface BaseAssistanceResponse {
 interface AssistanceLimit {
   usage: number;
   limit: number;
+}
+
+/**
+ * A step of a request for document assistance (e.g. a tool call), sent to the client that made
+ * the request while it's in progress.
+ *
+ * Events include the `requestId` of their request. Clients ignore events for requests other than
+ * the current request (e.g. cancelled requests).
+ *
+ * Events of the same run also share a `runId`. A request that's retried (e.g. after the document
+ * is forked) is a new run, so the client can tell when to discard events of the earlier one.
+ */
+export type AssistanceTraceEvent = {
+  conversationId: string;
+  requestId?: string;
+  runId: string;
+} & AssistanceTraceEventPayload;
+
+/**
+ * An {@link AssistanceTraceEvent} without the ids of its conversation, request, and run.
+ */
+export type AssistanceTraceEventPayload =
+  AssistanceTraceText |
+  AssistanceTraceToolCall |
+  AssistanceTraceToolResult;
+
+/**
+ * Text the model replied with alongside its tool calls (e.g. "Let me look at the tables.").
+ */
+export interface AssistanceTraceText {
+  type: "text";
+  text: string;
+}
+
+/**
+ * A tool call, sent before the tool is run. `argsText` is the call's arguments as JSON, cut short
+ * if `argsTruncated` is set.
+ */
+export interface AssistanceTraceToolCall {
+  type: "tool-call";
+  toolCallId: string;
+  toolName: string;
+  argsText: string;
+  argsTruncated?: boolean;
+}
+
+/**
+ * The result of a tool call, sent once the tool has run. `resultText` is the result as JSON, cut
+ * short if `resultTruncated` is set.
+ */
+export interface AssistanceTraceToolResult {
+  type: "tool-result";
+  toolCallId: string;
+  ok: boolean;
+  resultText: string;
+  resultTruncated?: boolean;
+}
+
+/** Maximum length of a tool call's `argsText`. Longer arguments are truncated. */
+export const MAX_TRACE_ARGS_CHARS = 1024;
+
+/** Maximum length of a tool call's `resultText`. Longer results are truncated. */
+export const MAX_TRACE_RESULT_CHARS = 4096;
+
+/**
+ * Returns `text` truncated to at most `limit` characters, along with `true` if it was truncated.
+ */
+export function truncateTraceText(text: string, limit: number): [string, boolean | undefined] {
+  const truncated = truncate(text, { length: limit, omission: "" });
+  return [truncated, truncated !== text || undefined];
 }
