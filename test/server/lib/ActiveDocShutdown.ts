@@ -1,3 +1,4 @@
+import { ApiError } from "app/common/ApiError";
 import { delay } from "app/common/delay";
 import { Role } from "app/common/roles";
 import { ParseFileResult } from "app/plugin/FileParserAPI";
@@ -17,7 +18,7 @@ import * as sqlite3 from "@gristlabs/sqlite3";
 import { assert } from "chai";
 import * as sinon from "sinon";
 
-// This makes just enough of a Client to use with ActiveDoc.addClient() and ActiveDoc.closeDoc().
+// This makes just enough of a Client to use with ActiveDoc.addClient(), closeDoc() and shutdown().
 function _makeFakeClient(): Client {
   const addDocSession = sinon.stub().callsFake(function(adoc: ActiveDoc, optDocSession: DocSessionPrecursor) {
     return new DocSession(optDocSession, adoc, 0);
@@ -26,7 +27,9 @@ function _makeFakeClient(): Client {
   const getLogMeta = sinon.spy();
   const sendMessage = sinon.spy();
   const sendMessageOrInterrupt = sinon.spy();
+  const interruptConnection = sinon.spy();
   return {
+    interruptConnection,
     addDocSession,
     removeDocSession,
     getLogMeta,
@@ -69,6 +72,13 @@ describe("ActiveDocShutdown", function() {
 
   function makeDummySession(client: Client, role: Role | null, docId: string) {
     const authorizer = new DummyAuthorizer(role, docId);
+    return new DocSessionPrecursor(client, authorizer, {});
+  }
+
+  // An authorizer whose access check always fails with the given error.
+  function makeFailingSession(client: Client, docId: string, error: Error) {
+    const authorizer = new DummyAuthorizer("owners", docId);
+    authorizer.assertAccess = async () => { throw error; };
     return new DocSessionPrecursor(client, authorizer, {});
   }
 
@@ -320,6 +330,40 @@ return c
       Deps.SHUTDOWN_ITEM_TIMEOUT_MS +  // Timeout for the hanging RemoveStaleObjects action on shutdown
       1000;   // Hard-coded extra time NSandbox takes to kill an unresponsive process
     assert.closeTo(totalMsec, expectedTime, 500);
+  });
+
+  it("should tell clients to reload if the doc was deleted while they had it open", async function() {
+    const adoc = await docTools.createDoc("ActiveDocShutdown-Deleted");
+    const client = _makeFakeClient();
+    adoc.addClient(client, makeFailingSession(client, adoc.docName, new ApiError("document not found", 404)));
+
+    await adoc.shutdown();
+    const sent = (client.sendMessageOrInterrupt as sinon.SinonSpy).args.map(([msg]) => msg.type);
+    assert.deepEqual(new Set(sent), new Set(["docShutdown"]));
+  });
+
+  it("should finish shutting down if telling clients fails", async function() {
+    const adoc = await docTools.createDoc("ActiveDocShutdown-BroadcastFails");
+    const client = _makeFakeClient();
+    adoc.addClient(client, makeFailingSession(client, adoc.docName, new Error("unexpected")));
+    const storageShutdown = sandbox.spy(adoc.docStorage, "shutdown");
+
+    await testUtils.captureLog("error", () => adoc.shutdown());
+    sinon.assert.calledOnce(storageShutdown);
+  });
+
+  it("should shut down all docs even if one fails", async function() {
+    const docManager = docTools.getDocManager();
+    const failing = await docTools.createDoc("ActiveDocShutdown-Failing");
+    const other = await docTools.createDoc("ActiveDocShutdown-Other");
+    const failingShutdown = sandbox.stub(failing, "shutdown").rejects(new Error("unexpected"));
+
+    await testUtils.captureLog("error", () => docManager.shutdownDocs());
+    assert.isUndefined(docManager.getActiveDoc(other.docName));
+
+    // The stubbed doc never closed; close it for real.
+    failingShutdown.restore();
+    await failing.shutdown();
   });
 
   describe("_onInactive", function() {

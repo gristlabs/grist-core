@@ -2661,7 +2661,8 @@ export class ActiveDoc extends EventEmitter {
 
       if (this.docClients.clientCount() > 0) {
         this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
-        await this.docClients.broadcastDocMessage(null, "docShutdown", null);
+        await safeCallAndWait("broadcast docShutdown",
+          () => this.docClients.broadcastDocMessage(null, "docShutdown", null));
         this.docClients.interruptAllClients();
         this.docClients.removeAllClients();
       }
