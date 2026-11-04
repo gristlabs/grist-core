@@ -79,6 +79,13 @@ export interface ACIndexOptions {
   keepOrder?: boolean;
   /** Show items with an empty `cleanText`. Defaults to false. */
   showEmptyItems?: boolean;
+  /**
+   * When search text is non-empty, append non-matching items after matches until
+   * `maxResults` is reached (autocomplete-style). Defaults to true.
+   *
+   * Set to false to return only items that actually matched the search.
+   */
+  padWithNonMatches?: boolean;
 }
 
 /**
@@ -94,6 +101,7 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
   private _maxResults = this._options.maxResults ?? 50;
   private _keepOrder = this._options.keepOrder ?? false;
   private _showEmptyItems = this._options.showEmptyItems ?? false;
+  private _padWithNonMatches = this._options.padWithNonMatches ?? true;
 
   public get totalItems() {
     return this._allItems.length;
@@ -123,23 +131,29 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
     const cleanedSearchText = normalizeText(searchText);
     const searchWords = cleanedSearchText.split(wordSepRegexp).filter(w => w);
 
+    if (!cleanedSearchText) {
+      // Just returning the first few items (or all, up to maxResults).
+      const items = this._allItems
+        .filter(item => item.cleanText || this._showEmptyItems)
+        .slice(0, this._maxResults);
+      return { items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1 };
+    }
+
     // Maps item index in _allItems to its score.
     const myMatches = new Map<number, number>();
 
-    if (searchWords.length > 0) {
-      // For each of searchWords, go through items with an overlap, and update their scores.
-      for (let k = 0; k < searchWords.length; k++) {
-        const searchWord = searchWords[k];
-        for (const [itemIndex, score] of this._findOverlaps(searchWord, k)) {
-          myMatches.set(itemIndex, (myMatches.get(itemIndex) || 0) + score);
-        }
+    // For each of searchWords, go through items with an overlap, and update their scores.
+    for (let k = 0; k < searchWords.length; k++) {
+      const searchWord = searchWords[k];
+      for (const [itemIndex, score] of this._findOverlaps(searchWord, k)) {
+        myMatches.set(itemIndex, (myMatches.get(itemIndex) || 0) + score);
       }
+    }
 
-      // Give an extra point to items that start with the searchText.
-      for (const [itemIndex, score] of myMatches) {
-        if (this._allItems[itemIndex].cleanText.startsWith(cleanedSearchText)) {
-          myMatches.set(itemIndex, score + 1);
-        }
+    // Give an extra point to items that start with the searchText.
+    for (const [itemIndex, score] of myMatches) {
+      if (this._allItems[itemIndex].cleanText.startsWith(cleanedSearchText)) {
+        myMatches.set(itemIndex, score + 1);
       }
     }
 
@@ -148,14 +162,16 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
       .sort((a, b) => nativeCompare(b[1], a[1]) || nativeCompare(a[0], b[0]))
       .slice(0, this._maxResults);
 
-    const itemIndices: number[] = sortedMatches.map(([index, score]) => index);
+    const itemIndices: number[] = sortedMatches.map(([index, _score]) => index);
 
-    // Append enough non-matching indices to reach maxResults.
-    for (let i = 0; i < this._allItems.length && itemIndices.length < this._maxResults; i++) {
-      if (myMatches.has(i)) { continue; }
+    // Optionally append non-matching indices to reach maxResults (autocomplete-style).
+    if (this._padWithNonMatches) {
+      for (let i = 0; i < this._allItems.length && itemIndices.length < this._maxResults; i++) {
+        if (myMatches.has(i)) { continue; }
 
-      if (this._allItems[i].cleanText || this._showEmptyItems) {
-        itemIndices.push(i);
+        if (this._allItems[i].cleanText || this._showEmptyItems) {
+          itemIndices.push(i);
+        }
       }
     }
 
@@ -163,11 +179,6 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
       itemIndices.sort(nativeCompare);
     }
     const items = itemIndices.map(index => this._allItems[index]);
-
-    if (!cleanedSearchText) {
-      // In this case we are just returning the first few items.
-      return { items, extraItems: [], highlightFunc: highlightNone, selectIndex: -1 };
-    }
 
     const highlightFunc = highlightMatches.bind(null, searchWords);
 

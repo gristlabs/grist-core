@@ -191,14 +191,14 @@ describe("AccessRulesViewAsFilter", function() {
           await filterWith("filter-user-1");
           await gu.waitToPass(async () => {
             assert.isBelow(await menuItemsCount(popup.itemSelector), totalBefore);
-            assert.isTrue(await driver.find(".test-searchable-menu-input-clear").isPresent());
+            assert.isTrue(await driver.find(".test-sd-search-clear").isPresent());
           });
 
-          await driver.find(".test-searchable-menu-input-clear").click();
+          await driver.find(".test-sd-search-clear").click();
           await gu.waitToPass(async () => {
             assert.equal(await driver.find(".test-acl-user-filter").value(), "");
             assert.equal(await menuItemsCount(popup.itemSelector), totalBefore);
-            assert.isFalse(await driver.find(".test-searchable-menu-input-clear").isPresent());
+            assert.isFalse(await driver.find(".test-sd-search-clear").isPresent());
           });
         });
 

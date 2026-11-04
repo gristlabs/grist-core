@@ -1,5 +1,4 @@
 import { MenuCommand } from "app/client/components/commandList";
-import { normalizeText } from "app/client/lib/ACIndex";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { testPendingMenuActions } from "app/client/lib/testPendingOps";
@@ -11,13 +10,11 @@ import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import { loadingSpinner } from "app/client/ui2018/loaders";
 import { cssSelectBtn } from "app/client/ui2018/select";
-import { unstyledButton } from "app/client/ui2018/unstyled";
 
 import {
   BindableValue, Computed, dom, DomContents, DomElementArg, DomElementMethod, IDomArgs,
   MaybeObsArray, MutableObsArray, Observable, styled,
 } from "grainjs";
-import debounce from "lodash/debounce";
 import * as weasel from "popweasel";
 import { uniqueId } from "underscore";
 
@@ -54,103 +51,6 @@ export function menu(createFunc: weasel.MenuCreateFunc, options?: weasel.IMenuOp
     return createFunc(ctl);
   };
   return weasel.menu(wrappedCreateFunc, { ...defaults, ...options });
-}
-
-export interface SearchableMenuOptions {
-  searchInputPlaceholder?: string;
-  /** Extra args for the search input (e.g. to focus it, or add a test id). */
-  searchInputArgs?: DomElementArg[];
-  /** If set, builds what to show in place of items when none match the search. */
-  buildEmptyMessage?: () => DomContents;
-}
-
-export interface SearchableMenuItem {
-  cleanText: string;
-  builder?: () => Element;
-
-  label?: string;
-  action?: (item: HTMLElement) => void;
-  args?: DomElementArg[];
-}
-
-/**
- * Builds the contents of a menu with a search input that filters `menuItems` by their `cleanText`.
- *
- * Escape clears the search when it is non-empty (and keeps the menu open); a second Escape closes
- * the menu via weasel's usual handling. Items' `cleanText` should typically be produced with
- * `normalizeText` so matching is accent-insensitive.
- */
-export function searchableMenu(
-  menuItems: MaybeObsArray<SearchableMenuItem>,
-  options: SearchableMenuOptions = {},
-): DomElementArg[] {
-  const { searchInputPlaceholder, searchInputArgs = [], buildEmptyMessage } = options;
-
-  const searchValue = Observable.create(null, "");
-  let searchInput: HTMLInputElement | undefined;
-  const setSearchValue = debounce((value: string) => {
-    if (!searchValue.isDisposed()) { searchValue.set(value); }
-  }, 100);
-  const clearSearch = () => {
-    setSearchValue.cancel();
-    if (searchInput) { searchInput.value = ""; }
-    if (!searchValue.isDisposed()) { searchValue.set(""); }
-    searchInput?.focus();
-  };
-  const filteredItems = Computed.create(null, (use) => {
-    const cleanSearchValue = normalizeText(use(searchValue));
-    const items = Array.isArray(menuItems) ? menuItems : use(menuItems);
-    return items.filter(item => item.cleanText.includes(cleanSearchValue));
-  });
-
-  return [
-    dom.autoDispose(searchValue),
-    dom.autoDispose(filteredItems),
-    menuItemStatic(
-      cssMenuSearch(
-        cssMenuSearchIcon("Search"),
-        cssMenuSearchInput(
-          (elem) => { searchInput = elem; },
-          dom.on("input", (_ev, elem) => { setSearchValue(elem.value); }),
-          dom.onKeyDown({
-            Escape$: (ev) => {
-              if (searchInput?.value || searchValue.get()) {
-                clearSearch();
-                ev.stopPropagation();
-              }
-            },
-          }),
-          { placeholder: searchInputPlaceholder },
-          testId("searchable-menu-input"),
-          ...searchInputArgs,
-        ),
-        dom.maybe(searchValue, () => cssMenuSearchClear(
-          icon("CrossSmall"),
-          { "aria-label": t("Clear search") },
-          testId("searchable-menu-input-clear"),
-          dom.on("click", () => clearSearch()),
-        )),
-      ),
-    ),
-    menuDivider(),
-    dom.domComputed(
-      use => Boolean(buildEmptyMessage) &&
-        Boolean(use(searchValue).trim()) &&
-        use(filteredItems).length === 0,
-      isEmpty => isEmpty ?
-        buildEmptyMessage!() :
-        dom.forEach(filteredItems, (item) => {
-          if (item.label && item.action) {
-            return menuItem(item.action, item.label, ...(item.args || []));
-          } else if (item.builder) {
-            return item.builder();
-          } else {
-            throw new Error("Invalid menu item");
-          }
-        }),
-    ),
-    testId("searchable-menu"),
-  ];
 }
 
 // TODO Weasel doesn't allow other options for submenus, but probably should.
@@ -950,7 +850,7 @@ const cssUpgradeTextButton = styled(textButton, `
   font-size: ${vars.smallFontSize};
 `);
 
-const cssMenuItemSubmenu = styled("div", `
+export const cssMenuItemSubmenu = styled("div", `
   position: relative;
   justify-content: flex-start;
   color: ${theme.menuItemFg};
@@ -964,39 +864,6 @@ const cssMenuItemSubmenu = styled("div", `
     color: ${theme.menuItemDisabledFg};
     --icon-color: ${theme.menuItemDisabledFg};
   }
-`);
-
-const cssMenuSearch = styled("div", `
-  display: flex;
-  column-gap: 8px;
-  align-items: center;
-  padding: 8px 16px;
-`);
-
-const cssMenuSearchIcon = styled(icon, `
-  flex-shrink: 0;
-  --icon-color: ${theme.menuItemIconFg};
-`);
-
-const cssMenuSearchInput = styled("input", `
-  color: ${theme.inputFg};
-  background-color: ${theme.inputBg};
-  flex-grow: 1;
-  font-size: ${vars.mediumFontSize};
-  padding: 0px;
-  border: none;
-  outline: none;
-
-  &::placeholder {
-    color: ${theme.inputPlaceholderFg};
-  }
-`);
-
-const cssMenuSearchClear = styled(unstyledButton, `
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  --icon-color: ${theme.menuItemIconFg};
 `);
 
 type MenuDefinition = MenuItem[];

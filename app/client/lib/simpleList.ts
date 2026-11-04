@@ -17,7 +17,7 @@ import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/domUtil
 import { kbFocusHighlighterClass } from "app/client/lib/focusUtils";
 import { menuCssClass, menuItem } from "app/client/ui2018/menus";
 
-import { Disposable, dom, DomArg, Observable, styled } from "grainjs";
+import { Disposable, dom, DomElementArg, Observable, styled } from "grainjs";
 import { cssMenu, cssMenuItem, cssMenuWrap, getOptionFull, IOpenController, IOption } from "popweasel";
 import slugify from "slugify";
 import { uniqueId } from "underscore";
@@ -28,9 +28,19 @@ export { getOptionFull } from "popweasel";
 export interface ISimpleListOpt<T, U extends IOption<T> = IOption<T>> {
   matchTriggerElemWidth?: boolean;
   ariaLabel?: Observable<string | undefined>;
-  headerDom?(): DomArg<HTMLElement>;
-  renderItem?(item: U): DomArg<HTMLElement>;
+  headerDom?(): DomElementArg;
+  /** Optional content rendered below the list (e.g. an empty-state message). */
+  footerDom?(): DomElementArg;
+  renderItem?(item: U): DomElementArg;
   onSelectedChange?(selectedItem: HTMLElement | null): void;
+}
+
+export interface ISimpleListKeyOptions {
+  /**
+   * Called on Escape. Return true if the key was handled (e.g. cleared search)
+   * and the popup should stay open.
+   */
+  onEscape?: () => boolean;
 }
 
 export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable {
@@ -82,13 +92,17 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
                 role: "option",
                 class: menuItem.className + " " + cssMenuItem.className,
               },
-              dom.on("click", () => this._doAction(item.value)),
+              dom.on("click", () => {
+                if (item.disabled) { return; }
+                this._doAction(item.value);
+              }),
               renderItem(i),
               dom.cls("disabled", Boolean(item.disabled)),
               dom.data("itemValue", item.value),
             );
           }),
         ),
+        opt.footerDom?.(),
       ),
       dom.on("mouseleave", _ev => this.setSelected(-1)),
     );
@@ -103,9 +117,12 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
     this._update();
   }
 
-  public listenKeys(elem: HTMLElement) {
+  public listenKeys(elem: HTMLElement, options: ISimpleListKeyOptions = {}) {
     this.autoDispose(dom.onKeyElem(elem, "keydown", {
-      Escape: () => this._ctl.close(),
+      Escape: () => {
+        if (options.onEscape?.()) { return; }
+        this._ctl.close();
+      },
       ArrowDown: () => this.setSelected(this._getNextSelectable(1)),
       ArrowUp: () => this.setSelected(this._getNextSelectable(-1)),
       Enter: () => this._doAction(this._getSelectedData()),

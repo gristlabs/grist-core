@@ -1726,7 +1726,9 @@
     },
     "searchDropdown": {
         "Search": "Chercher",
-        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Affichage de {{displayedCount}} éléments sur {{totalCount}}. Rechercher pour plus de résultats."
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Affichage de {{displayedCount}} éléments sur {{totalCount}}. Rechercher pour plus de résultats.",
+        "Clear search": "Effacer la recherche",
+        "No matching items": "Aucun élément correspondant"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPTION"
