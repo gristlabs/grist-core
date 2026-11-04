@@ -117,7 +117,7 @@ describe("DescriptionColumn", function() {
 
     // Now add description through the modal.
     await doubleClickHeader("A", null);
-    assert.isTrue(await popupVisible());
+    assert.isTrue(await popupVisible(1000));
 
     // Name should be disabled.
     assert.equal(await getLabel().getAttribute("disabled"), "true");
@@ -531,17 +531,14 @@ describe("DescriptionColumn", function() {
     await waitForFocus("label");
     // Go to column C and from the label.
     await gu.sendKeys(Key.TAB);
-    await driver.sleep(10);
     // Make sure we are now at column C.
     await popupIsAt("ColumnC");
     // Just quick test that shift tab will work.
     await gu.sendKeys(Key.SHIFT, Key.TAB, Key.NULL);
-    await driver.sleep(10);
     // Make sure we are now at column B.
     await popupIsAt("ColumnB");
     // Go to column C and test if the description was saved.
     await gu.sendKeys(Key.TAB);
-    await driver.sleep(10);
     // Make sure we are now at column C.
     await popupIsAt("ColumnC");
     // And it has proper description.
@@ -565,7 +562,7 @@ describe("DescriptionColumn", function() {
     }, 1000);
 
     await addColumn();
-    assert.isTrue(await popupVisible());
+    assert.isTrue(await popupVisible(1000));
 
     await gu.sendKeys(Key.ESCAPE);
     await gu.waitForServer();
@@ -677,19 +674,24 @@ function getLabel() {
   return driver.findWait(".test-column-title-label", 1000);
 }
 
-async function popupVisible() {
+async function popupVisible(timeoutMs = 50) {
   try {
-    return await driver.findWait(".test-column-title-popup", 50).isDisplayed();
+    return await driver.findWait(".test-column-title-popup", timeoutMs).isDisplayed();
   } catch {
     return false;
   }
 }
 
 async function popupIsAt(col: string) {
+  // Popups open and close on timers, in no fixed order, so wait for this column's popup to open
+  // and any other column's to close.
+  const header = gu.getColumnHeader({ col });
+  await header.findWait(".g-column-label.weasel-popup-open", 1000);
+  await driver.wait(async () => (await driver.findAll(".test-column-title-popup")).length === 1, 1000);
   // Make sure we are now at column.
   assert.equal(await getLabelText(), col);
   // Make sure that popup is near the column.
-  const headerCRect = await gu.getColumnHeader({ col }).getRect();
+  const headerCRect = await header.getRect();
   const popup = await driver.find(".test-column-title-popup").getRect();
   assert.isAtLeast(popup.x, headerCRect.x - 2);
   assert.isBelow(popup.x, headerCRect.x + 2);
