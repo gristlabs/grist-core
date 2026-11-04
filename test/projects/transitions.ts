@@ -107,8 +107,8 @@ describe("transitions", function() {
   });
 
   it("should finish with the latest value when interrupted", async function() {
-    await driver.get(`${server.getHost()}/transitions`);
-    await driver.findWait(".test-duration", 2000).doClear().doSendKeys(`${kDelayMs * 2}ms`, Key.ENTER);
+    await openFixture("transitions");
+    await driver.find(".test-duration").doClear().doSendKeys(`${kDelayMs * 2}ms`, Key.ENTER);
 
     // Expand, then collapse partway through.
     await driver.find(".test-toggle").doClick();
