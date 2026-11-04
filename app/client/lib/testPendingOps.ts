@@ -32,7 +32,10 @@ export class TestPendingOps {
   public end(): void { this._count--; }
 }
 
-/** Admin panel checks (boot probes); results land in observables as they arrive. */
+/**
+ * Admin panel checks (boot probes), and the install prefs the Backups row also waits on; results
+ * land in observables as they arrive.
+ */
 export const testPendingChecks = new TestPendingOps();
 
 /**
