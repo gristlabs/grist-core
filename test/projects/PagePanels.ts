@@ -11,6 +11,10 @@ async function checkLeftPanelIsExpanded() {
   assert.isAbove((await driver.find(".test-pp-left-panel").rect()).width, 120);
 }
 
+async function waitForLeftPanel(state: "expanded" | "collapsed") {
+  await driver.findWait(`.test-pp-left-panel[data-fully-${state}]`, 5000);
+}
+
 async function checkLeftPanelIsOverlapping() {
   assert.equal(
     (await driver.find(".test-pp-main-pane").rect()).left -
@@ -79,6 +83,14 @@ describe("PagePanels", function() {
     assert.isAbove((await driver.find(".test-pp-left-panel").rect()).width, 100);
   });
 
+  it("should mark left panel as settled only when a reversed transition ends", async function() {
+    await waitForLeftPanel("expanded");
+    await driver.executeScript("const opener = document.querySelector('.test-pp-left-opener'); " +
+      "opener.click(); opener.click();");
+    assert.isFalse(await driver.find(".test-pp-left-panel").matches("[data-fully-expanded], [data-fully-collapsed]"));
+    await waitForLeftPanel("expanded");
+  });
+
   it("should allow collapsing right panel if shown", async function() {
     // Check that it has a reasonably large width, i.e. is open.
     assert.isTrue(await driver.find(".test-pp-right-panel").isDisplayed());
@@ -143,6 +155,8 @@ describe("PagePanels", function() {
     after(async () => {
       const { width, height } = oldDimensions;
       await gu.setViewportDimensions(width, height);
+      await driver.findWait(".test-pp-screen-resizing", 1000);
+      await driver.wait(async () => !await driver.find(".test-pp-screen-resizing").isPresent(), 5000);
     });
 
     it("should show bottom bar if narrow screen", async function() {
@@ -468,7 +482,7 @@ describe("PagePanels", function() {
       await driver.find(".test-pp-right-panel").mouseMove();
       await closeLeftPanel();
       await driver.find(".test-pp-left-panel").mouseMove();
-      await driver.sleep(500 + 450);
+      await waitForLeftPanel("expanded");
       await checkLeftPanelIsExpanded();
 
       // check panel is overlaping
@@ -477,7 +491,7 @@ describe("PagePanels", function() {
 
     it("should collapsed on mouse leave", async function() {
       await driver.find(".test-pp-right-panel").mouseMove();
-      await driver.sleep(500);
+      await waitForLeftPanel("collapsed");
       await checkLeftPanelIsCollapsed();
     });
 
@@ -511,7 +525,7 @@ describe("PagePanels", function() {
 
       // move mouse in
       await driver.find(".test-pp-left-panel").mouseMove();
-      await driver.sleep(500);
+      await waitForLeftPanel("expanded");
 
       // check disbaled resizer is visible
       assert.equal(await driver.find(".test-pp-left-disabled-resizer").isDisplayed(), true);
@@ -519,7 +533,7 @@ describe("PagePanels", function() {
 
       // leave mouse
       await driver.find(".test-pp-right-panel").mouseMove();
-      await driver.sleep(500);
+      await waitForLeftPanel("collapsed");
 
       // check disbaled resizer is visible
       assert.equal(await driver.find(".test-pp-left-disabled-resizer").isDisplayed(), true);
@@ -527,7 +541,7 @@ describe("PagePanels", function() {
 
       // let's check resizers when clicking the left opener
       await driver.executeScript("document.getElementsByClassName('test-pp-left-opener')[0].click()");
-      await driver.sleep(500);
+      await waitForLeftPanel("expanded");
 
       // check real resizer is visible
       assert.equal(await driver.find(".test-pp-left-disabled-resizer").isDisplayed(), false);
@@ -535,7 +549,7 @@ describe("PagePanels", function() {
 
       // click opener again
       await driver.executeScript("document.getElementsByClassName('test-pp-left-opener')[0].click()");
-      await driver.sleep(500);
+      await waitForLeftPanel("collapsed");
 
       // check real resizer is visible
       assert.equal(await driver.find(".test-pp-left-disabled-resizer").isDisplayed(), true);
@@ -545,7 +559,7 @@ describe("PagePanels", function() {
     it("should correctly overlap on this edge case", async function() {
       // move mouse in and wait for full expansion
       await driver.find(".test-pp-left-panel").mouseMove();
-      await driver.sleep(500);
+      await waitForLeftPanel("expanded");
 
       // briefly leave mouse and quickly move mouse back-in
       await driver.find(".test-pp-right-panel").mouseMove();
@@ -553,14 +567,14 @@ describe("PagePanels", function() {
       await driver.find(".test-pp-left-panel").mouseMove();
 
       // wait for panel to expand again
-      await driver.sleep(500);
+      await waitForLeftPanel("expanded");
 
       // check that panel is overlapping
       await checkLeftPanelIsOverlapping();
 
       // leave mouse and wait for full collapse
       await driver.find(".test-pp-right-panel").mouseMove();
-      await driver.sleep(500);
+      await waitForLeftPanel("collapsed");
 
       // check panels state
       await checkLeftPanelIsCollapsed();
@@ -569,7 +583,7 @@ describe("PagePanels", function() {
     it("should not collapse when a menu is expanded", async function() {
       // move mouse in and wait for full expansion
       await driver.find(".test-pp-left-panel").mouseMove();
-      await driver.sleep(500 + 450);
+      await waitForLeftPanel("expanded");
       await checkLeftPanelIsExpanded();
 
       // open menu
@@ -577,7 +591,7 @@ describe("PagePanels", function() {
       await driver.find(".test-docpage-dots").click();
 
       // move mouse to the middle of the menu
-      await driver.findWait(".grist-floating-menu", 1000).mouseMove();
+      await driver.findWait(".grist-floating-menu", 2000).mouseMove();
       await driver.sleep(500);
 
       // check panel is still expanded
@@ -595,7 +609,7 @@ describe("PagePanels", function() {
 
       // click outside
       await driver.find(".test-pp-right-panel").click();
-      await driver.sleep(500);
+      await waitForLeftPanel("collapsed");
 
       // check panel is collapsed
       await checkLeftPanelIsCollapsed();
@@ -607,7 +621,7 @@ describe("PagePanels", function() {
     it("should not collapse when renaming page (or any other input has focus)", async function() {
       // move mouse in and wait for full expansion
       await driver.find(".test-pp-left-panel").mouseMove();
-      await driver.sleep(500 + 450);
+      await waitForLeftPanel("expanded");
       await checkLeftPanelIsExpanded();
 
       // open 3-dot menu and click rename
@@ -618,7 +632,7 @@ describe("PagePanels", function() {
       // using driver.findContent(...).click(). But it does when using a script call.
       await driver.executeScript(
         (el: any) => el.click(),
-        driver.findContentWait(".grist-floating-menu li", "Rename", 1000),
+        driver.findContentWait(".grist-floating-menu li", "Rename", 2000),
       );
       await driver.sleep(20);
 
@@ -634,7 +648,7 @@ describe("PagePanels", function() {
 
       // click outside
       await driver.find(".test-pp-right-panel").click();
-      await driver.sleep(500);
+      await waitForLeftPanel("collapsed");
 
       // check the pane is collapsed
       await checkLeftPanelIsCollapsed();
@@ -648,6 +662,6 @@ describe("PagePanels", function() {
 async function closeLeftPanel() {
   if ((await driver.find(".test-pp-left-panel").rect()).width > 50) {
     await driver.executeScript("document.getElementsByClassName('test-pp-left-opener')[0].click()");
-    await driver.sleep(500);
+    await waitForLeftPanel("collapsed");
   }
 }

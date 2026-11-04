@@ -105,4 +105,17 @@ describe("transitions", function() {
     // Assert that all properties transitioned and the count has updated.
     await assertState({ width: 470, opacity: 1, finished: 1 });
   });
+
+  it("should finish with the latest value when interrupted", async function() {
+    await driver.get(`${server.getHost()}/transitions`);
+    await driver.findWait(".test-duration", 2000).doClear().doSendKeys(`${kDelayMs * 2}ms`, Key.ENTER);
+
+    // Expand, then collapse partway through.
+    await driver.find(".test-toggle").doClick();
+    await driver.sleep(kDelayMs);
+    await driver.find(".test-toggle").doClick();
+
+    await driver.findContentWait(".test-finished", "1", kDelayMs * 4);
+    assert.equal(await driver.find(".test-finished-value").getText(), "false");
+  });
 });

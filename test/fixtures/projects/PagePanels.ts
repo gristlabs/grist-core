@@ -4,6 +4,7 @@ import { AppHeader } from "app/client/ui/AppHeader";
 import { PageContents, pagePanels } from "app/client/ui/PagePanels";
 import { attachPageWidgetPicker, openPageWidgetPicker } from "app/client/ui/PageWidgetPicker";
 import { primaryButton } from "app/client/ui2018/buttons";
+import { isScreenResizing } from "app/client/ui2018/cssVars";
 import { menu, menuIcon, menuItem } from "app/client/ui2018/menus";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 import { addNewPage, addPages, selected } from "test/fixtures/projects/helpers/Pages";
@@ -70,12 +71,16 @@ function setupTest() {
   const showLeftOpener = observable(true);
   const optimizeNarrowScreen = observable(false);
   return [
-    testBox(dom.domComputed((use) => {
-      const appModel = use(mockAppModel.appObs);
-      if (!appModel) { return null; }
-      appModel.currentOrgName = "SmartLab with very long and overflowing name";
-      return renderPage(appModel, use(showRightPane), use(showLeftOpener), use(optimizeNarrowScreen));
-    })),
+    testBox(
+      dom.domComputed((use) => {
+        const appModel = use(mockAppModel.appObs);
+        if (!appModel) { return null; }
+        appModel.currentOrgName = "SmartLab with very long and overflowing name";
+        return renderPage(appModel, use(showRightPane), use(showLeftOpener), use(optimizeNarrowScreen));
+      }),
+      // The left panel doesn't expand on hover while the window is resizing.
+      dom.cls("test-pp-screen-resizing", isScreenResizing()),
+    ),
     controls(
       dom("input", { type: "checkbox" },
         testId("show-right"),
