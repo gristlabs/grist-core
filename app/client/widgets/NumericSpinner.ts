@@ -49,6 +49,8 @@ export function numericSpinner(
   };
 
   let inputElement: HTMLInputElement;
+  let avoidSaveOnNextBlur = false;
+  let valueOnFocus: number | "" = value.get();
 
   const shiftValue = async (delta: 1 | -1, opts: { saveValue?: boolean } = {}) => {
     const { saveValue } = opts;
@@ -72,17 +74,29 @@ export function numericSpinner(
         ArrowUp: async (_ev, elem) => { elem.value = String(await incrementValue()); },
         ArrowDown: async (_ev, elem) => { elem.value = String(await decrementValue()); },
         Enter$: async (_ev, elem) => save && elem.blur(),
-        Escape$: (_ev, elem) => { elem.blur(); },
+        Escape$: (_ev, elem) => {
+          if (setValueOnInput) { value.set(valueOnFocus); }
+          elem.value = String(valueOnFocus);
+          avoidSaveOnNextBlur = true;
+          elem.blur();
+        },
       }),
       !setValueOnInput ? null : dom.on("input", (_ev, elem) => {
         value.set(Number.parseFloat(elem.value));
       }),
       !save ? null : dom.on("blur", async () => {
+        if (avoidSaveOnNextBlur) {
+          avoidSaveOnNextBlur = false;
+          return;
+        }
         let newValue = numberOrDefault(inputElement.value, undefined);
         if (newValue !== undefined) { newValue = clamp(newValue, minValue, maxValue); }
         await save(newValue);
       }),
-      dom.on("focus", (_ev, elem) => elem.select()),
+      dom.on("focus", (_ev, elem) => {
+        valueOnFocus = value.get();
+        elem.select();
+      }),
       ...inputArgs,
     ),
     cssSpinner(
