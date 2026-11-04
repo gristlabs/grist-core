@@ -15,7 +15,6 @@ import {
   BindableValue, Computed, dom, DomContents, DomElementArg, DomElementMethod, IDomArgs,
   MaybeObsArray, MutableObsArray, Observable, styled,
 } from "grainjs";
-import debounce from "lodash/debounce";
 import * as weasel from "popweasel";
 import { uniqueId } from "underscore";
 
@@ -52,75 +51,6 @@ export function menu(createFunc: weasel.MenuCreateFunc, options?: weasel.IMenuOp
     return createFunc(ctl);
   };
   return weasel.menu(wrappedCreateFunc, { ...defaults, ...options });
-}
-
-export interface SearchableMenuOptions {
-  searchInputPlaceholder?: string;
-  /** Extra args for the search input (e.g. to focus it, or add a test id). */
-  searchInputArgs?: DomElementArg[];
-  /** If set, builds what to show in place of items when none match the search. */
-  buildEmptyMessage?: () => DomContents;
-}
-
-export interface SearchableMenuItem {
-  cleanText: string;
-  builder?: () => Element;
-
-  label?: string;
-  action?: (item: HTMLElement) => void;
-  args?: DomElementArg[];
-}
-
-/**
- * Builds the contents of a menu with a search input that filters `menuItems` by their `cleanText`.
- */
-export function searchableMenu(
-  menuItems: MaybeObsArray<SearchableMenuItem>,
-  options: SearchableMenuOptions = {},
-): DomElementArg[] {
-  const { searchInputPlaceholder, searchInputArgs = [], buildEmptyMessage } = options;
-
-  const searchValue = Observable.create(null, "");
-  const setSearchValue = debounce((value: string) => {
-    if (!searchValue.isDisposed()) { searchValue.set(value); }
-  }, 100);
-  const filteredItems = Computed.create(null, (use) => {
-    const cleanSearchValue = use(searchValue).trim().toLowerCase();
-    const items = Array.isArray(menuItems) ? menuItems : use(menuItems);
-    return items.filter(item => item.cleanText.includes(cleanSearchValue));
-  });
-
-  return [
-    dom.autoDispose(searchValue),
-    dom.autoDispose(filteredItems),
-    menuItemStatic(
-      cssMenuSearch(
-        cssMenuSearchIcon("Search"),
-        cssMenuSearchInput(
-          dom.on("input", (_ev, elem) => { setSearchValue(elem.value); }),
-          { placeholder: searchInputPlaceholder },
-          testId("searchable-menu-input"),
-          ...searchInputArgs,
-        ),
-      ),
-    ),
-    menuDivider(),
-    dom.domComputed(
-      use => Boolean(buildEmptyMessage) && use(filteredItems).length === 0,
-      isEmpty => isEmpty ?
-        buildEmptyMessage!() :
-        dom.forEach(filteredItems, (item) => {
-          if (item.label && item.action) {
-            return menuItem(item.action, item.label, ...(item.args || []));
-          } else if (item.builder) {
-            return item.builder();
-          } else {
-            throw new Error("Invalid menu item");
-          }
-        }),
-    ),
-    testId("searchable-menu"),
-  ];
 }
 
 // TODO Weasel doesn't allow other options for submenus, but probably should.
@@ -920,7 +850,7 @@ const cssUpgradeTextButton = styled(textButton, `
   font-size: ${vars.smallFontSize};
 `);
 
-const cssMenuItemSubmenu = styled("div", `
+export const cssMenuItemSubmenu = styled("div", `
   position: relative;
   justify-content: flex-start;
   color: ${theme.menuItemFg};
@@ -933,32 +863,6 @@ const cssMenuItemSubmenu = styled("div", `
     cursor: default;
     color: ${theme.menuItemDisabledFg};
     --icon-color: ${theme.menuItemDisabledFg};
-  }
-`);
-
-const cssMenuSearch = styled("div", `
-  display: flex;
-  column-gap: 8px;
-  align-items: center;
-  padding: 8px 16px;
-`);
-
-const cssMenuSearchIcon = styled(icon, `
-  flex-shrink: 0;
-  --icon-color: ${theme.menuItemIconFg};
-`);
-
-const cssMenuSearchInput = styled("input", `
-  color: ${theme.inputFg};
-  background-color: ${theme.inputBg};
-  flex-grow: 1;
-  font-size: ${vars.mediumFontSize};
-  padding: 0px;
-  border: none;
-  outline: none;
-
-  &::placeholder {
-    color: ${theme.inputPlaceholderFg};
   }
 `);
 

@@ -1209,7 +1209,8 @@
         "Search columns": "Chercher des colonnes",
         "By Name": "Par Nom",
         "By Date Modified": "Par Date de modification",
-        "Loading...": "Chargement en cours ..."
+        "Loading...": "Chargement en cours ...",
+        "Clear search": "Effacer la recherche"
     },
     "modals": {
         "Save": "Enregistrer",
@@ -1364,7 +1365,9 @@
         "Users from table": "Utilisateurs de la table d'appairage",
         "View as": "Voir en tant que",
         "Other users from table": "Autres utilisateurs de la table",
-        "Shared users": "Utilisateurs partagés"
+        "Shared users": "Utilisateurs partagés",
+        "Filter by name or email": "Filtrer par nom ou e-mail",
+        "No matching users": "Aucun utilisateur correspondant"
     },
     "ConditionalStyle": {
         "Add conditional style": "Ajouter un style conditionnel",
@@ -1723,7 +1726,9 @@
     },
     "searchDropdown": {
         "Search": "Chercher",
-        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Affichage de {{displayedCount}} éléments sur {{totalCount}}. Rechercher pour plus de résultats."
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Affichage de {{displayedCount}} éléments sur {{totalCount}}. Rechercher pour plus de résultats.",
+        "Clear search": "Effacer la recherche",
+        "No matching items": "Aucun élément correspondant"
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPTION"

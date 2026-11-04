@@ -42,6 +42,20 @@ describe("ACIndex", function() {
       ["red", "reddish", "dark red", "radical green", "blue"]);
   });
 
+  it("should omit non-matches when padWithNonMatches is false", function() {
+    const items: ACItem[] = ["blue", "dark red", "reddish", "red", "orange", "yellow", "radical green"].map(
+      c => ({ cleanText: c }));
+    const acIndex = new ACIndexImpl(items, { maxResults: 50, padWithNonMatches: false });
+    assert.deepEqual(acIndex.search("red").items.map(item => item.cleanText),
+      ["red", "reddish", "dark red", "radical green"]);
+
+    const ordered = new ACIndexImpl(items, {
+      maxResults: 50, padWithNonMatches: false, keepOrder: true,
+    });
+    assert.deepEqual(ordered.search("red").items.map(item => item.cleanText),
+      ["dark red", "reddish", "red", "radical green"]);
+  });
+
   it("should return first few items when search text is empty", function() {
     let acResult = new ACIndexImpl(colors).search("");
     assert.deepEqual(acResult.items, colors);
