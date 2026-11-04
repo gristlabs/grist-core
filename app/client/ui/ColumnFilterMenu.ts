@@ -366,7 +366,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               }),
             ),
             !showAllFiltersButton ? null : cssAllFiltersButton(
-              "All filters",
+              t("All filters"),
               dom.on("click", () => {
                 onClose();
                 commands.allCommands.sortFilterMenuOpen.run(filterInfo.viewSection.getRowId());
