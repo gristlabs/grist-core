@@ -73,7 +73,6 @@ import {
   dom,
   DomContents,
   DomElementArg,
-  Holder,
   IDisposableOwner,
   MutableObsArray,
   obsArray,
@@ -179,8 +178,6 @@ export class AccessRules extends Disposable {
   // Details of rule problems, for offering solutions to the user.
   private _ruleProblems = this.autoDispose(obsArray<AclRuleProblem>());
 
-  private _unsavedChangeHolder = Holder.create<UnsavedChange>(this);
-
   // Map of tableId to basic metadata for all tables in the document.
   private _aclResources = new Map<string, AclTableDescription>();
 
@@ -257,17 +254,7 @@ export class AccessRules extends Disposable {
     }
     this.autoDispose(this.gristDoc.docPageModel.currentDoc.addListener(this._updateDocAccessData, this));
 
-    this.autoDispose(this._ruleStatus.addListener((status) => {
-      if (status !== RuleStatus.Unchanged) {
-        UnsavedChange.create(this._unsavedChangeHolder,
-          undefined,
-          () => this._ruleStatus.get() !== RuleStatus.Unchanged,
-          "manual",
-        );
-      } else {
-        this._unsavedChangeHolder.clear();
-      }
-    }));
+    UnsavedChange.create(this, undefined, () => this._ruleStatus.get() !== RuleStatus.Unchanged, "manual");
 
     this.update().catch(e => this._errorMessage.set(e.message));
   }
