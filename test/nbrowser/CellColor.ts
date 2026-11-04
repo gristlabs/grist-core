@@ -576,5 +576,6 @@ describe("CellColor", function() {
       await driver.find(".test-formula-editor-preview-button").isPresent(),
     );
     await driver.find(".test-formula-editor-cancel-button").click();
+    await driver.wait(async () => !(await driver.find(".test-floating-editor-popup").isPresent()), 1000);
   });
 });
