@@ -304,8 +304,8 @@ export class ConditionalStyle extends Disposable {
       refElem,
       placement: "overlapping",
       title: this._scope === "column" ?
-        `${tableId}.${actualColId} - ${t("Conditional Style")}` :
-        `${tableId} - ${t("Conditional Style")}`,
+        t("{{tableId}}.{{actualColId}} - Conditional Style", { tableId, actualColId }) :
+        t("{{tableId}} - Conditional Style", { tableId }),
     });
 
     // Add editor to document holder - this will prevent multiple formula editor instances.
