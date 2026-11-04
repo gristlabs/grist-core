@@ -295,7 +295,7 @@ describe("WebhookPage", function() {
       await driver.wait(() => cell.find(".has_cursor"), 1000);
       await cb.paste();
     });
-    await gu.waitForServer();
+    await gu.waitForPaste();
     assert.equal(await getField(1, "Memo"), "1234");
   });
 
