@@ -34,8 +34,9 @@ describe("ColumnWidthConfig", function() {
     await gu.assertColumnWidth("A", 150);
     assert.equal(await widthInput().value(), "150");
 
-    // The minimum is the same as when resizing by dragging.
-    await setWidth("3");
+    // The minimum is the same as when resizing by dragging. Typing 0 sets it too: only clearing
+    // the value restores the default width, even though a stored width of 0 means the default.
+    await setWidth("0");
     await gu.assertColumnWidth("A", 10);
     assert.equal(await widthInput().value(), "10");
 
