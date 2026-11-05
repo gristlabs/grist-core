@@ -115,6 +115,7 @@ describe("ColorSelect", function() {
 
     // open picker and check selected color
     await driver.find(".test-color-select").click();
+    await driver.findWait(".test-text-palette", 100);
     await checkSelectedColor(white, black);
     // and options
     await checkSelectedOption(0);
