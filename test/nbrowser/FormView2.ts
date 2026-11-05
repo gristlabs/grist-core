@@ -294,7 +294,7 @@ describe("FormView2", function() {
       await driver.findWait(".test-form-success-page-text", 1000);
 
       // Check that the record was added to the table.
-      await driver.navigate().back();
+      await gu.goBack();
       await gu.waitForDocToLoad();
       await gu.openPage("Table1");
       assert.deepEqual(await gu.getVisibleGridCellsFast("A", [1]), ["Hello"]);

@@ -102,6 +102,7 @@ namespace gristUtils {
   export const isAlertShown = webdriverUtils.isAlertShown.bind(webdriverUtils);
   export const waitForDocToLoad = webdriverUtils.waitForDocToLoad.bind(webdriverUtils);
   export const reloadDoc = webdriverUtils.reloadDoc.bind(webdriverUtils);
+  export const goBack = webdriverUtils.goBack.bind(webdriverUtils);
   export const sendActions = webdriverUtils.sendActions.bind(webdriverUtils);
   export const sendCommand = webdriverUtils.sendCommand.bind(webdriverUtils);
   export const openAccountMenu = webdriverUtils.openAccountMenu.bind(webdriverUtils);

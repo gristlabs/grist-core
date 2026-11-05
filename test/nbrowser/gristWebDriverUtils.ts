@@ -284,6 +284,31 @@ export class GristWebDriverUtils {
   }
 
   /**
+   * Goes back in browser history and waits for a live app. Going back to a separately loaded page
+   * restores it from the browser's cache with its app already disposed, and the page then reloads
+   * itself (see onpageshow in app.js). back() can return before the reload.
+   */
+  public async goBack(opt: { skipAlert?: boolean } = {}) {
+    // A back step within the same page load fires popstate on this window, even when the URL
+    // doesn't change. Otherwise the window is replaced, and the new one has no marker for this
+    // call (a page restored from the cache may have a stale one, and must reload to pass).
+    const token = String(Math.random());
+    await this.driver.executeScript((tok: string) => {
+      const marker = (window as any).testGoBack = { token: tok, done: false };
+      window.addEventListener("popstate", () => { marker.done = true; }, { once: true });
+    }, token);
+    await this.driver.navigate().back();
+    if (opt.skipAlert && await this.isAlertShown()) { await this.acceptAlert(); }
+    await this.driver.wait(() => this.driver.executeScript((tok: string) => {
+      const marker = (window as any).testGoBack;
+      const app = (window as any).gristApp;
+      const moved = marker ? (marker.token === tok && marker.done) : true;
+      // Pages other than the main app (e.g. forms) have a plain gristApp that is never disposed.
+      return moved && Boolean(app) && !app.isDisposed?.();
+    }, token).catch(() => false), 5000, "waiting for a live app after going back");
+  }
+
+  /**
    * Sends UserActions using client api from the browser.
    */
   public async sendActions(actions: (DocAction | UserAction)[], optTimeout: number = 5000) {
