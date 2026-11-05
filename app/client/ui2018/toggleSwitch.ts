@@ -51,6 +51,7 @@ export function toggleSwitch(value?: Observable<boolean | null>, options: Toggle
         dom.prop("checked", value),
         dom.prop("value", use => use(value) ? "1" : "0"),
         dom.on("change", (_e, elem) => value.set(elem.checked)),
+        dom.onKeyDown({ Escape$: (_ev, elem) => { elem.blur(); } }),
         ...inputArgs,
       ) :
       undefined,
