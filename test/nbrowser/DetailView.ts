@@ -15,8 +15,28 @@ describe("DetailView", function() {
 
     await gu.sendActions([
       ["AddRecord", "Table1", null, { A: "some text", B: server.getHost() }],
+      ["AddRecord", "Table1", null, { A: "other text", B: server.getHost() }],
     ]);
     await gu.addNewSection("Card", "Table1");
+    await gu.addNewSection("Card List", "Table1");
+  });
+
+  it("does not edit when the same field is selected in another record", async () => {
+    const firstRecord = await gu.getDetailCell("A", 1, "TABLE1 Card List");
+    const secondRecord = await gu.getDetailCell("A", 2, "TABLE1 Card List");
+
+    await firstRecord.click();
+    await secondRecord.click();
+    assert.equal(await driver.find(".test-widget-text-editor").isPresent(), false);
+
+    // A second click on the newly selected cell should still start editing it.
+    await secondRecord.click();
+    assert.equal(await driver.find(".test-widget-text-editor").isPresent(), true);
+    await gu.checkTextEditor("other text");
+
+    await gu.sendKeys(Key.ESCAPE);
+    await driver.wait(async () => !(await driver.find(".test-widget-text-editor").isPresent()), 1000);
+    await gu.getSection("TABLE1 Card").click();
   });
 
   it("opens cell for editing when clicked", async () => {
