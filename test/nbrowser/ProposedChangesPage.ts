@@ -801,6 +801,113 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  // In the tests above, the trunk doesn't change before the suggestion is
+  // accepted. So new rows get the same ids on both documents, and a
+  // reference would come out right even if Grist never adjusted it. Here
+  // the trunk adds a row of its own first, so the ids differ. That's why
+  // this test checks references by name rather than by id.
+  it("creates a new Reference when the trunk has moved on", async function() {
+    const { api, doc } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await api.applyUserActions(doc.id, [
+      ["AddTable", "Habitat", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Habitat", 1, { Name: "Ocean" }],
+      ["AddRecord", "Habitat", 2, { Name: "Forest" }],
+    ]);
+    await api.applyUserActions(doc.id, [
+      ["AddVisibleColumn", "Life", "Habitat", { type: "Ref:Habitat" }],
+      ["UpdateRecord", "Life", 1, { Habitat: 1 }], // Fish -> Ocean
+      ["UpdateRecord", "Life", 2, { Habitat: 2 }], // Primate -> Forest
+    ]);
+    await setReferenceDisplayColumn(api, doc.id, "Life", "Habitat", "Name");
+
+    await workOnCopy(url);
+    await gu.openPage("Habitat");
+    await gu.openPage("Life");
+
+    // Point Fish at a brand new habitat, which takes fork row id 3.
+    await gu.getCell("Habitat", 1).click();
+    await gu.waitAppFocus();
+    await driver.sendKeys("Mountain");
+    await driver.find(".test-ref-editor-new-item").click();
+    await gu.waitForServer();
+
+    await proposeChange();
+    await driver.findContentWait("span", /original document/, 2000).click();
+    await driver.findWait(".test-proposals-header", 2000);
+
+    // The trunk takes row id 3 for its own habitat before accepting, so
+    // Mountain has to land somewhere else.
+    await api.applyUserActions(doc.id, [
+      ["AddRecord", "Habitat", null, { Name: "Desert" }],
+    ]);
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+
+    await driver.find(".test-proposals-patch")
+      .find(".test-proposals-apply").click();
+    await gu.waitForServer();
+    assert.match(
+      await driver.findContent(".test-proposals-header", /#1/).getText(),
+      /Accepted/,
+    );
+
+    const habitats = await api.getDocAPI(doc.id).getRows("Habitat");
+    assert.includeMembers(habitats.Name, ["Desert", "Mountain"]);
+    const nameOf = new Map(habitats.id.map((id, i) => [id, habitats.Name[i]]));
+    const life = await api.getDocAPI(doc.id).getRows("Life");
+    assert.deepEqual(life.Habitat.map(id => nameOf.get(Number(id))),
+      ["Mountain", "Forest"]);
+
+    await returnToTrunk(url);
+  });
+
+  it("leaves the trunk alone when a proposal no longer applies", async function() {
+    const { api, doc } = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+    // Add a row and edit another. Only the edit will fail. We check that
+    // the new row doesn't land either, since a suggestion applies in full
+    // or not at all.
+    await gu.sendActions([
+      ["AddRecord", "Life", null, { B: "Newt" }],
+      ["UpdateRecord", "Life", 1, { B: "Bird" }],
+    ]);
+
+    await proposeChange();
+    await driver.findContentWait("span", /original document/, 2000).click();
+    await driver.findWait(".test-proposals-header", 2000);
+
+    // Delete the row the proposal edits, so the proposal no longer applies.
+    await api.applyUserActions(doc.id, [["RemoveRecord", "Life", 1]]);
+    await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
+
+    await driver.find(".test-proposals-patch")
+      .find(".test-proposals-apply").click();
+    await gu.waitForServer();
+
+    // The user is told why, and the proposal stays open with Accept still
+    // there to try again.
+    assert.match(
+      await driver.findContentWait(".test-notifier-toast-message",
+        /Could not apply this suggestion/, 2000).getText(),
+      /changes row 1 of Life, which was removed/,
+    );
+    await gu.wipeToasts();
+    assert.notMatch(
+      await driver.findContent(".test-proposals-header", /#1/).getText(),
+      /Accepted/,
+    );
+    assert.lengthOf(await driver.find(".test-proposals-patch")
+      .findAll(".test-proposals-apply"), 1);
+
+    // The trunk is exactly as the deletion left it. Newt did not land.
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows("Life")).B, ["Primate"]);
+
+    await returnToTrunk(url);
+  });
+
   it("can make changes on a doc with conditional formatting", async function() {
     const { doc, api } = await makeLifeDoc();
     // const url = await driver.getCurrentUrl();
