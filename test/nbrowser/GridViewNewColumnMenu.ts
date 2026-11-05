@@ -976,7 +976,7 @@ describe("GridViewNewColumnMenu", function() {
           }
 
           // Now add each function and make sure it is added with a proper name.
-          await gu.sendKeys(Key.ESCAPE);
+          await closeAddColumnMenu();
           switch (column) {
             case "Age":
               await addRevLookup("sum");
@@ -1094,7 +1094,7 @@ describe("GridViewNewColumnMenu", function() {
           }
 
           // Now add each function and make sure it is added with a proper name.
-          await gu.sendKeys(Key.ESCAPE);
+          await closeAddColumnMenu();
           switch (column) {
             case "Age":
               await addRevLookup("sum");
