@@ -68,16 +68,16 @@
   display:flex;
 }
 
-/* The record's left border, against the row-number gutter (viewCommon.css sets its style and
+/* The record's start border, against the row-number gutter (viewCommon.css sets its style and
    color); it collapses together with the gutter. */
 .gridview_data_pane .record {
-  border-left-width: var(--row-num-border);
+  border-inline-start-width: var(--row-num-border);
 }
 
-.gridview_data_row_num { /* Row nums, stick to the left side */
+.gridview_data_row_num { /* Row nums, stick to the start side */
   position: -webkit-sticky;
   position: sticky;
-  left: 0px;
+  inset-inline-start: 0px;
   overflow: hidden;
   width: var(--row-num-width); /* Also should match width for .gridview_header_corner, and the overlay elements */
   flex: none;
@@ -114,7 +114,7 @@
   visibility: hidden;
   position: absolute;
   top: 2px;
-  right: 0px;
+  inset-inline-end: 0px;
 }
 
 /* Show on hover or when menu is opened */
@@ -156,14 +156,14 @@
     break-inside: avoid;
     position: static;
     border-top: 1px solid var(--grist-color-dark-grey);
-    border-left: 1px solid var(--grist-color-dark-grey);
+    border-inline-start: 1px solid var(--grist-color-dark-grey);
   }
   .print-widget .gridview_data_header {
-    padding-left: var(--row-num-width) !important;
+    padding-inline-start: var(--row-num-width) !important;
   }
   .print-widget .gridview_data_pane .print-all-rows {
     display: table-row-group;
-    border-left: 1px solid var(--grist-color-dark-grey);
+    border-inline-start: 1px solid var(--grist-color-dark-grey);
   }
   .print-widget .gridview_data_pane .print-row {
     display: table-row;
@@ -199,11 +199,11 @@
 /* Corner menu toggle (row-numbers menu), styled like the row-header menu toggles. Uses opacity
  * rather than visibility so that it can also be revealed by hovering the toggle itself when the
  * gutter is hidden: the corner is then 0px wide and the toggle sits (via the max() below) over
- * the left edge of the first column header. */
+ * the start edge of the first column header. */
 .gridview_data_corner_overlay .menu_toggle {
   position: absolute;
   top: 2px;
-  left: max(4px, calc(var(--row-num-width) - 18px));
+  inset-inline-start: max(4px, calc(var(--row-num-width) - 18px));
   opacity: 0;
 }
 
@@ -213,7 +213,7 @@
   opacity: 1;
 }
 
-/* Left most shadow - displayed next to row numbers or when columns are frozen - after last frozen column */
+/* Start-side shadow - displayed next to row numbers or when columns are frozen - after last frozen column */
 .scroll_shadow_left {
   height: 100%;
   width: 0px;
@@ -227,19 +227,26 @@
      - frozen-offset: when frozen columns are wider then the screen, we want them to move left initially,
                       this value is the position where this movement should stop.
    */
-  left: calc(var(--row-num-width) + (var(--frozen-width, 0) - min(var(--frozen-scroll-offset, 0), var(--frozen-offset, 0))) * 1px);
+  inset-inline-start: calc(var(--row-num-width) + (var(--frozen-width, 0) - min(var(--frozen-scroll-offset, 0), var(--frozen-offset, 0))) * 1px);
   box-shadow: -6px 0 6px 6px var(--grist-theme-table-scroll-shadow, #444);
-  /* shadow should only show to the right of it (10px should be enough) */
+  /* shadow should only show toward the end side of it (10px should be enough) */
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   z-index: 30;
 }
 
-/* Right shadow - normally not displayed - activated when grid has frozen columns */
+/* Shadows cast toward the end side; box-shadow and clip-path are physical, so mirror them. */
+.scroll_shadow_left:dir(rtl) {
+  box-shadow: 6px 0 6px 6px var(--grist-theme-table-scroll-shadow, #444);
+  -webkit-clip-path: polygon(0 0, -10px 0, -10px 100%, 0 100%);
+  clip-path: polygon(0 0, -10px 0, -10px 100%, 0 100%);
+}
+
+/* End-side shadow - normally not displayed - activated when grid has frozen columns */
 .scroll_shadow_frozen {
   height: 100%;
   width: 0px;
-  left: var(--row-num-width);
+  inset-inline-start: var(--row-num-width);
   box-shadow: -8px 0 14px 4px var(--grist-theme-table-scroll-shadow, #444);
   -webkit-clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%);
   clip-path: polygon(0 0, 28px 0, 24px 100%, 0 100%);
@@ -247,15 +254,21 @@
   position: absolute;
 }
 
+.scroll_shadow_frozen:dir(rtl) {
+  box-shadow: 8px 0 14px 4px var(--grist-theme-table-scroll-shadow, #444);
+  -webkit-clip-path: polygon(0 0, -10px 0, -10px 100%, 0 100%);
+  clip-path: polygon(0 0, -28px 0, -24px 100%, 0 100%);
+}
+
 /* line that indicates where the frozen columns end */
 .frozen_line {
   position:absolute;
   height: 100%;
   width: 2px;
-  /* this value is the same as for the left shadow - but doesn't need to really on the scroll offset
+  /* this value is the same as for the start shadow - but doesn't need to really on the scroll offset
      as this component will be hidden when the scroll starts
    */
-  left: calc(var(--row-num-width) + var(--frozen-width, 0) * 1px);
+  inset-inline-start: calc(var(--row-num-width) + var(--frozen-width, 0) * 1px);
   background-color: var(--grist-theme-table-frozen-columns-border, #999999);
   z-index: 30;
   user-select: none;
@@ -263,7 +276,7 @@
 }
 
 .scroll_shadow_top {
-  left: 0;
+  inset-inline-start: 0;
   height: 0;
   width: 100%; /* needs to be wide enough to flow off the side*/
   top: var(--gridview-header-height); /* matches gridview_data_header height */
@@ -280,16 +293,16 @@
   height:100%;
   top: 1px; /* go under 1px border on scrollpane */
   z-index: 10;
-  border-right: var(--row-num-border) solid var(--grist-theme-table-header-border, lightgray);
+  border-inline-end: var(--row-num-border) solid var(--grist-theme-table-header-border, lightgray);
 }
 
 .gridview_left_border {
   position: absolute;
-  left: var(--row-num-width);
+  inset-inline-start: var(--row-num-width);
   width: 0px; /* Matches rowid width (+border) */
   height: 100%;
   z-index: 30;
-  border-right: var(--row-num-border) solid var(--grist-theme-table-body-border, var(--grist-color-dark-grey)) !important;
+  border-inline-end: var(--row-num-border) solid var(--grist-theme-table-body-border, var(--grist-color-dark-grey)) !important;
   user-select: none;
   pointer-events: none
 }
@@ -340,7 +353,7 @@
   position: absolute;
   border: 2px solid var(--grist-theme-table-drag-drop-indicator, gray);
   z-index: 200;
-  left: 0px;
+  inset-inline-start: 0px;
 }
 
 .row_shadow{
@@ -349,7 +362,7 @@
   position: absolute;
   border: 1px solid var(--grist-theme-table-drag-drop-indicator, gray);
   z-index: 150;
-  left: 0px;
+  inset-inline-start: 0px;
   background-color: var(--grist-theme-table-drag-drop-shadow, #F0F0F0);
   opacity: 0.5;
   pointer-events: none; /* prevents row drag shadow from stealing row headers clicks */
@@ -360,7 +373,7 @@
 /* style header and a data field */
 .record .field.frozen {
   position: sticky;
-  left: calc(var(--row-num-width) + var(--row-num-border) + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* row-number gutter + its border + total width of cells */
+  inset-inline-start: calc(var(--row-num-width) + var(--row-num-border) + (var(--frozen-position, 0) - var(--frozen-offset, 0)) * 1px); /* row-number gutter + its border + total width of cells */
   z-index: 10;
 }
 /* for data field we need to reuse color from record (add-row and zebra stripes) */
@@ -383,7 +396,7 @@
 
 /* make room for a frozen line by adding margin to first not frozen field - in header and in data */
 .field.frozen + .field:not(.frozen) {
-  margin-left: 1px;
+  margin-inline-start: 1px;
 }
 
 /* printing frozen fields is straightforward - just need to remove transparency */
@@ -425,18 +438,30 @@
 .g-column-main-menu {
   position: absolute;
   top: 3px;
-  right: 2px;
+  inset-inline-end: 2px;
+}
+
+/* Drag handle on the end edge of a column header, for resizing the column (see columnResizer.ts). */
+.column_resize_handle {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 7px;
+  inset-inline-end: -5px;
+  cursor: col-resize;
+  z-index: 90;
+  touch-action: none;
 }
 
 
 .validation_error_number {
   position: absolute;
   top: -12px;
-  right: -12px;
+  inset-inline-end: -12px;
   width: 24px;
   height: 24px;
   padding-top: 10px;
-  padding-right: 10px;
+  padding-inline-end: 10px;
   border-radius: 12px;
   text-align: center;
   font-size: 10px;
@@ -446,9 +471,9 @@
 }
 
 .column_name.mod-add-column {
-  border-right-width: 1px;
+  border-inline-end-width: 1px;
   min-width: 40px;
-  padding-right: 12px;
+  padding-inline-end: 12px;
 }
 
 .g-column-label {
@@ -460,6 +485,6 @@
 .g-column-label .info_toggle_icon {
   width: 13px;
   height: 13px;
-  margin-right: 4px;
+  margin-inline-end: 4px;
   z-index: 1;
 }

@@ -11,8 +11,8 @@
   border-width: 0px;
   border-style: none;
   border-color: var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
-  border-left-style: solid;  /* left border, against rownumbers div, always on */
-  border-left-color: var(--grist-theme-table-header-border, lightgray);
+  border-inline-start-style: solid;  /* start border, against rownumbers div, always on */
+  border-inline-start-color: var(--grist-theme-table-header-border, lightgray);
   border-bottom-width: 1px; /* style: none, set by record-hlines*/
   /* Record background is white (or theme default) by default.
      It gets overridden by the add row, zebra stripes.
@@ -66,7 +66,7 @@
 .field.field-insert-before::before {
   content: '';
   position: absolute;
-  left: 0px;
+  inset-inline-start: 0px;
   top: 0px;
   /* Overlap the top/bottom table borders so that the line appears uninterrupted. */
   bottom: -1px;
@@ -96,7 +96,7 @@
 
 .record-vlines > .field {
   /* set border visibility */
-  border-right-color: var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
+  border-inline-end-color: var(--grist-theme-table-body-border, var(--grist-color-dark-grey));
 }
 
 .field.scissors {
@@ -104,7 +104,7 @@
 }
 
 .field.draft {
-  padding-right: 18px;
+  padding-inline-end: 18px;
 }
 
 .field_clip {
@@ -177,10 +177,16 @@
   pointer-events: none;
 }
 
+/* Gradients are physical: the fade sits at the end side, so mirror it in right-to-left. */
+.row_height_set .field_clip.markdown.overflowing:dir(rtl)::before {
+  -webkit-mask-image: linear-gradient(to left, transparent calc(100% - 40px), rgb(0, 0, 0) 100%);
+  mask-image: linear-gradient(to left, transparent calc(100% - 40px), rgb(0, 0, 0) 100%);
+}
+
 .row_height_set .field_clip.markdown.overflowing::after {
   content: '…';
   position: absolute;
-  right: 3px;
+  inset-inline-end: 3px;
   bottom: 0;
   /* Matches .field_clip's line-height, so it lands on a normal line's baseline. */
   line-height: 18px;
@@ -231,7 +237,7 @@
 .field_clip.invalid.field-error-C {
   background-color: unset;
   color: var(--grist-color-dark-grey);
-  padding-left: 18px;
+  padding-inline-start: 18px;
 }
 
 .field_clip.invalid.field-error-C::before {
@@ -239,7 +245,7 @@
   content: "";
   position: absolute;
   top: 4px;
-  left: 2px;
+  inset-inline-start: 2px;
   width: 14px;
   height: 14px;
   background-color: var(--grist-color-dark-grey);
@@ -265,7 +271,7 @@
 @media not print {
 .selected_cursor {
   position: absolute;
-  left: 0px;
+  inset-inline-start: 0px;
   top: 0px;
   width: 100%;
   height: 100%;
@@ -289,11 +295,11 @@
   text-align: center;
   cursor: pointer;
   /* Column headers always show vertical gridlines, to make it clear how to resize them */
-  border-right-color: var(--grist-theme-table-header-border, lightgray);
+  border-inline-end-color: var(--grist-theme-table-header-border, lightgray);
 }
 
 .column_names.record {
-  border-left-color: var(--grist-theme-table-header-border, lightgray);
+  border-inline-start-color: var(--grist-theme-table-header-border, lightgray);
 }
 
 .column_name.selected > .selection {
@@ -333,8 +339,8 @@
 .gridview_data_row_info.linked_dst::before {
   position: absolute;
   content: '\25B8';
-  text-align: left;
-  left: 7px;
+  text-align: start;
+  inset-inline-start: 7px;
 }
 
 .text_wrapping {

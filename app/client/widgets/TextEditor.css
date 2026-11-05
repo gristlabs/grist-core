@@ -15,14 +15,14 @@
 /* make room for lock icon */
 .readonly_editor .celleditor_cursor_editor .celleditor_text_editor,
 .readonly_editor .celleditor_cursor_editor .celleditor_content_measure {
-  padding-left: 18px;
+  padding-inline-start: 18px;
 }
 
 .readonly_editor::before {
   content: "";
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   margin: 4px 3px 0 3px;
   width: 13px;
   height: 13px;
@@ -42,6 +42,8 @@
 /* Make overflow hidden, since editor might be 1 pixel bigger due to fix for devices
  * with different pixel ratio */
 .formula_editor {
+  /* Formulas are code and read left-to-right whatever the direction of the cell being edited. */
+  direction: ltr;
   background-color: var(--grist-theme-ace-editor-bg, white);
   padding: 4px 4px 2px 21px;
   z-index: 10;
@@ -59,7 +61,7 @@
   border-radius: 3px;
 }
 .formula_editor_sidepane > .formula_field_edit::before, .formula_field_sidepane::before {
-  left: 4px;
+  inset-inline-start: 4px;
 }
 
 .celleditor_cursor_editor {
@@ -98,7 +100,7 @@
 
 .celleditor_content_measure {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   border: none;
   visibility: hidden;
