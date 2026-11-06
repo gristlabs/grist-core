@@ -142,6 +142,7 @@ export const GristDark: ThemeTokens = {
     controlDisabledFg: tokens.secondary,
     controlDisabledBg: tokens.decoration,
     controlBorder: `1px solid ${tokens.primary}`,
+    controlDangerFg: "#ffb6c1",
 
     /* Checkboxes */
     checkboxBorderHover: tokens.secondary,
