@@ -177,6 +177,8 @@ export interface MultiServerEntry {
   alive: boolean;
   // Ids of other workers with the same address as this one (as compared by findSharedAddresses).
   workerIdsSharingAddress?: string[];
+  // The process registered under this id.
+  incarnation?: string;
 }
 
 export interface MultiServerDescription {

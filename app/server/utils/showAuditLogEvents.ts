@@ -1386,6 +1386,32 @@ const AuditEvents: AuditEvents = {
       },
     },
   },
+  "server.release": {
+    type: ["installation"],
+    description: "A server was released, freeing the documents assigned to it.",
+    properties: {
+      server: {
+        type: "object",
+        description: "The server that was released.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The server ID.",
+          },
+        },
+      },
+      document_count: {
+        type: "number",
+        description: "How many documents were freed.",
+      },
+    },
+    sample: {
+      server: {
+        id: "10.1.2.3_8484",
+      },
+      document_count: 12,
+    },
+  },
   "site.change_access": {
     type: ["installation", "site"],
     description: "A site's access was changed.",

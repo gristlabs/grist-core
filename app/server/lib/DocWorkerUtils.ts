@@ -1,6 +1,6 @@
 import { ApiError } from "app/common/ApiError";
 import { parseSubdomain } from "app/common/gristUrls";
-import { removeTrailingSlash } from "app/common/gutil";
+import { isAffirmative, removeTrailingSlash } from "app/common/gutil";
 import { isSingleUserMode } from "app/server/lib/Authorizer";
 import { DocStatus, DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { getAssignmentId } from "app/server/lib/idUtils";
@@ -99,7 +99,7 @@ export async function getWorker(
     throw new Error("AppEndpoint.getWorker was called unnecessarily");
   }
   let docStatus: DocStatus | undefined;
-  const workersAreManaged = Boolean(process.env.GRIST_MANAGED_WORKERS);
+  const workersAreManaged = isAffirmative(process.env.GRIST_MANAGED_WORKERS);
   for (;;) {
     docStatus = await docWorkerMap.assignDocWorker(assignmentId);
     // Nothing to ask when the document is here, and worse than wasteful: a request that

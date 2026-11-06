@@ -5,6 +5,7 @@
 
 import { makeT } from "app/client/lib/localization";
 import { AdminChecks } from "app/client/models/AdminChecks";
+import { reportError, reportSuccess } from "app/client/models/errors";
 import {
   buildStatusPill,
   cssIconWrapper as cssWellIcon,
@@ -20,6 +21,9 @@ import { textButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
+import { menu, menuItem } from "app/client/ui2018/menus";
+import { confirmModal } from "app/client/ui2018/modals";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 import {
   countServerHealth,
   describeServerHealth,
@@ -30,6 +34,7 @@ import {
   MultiServerSituation,
   ServerHealthReason,
 } from "app/common/BootProbe";
+import { InstallAPI } from "app/common/InstallAPI";
 
 import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled, UseCBOwner } from "grainjs";
 
@@ -155,6 +160,7 @@ function _copyFor(situation: MultiServerSituation): SituationCopy | undefined {
 
 export interface ServersSectionProps {
   checks: AdminChecks;
+  installAPI: InstallAPI;
 }
 
 /**
@@ -350,9 +356,52 @@ so that every server is configured the same way."))),
         hoverTooltip(pill.tip(), { key: "serverPill" }),
         testId("pill"),
       )),
+      cssServerAction(
+        cssServerMenu(
+          icon("Dots"),
+          dom.attr("aria-label", t("Options for {{workerId}}", { workerId: server.id })),
+          menu(() => [
+            menuItem(() => this._confirmDeregister(server),
+              t("Deregister and release documents"), testId("deregister")),
+          ], { placement: "bottom-end" }),
+          testId("menu"),
+        ),
+      ),
       testId("row"),
       dom.cls(`test-admin-servers-row-${server.id}`),
     );
+  }
+
+  // A server still reporting that it is running is only released when forced, so it gets the
+  // stronger warning up front. One that starts reporting again before the click is refused.
+  private _confirmDeregister(server: MultiServerEntry) {
+    const force = server.alive;
+    confirmModal(
+      force ? t("Deregister anyway?") : t("Deregister this server?"),
+      force ? t("Deregister anyway") : t("Deregister"),
+      () => this._deregister(server, force),
+      {
+        defaultCancel: true,
+        explanation: dom("p", force ?
+          t("{{workerId}} is still reporting that it is running. Deregister it only if you know it is gone.",
+            { workerId: cssInlineName(server.id) }) :
+          t("This frees the documents held by {{workerId}} so other servers can serve them. Do this \
+only if you've confirmed that server is gone for good.",
+          { workerId: cssInlineName(server.id) }),
+        ),
+      },
+    );
+  }
+
+  private async _deregister(server: MultiServerEntry, force: boolean) {
+    try {
+      const { documentCount: count } = await this._props.installAPI.releaseDocWorker(
+        server.id, { incarnation: server.incarnation, force });
+      reportSuccess(t("Deregistered {{workerId}}, releasing {{count}} documents", { count, workerId: server.id }));
+    } catch (err) {
+      reportError(err);
+    }
+    this._recheck();
   }
 }
 
@@ -505,8 +554,8 @@ const NARROW_ROW = "@container servers (max-width: 560px)";
 
 const cssServerRow = styled("div", `
   display: grid;
-  /* Fixed width for the state, so it lines up across rows. */
-  grid-template-columns: minmax(0, 1fr) 132px;
+  /* Fixed widths for the state and menu, so they line up across rows. */
+  grid-template-columns: minmax(0, 1fr) 132px 24px;
   align-items: center;
   gap: 16px;
   padding: 14px 16px;
@@ -517,7 +566,7 @@ const cssServerRow = styled("div", `
 
   ${NARROW_ROW} {
     & {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) auto;
       row-gap: 12px;
     }
   }
@@ -543,6 +592,32 @@ const cssServerStatus = styled("div", `
       justify-content: flex-start;
     }
   }
+`);
+
+const cssServerAction = styled("div", `
+  display: flex;
+  justify-content: flex-end;
+`);
+
+const cssServerMenu = styled(unstyledButton, `
+  flex: none;
+  height: 24px;
+  width: 24px;
+  padding: 4px;
+  line-height: 0px;
+  border-radius: 3px;
+  cursor: pointer;
+  --icon-color: ${theme.lightText};
+
+  &:hover, &.weasel-popup-open {
+    background-color: ${theme.hover};
+    --icon-color: ${theme.text};
+  }
+`);
+
+const cssInlineName = styled("span", `
+  font-family: monospace;
+  overflow-wrap: anywhere;
 `);
 
 const cssServerHead = styled("div", `

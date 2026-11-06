@@ -64,6 +64,7 @@ export const AuditEventAction = StringUnion(
   "document.send_to_google_drive",
   "document.truncate_history",
   "document.unpin",
+  "server.release",
   "site.change_access",
   "site.create",
   "site.delete",
@@ -263,6 +264,10 @@ export interface AuditEventDetails {
   };
   "document.unpin": {
     document: Pick<Document, "id" | "name">;
+  };
+  "server.release": {
+    server: { id: string };
+    document_count: number;
   };
   "site.change_access": {
     site: Pick<Organization, "id" | "name" | "domain">;

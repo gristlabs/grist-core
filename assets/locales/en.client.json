@@ -3573,6 +3573,8 @@
         "1 server": "1 server",
         "Another server has the same address, so requests meant for one may reach the other.": "Another server has the same address, so requests meant for one may reach the other.",
         "Could not reach the server": "Could not reach the server",
+        "Deregistered {{workerId}}, releasing {{count}} documents_one": "Deregistered {{workerId}}, releasing {{count}} document",
+        "Deregistered {{workerId}}, releasing {{count}} documents_other": "Deregistered {{workerId}}, releasing {{count}} documents",
         "Each document is held by one of these servers. Fleet-style routing.": "Each document is held by one of these servers. Fleet-style routing.",
         "Each document is held by one of these servers. Worker-pool routing.": "Each document is held by one of these servers. Worker-pool routing.",
         "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.": "GRIST_FLEET is set, but this build cannot proxy documents between servers, so documents are only reachable on the server assigned to them.",
@@ -3615,7 +3617,15 @@
         "{{count}} other servers have stopped reporting that they are running._other": "{{count}} other servers have stopped reporting that they are running.",
         "{{count}} servers_one": "{{count}} server",
         "{{count}} servers_other": "{{count}} servers",
-        "{{percent}}% load": "{{percent}}% load"
+        "{{percent}}% load": "{{percent}}% load",
+        "Deregister": "Deregister",
+        "Deregister and release documents": "Deregister and release documents",
+        "Deregister anyway": "Deregister anyway",
+        "Deregister anyway?": "Deregister anyway?",
+        "Deregister this server?": "Deregister this server?",
+        "Options for {{workerId}}": "Options for {{workerId}}",
+        "This frees the documents held by {{workerId}} so other servers can serve them. Do this only if you've confirmed that server is gone for good.": "This frees the documents held by {{workerId}} so other servers can serve them. Do this only if you've confirmed that server is gone for good.",
+        "{{workerId}} is still reporting that it is running. Deregister it only if you know it is gone.": "{{workerId}} is still reporting that it is running. Deregister it only if you know it is gone."
     },
     "GristImportEntryPoints": {
         "Copy data from another document": "Copy data from another document"

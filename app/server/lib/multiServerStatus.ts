@@ -86,6 +86,7 @@ export async function describeServers(
     self: reg.info.id === ownWorkerId,
     alive: reg.alive,
     workerIdsSharingAddress: sharing.get(reg.info.id),
+    incarnation: reg.info.incarnation,
   }));
 
   return { kind, registeredServerCount: servers.length, selfRegistered, servers, fleet };

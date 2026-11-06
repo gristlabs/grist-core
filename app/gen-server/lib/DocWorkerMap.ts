@@ -78,8 +78,11 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     this._worker = info;
   }
 
-  public async removeWorker(workerId: string): Promise<void> {
+  public async removeWorker(workerId: string, incarnation?: string): Promise<number | null> {
+    if (incarnation !== undefined &&
+      (this._worker?.id !== workerId || this._worker.incarnation !== incarnation)) { return null; }
     this._worker = undefined;
+    return 0;
   }
 
   public async getRegisteredWorkers(): Promise<DocWorkerRegistration[]> {
@@ -259,35 +262,19 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
-  public async removeWorker(workerId: string): Promise<void> {
-    log.info(`DocWorkerMap.removeWorker ${workerId}`);
+  /**
+   * Removes the worker and frees its documents, returning how many were freed (possibly 0). Given
+   * an incarnation, removes nothing and returns null if the worker is not registered as it.
+   */
+  public async removeWorker(workerId: string, incarnation?: string): Promise<number | null> {
+    log.info(`DocWorkerMap.removeWorker ${workerId}${incarnation === undefined ? "" : ` ${incarnation}`}`);
     const lock = await this._redlock.lock("workers-lock", LOCK_TIMEOUT);
     try {
-      // Drop out of available set first.
-      await this._client.sremAsync("workers-available", workerId);
-      const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
-      // TODO: remove `workers-available-${group}`.
-      await this._client.sremAsync(`workers-available-${group}`, workerId);
-      await this._client.zremAsync(`workers-available-by-load-${group}`, workerId);
-      // At this point, this worker should no longer be receiving new doc assignments, though
-      // clients may still be directed to the worker.
-
-      // Now, we start removing the assignments.
-      const assignments = await this._client.smembersAsync(`worker-${workerId}-docs`);
-      if (assignments) {
-        const op = this._client.multi();
-        for (const doc of assignments) { op.del(`doc-${doc}`); }
-        await op.execAsync();
+      if (incarnation !== undefined) {
+        const info = await this._client.hgetallAsync(`worker-${workerId}`);
+        if (info?.incarnation !== incarnation) { return null; }
       }
-
-      // Now remove worker-{workerId}* keys.
-      await this._client.delAsync(`worker-${workerId}-docs`);
-      await this._client.delAsync(`worker-${workerId}-group`);
-      await this._client.delAsync(`worker-${workerId}`);
-
-      // Forget about this worker completely.
-      await this._client.sremAsync("workers", workerId);
-      await this._client.delAsync(`worker-${workerId}-alive`);
+      return await this._removeWorkerUnderLock(workerId);
     } finally {
       await lock.unlock();
     }
@@ -752,6 +739,39 @@ export class DocWorkerMap implements IDocWorkerMap {
       ...keyCountAndValues,
       ...args,
     );
+  }
+
+  /**
+   * Removes the worker and frees its documents. The caller holds workers-lock. Returns how many
+   * documents were freed.
+   */
+  private async _removeWorkerUnderLock(workerId: string): Promise<number> {
+    // Drop out of available set first.
+    await this._client.sremAsync("workers-available", workerId);
+    const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
+    // TODO: remove `workers-available-${group}`.
+    await this._client.sremAsync(`workers-available-${group}`, workerId);
+    await this._client.zremAsync(`workers-available-by-load-${group}`, workerId);
+    // At this point, this worker should no longer be receiving new doc assignments, though
+    // clients may still be directed to the worker.
+
+    // Now, we start removing the assignments.
+    const assignments = await this._client.smembersAsync(`worker-${workerId}-docs`);
+    if (assignments) {
+      const op = this._client.multi();
+      for (const doc of assignments) { op.del(`doc-${doc}`); }
+      await op.execAsync();
+    }
+
+    // Now remove worker-{workerId}* keys.
+    await this._client.delAsync(`worker-${workerId}-docs`);
+    await this._client.delAsync(`worker-${workerId}-group`);
+    await this._client.delAsync(`worker-${workerId}`);
+
+    // Forget about this worker completely.
+    await this._client.sremAsync("workers", workerId);
+    await this._client.delAsync(`worker-${workerId}-alive`);
+    return assignments?.length ?? 0;
   }
 }
 

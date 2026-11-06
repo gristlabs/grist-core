@@ -809,6 +809,17 @@ describe("DocWorkerMap", function() {
       assert.equal(registered[0].assignmentCount, 1);
     });
 
+    it("removes a worker only as the incarnation it was last registered as", async function() {
+      assert.isNull(await workers.removeWorker(workerA.id, "first"), "removed a missing worker");
+      await workers.addWorker({ ...workerA, incarnation: "first" });
+      await workers.addWorker({ ...workerA, incarnation: "second" });
+      await workers.setWorkerAvailability(workerA.id, true);
+      await workers.assignDocWorker("incarnationTestDoc");
+      assert.isNull(await workers.removeWorker(workerA.id, "first"));
+      assert.equal(await workers.removeWorker(workerA.id, "second"), 1);
+      assert.deepEqual(await workers.getRegisteredWorkers(), []);
+    });
+
     it("reports a worker that is registered but not taking documents", async function() {
       await workers.addWorker(workerA);
       await workers.setWorkerAvailability(workerA.id, false);

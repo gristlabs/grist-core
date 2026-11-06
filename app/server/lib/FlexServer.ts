@@ -117,6 +117,7 @@ import pick from "lodash/pick";
 import morganLogger from "morgan";
 import fetch from "node-fetch";
 import * as serveStatic from "serve-static";
+import { v4 as uuidv4 } from "uuid";
 
 // Health checks are a little noisy in the logs, so we don't show them all.
 // We show the first N health checks:
@@ -2501,7 +2502,7 @@ export class FlexServer implements GristServer {
           createWorkerUrl: process.env.GRIST_ROUTER_URL ?
             () => this.createWorkerUrl() : undefined,
         });
-        this.worker = identity.info;
+        this.worker = { ...identity.info, incarnation: uuidv4() };
         this._publicUrlIsGuessed = identity.publicUrlIsGuessed;
         if (process.env.GRIST_WORKER_GROUP) {
           this.worker.group = process.env.GRIST_WORKER_GROUP;
@@ -2540,17 +2541,18 @@ export class FlexServer implements GristServer {
     for (const { info } of await workers.getRegisteredWorkers()) {
       if (info.id !== this.worker.id && tryParseUrl(info.internalUrl)?.hostname === "0.0.0.0") {
         log.warn(`Removing doc worker ${info.id} left at ${info.internalUrl}`);
-        await workers.removeWorker(info.id);
+        await workers.removeWorker(info.id, info.incarnation);
       }
     }
   }
 
-  private async _removeSelfAsWorker(workers: IDocWorkerMap, docWorkerId: string) {
+  private async _removeSelfAsWorker(workers: IDocWorkerMap, worker: DocWorkerInfo) {
     this._healthy = false;
     // Deregistering matters more than a last report, so a failed one must not stop it.
     await this._docWorkerLoadTracker?.stopAndFinish().catch(
-      err => log.warn(`DocWorker ${docWorkerId} could not finish reporting itself: ${err}`));
-    await workers.removeWorker(docWorkerId);
+      err => log.warn(`DocWorker ${worker.id} could not finish reporting itself: ${err}`));
+    // A process that has since taken this id keeps its registration.
+    await workers.removeWorker(worker.id, worker.incarnation);
     if (process.env.GRIST_ROUTER_URL) {
       await axios.get(process.env.GRIST_ROUTER_URL,
         { params: { act: "remove", port: this.getOwnPort() } });
@@ -2631,7 +2633,7 @@ export class FlexServer implements GristServer {
       log.error("FlexServer shutdown failed to release assignments:", assignments);
     }
 
-    await this._removeSelfAsWorker(workers, this.worker.id);
+    await this._removeSelfAsWorker(workers, this.worker);
     try {
       await this._docManager.shutdownAll();
     } catch (err) {

@@ -25,6 +25,9 @@ export interface DocWorkerInfo {
   // Path of the worker's testing-hooks unix socket (GRIST_TESTING_SOCKET).
   // Set only under the test harness for testing hooks to use, only reachable from the same host
   testingSocket?: string;
+
+  // Unique to each process, unlike the id, which a later process at the same address reuses.
+  incarnation?: string;
 }
 
 /** One doc worker, as the worker map has it. */
@@ -67,7 +70,12 @@ export interface IDocWorkerMap extends IPermitStores, IElectionStore, IChecksumS
 
   addWorker(info: DocWorkerInfo): Promise<void>;
 
-  removeWorker(workerId: string): Promise<void>;
+  /**
+   * Removes the worker and frees its documents. Given an incarnation, only does so if the worker is
+   * still registered as it. Returns how many documents were freed, which may be 0, or null if the
+   * worker is not registered as that incarnation and nothing was removed.
+   */
+  removeWorker(workerId: string, incarnation?: string): Promise<number | null>;
 
   getRegisteredWorkers(): Promise<DocWorkerRegistration[]>;
 

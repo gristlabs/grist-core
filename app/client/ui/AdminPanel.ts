@@ -278,7 +278,7 @@ class AdminInstallationPanel extends Disposable {
     }
 
     this._sandboxSection = SandboxSetupSection.create(this, this._checks, { inAdminPanel: true });
-    this._serversSection = ServersSection.create(this, { checks: this._checks });
+    this._serversSection = ServersSection.create(this, { checks: this._checks, installAPI: this._installAPI });
 
     this._drafts.addSection(this._baseUrlSection);
     this._drafts.addSection(this._editionSection);

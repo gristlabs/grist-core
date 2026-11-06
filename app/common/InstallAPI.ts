@@ -42,6 +42,12 @@ export interface PermissionsStatus {
   telemetry: PermissionSetting;
 }
 
+/** What releasing a server freed. */
+export interface DocWorkerRelease {
+  serverId: string;
+  documentCount: number;
+}
+
 export interface InstallAPI {
   getInstallPrefs(): Promise<InstallPrefsWithSources>;
   updateInstallPrefs(prefs: Partial<InstallPrefs>): Promise<void>;
@@ -59,6 +65,10 @@ export interface InstallAPI {
   getPermissionsStatus(): Promise<PermissionsStatus>;
   /** True if a user with this login email exists in the home DB. */
   userExists(email: string): Promise<boolean>;
+  /** Deregister a server that is gone and free its documents. See DELETE /api/admin/servers/:serverId. */
+  releaseDocWorker(
+    workerId: string, options?: { incarnation?: string, force?: boolean },
+  ): Promise<DocWorkerRelease>;
 }
 
 export class InstallAPIImpl extends BaseAPI implements InstallAPI {
@@ -86,7 +96,7 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
   }
 
   public runCheck(id: string, opts: { background?: boolean } = {}): Promise<BootProbeResult> {
-    const url = `${this._url}/api/probes/${id}`;
+    const url = `${this._url}/api/probes/${encodeURIComponent(id)}`;
     return opts.background ?
       this.requestJsonUncounted(url, { method: "GET" }) :
       this.requestJson(url, { method: "GET" });
@@ -101,6 +111,15 @@ export class InstallAPIImpl extends BaseAPI implements InstallAPI {
     url.searchParams.set("email", email);
     const resp = await this.requestJson(url.href, { method: "GET" });
     return Boolean((resp as { exists?: boolean }).exists);
+  }
+
+  public async releaseDocWorker(
+    workerId: string, options: { incarnation?: string, force?: boolean } = {},
+  ): Promise<DocWorkerRelease> {
+    const url = new URL(`${this._url}/api/admin/servers/${encodeURIComponent(workerId)}`);
+    if (options.incarnation) { url.searchParams.set("incarnation", options.incarnation); }
+    if (options.force) { url.searchParams.set("force", "1"); }
+    return this.requestJson(url.href, { method: "DELETE" });
   }
 
   private get _url(): string {
