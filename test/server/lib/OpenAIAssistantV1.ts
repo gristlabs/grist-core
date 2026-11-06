@@ -58,8 +58,8 @@ describe("OpenAIAssistantV1", function() {
   const colId = "C";
   const userMessageContent = "Sum of A and B";
 
-  function checkGetAssistance(state?: AssistanceState) {
-    return assistant.getAssistance(session, doc, {
+  function checkGetAssistance(state?: AssistanceState, targetAssistant = assistant) {
+    return targetAssistant.getAssistance(session, doc, {
       conversationId: "conversationId",
       context: { tableId: table1Id, colId },
       state,
@@ -143,6 +143,44 @@ describe("OpenAIAssistantV1", function() {
     },
     );
   });
+
+  it("does not send an unsupported temperature to the default model", async function() {
+    assert.notEqual(OpenAIAssistantV1.DEFAULT_MODEL, "gpt-4o-2024-08-06");
+    fakeResponse = () => ({
+      choices: [{
+        index: 0,
+        message: { role: "assistant", content: "```python\nreturn 1\n```" },
+        finish_reason: "stop",
+      }],
+      status: 200,
+    });
+    await checkGetAssistance();
+    const body = JSON.parse(fakeFetch.getCall(0).args[1].body);
+    assert.equal(body.model, OpenAIAssistantV1.DEFAULT_MODEL);
+    assert.notProperty(body, "temperature");
+  });
+
+  for (const model of ["gpt-6-luna", "gpt-4o", "custom-model"]) {
+    it(`preserves model overrides and uses a compatible temperature for ${model}`, async function() {
+      const configuredAssistant = new OpenAIAssistantV1({ apiKey: "fake", model });
+      fakeResponse = () => ({
+        choices: [{
+          index: 0,
+          message: { role: "assistant", content: "```python\nreturn 1\n```" },
+          finish_reason: "stop",
+        }],
+        status: 200,
+      });
+      await checkGetAssistance(undefined, configuredAssistant);
+      const body = JSON.parse(fakeFetch.getCall(0).args[1].body);
+      assert.equal(body.model, model);
+      if (model.startsWith("gpt-6-luna")) {
+        assert.notProperty(body, "temperature");
+      } else {
+        assert.equal(body.temperature, 0);
+      }
+    });
+  }
 
   it("does not use the trusted proxy when not configured", async function() {
     const agentsFake = { trusted: undefined, untrusted: undefined };
