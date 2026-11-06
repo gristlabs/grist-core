@@ -14,6 +14,7 @@ import koDomScrolly from "app/client/lib/koDomScrolly";
 import { makeT } from "app/client/lib/localization";
 import { PasteData } from "app/client/lib/tableUtil";
 import * as tableUtil from "app/client/lib/tableUtil";
+import { testPendingScrolls } from "app/client/lib/testPendingOps";
 import BaseRowModel from "app/client/models/BaseRowModel";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { isSyntheticRowId } from "app/client/models/DataTableModelWithDiff";
@@ -112,7 +113,16 @@ export default class DetailView extends BaseView {
     // A change of row scrolls to its card and then the field; a change of field only scrolls the
     // field, after the DOM marks the newly selected one.
     this.autoDispose(this.cursor.rowIndex.subscribe(() => this.scrollToCursor(false).catch(reportError)));
-    this.autoDispose(this.cursor.fieldIndex.subscribe(() => setTimeout(() => this._scrollFieldIntoView(), 0)));
+    this.autoDispose(this.cursor.fieldIndex.subscribe(() => {
+      testPendingScrolls.start();
+      setTimeout(() => {
+        try {
+          this._scrollFieldIntoView();
+        } finally {
+          testPendingScrolls.end();
+        }
+      }, 0);
+    }));
 
     // --------------------------------------------------
     // Set up DOM event handling.

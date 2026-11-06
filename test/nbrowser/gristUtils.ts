@@ -2225,7 +2225,7 @@ namespace gristUtils {
  * Opens the row menu for the row with the given row number (1-based, as in row headers).
  */
   export async function openRowMenu(rowNum: number) {
-    await waitForPendingOps("testNumPendingScrolls", "the grid to scroll", 2000);
+    await waitForScrolls();
     const row = driver.findContent(".active_section .gridview_data_row_num", String(rowNum));
     await driver.withActions(actions => actions.contextClick(row));
     return findOpenMenu(1000);
@@ -4445,6 +4445,13 @@ namespace gristUtils {
     await waitForMenuFocus();
     await driver.sendKeys(Key.ESCAPE);
     await waitForMenuToClose(1000);
+  }
+
+  /**
+   * Waits for views to scroll to the cursor, which they do a tick after it moves.
+   */
+  export async function waitForScrolls(optTimeout: number = 2000) {
+    await waitForPendingOps("testNumPendingScrolls", "the view to scroll", optTimeout);
   }
 
   /**
