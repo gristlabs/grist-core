@@ -1293,6 +1293,9 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       if (!viewInstance) {
         throw new Error("view not found");
       }
+      // A view still loading would only apply the cursor once loaded, and in a chain of linked
+      // sections that would happen in the order they load rather than the order we set them.
+      await viewInstance.getLoadingDonePromise();
       // Give any synchronous initial cursor setting a chance to happen.
       await delay(0);
       viewInstance.setCursorPos({ ...cursorPos, fieldIndex });
