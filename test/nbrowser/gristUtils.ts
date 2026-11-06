@@ -4448,6 +4448,16 @@ namespace gristUtils {
   }
 
   /**
+   * Waits for the cursor to land where a link or a restored position puts it. After a load,
+   * waitForDocToLoad can return before it does. Restoring a position only starts once its view
+   * has loaded, so view loads come first.
+   */
+  export async function waitForCursorMoves(optTimeout: number = 5000) {
+    await waitForViewLoads(optTimeout);
+    await waitForPendingOps("testNumPendingCursorMoves", "the cursor to move", optTimeout);
+  }
+
+  /**
    * Waits for every view to have the data it asked for. Moving the cursor in one widget makes the
    * widgets linked to it re-query, and the page has no other signal for when those queries finish.
    */
