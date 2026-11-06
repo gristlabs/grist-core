@@ -26,6 +26,7 @@ declare global {
       topAppModel?: TopAppModel;
       testNumPendingApiRequests?: () => number;
       testNumPendingScrolls?: () => number;
+      testNumPendingCursorMoves?: () => number;
       testNumPendingChecks?: () => number;
       testNumPendingPastes?: () => number;
       testNumPendingMenuActions?: () => number;

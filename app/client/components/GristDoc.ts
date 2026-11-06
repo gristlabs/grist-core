@@ -29,6 +29,7 @@ import { ImportSourceElement } from "app/client/lib/imports/ImportSourceElement"
 import { makeT } from "app/client/lib/localization";
 import { createSessionObs } from "app/client/lib/sessionObs";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
+import { testPendingCursorMoves } from "app/client/lib/testPendingOps";
 import { setTestState } from "app/client/lib/testState";
 import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
@@ -1197,6 +1198,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     setAsActiveSection: boolean,
     silent: boolean = false,
     visitedSections: number[] = []): Promise<boolean> {
+    testPendingCursorMoves.start();
     try {
       if (!cursorPos.sectionId) {
         throw new Error("sectionId required");
@@ -1313,6 +1315,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         throw new UserError("There was a problem finding the desired cell.");
       }
       return false;
+    } finally {
+      testPendingCursorMoves.end();
     }
   }
 
