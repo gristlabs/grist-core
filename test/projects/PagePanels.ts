@@ -634,7 +634,6 @@ describe("PagePanels", function() {
         (el: any) => el.click(),
         driver.findContentWait(".grist-floating-menu li", "Rename", 2000),
       );
-      await driver.sleep(20);
 
       // move the mouse out
       await driver.find(".test-pp-right-panel").mouseMove();

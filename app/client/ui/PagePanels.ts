@@ -300,6 +300,8 @@ export function pagePanels(page: PageContents) {
               // While expanded on hover, the leftPanelOpen command pins the panel open instead.
               pinLeftExpansion = pinExpansion;
               watchBlur();
+              // Focus arriving somewhere can be checked right away; the delay is for focus leaving.
+              owner.autoDispose(dom.onElem(document, "focusin", () => { watchBlur(); watchBlur.flush(); }));
             };
             // Turns a hover expansion into a regular open panel. The panel stays where it is, and
             // the main pane slides over to make room for it, starting from under the panel.
