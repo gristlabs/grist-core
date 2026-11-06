@@ -3,7 +3,7 @@
 set -e
 
 if [[ "$GRIST_SANDBOX_FLAVOR" = "gvisor" ]]; then
-  source ./sandbox/gvisor/get_checkpoint_path.sh
+  source ./sandbox/get_checkpoint_path.sh
 
   # Check GVISOR_FLAGS we ended up with. Don't ignore the output, it may be helpful in troubleshooting.
   if runsc --network none $GVISOR_FLAGS "do" true; then
@@ -13,7 +13,10 @@ if [[ "$GRIST_SANDBOX_FLAVOR" = "gvisor" ]]; then
     exit 1
   fi
 
-  ./sandbox/gvisor/update_engine_checkpoint.sh
+  ./sandbox/update_engine_checkpoint.sh
+elif [[ "$GRIST_SANDBOX_FLAVOR" = "pyodide" ]]; then
+  source ./sandbox/get_checkpoint_path.sh
+  ./sandbox/update_engine_checkpoint.sh
 fi
 
 exec env NODE_PATH=_build:_build/ext:_build/stubs:ext/node_modules node _build/stubs/app/server/server.js

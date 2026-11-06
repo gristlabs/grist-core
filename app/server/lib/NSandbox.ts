@@ -17,17 +17,20 @@ import {
   ProcessInfo,
   SubprocessControl,
 } from "app/server/lib/SandboxControl";
-import { checkPyodideDeno, getPyodideSettings } from "app/server/lib/SandboxPyodide";
+import {
+  checkPyodideDeno, getPyodideSettings, launchPyodide, launchPyodideSnapshotMaker, PYODIDE_SNAPSHOT_NAME,
+} from "app/server/lib/SandboxPyodide";
 import * as sandboxUtil from "app/server/lib/sandboxUtil";
-import { cleanEnv } from "app/server/lib/serverUtils";
+import { cleanEnv, exitPromise, timeoutReached } from "app/server/lib/serverUtils";
 import * as shutdown from "app/server/lib/shutdown";
 
-import { ChildProcess, fork, spawn, SpawnOptionsWithoutStdio } from "child_process";
+import { ChildProcess, spawn, SpawnOptionsWithoutStdio } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { Stream, Writable } from "stream";
 
 import * as _ from "lodash";
+import * as tmp from "tmp";
 import * as which from "which";
 
 type SandboxMethod = (...args: any[]) => any;
@@ -87,6 +90,9 @@ export interface ISandboxOptions {
   // Should be set for everything except tests, which may want to pass arguments to python directly.
   // Now defaults to true.
   useGristEntrypoint?: boolean;
+
+  // If set, make a checkpoint in this directory rather than start a sandbox.
+  makeCheckpoint?: string;
 }
 
 /**
@@ -106,6 +112,7 @@ export interface SandboxProcess {
   dataFromSandboxDescriptor?: number;  // override sandbox's 'stdout' for data
   getData?: (cb: (data: any) => void) => void;  // use a callback instead of a pipe to get data
   sendData?: (data: any) => void;  // use a callback instead of a pipe to send data
+  checkpoint?: string;  // checkpoint directory the sandbox started from, if any
 }
 
 interface CallResponse {
@@ -122,7 +129,22 @@ type MsgCode = null | true | false;
 // See test_replay.py
 const recordBuffersRoot = process.env.RECORD_SANDBOX_BUFFERS_DIR;
 
+/*
+ * Callers may listen to events from sandbox.childProc (a ChildProcess), e.g. 'close' and 'error'.
+ * The sandbox listens for 'aboutToExit' event on the process, to properly shut down.
+ *
+ * Grist interacts with the sandbox via message passing through pipes to an isolated
+ * process.  Some read-only shared code is made available to the sandbox.
+ * For plugins, read-only data files are made available.
+ *
+ * Variants can be activated by passing in a non-default "spawner" function.
+ *
+ */
 export class NSandbox implements ISandbox {
+  public static async create(options: ISandboxOptions, spawner: SpawnFn = sandboxed): Promise<NSandbox> {
+    return new NSandbox(options, spawner.name, await spawner(options));
+  }
+
   public readonly childProc?: ChildProcess;
   private _control: ISandboxControl;
   private _logTimes: boolean;
@@ -136,6 +158,7 @@ export class NSandbox implements ISandbox {
   private _isWriteClosed = false;
 
   private _logMeta: log.ILogMeta;
+  private _checkpoint?: string;
   private _streamToSandbox?: Writable;
   private _streamFromSandbox: Stream;
   private _dataToSandbox?: (data: any) => void;
@@ -147,38 +170,23 @@ export class NSandbox implements ISandbox {
   // Create a unique subdirectory for each sandbox process so they can be replayed separately
   private _recordBuffersDir = recordBuffersRoot ? path.resolve(recordBuffersRoot, new Date().toISOString()) : null;
 
-  /*
-   * Callers may listen to events from sandbox.childProc (a ChildProcess), e.g. 'close' and 'error'.
-   * The sandbox listens for 'aboutToExit' event on the process, to properly shut down.
-   *
-   * Grist interacts with the sandbox via message passing through pipes to an isolated
-   * process.  Some read-only shared code is made available to the sandbox.
-   * For plugins, read-only data files are made available.
-   *
-   * Variants can be activated by passing in a non-default "spawner" function.
-   *
-   */
-  constructor(options: ISandboxOptions, spawner: SpawnFn = sandboxed) {
+  private constructor(options: ISandboxOptions, spawnerName: string, sandboxProcess: SandboxProcess) {
     this._logTimes = Boolean(options.logTimes || options.logCalls);
     this._exportedFunctions = options.exports || {};
 
-    const sandboxProcess = spawner(options);
     this.childProc = sandboxProcess.child;
+    this._checkpoint = sandboxProcess.checkpoint;
     this._logMeta = {
       sandboxPid: this.childProc?.pid,
-      flavor: spawner.name,
+      flavor: spawnerName,
       ...options.logMeta,
     };
-    if (spawner.name !== sandboxProcess.name) {
+    if (spawnerName !== sandboxProcess.name) {
       this._logMeta.subflavor = sandboxProcess.name;
     }
 
     // Handle childProc events early, especially the 'error' event which may lead to node exiting.
-    // Creating a gvisor checkpoint will cause the sandbox to
-    // exit abruptly, there is no need to report this as an error.
-    if (!process.env.GRIST_CHECKPOINT_MAKE) {
-      this.childProc?.on("close", this._onExit.bind(this));
-    }
+    this.childProc?.on("close", this._onExit.bind(this));
     this.childProc?.on("error", this._onError.bind(this));
 
     this._control = sandboxProcess.control();
@@ -472,6 +480,9 @@ export class NSandbox implements ISandbox {
     if (this._lastStderr) {
       parts.push(arrayToString(this._lastStderr));
     }
+    if (this._checkpoint) {
+      parts.push(`started from checkpoint ${this._checkpoint} (GRIST_CHECKPOINT=none turns checkpoints off)`);
+    }
     return new sandboxUtil.SandboxError(parts.join(": "));
   }
 
@@ -592,7 +603,15 @@ export class NSandboxCreator implements ISandboxCreator {
     this._preferredPythonVersion = options.preferredPythonVersion;
   }
 
-  public create(options: ISandboxCreationOptions): ISandbox {
+  public create(options: ISandboxCreationOptions): Promise<ISandbox> {
+    return NSandbox.create(this.getOptions(options), this._spawner);
+  }
+
+  public spawn(options: ISandboxOptions): SandboxProcess | Promise<SandboxProcess> {
+    return this._spawner(options);
+  }
+
+  public getOptions(options: ISandboxCreationOptions): ISandboxOptions {
     const sandboxArgs: string[] = [
       ...this._commandArgs,
       ...(options.sandboxOptions?.testSandboxArgs ?? []),
@@ -619,12 +638,12 @@ export class NSandboxCreator implements ISandboxCreator {
       testSandboxArgs: sandboxArgs,
       appendArgs,
     };
-    return new NSandbox(translatedOptions, this._spawner);
+    return translatedOptions;
   }
 }
 
 // A function that takes sandbox options and starts a sandbox process.
-export type SpawnFn = (options: ISandboxOptions) => SandboxProcess;
+export type SpawnFn = (options: ISandboxOptions) => SandboxProcess | Promise<SandboxProcess>;
 
 const hasRunsc = checkCommandExists("runsc");
 const hasSandboxExec = checkCommandExists("sandbox-exec");
@@ -718,9 +737,9 @@ export async function testSandboxFlavor(flavor?: string): Promise<SandboxInfo> {
       logTimes: false,
       preferredPythonVersion: "3",
     };
-    sandbox = flavor ?
+    sandbox = await (flavor ?
       createConcreteSandbox(flavor, options) :
-      getCreate().NSandbox(options);
+      getCreate().NSandbox(options));
     // The actual flavor may differ from what we asked for, so update it.
     info.flavor = sandbox.getFlavor();
     info.configured = info.flavor !== "unsandboxed";
@@ -782,7 +801,7 @@ function resolveSandboxFlavor(flavor?: string): string | undefined {
  * Currently for sandboxing use gvisor if available, otherwise
  * try native sandboxing on macs, otherwise fall back on pyodide.
  */
-function sandboxed(options: ISandboxOptions): SandboxProcess {
+function sandboxed(options: ISandboxOptions): SandboxProcess | Promise<SandboxProcess> {
   if (hasRunsc) {
     return gvisor(options);
   } else if (hasSandboxExec) {
@@ -833,62 +852,28 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
   };
 }
 
-function pyodide(options: ISandboxOptions): SandboxProcess {
-  const pyodideSettings = getPyodideSettings(options);
-  const {
-    cwd, dataFromSandboxDescriptor, dataToSandboxDescriptor, scriptPath, stdio,
-  } = pyodideSettings;
-
+async function pyodide(options: ISandboxOptions): Promise<SandboxProcess> {
   if (options.minimalPipeMode === false) {
     throw new Error("pyodide only supports 3-pipe operation");
   }
   options.minimalPipeMode = true;
 
-  const paths = getAbsolutePaths(options);
-  // We will fork with three regular pipes (stdin, stdout, stderr), then
-  // ipc (mandatory for calling fork), and a replacement pipe for stdin
-  // and for stdout.
-  // The regular stdin always opens non-blocking in node, which is a pain
-  // in this case, so we just use a different pipe. There's a different
-  // problem with stdout, with the same solution.
-  const spawnOptions = {
-    stdio,
-    env: {
-      PYTHONPATH: paths.engine,
-      IMPORTDIR: options.importDir,
-      // If running in electron, forces the child process to behave as plain Node.js (no Chromium or browser)
-      ELECTRON_RUN_AS_NODE: "1",
-      ...getInsertedEnv(options),
-      ...getWrappingEnv(options),
-    },
-  };
-
-  let child: ChildProcess;
-
-  const command = options.command ?? pyodideSettings.command;
-  if (command) {
-    const args = [
-      ...pyodideSettings.args,
-
-      ...options.testSandboxArgs,
-      // Ignore options.pythonArgs - no python process runs for pyodide
-      scriptPath,
-      ...(options.comment ? [options.comment] : []),
-      ...(options.appendArgs ?? []),
-    ];
-    log.rawInfo("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
-    child = spawn(
-      command,
-      args,
-      { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
-    );
-  } else {
-    log.rawInfo("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
-    child = fork(
-      scriptPath,
-      { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) },
-    );
+  if (options.makeCheckpoint) {
+    const child = launchPyodideSnapshotMaker(options, options.makeCheckpoint);
+    return { name: "pyodide", child, control: () => new NoProcessControl(child) };
   }
+
+  const checkpoint = await getCheckpoint("pyodide");
+  const pyodideSettings = getPyodideSettings(options, checkpoint);
+  const { dataFromSandboxDescriptor, dataToSandboxDescriptor } = pyodideSettings;
+
+  const paths = getAbsolutePaths(options);
+  const child = launchPyodide(options, pyodideSettings, {
+    PYTHONPATH: paths.engine,
+    IMPORTDIR: options.importDir,
+    ...getInsertedEnv(options),
+    ...getWrappingEnv(options),
+  });
 
   return {
     name: "pyodide",
@@ -896,6 +881,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     control: () => new DirectProcessControl(child, options.logMeta),
     dataToSandboxDescriptor,
     dataFromSandboxDescriptor,
+    checkpoint,
   };
 }
 
@@ -906,7 +892,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
  * directly) or `wrap_in_docker.sh` (to use runsc within a container).
  * Be sure to read setup instructions in that directory.
  */
-function gvisor(options: ISandboxOptions): SandboxProcess {
+async function gvisor(options: ISandboxOptions): Promise<SandboxProcess> {
   let command = options.command;
   if (!command) {
     try {
@@ -956,23 +942,22 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     ...(options.appendArgs ?? []),
   ];
 
-  // For a regular sandbox not being used for importing, if GRIST_CHECKPOINT is set
-  // try to restore from it. If GRIST_CHECKPOINT_MAKE is set, try to recreate the
-  // checkpoint (this is an awkward place to do it, but avoids mismatches
-  // between the checkpoint and how it gets used later).
-  // If a sandbox is being used for import, it will have a special mount we can't
-  // deal with easily right now. Should be possible to do in future if desired.
-  if (options.useGristEntrypoint !== false && process.env.GRIST_CHECKPOINT &&
-    !paths.importDir) {
-    if (process.env.GRIST_CHECKPOINT_MAKE) {
+  // A checkpoint is made the same way as the sandboxes that restore it, to
+  // avoid mismatches. A sandbox being used for import has a special mount
+  // we can't deal with easily right now, so it starts without one.
+  let checkpoint: string | undefined;
+  if (options.useGristEntrypoint !== false && !paths.importDir) {
+    if (options.makeCheckpoint) {
       const child =
-        adjustedSpawn(command, [...wrapperArgs.get(), "--checkpoint", process.env.GRIST_CHECKPOINT,
+        adjustedSpawn(command, [...wrapperArgs.get(), "--checkpoint", options.makeCheckpoint,
           `python3`, "--", ...pythonArgs, ...appendArgs]);
       // We don't want process control for this.
       return { name: "gvisor", child, control: () => new NoProcessControl(child) };
     }
-    wrapperArgs.push("--restore");
-    wrapperArgs.push(process.env.GRIST_CHECKPOINT);
+    checkpoint = await getCheckpoint("gvisor");
+    if (checkpoint) {
+      wrapperArgs.push("--restore", checkpoint);
+    }
   }
   const child = adjustedSpawn(command, [...wrapperArgs.get(), `python3`, "--", ...pythonArgs, ...appendArgs]);
   const childPid = child.pid;
@@ -993,6 +978,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   return {
     name: "gvisor",
     child,
+    checkpoint,
     control: () => new SubprocessControl({
       pid: childPid,
       recognizers: {
@@ -1328,17 +1314,19 @@ function getCommandArgsFromEnv() {
 /**
  * Create a sandbox for a specific flavor, without reading GRIST_SANDBOX_FLAVOR.
  */
-export function createConcreteSandbox(flavor: string, options: ISandboxCreationOptions): ISandbox {
+export function createConcreteSandbox(flavor: string, options: ISandboxCreationOptions): Promise<ISandbox> {
+  return getCreator(flavor, options.preferredPythonVersion || "3").create(options);
+}
+
+function getCreator(flavor: string, preferredPythonVersion: string): NSandboxCreator {
   const args = getCommandArgsFromEnv();
-  const preferredPythonVersion = options.preferredPythonVersion || "3";
-  const creator = new NSandboxCreator({
+  return new NSandboxCreator({
     defaultFlavor: flavor,
     command: getCommandFromEnv(preferredPythonVersion),
     commandArgs: args.args,
     commandAppendArgs: args.extraArgs,
     preferredPythonVersion,
   });
-  return creator.create(options);
 }
 
 /**
@@ -1354,18 +1342,47 @@ export function createConcreteSandbox(flavor: string, options: ISandboxCreationO
  * For documents with no preferred python version specified, 3 is used
  * TODO: This machinery can likely be removed now.
  */
-export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreationOptions): ISandbox {
-  const flavors = (getSandboxFlavor() || defaultFlavorSpec).split(",");
-  const preferredPythonVersion = options.preferredPythonVersion || "3";
-  for (const flavorAndVersion of flavors) {
+export async function createSandbox(defaultFlavorSpec: string, options: ISandboxCreationOptions): Promise<ISandbox> {
+  const flavor = chooseFlavor(getSandboxFlavor() || defaultFlavorSpec, options.preferredPythonVersion || "3");
+  if (!flavor) { throw new Error("Failed to create a sandbox"); }
+  return createConcreteSandbox(flavor, options);
+}
+
+/**
+ * Get ready to create sandboxes of the configured flavor (GRIST_SANDBOX_FLAVOR,
+ * from the environment or the admin panel), by making a checkpoint if it will
+ * need one. Server startup is busy enough, so this waits a little before doing
+ * anything. Returns a function to cancel it.
+ */
+export function prepareSandboxes(): () => void {
+  const timer = setTimeout(() => {
+    const flavor = getConfiguredFlavor();
+    if (flavor && findCheckpoint(flavor) === "own") {
+      getOwnCheckpoint(flavor).prepare();
+    }
+  }, 5000);
+  timer.unref();
+  return () => clearTimeout(timer);
+}
+
+/**
+ * The flavor of sandbox that will be used, if one is configured
+ * (GRIST_SANDBOX_FLAVOR, from the environment or the admin panel).
+ */
+export function getConfiguredFlavor(): string | undefined {
+  const spec = getSandboxFlavor();
+  return spec ? resolveSandboxFlavor(chooseFlavor(spec, "3")) : undefined;
+}
+
+function chooseFlavor(flavorSpec: string, preferredPythonVersion: string): string | undefined {
+  for (const flavorAndVersion of flavorSpec.split(",")) {
     const parts = flavorAndVersion.trim().split(":", 2);
     const flavor = parts[parts.length - 1];
     const version = parts.length === 2 ? parts[0] : "*";
-    if (preferredPythonVersion === version || version === "*" || !preferredPythonVersion) {
-      return createConcreteSandbox(flavor, options);
+    if (preferredPythonVersion === version || version === "*") {
+      return flavor;
     }
   }
-  throw new Error("Failed to create a sandbox");
 }
 
 /**
@@ -1403,4 +1420,173 @@ function checkCommandExists(cmd: string) {
     }
     return false;
   }
+}
+
+// Checkpoints let a sandbox start from one that has already loaded the data
+// engine, rather than load it all again. For the flavors that can make one, a
+// sandbox uses the checkpoint directory named by GRIST_CHECKPOINT, typically
+// made ahead of time by generateCheckpoint, if it holds one for its flavor.
+// Otherwise each server process makes its own, shortly after startup or when a
+// sandbox is first wanted, in a temporary directory removed on exit, and
+// sandboxes wait for it. GRIST_CHECKPOINT=none turns checkpoints off. Any
+// problem making or using a checkpoint is an error, so that a broken setup
+// shows up rather than just being slow.
+
+// The file that marks a checkpoint directory as holding one for a flavor.
+const checkpointFiles: { [flavor: string]: string } = {
+  gvisor: "config.json",
+  pyodide: PYODIDE_SNAPSHOT_NAME,
+};
+
+// Only there to catch a maker that is stuck; making one on a slow machine is
+// slow, but no slower than starting without one.
+const CHECKPOINT_MAKE_TIMEOUT_MS = 5 * 60 * 1000;
+
+/**
+ * Make a checkpoint for a flavor in the given directory, the same way the
+ * sandboxes that will restore it are made.
+ */
+export async function makeCheckpoint(flavor: string, dir: string): Promise<void> {
+  if (!checkpointFiles[flavor]) { throw new Error(`cannot make a checkpoint for ${flavor}`); }
+  const start = Date.now();
+  const creator = getCreator(flavor, "3");
+  const { child } = await creator.spawn({
+    ...creator.getOptions({ comment: "checkpoint" }),
+    makeCheckpoint: dir,
+  });
+  if (!child) { throw new Error("no process to checkpoint"); }
+  const exited = exitPromise(child);
+  const closed = new Promise(resolve => child.once("close", resolve));
+  let stderr = "";
+  child.stderr?.on("data", (data) => { stderr = (stderr + String(data)).slice(-2000); });
+  child.stdout?.resume();
+  checkpointMakers.add(child);
+  try {
+    if (await timeoutReached(CHECKPOINT_MAKE_TIMEOUT_MS, exited, { rethrow: true })) {
+      throw new Error(`timed out: ${stderr}`);
+    }
+    const code = await exited;
+    // Let the last of stderr arrive, for the error message.
+    await timeoutReached(1000, closed);
+    if (code !== 0 || !fs.existsSync(path.join(dir, checkpointFiles[flavor]))) {
+      throw new Error(`exit code ${code}: ${stderr}`);
+    }
+  } finally {
+    checkpointMakers.delete(child);
+    child.kill();
+  }
+  log.info("Made sandbox checkpoint", { flavor, dir, ms: Date.now() - start });
+}
+
+/**
+ * Forget checkpoints this process made, once done making them. For tests.
+ */
+export async function resetCheckpoints() {
+  await Promise.all([...ownCheckpoints.values()].map(c => c.done()));
+  ownCheckpoints.clear();
+}
+
+/**
+ * Where a sandbox of the given flavor finds its checkpoint: a directory, or
+ * "own" for one this process makes, or nothing if it won't use one.
+ */
+function findCheckpoint(flavor: string): string | undefined {
+  const dir = process.env.GRIST_CHECKPOINT;
+  if (!checkpointFiles[flavor] || dir === "none") { return; }
+  // A gvisor checkpoint can be out of sight, inside a container running runsc.
+  if (dir && (fs.existsSync(path.join(dir, checkpointFiles[flavor])) ||
+    (flavor === "gvisor" && !fs.existsSync(dir)))) {
+    return dir;
+  }
+  return "own";
+}
+
+async function getCheckpoint(flavor: string): Promise<string | undefined> {
+  const dir = findCheckpoint(flavor);
+  return dir === "own" ? getOwnCheckpoint(flavor).get() : dir;
+}
+
+function getOwnCheckpoint(flavor: string): OwnCheckpoint {
+  let checkpoint = ownCheckpoints.get(flavor);
+  if (!checkpoint) {
+    checkpoint = new OwnCheckpoint(flavor);
+    ownCheckpoints.set(flavor, checkpoint);
+  }
+  return checkpoint;
+}
+
+/**
+ * A checkpoint this process makes for itself.
+ */
+class OwnCheckpoint {
+  private _dir: string;
+  private _made = false;
+  private _making?: Promise<void>;
+  // Not retried after a failure.
+  private _error?: Error;
+
+  constructor(private _flavor: string) {
+    this._dir = path.join(getCheckpointRoot(), _flavor);
+  }
+
+  /**
+   * Returns the checkpoint directory, making the checkpoint first if need be.
+   */
+  public async get(): Promise<string> {
+    this.prepare();
+    await this._making;
+    if (this._error) { throw this._error; }
+    return this._dir;
+  }
+
+  /**
+   * Starts making the checkpoint, unless it is there already. It is made again
+   * if it has gone missing, e.g. cleaned up by the system.
+   */
+  public prepare() {
+    if (this._ready() || this._making || this._error) { return; }
+    this._making = this._make().finally(() => { this._making = undefined; });
+  }
+
+  public async done() {
+    await this._making;
+  }
+
+  private _ready() {
+    return this._made && fs.existsSync(path.join(this._dir, checkpointFiles[this._flavor]));
+  }
+
+  private async _make() {
+    try {
+      await makeCheckpoint(this._flavor, this._dir);
+      this._made = true;
+    } catch (e) {
+      this._error = new Error(`Could not make a ${this._flavor} checkpoint ` +
+        `(GRIST_CHECKPOINT=none turns checkpoints off): ${String(e)}`);
+      log.error(String(this._error));
+    }
+  }
+}
+
+const ownCheckpoints = new Map<string, OwnCheckpoint>();
+const checkpointMakers = new Set<ChildProcess>();
+let checkpointRoot: string | undefined;
+
+function getCheckpointRoot(): string {
+  if (!checkpointRoot) {
+    const dir = fs.realpathSync.native(tmp.dirSync({ prefix: "grist-checkpoint-" }).name);
+    // Checkpoints are big, so remove them however the process exits, short of
+    // being killed outright. Stop any maker first, so it doesn't hold files open.
+    process.once("exit", () => {
+      for (const child of checkpointMakers) { child.kill(); }
+      try {
+        // Retries give Windows time to let go of files that were just in use.
+        fs.rmSync(dir, { recursive: true, force: true, maxRetries: 3 });
+      } catch {
+        // Too late to do more; the system's temporary file cleanup can have it.
+      }
+    });
+    checkpointRoot = dir;
+  }
+  return checkpointRoot;
 }

@@ -16,7 +16,7 @@ describe("PyMomentTest", function() {
       return [z.name, z.abbrs, z.offsets, z.untils];
     });
 
-    const sandbox = createSandbox("sandboxed", {});
+    const sandbox = await createSandbox("sandboxed", {});
     cleanup.addAfterEach(async () => { await sandbox.shutdown(); });
 
     const pyZones = await sandbox.pyCall("test_tz_data");

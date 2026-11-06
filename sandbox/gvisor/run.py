@@ -288,11 +288,11 @@ with tempfile.TemporaryDirectory() as root:  # pylint: disable=no-member
       sys.stderr.write('Ready message: ' + text)
       sys.stderr.flush()
     else:
-      # Something unexpected has happened, echo the full error and hang.
-      while True:
-        sys.stderr.write('Problem: ' + text)
-        sys.stderr.flush()
-        text = process.stderr.readline().decode('utf-8')
+      # Something unexpected has happened, echo the full error and give up.
+      process.kill()
+      sys.stderr.write('Problem: ' + text + process.stderr.read().decode('utf-8'))
+      sys.stderr.flush()
+      raise Exception('gvisor sandbox did not start for checkpointing: ' + json.dumps(command))
     # Remove existing checkpoint if present.
     if os.path.exists(args.checkpoint):
       shutil.rmtree(args.checkpoint)

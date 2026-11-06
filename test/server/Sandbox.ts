@@ -1,7 +1,8 @@
+import { isAffirmative } from "app/common/gutil";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { ISandbox } from "app/server/lib/ISandbox";
-import { createSandbox, NSandbox } from "app/server/lib/NSandbox";
+import { createSandbox, makeCheckpoint, NSandbox, resetCheckpoints } from "app/server/lib/NSandbox";
 import { timeoutReached } from "app/server/lib/serverUtils";
 import { createDocTools } from "test/server/docTools";
 import { createTmpDir } from "test/server/docTools";
@@ -84,7 +85,7 @@ describe("Sandbox", function() {
 
   describe("Basic operation", function() {
     it("should echo hello world", async function() {
-      const sandbox = createSandbox("sandboxed", {});
+      const sandbox = await createSandbox("sandboxed", {});
       try {
         const result = await sandbox.pyCall(
           "test_echo", "Hello world",
@@ -96,7 +97,7 @@ describe("Sandbox", function() {
     });
 
     it("should handle exceptions", async function() {
-      const sandbox = createSandbox("sandboxed", {});
+      const sandbox = await createSandbox("sandboxed", {});
       try {
         await assert.isRejected(sandbox.pyCall(
           "test_fail", "Hello world",
@@ -113,7 +114,7 @@ describe("Sandbox", function() {
 
   describe("sandbox.pyCall", function() {
     it("should invoke python functions", async function() {
-      const sandbox = createSandbox("sandboxed", {});
+      const sandbox = await createSandbox("sandboxed", {});
       // Startup can be noisy in logs, wait for it to be done
       // and for the sandbox to be available, then clear the logs.
       await sandbox.pyCall("test_echo", "1");
@@ -131,7 +132,7 @@ describe("Sandbox", function() {
     });
 
     it("should fail when sandbox has exited", async function() {
-      const sandbox = createSandbox("sandboxed", {});
+      const sandbox = await createSandbox("sandboxed", {});
       try {
         // Normally pyCall should succeed.
         const value = await sandbox.pyCall("test_operation", 1.5, "uppercase", "hello");
@@ -158,7 +159,7 @@ describe("Sandbox", function() {
     });
 
     it("should get killed if sandbox refuses to exit", async function() {
-      const sandbox = createSandbox("sandboxed", {});
+      const sandbox = await createSandbox("sandboxed", {});
       const expectedRejection = assert.isRejected(
         sandbox.pyCall("test_operation", 100, "uppercase", "hello"),
         /PipeFromSandbox is closed/,
@@ -168,7 +169,7 @@ describe("Sandbox", function() {
     });
 
     it("should be reasonably quick with big data", async function() {
-      const sandbox = createSandbox("sandboxed", {});
+      const sandbox = await createSandbox("sandboxed", {});
       const bigString = new Array(1000001).join("*");
       assert.equal(bigString.length, 1000000);
 
@@ -197,7 +198,7 @@ describe("Sandbox", function() {
   describe("sandbox restrictions", function() {
     let sandbox: NSandbox;
     beforeEach(async function() {
-      sandbox = createSandbox("sandboxed", {}) as NSandbox;
+      sandbox = await createSandbox("sandboxed", {}) as NSandbox;
       await prepareFormula(sandbox);
     });
 
@@ -443,7 +444,7 @@ return 'done'
       });
 
       it("can create a pyodide sandbox by spawning", async function() {
-        const sandbox = createSandbox("sandboxed", {});
+        const sandbox = await createSandbox("sandboxed", {});
         try {
           const result = await sandbox.pyCall(
             "test_echo", "Hello world",
@@ -451,6 +452,126 @@ return 'done'
           assert.equal(result, "Hello world");
         } finally {
           await sandbox.shutdown();
+        }
+      });
+    });
+
+    describe("checkpoints", function() {
+      this.timeout(30000);
+      let oldEnv: testUtils.EnvironmentSnapshot;
+      let snapshot: string;
+
+      // Made the way generateCheckpoint makes one.
+      before(async function() {
+        oldEnv = new testUtils.EnvironmentSnapshot();
+        const checkpoint = await createTmpDir();
+        await makeCheckpoint("pyodide", checkpoint);
+        snapshot = path.join(checkpoint, "pyodide.snap");
+        process.env.GRIST_CHECKPOINT = checkpoint;
+      });
+
+      after(function() {
+        oldEnv?.restore();
+      });
+
+      async function withSandbox(callback: (sandbox: ISandbox) => Promise<void>) {
+        const sandbox = await createSandbox("sandboxed", {});
+        try {
+          await prepareFormula(sandbox);
+          await callback(sandbox);
+        } finally {
+          await sandbox.shutdown();
+        }
+      }
+
+      it("should start sandboxes from a checkpoint", async function() {
+        clear();
+        await withSandbox(async (sandbox) => {
+          assert.equal(await tryFormula(sandbox, "return 6 * 7"), 42);
+        });
+        assert.match(output.stderr.join("\n"), /started from snapshot/);
+      });
+
+      it("should give each restored sandbox its own random state", async function() {
+        clear();
+        const results: number[] = [];
+        for (let i = 0; i < 2; i++) {
+          await withSandbox(async (sandbox) => {
+            // ActiveDoc calls this, and it reseeds.
+            await sandbox.pyCall("initialize", null);
+            results.push(await tryFormula(sandbox, "import random\nreturn random.random()"));
+          });
+        }
+        assert.notEqual(results[0], results[1]);
+        assert.lengthOf(output.stderr.join("\n").match(/started from snapshot/g) ?? [], 2);
+      });
+
+      it("should not let a restored sandbox read the snapshot", async function() {
+        if (isAffirmative(process.env.GRIST_PYODIDE_SKIP_DENO)) {
+          // Without deno there are no permissions to drop.
+          this.skip();
+        }
+        clear();
+        await withSandbox(async (sandbox) => {
+          const result = await tryFormula(sandbox, `
+from ctypes import cdll, c_char_p
+libc = cdll.LoadLibrary(None)
+libc.emscripten_run_script_string.argtypes = [c_char_p]
+libc.emscripten_run_script_string.restype = c_char_p
+return libc.emscripten_run_script_string(
+  b"String(require('fs').readFileSync('${snapshot.replace(/\\/g, "/")}').length)")
+`).catch(e => String(e));
+          assert.match(String(result), /NotCapable: Requires read access/);
+        });
+        assert.match(output.stderr.join("\n"), /started from snapshot/);
+      });
+
+      it("should fail if the checkpoint is unusable", async function() {
+        const original = fs.readFileSync(snapshot);
+        fs.writeFileSync(snapshot, original.subarray(0, original.length - 65536));
+        try {
+          clear();
+          const sandbox = await createSandbox("sandboxed", {});
+          try {
+            await assert.isRejected(sandbox.pyCall("test_echo", "hello"), /GRIST_CHECKPOINT=none/);
+          } finally {
+            await sandbox.shutdown();
+          }
+          assert.match(output.stderr.join("\n"), /not a complete snapshot/);
+        } finally {
+          fs.writeFileSync(snapshot, original);
+        }
+      });
+
+      it("should not use checkpoints if turned off", async function() {
+        process.env.GRIST_CHECKPOINT = "none";
+        clear();
+        await withSandbox(async (sandbox) => {
+          assert.equal(await tryFormula(sandbox, "return 6 * 7"), 42);
+        });
+        assert.notMatch(output.stderr.join("\n"), /snapshot/);
+      });
+
+      it("should make its own checkpoint if there is none, and wait for it", async function() {
+        // A checkpoint directory without one for pyodide counts as none.
+        process.env.GRIST_CHECKPOINT = await createTmpDir();
+        await resetCheckpoints();
+        clear();
+        await withSandbox(async (sandbox) => {
+          assert.equal(await tryFormula(sandbox, "return 6 * 7"), 42);
+        });
+        assert.match(output.stderr.join("\n"), /started from snapshot/);
+      });
+
+      it("should fail if it can't make its own checkpoint", async function() {
+        delete process.env.GRIST_CHECKPOINT;
+        process.env.GRIST_SANDBOX = path.join(await createTmpDir(), "missing");
+        await resetCheckpoints();
+        try {
+          await assert.isRejected(createSandbox("sandboxed", {}), /Could not make a pyodide checkpoint/);
+        } finally {
+          delete process.env.GRIST_SANDBOX;
+          await resetCheckpoints();
         }
       });
     });
