@@ -42,6 +42,13 @@ export const testPendingChecks = new TestPendingOps();
 export const testPendingScrolls = new TestPendingOps();
 
 /**
+ * Moves of the cursor to a given cell, as for a link to one or a position restored on load. They
+ * wait for the views involved to be built and loaded, so the cursor lands a while after the page
+ * appears.
+ */
+export const testPendingCursorMoves = new TestPendingOps();
+
+/**
  * Paste operations. A file paste is an upload followed by a separate addAttachments action, so
  * in-flight request counts go quiet between the two and look like success.
  */

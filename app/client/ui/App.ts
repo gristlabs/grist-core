@@ -12,8 +12,9 @@ import { onClickOutside } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import * as koUtil from "app/client/lib/koUtil";
 import { makeT } from "app/client/lib/localization";
-import { testPendingAsyncContent, testPendingChartRenders, testPendingChecks, testPendingMenuActions,
-  testPendingPastes, testPendingScrolls, testPendingViewLoads } from "app/client/lib/testPendingOps";
+import { testPendingAsyncContent, testPendingChartRenders, testPendingChecks, testPendingCursorMoves,
+  testPendingMenuActions, testPendingPastes, testPendingScrolls, testPendingViewLoads,
+} from "app/client/lib/testPendingOps";
 import { reportError, TopAppModel, TopAppModelImpl } from "app/client/models/AppModel";
 import { DocPageModel } from "app/client/models/DocPageModel";
 import { setUpErrorHandling } from "app/client/models/errors";
@@ -271,6 +272,10 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   public testNumPendingScrolls(): number {
     return testPendingScrolls.count;
+  }
+
+  public testNumPendingCursorMoves(): number {
+    return testPendingCursorMoves.count;
   }
 
   public testNumPendingChecks(): number {
