@@ -4634,6 +4634,16 @@ namespace gristUtils {
 
     // Step 3: Set outer window size to match desired viewport
     await driver.manage().window().setRect({ width, height });
+
+    // setRect can return before the page has seen the new size. Once the page has it, its resize
+    // event fires at the next frame, before animation frame callbacks.
+    await driver.executeAsyncScript((w: number, h: number, done: () => void) => {
+      if (window.innerWidth === w && window.innerHeight === h) {
+        requestAnimationFrame(() => done());
+      } else {
+        window.addEventListener("resize", () => done(), { once: true });
+      }
+    }, targetWidth, targetHeight);
   }
 
   export async function getViewportDimensions(): Promise<WindowDimensions> {
