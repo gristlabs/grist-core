@@ -58,6 +58,20 @@ module.exports = {
   devtool: "source-map",
   resolve: {
     extensions: [".ts", ".tsx", ".js"],
+    // React and its renderer must share an installation, including imports from
+    // extension dependencies installed separately (e.g. /node_modules in Docker).
+    // https://react.dev/warnings/invalid-hook-call-warning#duplicate-react
+    alias: Object.fromEntries(["react", "react-dom"].map(name => [
+      name,
+      path.dirname(require.resolve(`${name}/package.json`, {
+        paths: [
+          // Skip missing packages so Node's ancestor lookup doesn't bypass later extra paths.
+          ...extraModulePaths.filter(p => fs.existsSync(path.join(p, name, "package.json"))),
+          path.resolve("./ext"),
+          base,
+        ],
+      })),
+    ])),
     modules: [
       path.resolve("."),
       path.resolve("./ext"),
