@@ -1772,6 +1772,40 @@ describe("Comments", function() {
     // Verify the comment is marked as resolved
     assert.isTrue(await isCommentResolved(0, "panel"));
   });
+
+  it("should open the popup by clicking the cell triangle", async function() {
+    docId = await session.tempNewDoc(cleanup, "Triangles", { load: false });
+    await ownerApi.applyUserActions(docId, [
+      ["AddTable", "Items", [
+        { id: "Text" },
+        { id: "Ref", type: "Ref:Items" },
+        { id: "RefList", type: "RefList:Items" },
+        { id: "Choice", type: "Choice" },
+        { id: "ChoiceList", type: "ChoiceList" },
+        { id: "Toggle", type: "Bool" },
+        { id: "Files", type: "Attachments" },
+      ]],
+      ["AddRecord", "Items", null, {
+        Text: "a", Ref: 1, RefList: ["L", 1], Choice: "x", ChoiceList: ["L", "x"], Toggle: true,
+      }],
+    ]);
+    const columns = ["Text", "Ref", "RefList", "Choice", "ChoiceList", "Toggle", "Files"];
+    const actions = [];
+    for (const col of columns) {
+      actions.push(await addCommentAction("Items", col, 1, col));
+    }
+    await ownerApi.applyUserActions(docId, actions);
+    await asOwner();
+    await gu.openPage("Items");
+
+    for (const col of columns) {
+      await gu.getCell(col, 1).find(".field-comment-indicator").click();
+      await waitForPopup("filled");
+      assert.equal(await readComment(0), col);
+      await gu.sendKeys(Key.ESCAPE);
+      await assertNoPopup();
+    }
+  });
 });
 
 async function assertClientComments(comments: string[]) {
