@@ -191,7 +191,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     },
   ) {
     super();
-    if (this._options.appModel) {
+    if (this._options.appModel && resourceType === "document") {
       const features = this._options.appModel.currentFeatures;
       const { supportEmail } = getGristConfig();
       this._shareAnnotator = new ShareAnnotator(features, initData, { supportEmail });
