@@ -38,6 +38,7 @@ export interface IFormulaEditorOptions extends Options {
   column: ColumnRec;
   field?: ViewFieldRec;
   canDetach?: boolean;
+  assistantInstructions?: string;
 }
 
 /**
@@ -275,6 +276,7 @@ export class FormulaEditor extends NewBaseEditor {
           field: this.options.field,
           gristDoc: this.options.gristDoc,
           editor: this,
+          specificInstructions: this.options.assistantInstructions,
         });
       }),
     );
@@ -514,6 +516,7 @@ export function openFormulaEditor(options: {
   onSave?: (column: ColumnRec, formula: string) => Promise<void>,
   onCancel?: () => void,
   canDetach?: boolean,
+  assistantInstructions?: string,
   // Called after editor is created to set up editor cleanup (e.g. saving on click-away).
   setupCleanup: (
     owner: Disposable,
@@ -527,8 +530,6 @@ export function openFormulaEditor(options: {
 
   if (options.field) {
     options.column = options.field.origCol();
-  } else if (options.canDetach) {
-    throw new Error("Field is required for detached editor");
   }
 
   // We can't rely on the field passed in, we need to create our own.
@@ -586,6 +587,7 @@ export function openFormulaEditor(options: {
     cssClass: "formula_editor_sidepane",
     readonly: false,
     canDetach: options.canDetach,
+    assistantInstructions: options.assistantInstructions,
   };
   const editor = FormulaEditor.create(null, editorOptions);
   editor.autoDispose(attachedHolder);
