@@ -6,6 +6,19 @@
   height: 16px;
 }
 
+.widget_checkbox-unchecked {
+  box-sizing: border-box;
+  background-color: var(--grist-theme-toggle-checkbox-unchecked-bg, #f7f7f7);
+  border: 1px solid var(--grist-theme-toggle-checkbox-unchecked-border, #929299);
+  border-radius: 3px;
+}
+
+/* The cursor and hover styles below already outline the checkbox with a box-shadow. */
+:not(.formula_field)>.field_clip.has_cursor>.widget_checkbox-unchecked,
+:not(.formula_field)>.field_clip>.widget_checkbox-unchecked:hover:not(.disabled) {
+  border: none;
+}
+
 :not(.formula_field)>.field_clip.has_cursor>.widget_checkbox {
   cursor: pointer;
   box-shadow: inset 0 0 0 1px #606060;
