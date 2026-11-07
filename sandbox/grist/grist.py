@@ -5,7 +5,7 @@ a consistent API accessible with only "import grist".
 # pylint: disable=unused-import
 
 # These imports are used in processing generated usercode.
-from usertypes import Any, Text, Blob, Int, Bool, Date, DateTime, \
+from usertypes import Any, Button, Text, Blob, Int, Bool, Date, DateTime, \
   Numeric, Choice, ChoiceList, Id, Attachments, AltText, ifError
 from usertypes import PositionNumber, ManualSortPos, Reference, ReferenceList, formulaType
 from table import UserTable
