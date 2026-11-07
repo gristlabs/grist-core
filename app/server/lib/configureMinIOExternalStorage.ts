@@ -3,6 +3,8 @@ import { wrapWithKeyMappedStorage } from "app/server/lib/ExternalStorage";
 import { ICreateStorageOptions } from "app/server/lib/ICreate";
 import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
 
+import * as minio from "minio";
+
 export function getMinIOStorageOption(): ICreateStorageOptions {
   return {
     name: "minio",
@@ -60,16 +62,35 @@ export function checkMinIOExternalStorage() {
     envVar: s3EnvVars("USE_SSL"),
     preferredEnvVar: "GRIST_DOCS_S3_USE_SSL",
   }).getAsBool();
-  const accessKey = settings.flag("accessKey").requireString({
+  const useAwsCredentialChain = settings.flag("useAwsCredentialChain").read({
+    envVar: s3EnvVars("USE_AWS_CREDENTIAL_CHAIN"),
+    preferredEnvVar: "GRIST_DOCS_S3_USE_AWS_CREDENTIAL_CHAIN",
+  }).getAsBool();
+  const accessKeyQuery = {
     envVar: s3EnvVars("ACCESS_KEY"),
     preferredEnvVar: "GRIST_DOCS_S3_ACCESS_KEY",
     censor: true,
-  });
-  const secretKey = settings.flag("secretKey").requireString({
+  };
+  const secretKeyQuery = {
     envVar: s3EnvVars("SECRET_KEY"),
     preferredEnvVar: "GRIST_DOCS_S3_SECRET_KEY",
     censor: true,
-  });
+  };
+  let credentials: { accessKey?: string, secretKey?: string, credentialsProvider?: minio.IamAwsProvider };
+  if (useAwsCredentialChain) {
+    // Credentials come from the AWS chain (IRSA, ECS task role, EC2 instance metadata).
+    if (settings.flag("accessKey").readString(accessKeyQuery) ||
+      settings.flag("secretKey").readString(secretKeyQuery)) {
+      throw new Error("GRIST_DOCS_S3_USE_AWS_CREDENTIAL_CHAIN cannot be combined with " +
+        "GRIST_DOCS_S3_ACCESS_KEY or GRIST_DOCS_S3_SECRET_KEY");
+    }
+    credentials = { credentialsProvider: new minio.IamAwsProvider({}) };
+  } else {
+    credentials = {
+      accessKey: settings.flag("accessKey").requireString(accessKeyQuery),
+      secretKey: settings.flag("secretKey").requireString(secretKeyQuery),
+    };
+  }
   settings.flag("url").set(`minio://${bucket}/${prefix}`);
   settings.flag("active").set(true);
   return {
@@ -77,9 +98,8 @@ export function checkMinIOExternalStorage() {
     port,
     bucket, prefix,
     useSSL,
-    accessKey,
-    secretKey,
     region,
+    ...credentials,
   };
 }
 
