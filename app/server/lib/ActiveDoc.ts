@@ -84,7 +84,7 @@ import { readOnlyError } from "app/common/ErrorWithCode";
 import { Features, Product } from "app/common/Features";
 import { isHiddenCol } from "app/common/gristTypes";
 import { commonUrls, parseUrlId } from "app/common/gristUrls";
-import { byteString, countIf, retryOnce, safeJsonParse, timeoutReached } from "app/common/gutil";
+import { byteString, countIf, isAffirmative, retryOnce, safeJsonParse, timeoutReached } from "app/common/gutil";
 import { InactivityTimer } from "app/common/InactivityTimer";
 import { Interval } from "app/common/Interval";
 import { APPROACHING_LIMIT_RATIO, getUsageRatio, LimitExceededError } from "app/common/Limits";
@@ -162,6 +162,7 @@ import { NullSandbox, UnavailableSandboxMethodError } from "app/server/lib/NullS
 import { OnDemandActions } from "app/server/lib/OnDemandActions";
 import { Patch } from "app/server/lib/Patch";
 import { isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
+import { assertReferenceActions, withReferenceHistory } from "app/server/lib/ReferenceTableAccess";
 import { DocRequests } from "app/server/lib/Requests";
 import { SandboxError } from "app/server/lib/sandboxUtil";
 import { getDefaultLocale } from "app/server/lib/ServerLocale";
@@ -325,6 +326,7 @@ export class ActiveDoc extends EventEmitter {
    * If set, changes to this document should not propagate to outside world
    */
   private _muted: boolean = false;
+  private _referenceCommitFailed = false;
   /**
    * If positive, a migration is in progress
    */
@@ -909,6 +911,10 @@ export class ActiveDoc extends EventEmitter {
       throw new ApiError("Only owners can replace a document.", 403);
     }
     this._assertNotHeldReadOnly(docSession);
+    if (this.docData?.getMetaTable("_grist_Tables").getRecords().some(t => t.referenceSource || t.referenceIdentity)) {
+      throw new ApiError(
+        "Detach reference subscriptions and remove published tables before replacing this document", 409);
+    }
     this._log.info(docSession, "ActiveDoc.replace starting shutdown");
 
     // During replacement, it is important for all hands to be off the document. So we
@@ -1731,10 +1737,52 @@ export class ActiveDoc extends EventEmitter {
     // It could be that error cases and timing etc leak some info prior to this
     // point.
     // Undos are best effort now by default.
-    return this._applyUserActionsWithExtendedOptions(
-      docSession, actions, { bestEffort: undo,
+    return withReferenceHistory(docSession, historySession => this._applyUserActionsWithExtendedOptions(
+      historySession, actions, { bestEffort: undo,
         oldestSource,
-        fromOwnHistory, ...(options || {}) });
+        fromOwnHistory, ...(options || {}) }));
+  }
+
+  /** Keep a cold document alive while a reference request waits for another worker. */
+  @ActiveDoc.keepDocOpen
+  public async withReferenceOperation<T>(callback: () => Promise<T>): Promise<T> {
+    await this.waitForInitialization();
+    return callback();
+  }
+
+  /** Hold the action queue so snapshots and their cursors describe the same committed state. */
+  @ActiveDoc.keepDocOpen
+  public async withReferenceRead<T>(callback: () => Promise<T>): Promise<T> {
+    await this.waitForInitialization();
+    return this._sharing.withReferenceRead(callback);
+  }
+
+  public getReferenceActionNum(): number { return this._actionHistory.getNextLocalActionNum(); }
+
+  /** Called under withReferenceRead; the preview has its own sandbox and no host request exports. */
+  public async previewReferenceActions(actions: UserAction[]):
+  Promise<import("app/common/ReferenceSynchronization").ReferenceFormulaImpact> {
+    const { previewReferenceFormulas } = await import("app/server/lib/ReferenceFormulaPreview");
+    return previewReferenceFormulas(this.docStorage, actions, () => createSandbox({
+      server: this._server, docId: `${this._docName}:reference-preview`, preferredPythonVersion: "3",
+      sandboxOptions: { exports: {} },
+    }));
+  }
+
+  /** An uncommitted engine must never serve reads or accept another mutation. Reload from SQLite. */
+  public invalidateReferenceCommit(): void {
+    this._referenceCommitFailed = true;
+    this._fullyLoaded = false;
+    this.setMuted();
+    void this.shutdown().catch(e => log.error("Reference recovery shutdown failed: %s", e.message));
+  }
+
+  public notifyReferenceChanges(): void {
+    if (isAffirmative(process.env.GRIST_REFERENCE_TABLES) &&
+      this.docData?.getMetaTable("_grist_Tables").getRecords().some(t => t.referenceIdentity)) {
+      void this._server.getPubSubManager().publish("reference-tables-changed", this.docName)
+        .catch(e => log.warn("Reference change signal failed: %s", e.message));
+    }
   }
 
   /**
@@ -2595,6 +2643,8 @@ export class ActiveDoc extends EventEmitter {
     if (options.parseStrings) {
       actions = actions.map(ua => parseUserAction(ua, this.docData!));
     }
+
+    assertReferenceActions(this.docData, docSession, actions);
 
     if (options?.bestEffort) {
       actions = await this._granularAccess.prefilterUserActions(docSession, actions, options);
@@ -3532,6 +3582,9 @@ export class ActiveDoc extends EventEmitter {
    * the sandbox are naturally serialized.
    */
   private async _rawPyCall(funcName: string, ...varArgs: unknown[]): Promise<any> {
+    if (this._referenceCommitFailed) {
+      throw new ApiError("Document is reloading after a failed reference commit", 503);
+    }
     const dataEngine = await this._getEngine();
     try {
       const data = await dataEngine.pyCall(funcName, ...varArgs);
