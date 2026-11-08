@@ -87,7 +87,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
     seed: typeof this.id() === "number" ? 5 * this.id() : this.id(),
   });
 
-  this.disableAddRemoveRows = ko.pureComputed(() => Boolean(this.summarySourceTable()));
+  this.disableAddRemoveRows = ko.pureComputed(() => Boolean(this.summarySourceTable() || this.referenceSource()));
 
   this.supportsManualSort = ko.pureComputed(() => this.columns().all().some(c => c.colId() === MANUALSORT));
 

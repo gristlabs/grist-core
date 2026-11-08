@@ -1609,6 +1609,7 @@ export default class GridView extends BaseView {
                 }),
                 this.isPreview ? null : (this.isReadonly ? null : () => (
                   dom("div.column_name.mod-add-column.field",
+                    dom.hide(use => Boolean(use(use(this.viewSection.table).referenceSource))),
                     "+",
                     dom.style("width", PLUS_WIDTH + "px"),
                     this._buildInsertColumnMenu(),
@@ -2188,6 +2189,7 @@ export default class GridView extends BaseView {
       numFrozen: this.viewSection.numFrozen.peek(),
       disableModify: calcFieldsCondition(copySelection.fields, f => f.disableModify.peek()),
       isReadonly: this.isReadonly || this.isPreview,
+      disableInsert: Boolean(this.viewSection.table().referenceSource()),
       isRaw: this.viewSection.isRaw(),
       isFiltered: this.isFiltered(),
       isFormula: calcFieldsCondition(copySelection.fields, f => f.column.peek().isRealFormula.peek()),
@@ -2443,7 +2445,7 @@ export default class GridView extends BaseView {
   }
 
   protected _insertField(event: KeyboardEvent | undefined, index: number) {
-    if (this.gristDoc.isReadonly.get()) {
+    if (this.gristDoc.isReadonly.get() || this.viewSection.table().referenceSource()) {
       return;
     }
 

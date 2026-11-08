@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf8">
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <script>
+    // Run before loading any assets, instrumentation, or authentication UI. The capability
+    // stays in this tab for at most 30 minutes, never in a login URL or localStorage.
+    (function () {
+      function capture() {
+        var key = 'grist-reference-pending';
+        var url = window.location.href;
+        var fragment = window.location.hash;
+        if (!fragment) { return false; }
+        window.history.replaceState(null, '', window.location.pathname);
+        try {
+          sessionStorage.removeItem(key);
+          if (/^#grist-reference=[a-f0-9-]{36}\.[a-f0-9]{64}$/.test(fragment)) {
+            sessionStorage.setItem(key, JSON.stringify({url: url, expires: Date.now() + 30 * 60 * 1000}));
+          }
+        } catch (e) { /* The page also supports pasting a link when tab storage is unavailable. */ }
+        return true;
+      }
+      capture();
+      window.addEventListener('hashchange', function () {
+        // Opening a second link in this tab may only change its fragment, without loading a page.
+        if (capture()) { window.location.reload(); }
+      });
+    }());
+  </script>
+  <!-- INSERT BASE -->
+  <!-- INSERT LOCALE -->
+  <link rel="icon" type="image/x-icon" href="icons/favicon.png">
+  <link rel="stylesheet" href="icons/icons.css">
+  <title>Grist</title>
+</head>
+<body>
+  <!-- INSERT CONFIG -->
+  <script src="referenceConnect.bundle.js" crossorigin="anonymous"></script>
+</body>
+</html>

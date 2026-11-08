@@ -4,6 +4,7 @@ import { makeT } from "app/client/lib/localization";
 import { ViewRec, ViewSectionRec } from "app/client/models/DocModel";
 import { filterBar } from "app/client/ui/FilterBar";
 import { maybeShowNewRecordExperiment } from "app/client/ui/NewRecordButton";
+import { referenceTableStatus } from "app/client/ui/ReferenceTableStatus";
 import { cssIcon } from "app/client/ui/RightPanelStyles";
 import { makeCollapsedLayoutMenu } from "app/client/ui/ViewLayoutMenu";
 import { cssDotsIconWrapper, cssMenu, viewSectionMenu } from "app/client/ui/ViewSectionMenu";
@@ -119,6 +120,7 @@ export function buildViewSectionDom(options: {
         testId("viewsection-title"),
         cssTestClick(testId("viewsection-blank")),
       ),
+      dom.maybe(use => use(use(vs.table).referenceSource), id => referenceTableStatus(gristDoc, id)),
       viewInstance.buildTitleControls(),
       hideTitleControls === true ? null :
         dom("div.viewsection_buttons",

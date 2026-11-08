@@ -156,9 +156,11 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.hasReverse = this.autoDispose(ko.pureComputed(() => Boolean(this.reverseColModel().id())));
   this.visibleColModel = refRecord(docModel.columns, this.visibleCol);
 
-  this.disableModifyBase = ko.pureComputed(() => Boolean(this.summarySourceCol()));
+  this.disableModifyBase = ko.pureComputed(() => Boolean(this.summarySourceCol() || this.table().referenceSource() ||
+    (this.table().referenceIdentity() && this.colId() === this.table().referenceIdentity())));
   this.disableModify = ko.pureComputed(() => this.disableModifyBase() || this.isTransforming());
-  this.disableEditData = ko.pureComputed(() => Boolean(this.summarySourceCol()));
+  this.disableEditData = ko.pureComputed(() => Boolean(this.summarySourceCol() || this.table().referenceSource() ||
+    (this.table().referenceIdentity() && this.colId() === this.table().referenceIdentity())));
 
   this.isHiddenCol = ko.pureComputed(() => gristTypes.isHiddenCol(this.colId()));
   this.isFormCol = ko.pureComputed(() => (
