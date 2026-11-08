@@ -1279,5 +1279,159 @@ class TestTwoWayReferences(test_engine.EngineTestCase):
     ])
 
 
+  def _load_self_references(self, ref_type, reverse_type):
+    self.apply_user_action(["AddTable", "Employees", [
+      {"id": "Name", "type": "Text"},
+      {"id": "Next", "type": ref_type + ":Employees", "isFormula": False},
+    ]])
+    self.apply_user_action(["AddReverseColumn", "Employees", "Next"])
+    reverse = self.get_col_rec("Employees", "Next").reverseCol
+    self.apply_user_action(["RenameColumn", "Employees", reverse.colId, "Previous"])
+    if reverse_type != "RefList":
+      self.modify_column("Employees", "Previous", type=reverse_type + ":Employees")
+
+  def _rename_self_reference_table(self, data, use_title=True):
+    table = self.engine.docmodel.tables.lookupOne(tableId="Employees")
+    forward = self.get_col_rec("Employees", "Next")
+    reverse = self.get_col_rec("Employees", "Previous")
+    col_refs = (forward.id, reverse.id)
+    renamed_types = tuple(col.type.replace(":Employees", ":Team_Members")
+                          for col in (forward, reverse))
+    self.assertTableData("Employees", cols="subset", data=data)
+    before = self.getFullEngineData()
+
+    if use_title:
+      # This is the action used by the UI to rename a table, including its displayed title.
+      out_actions = self.update_record("_grist_Views_section", table.rawViewSectionRef.id,
+                                       title="Team Members")
+      self.assertEqual(table.rawViewSectionRef.title, "Team Members")
+      self.assertEqual(table.primaryViewId.name, "Team Members")
+    else:
+      out_actions = self.apply_user_action(["RenameTable", "Employees", "Team_Members"])
+
+    self.assertEqual(table.tableId, "Team_Members")
+    self.assertNotIn("Employees", self.engine.tables)
+    self.assertTableData("Team_Members", cols="subset", data=data)
+    forward = self.get_col_rec("Team_Members", "Next")
+    reverse = self.get_col_rec("Team_Members", "Previous")
+    self.assertEqual((forward.type, reverse.type), renamed_types)
+    self.assertEqual((forward.id, reverse.id), col_refs)
+    self.assertEqual((forward.reverseCol.id, reverse.reverseCol.id), col_refs[::-1])
+
+    # Redo must restore the complete document, including list order and metadata.
+    after = self.getFullEngineData()
+    undo_actions = self.apply_undo_actions(out_actions.undo)
+    self.assertEqualDocData(self.getFullEngineData(), before)
+    self.apply_undo_actions(undo_actions.undo)
+    self.assertEqualDocData(self.getFullEngineData(), after)
+
+  @test_engine.test_undo
+  def test_rename_self_references_ref_ref(self):
+    self._load_self_references("Ref", "Ref")
+    self.add_records("Employees", ["Name"], [["Alice"], ["Bob"], ["Carol"]])
+    self.apply_user_action(["BulkUpdateRecord", "Employees", [1, 2, 3], {"Next": [2, 3, 0]}])
+    self._rename_self_reference_table([
+      ["id", "Name", "Next", "Previous"],
+      [1, "Alice", 2, 0],
+      [2, "Bob", 3, 1],
+      [3, "Carol", 0, 2],
+    ], use_title=False)
+
+    self.update_record("Team_Members", 1, Next=0)
+    self.assertTableData("Team_Members", cols="subset", rows="subset", data=[
+      ["id", "Previous"], [2, 0],
+    ])
+    self.update_record("Team_Members", 1, Previous=3)
+    self.assertTableData("Team_Members", cols="subset", data=[
+      ["id", "Next", "Previous"],
+      [1, 0, 3], [2, 3, 0], [3, 1, 2],
+    ])
+
+  @test_engine.test_undo
+  def test_rename_self_references_ref_reflist(self):
+    self._load_self_references("Ref", "RefList")
+    self.add_records("Employees", ["Name"], [["Alice"], ["Bob"], ["Carol"]])
+    self.apply_user_action(["BulkUpdateRecord", "Employees", [1, 2, 3], {"Next": [3, 3, 0]}])
+    self.update_record("Employees", 3, Previous=["L", 2, 1])
+    self._rename_self_reference_table([
+      ["id", "Name", "Next", "Previous"],
+      [1, "Alice", 3, None],
+      [2, "Bob", 3, None],
+      [3, "Carol", 0, [2, 1]],
+    ])
+
+    self.update_record("Team_Members", 1, Next=2)
+    self.update_record("Team_Members", 1, Previous=["L", 3])
+    self.assertTableData("Team_Members", cols="subset", data=[
+      ["id", "Next", "Previous"],
+      [1, 2, [3]], [2, 3, [1]], [3, 1, [2]],
+    ])
+
+  @test_engine.test_undo
+  def test_rename_self_references_reflist_reflist(self):
+    self._load_self_references("RefList", "RefList")
+    self.add_records("Employees", ["Name"], [["Alice"], ["Bob"], ["Carol"]])
+    self.apply_user_action(["BulkUpdateRecord", "Employees", [1, 2, 3], {
+      "Next": [["L", 3, 2], ["L", 3], None],
+    }])
+    self.update_record("Employees", 3, Previous=["L", 2, 1])
+    self._rename_self_reference_table([
+      ["id", "Name", "Next", "Previous"],
+      [1, "Alice", [2, 3], None],
+      [2, "Bob", [3], [1]],
+      [3, "Carol", None, [2, 1]],
+    ])
+
+    self.update_record("Team_Members", 1, Next=["L", 2])
+    self.update_record("Team_Members", 1, Previous=["L", 3, 2])
+    self.assertTableData("Team_Members", cols="subset", data=[
+      ["id", "Next", "Previous"],
+      [1, [2], [3, 2]], [2, [1, 3], [1]], [3, [1], [2]],
+    ])
+
+  @test_engine.test_undo
+  def test_rename_self_references_empty(self):
+    self._load_self_references("RefList", "RefList")
+    self._rename_self_reference_table([["id", "Name", "Next", "Previous"]], use_title=False)
+
+    self.add_record("Team_Members", 1, Name="Alice")
+    self.update_record("Team_Members", 1, Next=["L", 1])
+    self.assertTableData("Team_Members", cols="subset", data=[
+      ["id", "Next", "Previous"], [1, [1], [1]],
+    ])
+    self.update_record("Team_Members", 1, Previous=None)
+    self.assertTableData("Team_Members", cols="subset", data=[
+      ["id", "Next", "Previous"], [1, None, None],
+    ])
+
+  @test_engine.test_undo
+  def test_rename_both_referenced_tables(self):
+    self.loadReverseSample()
+    owner_ref = self.get_col_rec("Projects", "Owner").id
+    projects_ref = self.get_col_rec("People", "Projects").id
+    self.apply_user_action(["BulkUpdateRecord", "_grist_Tables", [1, 2], {
+      "tableId": ["Members", "Tasks"],
+    }])
+    owner = self.get_col_rec("Tasks", "Owner")
+    projects = self.get_col_rec("Members", "Projects")
+    self.assertEqual((owner.type, projects.type), ("Ref:Members", "RefList:Tasks"))
+    self.assertEqual((owner.reverseCol.id, projects.reverseCol.id), (projects_ref, owner_ref))
+    self.assertTableData("Tasks", cols="subset", data=[
+      ["id", "Name", "Owner"], [apps, "Apps", alice], [backend, "Backend", bob],
+    ])
+    self.assertTableData("Members", cols="subset", data=[
+      ["id", "Name", "Projects"], [alice, "Alice", [apps]], [bob, "Bob", [backend]],
+    ])
+
+    self.update_record("Tasks", apps, Owner=bob)
+    self.assertTableData("Members", cols="subset", data=[
+      ["id", "Projects"], [alice, None], [bob, [apps, backend]],
+    ])
+    self.update_record("Members", bob, Projects=None)
+    self.assertTableData("Tasks", cols="subset", data=[
+      ["id", "Owner"], [apps, 0], [backend, 0],
+    ])
+
+
 if __name__ == "__main__":
   unittest.main()
