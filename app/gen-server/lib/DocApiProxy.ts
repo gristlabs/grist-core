@@ -122,6 +122,14 @@ export class DocApiProxy {
     const withDocMcp = expressWrap(this._forwardToDocWorker.bind(this, "route",
       ["accept", "mcp-session-id"]));
     app.use("/api/docs/:docId/tables", withDoc);
+    app.use("/api/docs/:docId/reference-status", withDoc);
+    app.use("/api/docs/:docId/reference-publications", withDoc);
+    app.use("/api/docs/:docId/reference-connections", withDoc);
+    app.use("/api/docs/:docId/reference-subscriptions", withDoc);
+    app.use("/api/docs/:docId/reference-audit", withDoc);
+    // Source/destination calls carry a server-created permit and are authorized by the doc worker.
+    app.use("/api/docs/:docId/reference-internal", withDocWithoutAuth);
+    app.use("/api/docs/:docId/available-references", withDoc);
     app.use("/api/docs/:docId/force-reload", withDoc);
     app.use("/api/docs/:docId/recover", withDoc);
     app.use("/api/docs/:docId/remove", withDoc);

@@ -161,6 +161,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     onboardingTutorialDocId: getOnboardingTutorialDocId(),
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
+    referenceTables: isAffirmative(process.env.GRIST_REFERENCE_TABLES),
     notifierEnabled: server?.hasNotifier(),
     // Match GristJobs: a test Redis counts as a working queue backend.
     redisAvailable: Boolean(process.env.REDIS_URL || process.env.TEST_REDIS_URL),

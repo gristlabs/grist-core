@@ -1,6 +1,7 @@
 import { isAffirmative } from "app/common/gutil";
 import { RequestWithLogin } from "app/server/lib/Authorizer";
 import log from "app/server/lib/log";
+import { getLoggableRequestBody } from "app/server/lib/requestLogging";
 
 import * as express from "express";
 
@@ -41,11 +42,14 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions): express.ErrorR
       path: mreq.path,
       userId: mreq.userId,
       altSessionId: mreq.altSessionId,
-      body: shouldLogBody ? req.body : undefined,
+      body: shouldLogBody ? getLoggableRequestBody(req) : undefined,
       params: shouldLogParams ? req.params : undefined,
     };
+    // JSON parser diagnostics can contain an excerpt of an unparsed credential-bearing body.
+    const message = err.type === "entity.parse.failed" ?
+      "Invalid JSON payload" : err.message;
     const headersNote = res.headersSent ? " (headersSent)" : "";
-    log.rawWarn(`Error during api call to ${meta.path}${headersNote}: ${err.message}`, meta);
+    log.rawWarn(`Error during api call to ${meta.path}${headersNote}: ${message}`, meta);
     let details = err.details && { ...err.details };
     const status = details?.status || err.status || 500;
     if (details) {
@@ -60,7 +64,7 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions): express.ErrorR
       // already reported the error above.
       res.end();
     } else {
-      res.status(status).json({ error: err.message || "internal error", details });
+      res.status(status).json({ error: message || "internal error", details });
     }
   };
 };

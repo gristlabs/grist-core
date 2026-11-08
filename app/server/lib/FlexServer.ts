@@ -83,6 +83,8 @@ import { addPluginEndpoints, limitToPlugins } from "app/server/lib/PluginEndpoin
 import { PluginManager } from "app/server/lib/PluginManager";
 import { getProxyAgentConfiguration } from "app/server/lib/ProxyAgent";
 import { createPubSubManager, IPubSubManager } from "app/server/lib/PubSubManager";
+import { getReferenceTableService } from "app/server/lib/ReferenceTableService";
+import { getLoggableRequestBody } from "app/server/lib/requestLogging";
 import { adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
   optStringParam, RequestWithGristInfo, stringArrayParam, stringParam,
   terminateSocketWithHttpResponse, TEST_HTTPS_OFFSET, trustOrigin } from "app/server/lib/requestUtils";
@@ -599,7 +601,7 @@ export class FlexServer implements GristServer {
       req.gristInfo || req.originalUrl || req.url);
     morganLogger.token("host", (req: express.Request) => req.get("host"));
     morganLogger.token("body", (req: express.Request) =>
-      req.is("application/json") ? JSON.stringify(req.body) : undefined,
+      req.is("application/json") ? JSON.stringify(getLoggableRequestBody(req)) : undefined,
     );
 
     // For debugging, be careful not to enable logging in production (may log sensitive data)
@@ -1192,6 +1194,7 @@ export class FlexServer implements GristServer {
   }
 
   public async close() {
+    getReferenceTableService(this).close();
     this._processMonitorStop?.();
     await this._updateManager?.clear();
     if (this.usage)  { await this.usage.close(); }
@@ -1322,6 +1325,15 @@ export class FlexServer implements GristServer {
       testLogin: isTestLoginAllowed(),
       baseDomain: this._defaultBaseDomain,
     });
+
+    // Public landing page must run before any login/organization redirect. Its first script
+    // removes the capability fragment before loading the UI or navigating to an identity provider.
+    this.app.get("/reference-connect", expressWrap(async (req, res) => {
+      if (!isAffirmative(process.env.GRIST_REFERENCE_TABLES)) { throw new ApiError("Not found", 404); }
+      res.set({ "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" });
+      await this._sendAppPage(req, res, { path: "referenceConnect.html", status: 200, config: {},
+        googleTagManager: false });
+    }));
 
     const forcedLoginMiddleware = getForceLogin() ? this._redirectToLoginWithoutExceptionsMiddleware : noop;
 
