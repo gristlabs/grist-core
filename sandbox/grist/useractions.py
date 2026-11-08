@@ -5,6 +5,7 @@ import json
 import logging
 import sys
 import time
+import uuid
 from contextlib import contextmanager
 
 import acl
@@ -19,7 +20,7 @@ import actions
 import column
 import sort_specs
 import identifiers
-from objtypes import strict_equal, encode_object
+from objtypes import strict_equal, encode_object, RaisedException
 from reverse_references import check_desired_reverse_col, pick_reverse_col_label
 import schema
 from schema import RecalcWhen
@@ -2198,6 +2199,72 @@ class UserActions(object):
     columns = [{'id': None, 'isFormula': True} for x in range(3)]
     return self.AddTable(table_id, columns)
 
+
+  @useraction
+  def PrepareReferenceSource(self, table_ids):
+    """Provision server-managed stable identities. Authorization is enforced before/after UA."""
+    for table_id in table_ids:
+      rec = self._docmodel.get_table_rec(table_id)
+      if rec.referenceSource or rec.onDemand or rec.summarySourceTable:
+        raise ValueError('Table cannot be published')
+      if rec.referenceIdentity:
+        continue
+      result = self.AddHiddenColumn(table_id, '_gristHelper_ReferenceIdentity_' + uuid.uuid4().hex, {
+        'type': 'Text', 'isFormula': False, 'formula': 'UUID()', 'recalcWhen': RecalcWhen.DEFAULT,
+      })
+      col_id = result['colId']
+      row_ids = sorted(self._engine.tables[table_id].row_ids)
+      if row_ids:
+        self.BulkUpdateRecord(table_id, row_ids, {col_id: [str(uuid.uuid4()) for _ in row_ids]})
+      self._docmodel.update([rec], referenceIdentity=col_id)
+
+  @useraction
+  def CreateReferenceTables(self, subscription_id, definitions):
+    """Create all schemas before wiring relationships; all tables become protected atomically."""
+    result = {}
+    for definition in definitions:
+      columns = [dict(c) for c in definition['columns']]
+      for col in columns:
+        col['isFormula'] = False
+        if col['type'].startswith(('Ref:', 'RefList:')):
+          col['type'] = 'Int'
+      created = self.AddTable(definition['tableId'], columns)
+      if created['table_id'] != definition['tableId']:
+        raise ValueError('Reference table alias already exists')
+      table = self._docmodel.get_table_rec(created['table_id'])
+      actual = {c.colId for c in table.columns}
+      if any(c['id'] not in actual for c in definition['columns']):
+        raise ValueError('Reference column identifier changed')
+      self._docmodel.update([table], referenceSource=subscription_id)
+      result[definition['key']] = {
+        'tableId': created['table_id'],
+        'columns': {c['key']: c['id'] for c in definition['columns']},
+        'rowIds': {}, 'nextRowId': 1,
+      }
+    for definition in definitions:
+      table_id = result[definition['key']]['tableId']
+      for col in definition['columns']:
+        if col.get('target'):
+          col_type = col['type'].split(':', 1)[0] + ':' + result[col['target']]['tableId']
+          self.ModifyColumn(table_id, col['id'], {'type': col_type})
+          self._pick_and_set_display_col(self._docmodel.get_column_rec(table_id, col['id']))
+    # A missing global table name has no dependency edge to invalidate when the table appears.
+    # Retry only failed formula cells mentioning a newly created alias; never rerun successful
+    # formulas or trigger/default formulas merely because a reference was connected.
+    aliases = re.compile(r'\b(?:' + '|'.join(re.escape(d['tableId']) for d in definitions) + r')\b')
+    for col_rec in self._docmodel.columns.all:
+      if not col_rec.isFormula or not aliases.search(col_rec.formula):
+        continue
+      table = self._engine.tables[col_rec.tableId]
+      col_obj = table.get_column(col_rec.colId)
+      failed_rows = []
+      for row_id in table.row_ids:
+        value = col_obj.raw_get(row_id)
+        if isinstance(value, RaisedException) and value.encode_args()[0] == 'NameError':
+          failed_rows.append(row_id)
+      if failed_rows:
+        self._engine.invalidate_column(col_obj, failed_rows)
+    return result
 
   @useraction
   def AddTable(self, table_id, columns):

@@ -17,6 +17,7 @@ import functools
 
 import actions
 import engine
+import reference_preview
 import formula_prompt
 import migrations
 import schema
@@ -87,6 +88,10 @@ def run(sandbox):
     if action_group.requests:
       result["requests"] = action_group.requests
     return result
+
+  @export
+  def preview_reference_actions(action_reprs):
+    return reference_preview.preview(eng, action_reprs)
 
   @export
   def fetch_table(table_id, formulas=True, query=None):

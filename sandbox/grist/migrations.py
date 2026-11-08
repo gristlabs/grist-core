@@ -1411,3 +1411,14 @@ def migration47(tdset):
   return tdset.apply_doc_actions([
     add_column('_grist_Tables', 'locked', 'Bool'),
   ])
+
+
+@migration(schema_version=48)
+def migration48(tdset):
+  """
+  Adds provenance and stable-identity columns used by shared reference tables.
+  """
+  return tdset.apply_doc_actions([
+    add_column('_grist_Tables', 'referenceSource', 'Text'),
+    add_column('_grist_Tables', 'referenceIdentity', 'Text'),
+  ])
