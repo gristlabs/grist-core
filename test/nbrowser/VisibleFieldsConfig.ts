@@ -447,6 +447,35 @@ describe("VisibleFieldsConfig", function() {
       );
     });
 
+    it("should keep checked columns visible until the filter changes again", async function() {
+      // Check "A", then filter to something that does not match it.
+      await findField("visible", /A/).find("input").click();
+      await setFilter("visible", "K");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["A", "K"],
+      );
+      assert.equal(await isSelected("visible", /A/), true);
+
+      // Uncheck "A: it should stay visible until the filter text changes, so that a missclick can be undone easily.
+      await findField("visible", /A/).find("input").click();
+      assert.equal(await isSelected("visible", /A/), false);
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["A", "K"],
+      );
+
+      // Typing another character re-applies the filter; "A" should now disappear.
+      await driver.find(".test-vfc-visible-filter").click();
+      await driver.sendKeys(Key.END, "x");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        [],
+      );
+
+      await setFilter("visible", "");
+    });
+
     it("should show a filter input above hidden columns when there are more than 10", async function() {
       await driver.find(".test-vfc-visible-fields-select-all").click();
       await driver.find(".test-vfc-visible-batch-buttons").findContent("button", /Hide/).click();

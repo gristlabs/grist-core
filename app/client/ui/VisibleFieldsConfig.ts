@@ -217,7 +217,11 @@ export class VisibleFieldsConfig extends Disposable {
     const [fieldsDraggable, hiddenFieldsDraggable] = this.buildSectionFieldsConfigHelper({
       visibleFields: {
         itemCreateFunc: field => this._buildVisibleFieldItem(field),
-        filterFunc: field => fieldMatchesFilter(field, this._visibleFilter.get()),
+        filterFunc: field => fieldMatchesFilterOrSelection(
+          field,
+          this._visibleFilter.get(),
+          this._visibleFieldsSelection,
+        ),
         filterTrigger: this._visibleFilter,
         draggableOptions: {
           removeButton: false,
@@ -226,7 +230,11 @@ export class VisibleFieldsConfig extends Disposable {
       },
       hiddenFields: {
         itemCreateFunc: field => this._buildHiddenFieldItem(field),
-        filterFunc: field => fieldMatchesFilter(field, this._hiddenFilter.get()),
+        filterFunc: field => fieldMatchesFilterOrSelection(
+          field,
+          this._hiddenFilter.get(),
+          this._hiddenFieldsSelection,
+        ),
         filterTrigger: this._hiddenFilter,
         draggableOptions: {
           removeButton: false,
@@ -387,7 +395,7 @@ export class VisibleFieldsConfig extends Disposable {
   // Set all checkboxes for the visible fields.
   private _setVisibleCheckboxes(visibleFieldsDraggable: Element, checked: boolean) {
     const fields = this._section.viewFields.peek().peek()
-      .filter(field => fieldMatchesFilter(field, this._visibleFilter.get()));
+      .filter(field => fieldMatchesFilterOrSelection(field, this._visibleFilter.get(), this._visibleFieldsSelection));
     this._setCheckboxesHelper(
       visibleFieldsDraggable,
       fields,
@@ -400,7 +408,7 @@ export class VisibleFieldsConfig extends Disposable {
   // Set all checkboxes for the hidden fields.
   private _setHiddenCheckboxes(hiddenFieldsDraggable: Element, checked: boolean) {
     const fields = this._hiddenFields.peek()
-      .filter(field => fieldMatchesFilter(field, this._hiddenFilter.get()));
+      .filter(field => fieldMatchesFilterOrSelection(field, this._hiddenFilter.get(), this._hiddenFieldsSelection));
     this._setCheckboxesHelper(
       hiddenFieldsDraggable,
       fields,
@@ -566,10 +574,10 @@ export class VisibleFieldsConfig extends Disposable {
   }
 }
 
-function fieldMatchesFilter(field: IField, filter: string): boolean {
+function fieldMatchesFilterOrSelection(field: IField, filter: string, selection: Set<number>): boolean {
   const query = normalizeText(filter);
   if (!query) { return true; }
-  return normalizeText(field.label.peek()).includes(query);
+  return normalizeText(field.label.peek()).includes(query) || selection.has(field.id.peek());
 }
 
 function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,
