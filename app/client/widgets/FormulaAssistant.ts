@@ -15,7 +15,7 @@ import { cssLink } from "app/client/ui2018/links";
 import { menu, menuItem } from "app/client/ui2018/menus";
 import { Assistant, cssAiImage, cssAiMessage, cssAvatar } from "app/client/widgets/Assistant";
 import { FormulaEditor } from "app/client/widgets/FormulaEditor";
-import { AssistanceState } from "app/common/Assistance";
+import { AssistanceState, AssistantInstructions } from "app/common/Assistance";
 import { commonUrls } from "app/common/gristUrls";
 import { TelemetryEvent, TelemetryMetadata } from "app/common/Telemetry";
 import { getGristConfig } from "app/common/urlUtils";
@@ -88,7 +88,7 @@ export class FormulaAssistant extends Disposable {
     field?: ViewFieldRec,
     gristDoc: GristDoc,
     editor: FormulaEditor,
-    specificInstructions?: string,
+    specificInstructions?: AssistantInstructions,
   }) {
     super();
 
@@ -570,7 +570,7 @@ async function askAI(grist: GristDoc, options: {
   description: string,
   conversationId: string,
   state?: AssistanceState,
-  specificInstructions?: string,
+  specificInstructions?: AssistantInstructions,
 }) {
   const { column, description, conversationId, state, specificInstructions } = options;
   const tableId = column.table.peek().tableId.peek();
