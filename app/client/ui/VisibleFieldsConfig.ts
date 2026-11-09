@@ -3,6 +3,7 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { fixOutlineOverflow } from "app/client/components/KeyboardFocusHighlighter";
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { normalizeText } from "app/client/lib/ACIndex";
+import { getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { focusFallbackOnDispose, kbFallbackGroup } from "app/client/lib/focusUtils";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
@@ -27,6 +28,7 @@ import isEqual from "lodash/isEqual";
 
 const testId = makeTestId("test-vfc-");
 const t = makeT("VisibleFieldsConfig");
+const G = getBrowserGlobals("document", "window", "$");
 
 /** Show a filter input once a list has more than this many columns. */
 const FILTER_INPUT_MIN_COUNT = 10;
@@ -203,6 +205,9 @@ export class VisibleFieldsConfig extends Disposable {
         ...options.hiddenFields.draggableOptions,
       },
     );
+    fieldsDraggable.classList.add(cssDraggableList.className);
+    hiddenFieldsDraggable.classList.add(cssDraggableList.className);
+
     kf.connectDraggableOneWay(hiddenFieldsDraggable, fieldsDraggable);
 
     this.autoDispose(this._disabled.subscribe(() => {
@@ -242,6 +247,17 @@ export class VisibleFieldsConfig extends Disposable {
         },
       },
     });
+
+    // Disable sorting while a filter is active so a partial list cannot be reordered.
+    this.autoDispose(subscribe(this._visibleFilter, (_use, filter) => {
+      // @ts-expect-error sortable is a jQuery UI method
+      G.$(fieldsDraggable).sortable("option", "disabled", Boolean(filter));
+    }));
+    this.autoDispose(subscribe(this._hiddenFilter, (_use, filter) => {
+      // @ts-expect-error sortable is a jQuery UI method
+      G.$(hiddenFieldsDraggable).sortable("option", "disabled", Boolean(filter));
+    }));
+
     return [
       dom("div", { "role": "group", "aria-labelledby": "visible-fields-label" },
         kbJumperAnchor,
@@ -620,6 +636,15 @@ function unselectDeletedFields(selection: Set<number>, event: { deleted: IField[
     selection.delete(field.id.peek());
   }
 }
+
+// This is only used to apply the class manually on the draggable list elements.
+const cssDraggableList = styled("ul", `
+  &.ui-sortable-disabled .test-dragger {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    cursor: default !important;
+  }
+`);
 
 export const cssDragRow = styled("div", `
   display: flex;
