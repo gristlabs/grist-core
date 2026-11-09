@@ -21,7 +21,18 @@ import { visuallyHiddenStyles } from "app/client/ui2018/visuallyHidden";
 import * as gutil from "app/common/gutil";
 import { IWidgetType } from "app/common/widgetTypes";
 
-import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe, UseCB } from "grainjs";
+import {
+  Computed,
+  Disposable,
+  dom,
+  IDomArgs,
+  makeTestId,
+  Observable,
+  onKeyDown,
+  styled,
+  subscribe,
+  UseCB,
+} from "grainjs";
 import ko from "knockout";
 import difference from "lodash/difference";
 import isEqual from "lodash/isEqual";
@@ -490,6 +501,14 @@ export class VisibleFieldsConfig extends Disposable {
             },
             dom.prop("value", filterObs),
             dom.on("input", (_ev, elem) => filterObs.set(elem.value)),
+            onKeyDown({
+              // Let input[search] browser behavior happen thanks to "$", so that Esc key clears the input first.
+              Escape$: (_ev, elem) => {
+                if (!elem.value) {
+                  elem.blur();
+                }
+              },
+            }),
             testId(`${state}-filter`),
           ),
           dom.maybe(filterObs, () => cssClearFilterButton(
