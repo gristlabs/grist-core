@@ -256,7 +256,6 @@ export class ConditionalStyle extends Disposable {
     const editRow = vsi?.moveEditRowToCursor();
     const position = this._gristDoc.cursorPosition.get();
     const tableId = column.table.peek().tableId.peek();
-
     const actualColId = this._scope === "column" ? (this._ruleOwner as ViewFieldRec).colId.peek() : undefined;
 
     // Don't save on focus loss while the floating editor is open (focus moves during detach).
@@ -269,10 +268,8 @@ export class ConditionalStyle extends Disposable {
       setupCleanup: (...args) => setupEditorCleanup(...args, () => floatingExtension.active.get()),
       canDetach: true,
       assistantInstructions: this._scope === "column" ?
-        "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
-        `whether to apply later user-specified formatting style on cells inside the column with ID "${actualColId}". ` :
-        "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
-        "whether to apply later user-specified formatting style on entire rows. ",
+        { type: "columnRule", columnId: actualColId ?? "" } :
+        { type: "rowRule" },
     });
 
     const floatController = createFloatingEditorOwner({
