@@ -1375,8 +1375,8 @@
         "Conditional Style": "Style conditionnel",
         "IF...": "SI...",
         "Row Style": "Style de ligne",
-        "{tableId} - Conditional Style": "{tableId} - Style conditionnel",
-        "{tableId}.{actualColId} - Conditional Style": "{tableId}.{actualColId} - Style conditionnel"
+        "{{tableId}} - Conditional Style": "{{tableId}} - Style conditionnel",
+        "{{tableId}}.{{actualColId}} - Conditional Style": "{{tableId}}.{{actualColId}} - Style conditionnel"
     },
     "CurrencyPicker": {
         "Invalid currency": "Devise invalide"
