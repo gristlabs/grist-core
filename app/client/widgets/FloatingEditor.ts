@@ -21,6 +21,41 @@ export interface IFloatingOwner extends IDisposableOwner {
   attach(content: HTMLElement): Promise<void> | void;
 }
 
+/**
+ * Controller that moves the editor DOM between the inline placement and the floating popup.
+ */
+export function createFloatingEditorOwner(options: {
+  editor: IDisposableOwner & {
+    attach(refElem: Element): void;
+    detach(): HTMLElement;
+    dispose(): void;
+  },
+  refElem: Element,
+  onOrphaned?: () => void | Promise<void>,
+}): IFloatingOwner {
+  const { editor, refElem, onOrphaned } = options;
+  return {
+    attach: async (content: HTMLElement) => {
+      // If we haven't changed page and the element is still in the DOM, move the editor
+      // back to where it was rendered. It still has its content, so no need to dispose it.
+      if (refElem.isConnected) {
+        editor.attach(refElem);
+      } else {
+        // Else, dispose the editor and content, then restore context if needed.
+        editor.dispose();
+        dom.domDispose(content);
+        await onOrphaned?.();
+      }
+    },
+    detach() {
+      return editor.detach();
+    },
+    autoDispose(obj: Disposable) {
+      return editor.autoDispose(obj);
+    },
+  };
+}
+
 export interface FloatingEditorOptions {
   gristDoc: GristDoc;
   /**
