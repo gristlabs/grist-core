@@ -499,6 +499,54 @@ describe("VisibleFieldsConfig", function() {
       await gu.undo();
     });
 
+    it("should disable drag-and-drop while the list is filtered", async function() {
+      const columnOrder = () => driver.findAll(".g-column-label", e => e.getText());
+
+      // Keep B visible under a filter that only matches K, so the list has two rows.
+      await findField("visible", /B/).find("input").click();
+      await setFilter("visible", "K");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["B", "K"],
+      );
+
+      const orderBefore = await columnOrder();
+
+      // Attempt to move B below K — should have no effect while filtered.
+      await driver.withActions(actions => (
+        actions
+          .move({ origin: findField("visible", /B/) })
+          .move({ origin: findField("visible", /B/).find(".test-dragger") })
+          .press()
+          .move({ origin: findField("visible", /K/), y: 1 })
+          .release()
+      ));
+      assert.deepEqual(await columnOrder(), orderBefore);
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["B", "K"],
+      );
+
+      // Clearing the filter should re-enable drag-and-drop.
+      await setFilter("visible", "");
+      await findField("visible", /B/).find("input").click();
+
+      await driver.withActions(actions => (
+        actions
+          .move({ origin: findField("visible", /J/) })
+          .move({ origin: findField("visible", /J/).find(".test-dragger") })
+          .press()
+          .move({ origin: findField("visible", /K/), y: 1 })
+          .release()
+      ));
+      await gu.waitForServer();
+
+      const orderAfter = await columnOrder();
+      assert.isAbove(orderAfter.indexOf("J"), orderAfter.indexOf("K"));
+
+      await gu.undo();
+    });
+
     it("should show a filter input above hidden columns when there are more than 10", async function() {
       await driver.find(".test-vfc-visible-fields-select-all").click();
       await driver.find(".test-vfc-visible-batch-buttons").findContent("button", /Hide/).click();
