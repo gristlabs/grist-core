@@ -25,7 +25,7 @@ import { DiffBox } from "app/client/widgets/DiffBox";
 import { CommentPopup, DiscussionModelImpl } from "app/client/widgets/DiscussionEditor";
 import { buildErrorDom } from "app/client/widgets/ErrorDom";
 import { FieldEditor, saveWithoutEditor, setupEditorCleanup } from "app/client/widgets/FieldEditor";
-import { FloatingEditor } from "app/client/widgets/FloatingEditor";
+import { createFloatingEditorOwner, FloatingEditor } from "app/client/widgets/FloatingEditor";
 import { openFormulaEditor } from "app/client/widgets/FormulaEditor";
 import { CommentWithMentions } from "app/client/widgets/MentionTextBox";
 import { NewAbstractWidget } from "app/client/widgets/NewAbstractWidget";
@@ -896,32 +896,6 @@ export class FieldBuilder extends Disposable {
     // Remember position when the popup was opened.
     const position = this.gristDoc.cursorPosition.get();
 
-    // Create a controller for the floating editor. It is primarily responsible for moving the editor
-    // dom from the place where it was rendered to the popup (and moving it back).
-    const floatController = {
-      attach: async (content: HTMLElement) => {
-        // If we haven't change page and the element is still in the DOM, move the editor to the
-        // back to where it was rendered. It still has it's content, so no need to dispose it.
-        if (refElem.isConnected) {
-          formulaEditor.attach(refElem);
-        } else {
-          // Else, we will navigate to the position we left off, dispose the editor and the content.
-          formulaEditor.dispose();
-          grainjsDom.domDispose(content);
-          await this.gristDoc.recursiveMoveToCursorPos(position!, true);
-        }
-      },
-      detach() {
-        return formulaEditor.detach();
-      },
-      autoDispose(el: Disposable) {
-        return formulaEditor.autoDispose(el);
-      },
-      dispose() {
-        formulaEditor.dispose();
-      },
-    };
-
     // Get the field model from metatables, as the one provided by the caller might be some floating one, that
     // will change when user navigates around.
     const field = this.gristDoc.docModel.viewFields.getRowModel(this.field.getRowId());
@@ -938,6 +912,16 @@ export class FieldBuilder extends Disposable {
       canDetach,
       onSave,
       onCancel,
+    });
+
+    const floatController = createFloatingEditorOwner({
+      editor: formulaEditor,
+      refElem,
+      onOrphaned: async () => {
+        if (position) {
+          await this.gristDoc.recursiveMoveToCursorPos(position, true);
+        }
+      },
     });
 
     // And now create the floating editor itself. It is just a floating wrapper that will grab the dom

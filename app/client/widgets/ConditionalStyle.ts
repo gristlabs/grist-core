@@ -13,14 +13,14 @@ import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssDragger } from "app/client/ui2018/draggableList";
 import { icon } from "app/client/ui2018/icons";
 import { setupEditorCleanup } from "app/client/widgets/FieldEditor";
-import { FloatingEditor } from "app/client/widgets/FloatingEditor";
+import { createFloatingEditorOwner, FloatingEditor } from "app/client/widgets/FloatingEditor";
 import { cssError, openFormulaEditor } from "app/client/widgets/FormulaEditor";
 import { isRaisedException, isValidRuleValue } from "app/common/gristTypes";
 import { Style } from "app/common/Styles";
 import { GristObjCode, RowRecord } from "app/plugin/GristData";
 import { decodeObject } from "app/plugin/objtypes";
 
-import { Computed, Disposable, dom, DomContents, domDispose, makeTestId, Observable, styled } from "grainjs";
+import { Computed, Disposable, dom, DomContents, makeTestId, Observable, styled } from "grainjs";
 import debounce from "lodash/debounce";
 
 const testId = makeTestId("test-widget-style-");
@@ -257,30 +257,6 @@ export class ConditionalStyle extends Disposable {
     const position = this._gristDoc.cursorPosition.get();
     const tableId = column.table.peek().tableId.peek();
 
-    // Controller that moves the editor DOM between the inline placement and the floating popup.
-    const floatController = {
-      attach: async (content: HTMLElement) => {
-        if (refElem.isConnected) {
-          formulaEditor.attach(refElem);
-        } else {
-          formulaEditor.dispose();
-          domDispose(content);
-          if (position) {
-            await this._gristDoc.recursiveMoveToCursorPos(position, true);
-          }
-        }
-      },
-      detach() {
-        return formulaEditor.detach();
-      },
-      autoDispose(el: Disposable) {
-        return formulaEditor.autoDispose(el);
-      },
-      dispose() {
-        formulaEditor.dispose();
-      },
-    };
-
     const actualColId = this._scope === "column" ? (this._ruleOwner as ViewFieldRec).colId.peek() : undefined;
 
     // Don't save on focus loss while the floating editor is open (focus moves during detach).
@@ -297,6 +273,16 @@ export class ConditionalStyle extends Disposable {
         `whether to apply later user-specified formatting style on cells inside the column with ID "${actualColId}". ` :
         "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
         "whether to apply later user-specified formatting style on entire rows. ",
+    });
+
+    const floatController = createFloatingEditorOwner({
+      editor: formulaEditor,
+      refElem,
+      onOrphaned: async () => {
+        if (position) {
+          await this._gristDoc.recursiveMoveToCursorPos(position, true);
+        }
+      },
     });
 
     const floatingExtension = FloatingEditor.create(formulaEditor, floatController, {
