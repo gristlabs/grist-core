@@ -476,6 +476,29 @@ describe("VisibleFieldsConfig", function() {
       await setFilter("visible", "");
     });
 
+    it("should only 'select all' and hide columns that match the filter", async function() {
+      await setFilter("visible", "A");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["A"],
+      );
+
+      await driver.find(".test-vfc-visible-fields-select-all").click();
+      assert.equal(await isSelected("visible", /A/), true);
+
+      await driver.find(".test-vfc-visible-batch-buttons").findContent("button", /Hide/).click();
+      await gu.waitForServer();
+
+      const visible = await driver.findAll(".g-column-label", e => e.getText());
+      assert.notInclude(visible, "A");
+      assert.include(visible, "B");
+      assert.include(visible, "K");
+      assert.lengthOf(visible, 10);
+
+      await setFilter("visible", "");
+      await gu.undo();
+    });
+
     it("should show a filter input above hidden columns when there are more than 10", async function() {
       await driver.find(".test-vfc-visible-fields-select-all").click();
       await driver.find(".test-vfc-visible-batch-buttons").findContent("button", /Hide/).click();
