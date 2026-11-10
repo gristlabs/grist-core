@@ -17,6 +17,10 @@ import { GranularAccessForBundle } from "app/server/lib/GranularAccess";
 import { insightLogEntry } from "app/server/lib/InsightLog";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
+import {
+  authorizeReferenceCommit, commitReferenceActions, hasReferenceCommit, recordReferenceChanges,
+} from "app/server/lib/ReferenceDocState";
+import { assertReferenceActions, isReferenceSession } from "app/server/lib/ReferenceTableAccess";
 import { shortDesc } from "app/server/lib/shortDesc";
 
 import assert from "assert";
@@ -55,6 +59,10 @@ export class Sharing {
   // eslint-disable-next-line @typescript-eslint/class-literal-property-style
   public get instanceId(): string | null { return null; }
 
+  public withReferenceRead<T>(callback: () => Promise<T>): Promise<T> {
+    return this._userActionLock.runExclusive(callback);
+  }
+
   /**
    * The only public interface. This may be called at any time, but the work happens for at most
    * one action at a time.
@@ -73,6 +81,7 @@ export class Sharing {
   private async _doApplyUserActions(info: ActionInfo, userActions: UserAction[],
     docSession: OptDocSession,
     options: ApplyUAExtendedOptions | null): Promise<ApplyUAResult> {
+    await authorizeReferenceCommit(docSession);
     const client = docSession?.client;
 
     if (docSession?.linkId) {
@@ -103,6 +112,7 @@ export class Sharing {
       //   because then the attachment file may get hard-deleted and redo won't work properly.
       // - Action was rejected but it had some side effects (e.g. NOW() or UUID() formulas).
       const internal =
+        isReferenceSession(docSession) ||
         isSystemAction ||
         userActions.every(a => a[0] === "AddRecord" && a[1] === "_grist_Attachments") ||
         !!failure;
@@ -112,7 +122,7 @@ export class Sharing {
       // action that calculates formula values when the document is opened cold
       // (without cached ActiveDoc) if it doesn't change anything - otherwise we'll end up with spam
       // log entries for each time the document is opened cold.
-      const trivial = internal && sandboxActionBundle.stored.length === 0;
+      const trivial = internal && sandboxActionBundle.stored.length === 0 && !hasReferenceCommit(docSession);
 
       const actionNum = trivial ? 0 : this._actionHistory.getNextLocalActionNum();
 
@@ -156,25 +166,36 @@ export class Sharing {
 
       // Apply the action to the database, and record in the action log.
       if (!trivial) {
-        await this._activeDoc.docStorage.execTransaction(async () => {
-          insightLog?.mark("docStorageTxn");
-          await this._activeDoc.applyStoredActionsToDocStorage(getEnvContent(localActionBundle.stored));
+        try {
+          await commitReferenceActions(docSession, () => this._activeDoc.docStorage.execTransaction(async () => {
+            insightLog?.mark("docStorageTxn");
+            await this._activeDoc.applyStoredActionsToDocStorage(getEnvContent(localActionBundle.stored));
 
-          // Before sharing is enabled, actions are immediately marked as "shared" (as if accepted
-          // by the hub). The alternative of keeping actions on the "local" branch until sharing is
-          // enabled is less suitable, because such actions could have empty envelopes, and cannot
-          // be shared. Once sharing is enabled, we would share a snapshot at that time.
-          await this._actionHistory.recordNextShared(localActionBundle);
+            // Before sharing is enabled, actions are immediately marked as "shared" (as if accepted
+            // by the hub). The alternative of keeping actions on the "local" branch until sharing is
+            // enabled is less suitable, because such actions could have empty envelopes, and cannot
+            // be shared. Once sharing is enabled, we would share a snapshot at that time.
+            await this._actionHistory.recordNextShared(localActionBundle);
+            await recordReferenceChanges(this._activeDoc.docStorage, this._activeDoc.docName,
+              localActionBundle, docSession, sandboxActionBundle.retValues);
 
-          if (client?.clientId && !internal) {
-            this._actionHistory.setActionUndoInfo(
-              localActionBundle.actionHash!,
-              getActionUndoInfo(localActionBundle, client.clientId, sandboxActionBundle.retValues));
+            if (client?.clientId && !internal) {
+              this._actionHistory.setActionUndoInfo(
+                localActionBundle.actionHash!,
+                getActionUndoInfo(localActionBundle, client.clientId, sandboxActionBundle.retValues));
+            }
+          }));
+        } catch (e) {
+          if (isReferenceSession(docSession) ||
+            this._activeDoc.docData?.getMetaTable("_grist_Tables").getRecords().some(t => t.referenceIdentity)) {
+            this._activeDoc.invalidateReferenceCommit();
           }
-        });
+          throw e;
+        }
         insightLog?.mark("docStorage");
       }
       await this._activeDoc.processActionBundle(localActionBundle);
+      this._activeDoc.notifyReferenceChanges();
       insightLog?.mark("processBundle");
 
       // Don't trigger webhooks for single Calculate actions, this causes a deadlock on document load.
@@ -253,6 +274,8 @@ export class Sharing {
       // TODO: see if any of the code paths that have no docSession are relevant outside
       // of tests.
       await accessControl.canApplyBundle();
+      await authorizeReferenceCommit(docSession);
+      assertReferenceActions(this._activeDoc.docData, docSession, getEnvContent(applyResult.stored), true);
       insightLog?.mark("accessRulesCheck");
       return { result: { bundle: applyResult, accessControl } };
     } catch (applyExc) {

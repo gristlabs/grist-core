@@ -16,7 +16,8 @@ const G = getBrowserGlobals("document", "window");
  * Sets up error handling and global styles, and replaces the DOM body with the
  * result of calling `buildPage`.
  */
-export function createPage(buildPage: () => DomContents, options: { disableTheme?: boolean } = {}) {
+export function createPage(buildPage: () => DomContents,
+  options: { disableTheme?: boolean; localeReady?: boolean } = {}) {
   const { disableTheme } = options;
 
   setUpErrorHandling();
@@ -28,7 +29,7 @@ export function createPage(buildPage: () => DomContents, options: { disableTheme
   } else {
     attachTheme();
   }
-  setupLocale().catch(reportError);
+  if (!options.localeReady) { setupLocale().catch(reportError); }
 
   // Add globals needed by test utils.
   G.window.gristApp = {

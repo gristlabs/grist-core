@@ -90,6 +90,7 @@ import { getAnonPlaygroundEnabled } from "app/server/lib/gristSettings";
 import { HashUtil } from "app/server/lib/HashUtil";
 import { makeForkIds } from "app/server/lib/idUtils";
 import log from "app/server/lib/log";
+import { getReferenceTableService } from "app/server/lib/ReferenceTableService";
 import {
   getDocId,
   getDocScope,
@@ -205,6 +206,9 @@ export class DocWorkerApi {
       docWorkerMap: this._docWorkerMap,
       canEdit,
       withDoc,
+    });
+    getReferenceTableService(this._grist).addEndpoints(this._app, {
+      withDoc, ownerRead: isOwnerRead, ownerWrite: isOwnerWrite, canView,
     });
     // Apply user actions to a document.
     this._app.post("/api/docs/:docId/apply", canEdit, withDoc(async (activeDoc, req, res) => {

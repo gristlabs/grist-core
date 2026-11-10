@@ -722,6 +722,7 @@ export interface IMultiColumnContextMenu {
 
   // If the columns are read-only. Mixed for multiple columns where some are read-only.
   disableModify: boolean | "mixed";
+  disableInsert?: boolean;
 
   isReadonly: boolean;
   isRaw: boolean;
@@ -848,8 +849,10 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
     menuDivider(),
-    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"), disableForReadonlyView),
-    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyView),
+    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"),
+      dom.cls("disabled", options.isReadonly || Boolean(options.disableInsert))),
+    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"),
+      dom.cls("disabled", options.isReadonly || Boolean(options.disableInsert))),
   ];
 }
 

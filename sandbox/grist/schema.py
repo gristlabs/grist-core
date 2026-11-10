@@ -13,7 +13,7 @@ from collections import OrderedDict, namedtuple
 
 import actions
 
-SCHEMA_VERSION = 47
+SCHEMA_VERSION = 48
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -59,6 +59,10 @@ def schema_create_actions():
       # Only sessions with lock-bypassing enabled (system sessions) can modify them or the
       # "locked" flag.
       make_column("locked",       "Bool"),
+      # Non-secret provenance of a protected reference mirror, managed only by the server.
+      make_column("referenceSource", "Text"),
+      # Hidden column holding stable identities in a published source table.
+      make_column("referenceIdentity", "Text"),
 
       make_column("rawViewSectionRef", "Ref:_grist_Views_section"),
       make_column("recordCardViewSectionRef", "Ref:_grist_Views_section"),

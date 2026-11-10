@@ -1034,6 +1034,7 @@ export interface GristLoadConfig {
   canCloseAccount?: boolean;
 
   experimentalPlugins?: boolean;
+  referenceTables?: boolean;
 
   // If backend has an email service for sending notifications.
   notifierEnabled?: boolean;

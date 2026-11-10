@@ -160,6 +160,8 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         );
         -- Plugins have unique keys.
         CREATE UNIQUE INDEX _gristsys_PluginData_unique_key on _gristsys_PluginData(pluginId, key);`);
+      await db.exec(`CREATE TABLE _gristsys_ReferenceState (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+        CREATE TABLE _gristsys_ReferenceChanges (revision INTEGER PRIMARY KEY, changes TEXT NOT NULL);`);
     },
     migrations: [
       async function(db: SQLiteDB): Promise<void> {
@@ -431,6 +433,11 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         // where the file is stored.
         // Default should be NULL.
         await db.exec(`ALTER TABLE _gristsys_Files ADD COLUMN storageId TEXT`);
+      },
+      async function(db: SQLiteDB): Promise<void> {
+        // Storage version 10: transactional reference cursors and source outbox.
+        await db.exec(`CREATE TABLE _gristsys_ReferenceState (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+          CREATE TABLE _gristsys_ReferenceChanges (revision INTEGER PRIMARY KEY, changes TEXT NOT NULL);`);
       },
     ],
   };

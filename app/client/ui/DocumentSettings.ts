@@ -15,6 +15,7 @@ import { urlState } from "app/client/models/gristUrlState";
 import { KoSaveableObservable } from "app/client/models/modelUtil";
 import { openFilePicker } from "app/client/ui/FileDialog";
 import { buildNotificationsConfig } from "app/client/ui/Notifications";
+import { ReferenceTablesSettings } from "app/client/ui/ReferenceTablesSettings";
 import { cssSettingsPage, SectionCard, SectionItem } from "app/client/ui/SettingsLayout";
 import { hoverTooltip, showTransientTooltip, withInfoTooltip } from "app/client/ui/tooltips";
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
@@ -200,6 +201,9 @@ document is first opened, or when a document responds to changes.",
           disabled: isDocEditor ? false : t("Only available to document editors"),
         }),
       ]),
+
+      window.gristConfig?.referenceTables && isDocOwner && !isFork ?
+        dom.create(ReferenceTablesSettings, this._gristDoc) : null,
 
       SectionCard(t("API"), [
         SectionItem({

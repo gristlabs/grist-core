@@ -40,11 +40,11 @@ describe("DocStorageMigrations", function() {
   }
 
   it("should migrate from v1 correctly", function() {
-    return testMigration("BlobMigrationV1.grist", "BlobMigrationV9.grist");
+    return testMigration("BlobMigrationV1.grist", "BlobMigrationV10.grist");
   });
 
   it("should migrate from v2 correctly", function() {
-    return testMigration("BlobMigrationV2.grist", "BlobMigrationV9.grist");
+    return testMigration("BlobMigrationV2.grist", "BlobMigrationV10.grist");
   });
 
   it("should migrate from v3 correctly", async function() {
@@ -70,11 +70,11 @@ describe("DocStorageMigrations", function() {
     // Also do the test to check out the full document against a saved copy. To know if the copy
     // makes sense, run in test/fixtures/docs:
     //    diff -u <(sqlite3 BlobMigrationV3.grist .dump) <(sqlite3 BlobMigrationV4.grist .dump)
-    await testMigration("BlobMigrationV3.grist", "BlobMigrationV9.grist");
+    await testMigration("BlobMigrationV3.grist", "BlobMigrationV10.grist");
   });
 
   it("should migrate from v4 correctly", function() {
-    return testMigration("BlobMigrationV4.grist", "BlobMigrationV9.grist");
+    return testMigration("BlobMigrationV4.grist", "BlobMigrationV10.grist");
   });
 
   it("should migrate from v5 correctly", async function() {
@@ -84,7 +84,7 @@ describe("DocStorageMigrations", function() {
     //
     // Verify correctness of these fixture files with:
     //  diff -u <(sqlite3 DefaultValuesV5.grist .dump) <(sqlite3 DefaultValuesV7.grist .dump)
-    return testMigration("DefaultValuesV5.grist", "DefaultValuesV9.grist");
+    return testMigration("DefaultValuesV5.grist", "DefaultValuesV10.grist");
   });
 
   it("should migrate from v6 correctly", async function() {
@@ -94,7 +94,7 @@ describe("DocStorageMigrations", function() {
     // Verify correctness of updated fixture files with, for instance:
     //  cd test/fixtures/docs ; \
     //    diff -u <(sqlite3 DefaultValuesV6.grist .dump) <(sqlite3 DefaultValuesV7.grist .dump)
-    await testMigration("BlobMigrationV6.grist", "BlobMigrationV9.grist");
-    await testMigration("DefaultValuesV6.grist", "DefaultValuesV9.grist");
+    await testMigration("BlobMigrationV6.grist", "BlobMigrationV10.grist");
+    await testMigration("DefaultValuesV6.grist", "DefaultValuesV10.grist");
   });
 });

@@ -1326,6 +1326,20 @@ const AuditEvents: AuditEvents = {
       },
     },
   },
+  "document.reference": {
+    type: ["installation", "site"],
+    description: "A shared reference publication, authorization or subscription was changed.",
+    properties: {
+      document: { type: "object", description: "The document.", properties: {
+        id: { type: "string", description: "The document ID." },
+      } },
+      operation: { type: "string", description: "The reference management operation." },
+      publication_or_subscription_id: {
+        type: "string", description: "The publication or subscription ID, when known.",
+      },
+    },
+    sample: { document: { id: "example" }, operation: "POST /api/docs/:docId/reference-subscriptions" },
+  },
   "document.truncate_history": {
     type: ["installation", "site"],
     description: "A document's history was truncated.",

@@ -15,6 +15,7 @@ import { buildDocGristImportMenuItem } from "app/client/ui/GristImportEntryPoint
 import { cssLeftPanel, cssScrollPane } from "app/client/ui/LeftPanelCommon";
 import { buildPagesDom } from "app/client/ui/Pages";
 import { openPageWidgetPicker } from "app/client/ui/PageWidgetPicker";
+import { connectReferenceWithLink } from "app/client/ui/ReferenceConnection";
 import { tools } from "app/client/ui/Tools";
 import { createVersionFooter } from "app/client/ui/VersionFooter";
 import { bigBasicButton } from "app/client/ui2018/buttons";
@@ -36,6 +37,7 @@ import {
   UrlIdParts,
 } from "app/common/gristUrls";
 import { getReconnectTimeout } from "app/common/gutil";
+import { ReferenceTableAPI } from "app/common/ReferenceTableAPI";
 import { canEdit, isOwner } from "app/common/roles";
 import { UserInfo } from "app/common/User";
 import {
@@ -614,6 +616,10 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
       menuIcon("TypeTable"), t("Add empty table"), testId("dp-empty-table"),
       ariaDisabled(isReadonly),
     ),
+    window.gristConfig?.referenceTables && isOwner(gristDoc.docPageModel.currentDoc.get()) ?
+      menuItem(() => connectReferenceWithLink(new ReferenceTableAPI(gristDoc.docApi)),
+        menuIcon("Import"), t("Connect with a link"),
+        dom.cls("disabled", isReadonly), testId("dp-connect-reference")) : null,
     menuDivider(),
     buildImportMenu(importSources, isReadonly),
     buildDocGristImportMenuItem(gristDoc, isReadonly),

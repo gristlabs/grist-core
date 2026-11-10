@@ -7,6 +7,7 @@ import { Organization } from "app/gen-server/entity/Organization";
 import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 import { PreviousAndCurrent } from "app/gen-server/lib/homedb/Interfaces";
+import { ReferenceAuditState } from "app/server/lib/ReferenceAudit";
 
 export interface AuditEvent<
   Action extends AuditEventAction = AuditEventAction,
@@ -57,6 +58,7 @@ export const AuditEventAction = StringUnion(
   "document.open",
   "document.pin",
   "document.reload",
+  "document.reference",
   "document.rename",
   "document.replace",
   "document.restore_from_trash",
@@ -254,6 +256,15 @@ export interface AuditEventDetails {
   };
   "document.send_to_google_drive": {
     document: Pick<Document, "id">;
+  };
+  "document.reference": {
+    document: Pick<Document, "id">;
+    operation: string;
+    publication_or_subscription_id?: string;
+    connection_link_id?: string;
+    subscription_id?: string;
+    before?: ReferenceAuditState;
+    after?: ReferenceAuditState;
   };
   "document.truncate_history": {
     document: Pick<Document, "id">;
