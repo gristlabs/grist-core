@@ -180,6 +180,19 @@ describe("Comments", function() {
     assert.equal(await readComment(0), "Hello from Chimpy");
   });
 
+  it("should store the anchor link of the commented cell", async function() {
+    docId = (await session.tempShortDoc(cleanup, "Hello.grist")).id;
+    await addComment("A", 1, "Hello from Chimpy");
+
+    await gu.getCell("A", 1).click();
+    const commentAnchor = (await gu.getAnchor()).replace("#a1.", "#a4.");
+
+    const cells = await ownerApi.getTable(docId, "_grist_Cells");
+    const stored = JSON.parse(String(cells.content.at(-1))).anchorLink;
+    assert.isNotEmpty(stored);
+    assert.isTrue(commentAnchor.endsWith(stored));
+  });
+
   it("viewers can see read-only comments", async function() {
     // Create a new document and add a comment.
     docId = (await session.tempShortDoc(cleanup, "Hello.grist")).id;

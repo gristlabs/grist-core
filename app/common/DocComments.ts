@@ -79,7 +79,9 @@ export function makeDocComment(
   const parsed = safeJsonParse(record.content, {}) as CommentContent;
   if (!parsed.text) { return null; }
 
-  const anchorLink = parsed.anchorLink ?? makeAnchorLinkValue({
+  // Keep stored link if it looks correct (with a hash portion like "/p/2#a4...."), otherwise link to the cell
+  // by hash, even though we are missing the page.
+  const anchorLink = parsed.anchorLink?.includes("#") ? parsed.anchorLink : "#" + makeAnchorLinkValue({
     rowId: record.rowId,
     colRef: record.colRef,
     sectionId: parsed.sectionId ?? undefined,

@@ -139,7 +139,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
     const tableRef = section.table.peek().id.peek();
     const author = commentAuthor(this.gristDoc);
     const hashForSection = this.gristDoc.currentView.get()?.getAnchorLinkForSection(pos.sectionId);
-    const commentsHash = { hash: { ...hashForSection, comments: true } };
+    const commentsHash = { hash: { ...hashForSection?.hash, comments: true } };
     const fullUrl = hashForSection ? urlState().makeUrl(commentsHash) : undefined;
     // Anchor link has a format: /p/1#anchor-link, so it also includes the page we are expected to land.
     const anchorLink = fullUrl ? fullUrl.replace(getCurrentDocUrl(), "") : undefined;
