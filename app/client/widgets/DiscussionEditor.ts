@@ -18,6 +18,7 @@ import { basicButton, primaryButton, textButton } from "app/client/ui2018/button
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { handleGristLinkClick } from "app/client/ui2018/links";
 import { menu, menuItem, menuItemCheckbox } from "app/client/ui2018/menus";
 import { cssMarkdown } from "app/client/widgets/MarkdownTextBox";
 import { buildMentionTextBox, CommentWithMentions } from "app/client/widgets/MentionTextBox";
@@ -703,6 +704,7 @@ class Comment extends Disposable {
               );
             }
             return cssRenderedCommentMarkdown(
+              dom.onMatch("a", "click", (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
               dom.domComputed(comment.text, (text?: string) => text && renderCellMarkdown(text)),
               testId("comment-text"),
             );
