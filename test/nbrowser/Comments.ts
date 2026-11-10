@@ -180,6 +180,33 @@ describe("Comments", function() {
     assert.equal(await readComment(0), "Hello from Chimpy");
   });
 
+  it("should navigate within the doc when clicking a same-doc link in a comment", async function() {
+    docId = (await session.tempShortDoc(cleanup, "Hello.grist")).id;
+    await gu.getCell("B", 3).click();
+    const anchor = await gu.getAnchor();
+
+    await gu.getCell("A", 1).click();
+    await openCommentsWithKey();
+    await waitForInput();
+    await gu.sendKeys(`[Same doc](${anchor}) [External](https://example.com)`);
+    await enter();
+
+    const [sameDocLink, externalLink] = await (await findComment(0)).findAll("a");
+    assert.equal(await sameDocLink.getAttribute("href"), anchor);
+    assert.equal(await externalLink.getAttribute("href"), "https://example.com/");
+    assert.equal(await externalLink.getAttribute("target"), "_blank");
+
+    // Mark the page, so that we can tell it was not reloaded.
+    await driver.executeScript("window._commentLinkTest = true");
+    await sameDocLink.click();
+
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await gu.getCursorPosition(), { rowNum: 3, col: 1 });
+    });
+    assert.lengthOf(await driver.getAllWindowHandles(), 1);
+    assert.isTrue(await driver.executeScript("return window._commentLinkTest"));
+  });
+
   it("viewers can see read-only comments", async function() {
     // Create a new document and add a comment.
     docId = (await session.tempShortDoc(cleanup, "Hello.grist")).id;
