@@ -552,4 +552,44 @@ describe("CellColor", function() {
       await cell().find(".test-toggle-switch-slider").getCssValue("background-color"), gu.hexToRgb("#009058"),
     );
   });
+
+  it("should have a detach button on conditional style formula inputs", async function() {
+    await gu.addInitialStyleRule();
+    await gu.openStyleRuleFormula(0);
+
+    assert.isTrue(await driver.findWait(".test-floating-editor-detach-button", 1000).isDisplayed());
+    await driver.find(".test-floating-editor-detach-button").click();
+
+    await driver.findWait(".test-floating-editor-popup", 1000).isDisplayed();
+    assert.match(
+      await driver.find(".test-floating-editor-popup-title").getText(),
+      /Conditional Style/,
+    );
+
+    assert.isTrue(
+      await driver.findWait(".test-formula-editor-save-button", 1000).isDisplayed(),
+    );
+    assert.isTrue(
+      await driver.find(".test-formula-editor-cancel-button").isDisplayed(),
+    );
+    assert.isFalse(
+      await driver.find(".test-formula-editor-preview-button").isPresent(),
+    );
+    await driver.find(".test-formula-editor-cancel-button").click();
+    await driver.wait(async () => !(await driver.find(".test-floating-editor-popup").isPresent()), 1000);
+  });
+
+  it("should successfully save when using detach mode", async function() {
+    await gu.openStyleRuleFormula(0);
+    await driver.findWait(".test-floating-editor-detach-button", 1000).click();
+    await driver.findWait(".test-floating-editor-popup", 1000);
+
+    await gu.sendKeys("$E");
+    await driver.find(".test-formula-editor-save-button").click();
+    await gu.waitForServer();
+    await driver.wait(async () => !(await driver.find(".test-floating-editor-popup").isPresent()), 1000);
+
+    const formula = await gu.getStyleRuleAt(0).find(".formula_field_sidepane").getText();
+    assert.equal(formula.trim(), "$E");
+  });
 });

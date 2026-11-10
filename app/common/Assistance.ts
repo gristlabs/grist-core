@@ -102,6 +102,13 @@ export const DeveloperPromptVersion = StringUnion(
 export type DeveloperPromptVersion = typeof DeveloperPromptVersion.type;
 
 /**
+ * Depending on the instructions type the client sends, we'll fine-tune the prompt server-side.
+ */
+export type AssistantInstructions =
+  { type: "columnRule"; columnId: string } |
+  { type: "rowRule" };
+
+/**
  * Currently, requests for formula assistance always happen in the context
  * of the column of a particular table.
  */
@@ -110,6 +117,7 @@ export interface AssistanceContextV1 {
   colId: string;
   evaluateCurrentFormula?: boolean;
   rowId?: number;
+  specificInstructions?: AssistantInstructions;
 }
 
 /** What the user has open when they write to the document assistant. */

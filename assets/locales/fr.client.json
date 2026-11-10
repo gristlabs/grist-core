@@ -1374,7 +1374,9 @@
         "Rule must return True or False": "La règle doit retourner Vrai ou Faux",
         "Conditional Style": "Style conditionnel",
         "IF...": "SI...",
-        "Row Style": "Style de ligne"
+        "Row Style": "Style de ligne",
+        "{{tableId}} - Conditional Style": "{{tableId}} - Style conditionnel",
+        "{{tableId}}.{{actualColId}} - Conditional Style": "{{tableId}}.{{actualColId}} - Style conditionnel"
     },
     "CurrencyPicker": {
         "Invalid currency": "Devise invalide"
