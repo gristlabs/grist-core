@@ -176,15 +176,15 @@ describe("DetailView", function() {
       // The card list follows the table without being focused, so only its card is scrolled to.
       await gu.getCell("F0", 5, "TALL").click();
       const pane = await driver.find(".detailview_scroll_pane");
-      await gu.waitToPass(async () => {
-        assert.isTrue(await isInView(await pane.findContent(".g_record_detail_value", /^first5$/), pane));
-      });
+      await gu.waitForScrolls();
+      assert.isTrue(await isInView(await pane.findContent(".g_record_detail_value", /^first5$/), pane));
     });
   });
 });
 
 // Whether the selected field is entirely within the visible part of the enclosing scroll pane.
 async function isCursorInView(paneSelector: string): Promise<boolean> {
+  await gu.waitForScrolls();
   const cell = await gu.getActiveCell();
   return isInView(cell, cell.findClosest(paneSelector));
 }

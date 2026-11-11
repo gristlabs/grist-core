@@ -528,7 +528,7 @@ describe("ColumnFilterMenu", function() {
     );
 
     // Check the filter menu state of Count.
-    await driver.findContent(".test-filter-field", /Count/).click();
+    await gu.openPinnedFilter("Count");
     assert.deepEqual(
       [
         { checked: true, value: "n/a", count: 1 },

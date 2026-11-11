@@ -327,7 +327,10 @@
         "Pin filter": "Pin filter",
         "Sort alphabetically (current: sorted by number of occurrences)": "Sort alphabetically (current: sorted by number of occurrences)",
         "Sort by number of occurrences (current: sorted alphabetically)": "Sort by number of occurrences (current: sorted alphabetically)",
-        "Unpin filter": "Unpin filter"
+        "Unpin filter": "Unpin filter",
+        "All filters": "All filters",
+        "Cancel": "Cancel",
+        "Close": "Close"
     },
     "CustomSectionConfig": {
         " (optional)": " (optional)",
@@ -2635,7 +2638,8 @@
         "Your suggestions": "Your suggestions",
         "experiment": "experiment",
         "original document": "original document",
-        "Undo dismissal": "Undo dismissal"
+        "Undo dismissal": "Undo dismissal",
+        "Could not apply this suggestion: {{detail}}": "Could not apply this suggestion: {{detail}}"
     },
     "commandList": {
         "Show accessibility options": "Show accessibility options",

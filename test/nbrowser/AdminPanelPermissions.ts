@@ -1,4 +1,5 @@
 import { InstallAPIImpl } from "app/common/InstallAPI";
+import { toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import * as testUtils from "test/server/testUtils";
@@ -35,14 +36,11 @@ describe("AdminPanelPermissions", function() {
   // as the wizard. We expand the row first so getText() / clicks land on
   // visible elements (SectionItem uses a max-height transition).
   async function expandPermissionsItem() {
-    await driver.findWait(".test-admin-panel-item-default-permissions", 3000);
-    await driver.find(".test-admin-panel-item-name-default-permissions").click();
-    // SectionItem uses a max-height transition; wait for the toggle label
-    // to be visible (isDisplayed implies present) before interacting.
-    await driver.wait(
-      async () => driver.find(".test-permissions-setup-perm-orgCreationAnyone label").isDisplayed(),
-      3000,
-    );
+    // Check results fill in the problems box at the top and move this item; a click during the move is lost.
+    await gu.waitForAdminChecks();
+    // The card shows a spinner until the permissions load.
+    await driver.findWait(".test-permissions-setup-card", 3000);
+    await toggleItem("default-permissions");
   }
 
   it("groups the toggles under one Default-permissions row, omitting telemetry", async function() {
@@ -107,7 +105,7 @@ describe("AdminPanelPermissions", function() {
 
     // Install prefs only land in process.env on the next server start, so
     // a restart is required before getPermissionsStatus reflects them.
-    await server.restart();
+    await restartWithAdminPageOpen();
     session = await gu.session().personalSite.login();
     installApi = session.createApi(InstallAPIImpl);
 
@@ -144,7 +142,7 @@ describe("AdminPanelPermissions", function() {
     assert.isNull(await teamInput.getAttribute("disabled"));
 
     delete process.env.GRIST_FORCE_LOGIN;
-    await server.restart();
+    await restartWithAdminPageOpen();
   });
 
   // With personal sites off and no team site, /welcome/teams used to render an empty list of
@@ -214,6 +212,13 @@ describe("AdminPanelPermissions", function() {
       assert.notMatch(await panel.getText(), /Welcome back|anon@getgrist.com/);
     });
   });
+
+  // The page can still have requests in flight that the browser held back while its checks ran.
+  // If the server goes down first, they fail with "Failed to fetch", which checkForErrors reports.
+  async function restartWithAdminPageOpen() {
+    await gu.waitForServer();
+    await server.restart();
+  }
 
   async function isToggleChecked(permKey: string): Promise<boolean> {
     const el = await driver.find(`.test-permissions-setup-perm-${permKey} label`);

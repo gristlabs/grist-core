@@ -363,8 +363,10 @@ describe("DateRangeFilter", function() {
   it("should have working keyboard navigation after switching bounds using Enter", async function() {
     await fu.findBound("min").click();
     assert.equal(await fu.getSelected(), "min");
+    await fu.waitForBoundOptions("min");
     await driver.sendKeys(Key.ENTER);
     assert.equal(await fu.getSelected(), "max");
+    await fu.waitForBoundOptions("max");
     assert.deepEqual(await fu.getSelectedOption(), []);
     await driver.sendKeys(Key.ARROW_DOWN);
     assert.deepEqual(await fu.getSelectedOption(), ["Today"]);
@@ -374,6 +376,7 @@ describe("DateRangeFilter", function() {
     await fu.findBound("min").click();
     await driver.sendKeys(Key.TAB);
     assert.equal(await fu.getSelected(), "max");
+    await fu.waitForBoundOptions("max");
     assert.deepEqual(await fu.getSelectedOption(), []);
     // check arrow navigation still working
     await driver.sendKeys(Key.ARROW_DOWN);

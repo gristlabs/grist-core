@@ -175,11 +175,7 @@ describe("Search", function() {
     await gu.waitForDocToLoad();
 
     // open the search input
-    await gu.waitToPass(async () => {
-      await gu.searchIsClosed();
-      await driver.find(".test-tb-search-icon").doClick();
-      await gu.waitToPass(gu.searchIsOpened, 500);
-    }, 1500);
+    await gu.openSearch();
 
     // click the multipage option and check it is unchecked
     await gu.waitToPass(async () => {
@@ -224,15 +220,9 @@ describe("Search", function() {
     // switch to page country language
     await gu.getPageItem(/CountryLanguage/).click();
     await gu.waitForDocToLoad();
-    await gu.waitToPass(gu.searchIsClosed);
-    await driver.sleep(100);
 
     // open search bar
-    await gu.waitToPass(async () => {
-      await gu.searchIsClosed();
-      await driver.find(".test-tb-search-icon").doClick();
-      await gu.waitToPass(gu.searchIsOpened, 500);
-    }, 1500);
+    await gu.openSearch();
 
     // type in aruba
     await gu.selectAll();
@@ -246,11 +236,7 @@ describe("Search", function() {
     await gu.waitForDocToLoad();
 
     // open search bar
-    await gu.waitToPass(async () => {
-      await gu.searchIsClosed();
-      await driver.find(".test-tb-search-icon").doClick();
-      await gu.waitToPass(gu.searchIsOpened, 500);
-    }, 1500);
+    await gu.openSearch();
 
     // click next
     await gu.waitToPass(() => driver.find(".test-tb-search-next").click());

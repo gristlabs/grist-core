@@ -268,7 +268,8 @@
         "Download document...": "Ladda ner dokument...",
         "Suggest changes": "Föreslå ändringar",
         "current version": "nuvarande version",
-        "original": "original"
+        "original": "original",
+        "Return to {{termToUse}} (new tab)": "Återvänd till {{termToUse}} (ny flik)"
     },
     "SortFilterConfig": {
         "Save": "Spara",
@@ -1096,7 +1097,8 @@
     "PermissionsWidget": {
         "Allow all": "Tillåt alla",
         "Deny all": "Neka alla",
-        "Read only": "Endast rättigheter"
+        "Read only": "Endast rättigheter",
+        "Checked": "Kontollerad"
     },
     "PluginScreen": {
         "Import failed: ": "Import misslyckades: "
@@ -1144,7 +1146,8 @@
         "Sort in ascending order (current: descending)": "Sortera i stigande ordning (nuvarande: fallande)",
         "Sort in descending order (current: ascending)": "Sortera i fallande ordning (nuvarande: stigande)",
         "Sort options - {{- columnName }} column": "Sorteringsinställningar - kolumn {{- columnName }}",
-        "{{- columnName }} column": "kolumn {{- columnName }}"
+        "{{- columnName }} column": "kolumn {{- columnName }}",
+        "Empty values first": "Tomma värden först"
     },
     "ThemeConfig": {
         "Appearance ": "Utseende ",
@@ -1187,7 +1190,8 @@
         "Cancel": "Avbryt",
         "Close": "Stäng",
         "Current field ": "Nuvarande fällt ",
-        "OK": "OK"
+        "OK": "OK",
+        "Select fields": "Välj fällt"
     },
     "TypeTransformation": {
         "Apply": "Applicera",
@@ -2077,7 +2081,9 @@
         "Sandbox is not working": "Isoleringen fungerar inte",
         "Sandbox {{flavor}} is set up but fails to start.": "Isoleringen {{flavor}} är inställd men startar inte.",
         "Set GRIST_ADMIN_EMAIL so that someone can manage this server.": "Ställ in GRIST_ADMIN_EMAIL så att någon kan hantera denna server.",
-        "Sign-in is broken": "Inloggningen fungerar inte"
+        "Sign-in is broken": "Inloggningen fungerar inte",
+        "The server cannot open a websocket to its own public URL. Check your reverse proxy.": "Servern kan inte öppna en websocket till sin egen publika URL. Kontrollera din omvända proxy.",
+        "Websockets do not work": "Websokets fungerar inte"
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -2418,7 +2424,8 @@
         "upgrade your plan": "uppgradera ditt abonnemang",
         "Sign up for a free Grist account to start using the AI Assistant.": "Registrera ett gratis Gristkonto för att börja använda AIassistenten.",
         "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Upgradera till Grist Företagsversion för att prova den nya Grist assistenten. {{learnMoreLink}}",
-        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "Konversation har blivit för lång och kan inte svara effektivt längre. Var god {{startANewChatButton}} för att fortsätta få hjälp."
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "Konversation har blivit för lång och kan inte svara effektivt längre. Var god {{startANewChatButton}} för att fortsätta få hjälp.",
+        "start a new session": "starta en ny session"
     },
     "apiconsole": {
         "Are you sure you want to delete the following?": "Är du säker på att du vill radera följande?",
@@ -2720,7 +2727,8 @@
         "Open the formula assistant": "Öppna formulärassistenten",
         "Shortcut to close the inner left panel": "Genväg för att stänga den inre vänstra panelen",
         "Shortcut to open the inner left panel": "Genväg för att öppna den inre vänstra panelen",
-        "Toggle the assistant": "Slå av/på assistenten"
+        "Toggle the assistant": "Slå av/på assistenten",
+        "Save the code of a custom widget in its editor": "Spara koden för en anpassad widget i dess editor"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-timmarsformat",
@@ -2882,7 +2890,7 @@
         "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "Ändringarna kommer sparas när du applicerar väntande ändringar, de kommer att få effekt efter att du startar om Grist.",
         "configuration updated": "Inställningarna uppdaterade",
         "disabled": "avstängd",
-        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Din server är inställd för autentisering av användare genom OpenID Connect. Användarna.",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Din server är inställd för autentisering av användare genom OpenID Connect. Användarna loggar in genom din identitetsleverantör.",
         "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Din server är inställd för autentisering av användare genom SAML 2.0. Användare loggar in genom din identitetsleverantör.",
         "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Din server använder uppstartsnyckel som reservmetod för inloggning. Ställ in en av autentiseringsmetoderna nedan.",
         "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Din server litar på autentisering från en omvänd proxy. Säkerställ att enbart proxyn kan nå Grist servern.",
@@ -3114,7 +3122,24 @@
         "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Valfri S3-kompatibel lagring med versionshanterade buckets, så som RustFS eller bara AWS S3.",
         "Set these environment variables and restart Grist to enable S3-compatible storage:": "Ställ in följande miljövariabler och starta om Grist för att använda S3-kompatibel lagring:",
         "To preserve it, mount a volume at /persist.": "För att spara det, montera en lagringsvolym på /persist.",
-        "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Spara säkerhetskopior av dokumentet på en extern tjänst så som S3 eller Azure. Detta skyddar mot daraförlust om serverns hårddisk havererar."
+        "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Spara säkerhetskopior av dokumentet på en extern tjänst så som S3 eller Azure. Detta skyddar mot daraförlust om serverns hårddisk havererar.",
+        "Back up documents externally": "Säkerhetskopiera dokument externt",
+        "Storage": "Lagring",
+        "checking": "kontrollerar",
+        "unknown": "okännd",
+        "Check storage to continue": "Kontrollera lagring för att fortsätta",
+        "Grist can't check this for itself.": "Grist kan inte kontrollera detta själv.",
+        "Grist is storing data in memory. Move it to a disk or volume.": "Grist lagrar data i ramminnet. Flytta det till en hårddisk eller lagringsvolym.",
+        "I will check later": "Jag kommer kontrollera senare",
+        "Is your data on persistent storage?": "Är din data lagrad på permanent lagring?",
+        "Keep {{paths}} on a mounted volume so your data survives.": "Behåll {{paths}} på ett monterat lagringsutrymme så att din data överlever.",
+        "Mount a volume at /persist to keep your data.": "Montera ett lagringsutrymme på /persist för att behålla din data.",
+        "My storage is persistent": "Mitt lagringsutrymme är permanent",
+        "Persistent storage confirmed": "Permanent lagring bekräftad",
+        "You'll check storage later": "Du kommer kontrollera lagringen senare",
+        "Your data may be lost.": "Din data kan gå förlorad.",
+        "at risk": "utsatt för risken",
+        "unconfirmed": "obekräftad"
     },
     "QuickSetupContinueButton": {
         "Continue": "Fortsätt",
@@ -3363,13 +3388,15 @@
         "Grist sends them straight out. You've opted out of URL filtering.": "Grist skickar dom direkt. Du har valt bort URLfiltrering.",
         "No URL filter is set up. Features that need one stay switched off.": "Inget URLfilter är inställt. Funktioner som behöver det är därför avstängda.",
         "Not filtered.": "Inte filtrerade.",
-        "Search docs for: {{envVar}}": "Sök efter dokument för: {{envVar}}",
+        "Search docs for: {{envVar}}": "Sök i dokumentationen efter: {{envVar}}",
         "These requests go through your HTTPS proxy.": "Dessa förfrågningar går genom din HTTPS proxy.",
         "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Denna funktion möjliggör att Grist kan skicka HTTP förfrågningar åt dina användare. Såhär är de inställda nu.",
         "When Grist itself reaches out…": "När Grist själv skickar förfrågningar…",
         "When your users reach out…": "När dina användare skickar förfrågningar…",
         "bypassed": "förbikopplad",
-        "Open to any host. The URL proxy is what keeps this safe.": "Tillgänglig för alla. URLproxyn är det som ser till att detta är säkert."
+        "Open to any host. The URL proxy is what keeps this safe.": "Tillgänglig för alla. URLproxyn är det som ser till att detta är säkert.",
+        "How user actions can reach the outside world": "Hur användaråtgärder kan nå världen utanför",
+        "Outgoing requests": "Utgående anrop"
     },
     "McpConnectBanner": {
         "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Nytt!** Anslut Grist till Claude och ChatGPT. [Testa nu]({{mcp}})"
@@ -3549,7 +3576,8 @@
         "We couldn't submit your details or your request to be kept up to date. Please try again.": "Vi kunde varken skicka in dina kontaktuppgifter eller din begäran om att hållas uppdaterad. Försök igen.",
         "We saved your details, but couldn't subscribe you to updates.": "Vi spara din kontaktuppgifter, men kunde inte anmäla dig till uppdateringar.",
         "We subscribed you for product updates, but couldn't save your other details.": "Vi har anmält dig till produkt uppdateringar, men kunde inte spara dina kontaktuppgifter.",
-        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställningsändringar har applicerats och servern har startats om. Grist är nu i drift och tillgänglig för anvädare."
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställningsändringar har applicerats och servern har startats om. Grist är nu i drift och tillgänglig för anvädare.",
+        "Grist needs restarting": "Grist behöver starts om"
     },
     "startHomeGristImport": {
         "Copy data from another document": "Kopiera data från ett annat dokument",
@@ -3580,7 +3608,7 @@
         "1 server": "1 server",
         "1 document": "1 dokument",
         "{{count}} of {{total}} not reporting_other": "{{count}} av {{total}} svarar inte",
-        "{{count}} servers_one": "{{count}} servrar",
+        "{{count}} servers_one": "{{count}} server",
         "{{count}} servers_other": "{{count}} servrar",
         "{{percent}}% load": "{{percent}}% belastning",
         "1 other server has stopped reporting that it is running.": "1 annan server har slutat att rapportera att den är i drift.",
@@ -3607,12 +3635,12 @@
         "running": "i drift",
         "shared address": "delad adress",
         "this server": "denna server",
-        "{{count}} documents_one": "{{count}}dokument",
+        "{{count}} documents_one": "{{count}} dokument",
         "{{count}} documents_other": "{{count}} dokument",
         "{{count}} of {{total}} not reporting_one": "{{count}} av {{total}} svar ej",
         "{{count}} other servers are registered but not accepting new documents._one": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
         "{{count}} other servers are registered but not accepting new documents._other": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
-        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} andra servrar har slutat rapportera att de är i drift.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} annan server har slutat rapportera att den är i drift.",
         "{{count}} other servers have stopped reporting that they are running._other": "{{count}} andra servrar har slutat rapportera att de är i drift.",
         "Grist Fleet is not in your activation key": "Grist Fleet ingår inte i din aktiveringsnyckel",
         "draining": "invallidering",
@@ -3662,5 +3690,22 @@
         "Try for free": "Testa gratis",
         "Try full Grist": "Pröva komplett Grist",
         "loading your tables...": "laddar dina tabeller..."
+    },
+    "TopProblems": {
+        "{{count}} problems need attention_one": "{{count}} problem behöver din uppmärksamhet",
+        "{{count}} problems need attention_other": "{{count}} problem behöver din uppmärksamhet",
+        "{{count}} warnings_one": "{{count}} varning",
+        "{{count}} warnings_other": "{{count}} varningar",
+        "{{count}} dismissed_one": "{{count}} avfärdad",
+        "{{count}} dismissed_other": "{{count}} avfärdade",
+        "Click to show them again.": "Klicka för att visa dom igen.",
+        "Dismiss": "Avfärda",
+        "Show": "Visa"
+    },
+    "WidgetCreatorSectionConfig": {
+        "Ask assistant": "Fråga assistent",
+        "Close editor": "Stäng redigerare",
+        "Edit code": "Redigera kod",
+        "Edit source": "Redigera källa"
     }
 }

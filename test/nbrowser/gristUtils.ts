@@ -102,6 +102,7 @@ namespace gristUtils {
   export const isAlertShown = webdriverUtils.isAlertShown.bind(webdriverUtils);
   export const waitForDocToLoad = webdriverUtils.waitForDocToLoad.bind(webdriverUtils);
   export const reloadDoc = webdriverUtils.reloadDoc.bind(webdriverUtils);
+  export const goBack = webdriverUtils.goBack.bind(webdriverUtils);
   export const sendActions = webdriverUtils.sendActions.bind(webdriverUtils);
   export const sendCommand = webdriverUtils.sendCommand.bind(webdriverUtils);
   export const openAccountMenu = webdriverUtils.openAccountMenu.bind(webdriverUtils);
@@ -1521,6 +1522,8 @@ namespace gristUtils {
     await header.click();
     await header.click();   // Second click opens the label for editing.
     await driver.findWait(".test-column-title-label", 100).sendKeys(newName, Key.ENTER);
+    // The popup closes on a timer and saves as it closes.
+    await waitForNotPresent(".test-column-title-popup", 1000);
     await waitForServer();
   }
 
@@ -1669,7 +1672,7 @@ namespace gristUtils {
   }
 
   /**
- * Opens a Creator Panel on Widget/Table settings tab.
+ * Opens a Creator Panel on the Column tab, and waits for its sections to load.
  */
   export async function openColumnPanel(col?: string | number) {
     if (col !== undefined) {
@@ -1677,6 +1680,7 @@ namespace gristUtils {
     }
     await toggleSidePanel("right", "open");
     await driver.find(".test-right-tab-field").click();
+    await waitForAsyncContent();
   }
 
   /**
@@ -1777,16 +1781,14 @@ namespace gristUtils {
   }
 
   export async function openSearch() {
-    await waitToPass(async () => {
-      await searchIsClosed();
-      await driver.find(".test-tb-search-icon").doClick();
-      await waitToPass(searchIsOpened, 500);
-    }, 1500);
+    await searchIsClosed();
+    await driver.find(".test-tb-search-icon").doClick();
+    await searchIsOpened();
   }
 
   export async function closeSearch() {
     await driver.sendKeys(Key.ESCAPE);
-    await driver.sleep(500);
+    await searchIsClosed();
   }
 
   export async function closeTooltip() {
@@ -1833,16 +1835,28 @@ namespace gristUtils {
     });
   }
 
+  /**
+   * Waits for the search bar to finish opening. It widens over a transition, moving the top bar's
+   * buttons, and is marked expanded once it settles.
+   */
   export async function searchIsOpened() {
-    await waitToPass(async () => {
-      assert.isAbove((await getSearchInput().rect()).width, 50);
-    }, 500);
+    await driver.findWait(".grist-doc-search-bar-expanded", 2000);
   }
 
+  /**
+   * Waits for the search bar to finish closing. Its input hides at once, but the bar narrows over
+   * a transition, moving the top bar's buttons, and is marked collapsed once it settles.
+   */
   export async function searchIsClosed() {
-    await waitToPass(async () => {
-      assert.equal((await getSearchInput().rect()).width, 0);
-    }, 500);
+    await driver.findWait(".grist-doc-search-bar-collapsed", 2000);
+  }
+
+  /**
+   * Waits for a search in progress to finish. Searching all pages switches pages as it goes, which
+   * changes the page name in the top bar and moves the search bar.
+   */
+  export async function waitForSearch() {
+    await driver.findWait(".grist-doc-search-bar:not(.grist-doc-search-bar-running)", 5000);
   }
 
   export async function openRawTable(tableId: string) {
@@ -1870,6 +1884,8 @@ namespace gristUtils {
       await input.sendKeys(newDescription);
     }
     await driver.find(".test-widget-title-save").click();
+    // The popup closes on a timer and saves as it closes.
+    await waitForNotPresent(".test-widget-title-popup", 1000);
     await waitForServer();
     if (newName) {
       await driver.findContentWait(".test-raw-data-table-id", newName, 2000);
@@ -1982,8 +1998,7 @@ namespace gristUtils {
     }
 
     const { skipWait, apply } = options;
-    await toggleSidePanel("right", "open");
-    await driver.find(".test-right-tab-field").click();
+    await openColumnPanel();
     await driver.find(".test-fbuilder-type-select").click();
     type = typeof type === "string" ? exactMatch(type) : type;
     await findOpenMenuItem(".test-select-row", type, 500).click();
@@ -2210,7 +2225,7 @@ namespace gristUtils {
  * Opens the row menu for the row with the given row number (1-based, as in row headers).
  */
   export async function openRowMenu(rowNum: number) {
-    await waitForPendingOps("testNumPendingScrolls", "the grid to scroll", 2000);
+    await waitForScrolls();
     const row = driver.findContent(".active_section .gridview_data_row_num", String(rowNum));
     await driver.withActions(actions => actions.contextClick(row));
     return findOpenMenu(1000);
@@ -3661,8 +3676,9 @@ namespace gristUtils {
     await input.click();
     await selectAll();
     await input.sendKeys(name || Key.DELETE, Key.ENTER);
+    // The popup closes on a timer and saves as it closes.
+    await waitForNotPresent(".test-widget-title-section-name-input", 1000);
     await waitForServer();
-    await waitForNotPresent(".test-widget-title-section-name-input");
   }
 
   /**
@@ -4432,6 +4448,13 @@ namespace gristUtils {
   }
 
   /**
+   * Waits for views to scroll to the cursor, which they do a tick after it moves.
+   */
+  export async function waitForScrolls(optTimeout: number = 2000) {
+    await waitForPendingOps("testNumPendingScrolls", "the view to scroll", optTimeout);
+  }
+
+  /**
    * Waits for every view to have the data it asked for. Moving the cursor in one widget makes the
    * widgets linked to it re-query, and the page has no other signal for when those queries finish.
    */
@@ -4457,6 +4480,15 @@ namespace gristUtils {
   export async function waitForChartRenders(optTimeout: number = 5000) {
     await waitForViewLoads(optTimeout);
     await waitForPendingOps("testNumPendingChartRenders", "charts to render", optTimeout);
+  }
+
+  /**
+   * Waits for content that renders once its code has loaded, such as the sections of the creator
+   * panel. The first time a panel tab opens, it can show nothing for as long as the load takes.
+   * The count is zero until the content starts building, so call this after the step that builds it.
+   */
+  export async function waitForAsyncContent(optTimeout: number = 5000) {
+    await waitForPendingOps("testNumPendingAsyncContent", "content to load", optTimeout);
   }
 
   /** Gets the value from the select component */
@@ -4609,6 +4641,16 @@ namespace gristUtils {
 
     // Step 3: Set outer window size to match desired viewport
     await driver.manage().window().setRect({ width, height });
+
+    // setRect can return before the page has seen the new size. Once the page has it, its resize
+    // event fires at the next frame, before animation frame callbacks.
+    await driver.executeAsyncScript((w: number, h: number, done: () => void) => {
+      if (window.innerWidth === w && window.innerHeight === h) {
+        requestAnimationFrame(() => done());
+      } else {
+        window.addEventListener("resize", () => done(), { once: true });
+      }
+    }, targetWidth, targetHeight);
   }
 
   export async function getViewportDimensions(): Promise<WindowDimensions> {

@@ -193,6 +193,33 @@ describe("Comments", function() {
     assert.isTrue(commentAnchor.endsWith(stored));
   });
 
+  it("should navigate within the doc when clicking a same-doc link in a comment", async function() {
+    docId = (await session.tempShortDoc(cleanup, "Hello.grist")).id;
+    await gu.getCell("B", 3).click();
+    const anchor = await gu.getAnchor();
+
+    await gu.getCell("A", 1).click();
+    await openCommentsWithKey();
+    await waitForInput();
+    await gu.sendKeys(`[Same doc](${anchor}) [External](https://example.com)`);
+    await enter();
+
+    const [sameDocLink, externalLink] = await (await findComment(0)).findAll("a");
+    assert.equal(await sameDocLink.getAttribute("href"), anchor);
+    assert.equal(await externalLink.getAttribute("href"), "https://example.com/");
+    assert.equal(await externalLink.getAttribute("target"), "_blank");
+
+    // Mark the page, so that we can tell it was not reloaded.
+    await driver.executeScript("window._commentLinkTest = true");
+    await sameDocLink.click();
+
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await gu.getCursorPosition(), { rowNum: 3, col: 1 });
+    });
+    assert.lengthOf(await driver.getAllWindowHandles(), 1);
+    assert.isTrue(await driver.executeScript("return window._commentLinkTest"));
+  });
+
   it("viewers can see read-only comments", async function() {
     // Create a new document and add a comment.
     docId = (await session.tempShortDoc(cleanup, "Hello.grist")).id;
@@ -1784,6 +1811,40 @@ describe("Comments", function() {
 
     // Verify the comment is marked as resolved
     assert.isTrue(await isCommentResolved(0, "panel"));
+  });
+
+  it("should open the popup by clicking the cell triangle", async function() {
+    docId = await session.tempNewDoc(cleanup, "Triangles", { load: false });
+    await ownerApi.applyUserActions(docId, [
+      ["AddTable", "Items", [
+        { id: "Text" },
+        { id: "Ref", type: "Ref:Items" },
+        { id: "RefList", type: "RefList:Items" },
+        { id: "Choice", type: "Choice" },
+        { id: "ChoiceList", type: "ChoiceList" },
+        { id: "Toggle", type: "Bool" },
+        { id: "Files", type: "Attachments" },
+      ]],
+      ["AddRecord", "Items", null, {
+        Text: "a", Ref: 1, RefList: ["L", 1], Choice: "x", ChoiceList: ["L", "x"], Toggle: true,
+      }],
+    ]);
+    const columns = ["Text", "Ref", "RefList", "Choice", "ChoiceList", "Toggle", "Files"];
+    const actions = [];
+    for (const col of columns) {
+      actions.push(await addCommentAction("Items", col, 1, col));
+    }
+    await ownerApi.applyUserActions(docId, actions);
+    await asOwner();
+    await gu.openPage("Items");
+
+    for (const col of columns) {
+      await gu.getCell(col, 1).find(".field-comment-indicator").click();
+      await waitForPopup("filled");
+      assert.equal(await readComment(0), col);
+      await gu.sendKeys(Key.ESCAPE);
+      await assertNoPopup();
+    }
   });
 });
 

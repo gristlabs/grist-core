@@ -44,16 +44,19 @@ export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>)
   const { prepare, run, finish } = trans;
   let watcher: TransitionWatcher | null = null;
   let firstCall = true;
+  let lastVal: T;
   return elem => subscribeElem<T>(elem, obs, (val) => {
     // First call is initialization, don't treat it as a transition
     if (firstCall) { firstCall = false; return; }
+    lastVal = val;
     if (watcher) {
       watcher.reschedule();
     } else {
       watcher = new TransitionWatcher(elem);
       watcher.onDispose(() => {
         watcher = null;
-        if (finish) { finish(elem, val); }
+        // The value may have changed again since this watcher started.
+        if (finish) { finish(elem, lastVal); }
       });
 
       // Call prepare() with transitions turned off.

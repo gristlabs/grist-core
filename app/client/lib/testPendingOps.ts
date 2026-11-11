@@ -58,6 +58,12 @@ export const testPendingMenuActions = new TestPendingOps();
 export const testPendingViewLoads = new TestPendingOps();
 
 /**
+ * Content that renders once a promise settles, usually code loaded on first use. A panel section
+ * can be missing for a while after its panel opens.
+ */
+export const testPendingAsyncContent = new TestPendingOps();
+
+/**
  * Chart renders. A chart redraws asynchronously after a debounce, once its data or options change.
  */
 export const testPendingChartRenders = new TestPendingOps();

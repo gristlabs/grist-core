@@ -261,13 +261,13 @@ describe("DocTutorial", function() {
       // started a tutorial, and wanted to leave via the browser's back button, you
       // couldn't.
       for (const page of ["code", "data", "acl"]) {
-        await driver.navigate().back();
+        await gu.goBack();
         const currentUrl = await driver.getCurrentUrl();
         assert.match(currentUrl, new RegExp(`/p/${page}$`));
       }
 
-      await driver.navigate().back();
-      await driver.navigate().back();
+      await gu.goBack();
+      await gu.goBack();
       await driver.findWait(".test-dm-doclist", 2000);
 
       await driver.navigate().forward();
