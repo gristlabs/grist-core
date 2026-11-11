@@ -3732,5 +3732,8 @@
         "or": "or",
         "write it yourself": "write it yourself",
         "{{ask}}, or {{write}}": "{{ask}}, or {{write}}"
+    },
+    "errors": {
+        "The table '{{tableId}}' is managed by Grist and can't be modified": "The table '{{tableId}}' is managed by Grist and can't be modified"
     }
 }
