@@ -253,6 +253,7 @@ class TestGenCode(unittest.TestCase):
     self.assertEqual(identifiers._gen_ident({'a','b','c','d','E'}), 'F')
 
   def test_get_grist_type(self):
+    self.assertEqual(gencode.get_grist_type("Button"), "grist.Button()")
     self.assertEqual(gencode.get_grist_type("Ref:Foo"), "grist.Reference('Foo')")
     self.assertEqual(gencode.get_grist_type("RefList:Foo"), "grist.ReferenceList('Foo')")
     self.assertEqual(gencode.get_grist_type("Int"), "grist.Int()")
