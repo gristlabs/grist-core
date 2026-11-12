@@ -581,6 +581,21 @@ describe("Scim", () => {
           assert.equal(res.status, 409);
         });
 
+        it("should disallow creating a user whose primary email belongs to an existing user", async function() {
+          const res = await axios.post(scimUrl("/Users"), {
+            schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
+            userName: "unused-user-name@getgrist.com",
+            emails: [{ value: "chimpy@getgrist.com", primary: true }],
+          }, chimpy);
+          assert.deepEqual(res.data, {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            status: "409",
+            detail: "An existing user with the passed email exist.",
+            scimType: "uniqueness",
+          });
+          assert.equal(res.status, 409);
+        });
+
         checkCommonErrors("post", "/Users", toSCIMUserWithoutId("some-user"));
       });
 
@@ -632,6 +647,21 @@ describe("Scim", () => {
 
         it("should disallow updating a user with the same email as another user's", async function() {
           const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), toSCIMUserWithoutId("chimpy"), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            status: "409",
+            detail: "An existing user with the passed email exist.",
+            scimType: "uniqueness",
+          });
+          assert.equal(res.status, 409);
+        });
+
+        it("should disallow updating a user with a primary email of another user", async function() {
+          const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
+            schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
+            userName: userToUpdateEmailLocalPart + "@getgrist.com",
+            emails: [{ value: "chimpy@getgrist.com", primary: true }],
+          }, chimpy);
           assert.deepEqual(res.data, {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
             status: "409",
