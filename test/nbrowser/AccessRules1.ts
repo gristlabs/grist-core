@@ -3,7 +3,7 @@
  */
 import {
   enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet, findRuleSetColumnWait,
-  findTable, findTableWait, startEditingAccessRules, triggerAutoComplete,
+  findTable, findTableWait, revertAccessRules, startEditingAccessRules, triggerAutoComplete,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
@@ -359,8 +359,7 @@ describe("AccessRules1", function() {
     assert.equal(await driver.find(".test-rules-non-save").isDisplayed(), false);
 
     // Revert the changes in this test case.
-    await driver.find(".test-rules-revert").click();
-    await gu.waitForServer();
+    await revertAccessRules();
   });
 
   it("should allow read control for columns with rec in formula", async function() {
@@ -441,6 +440,8 @@ describe("AccessRules1", function() {
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: "deny" });
     await gu.waitForServer();
     assert.lengthOf(await gu.getToasts(), 0);
+
+    await revertAccessRules();
   });
 
   it("'Add Widget to Page' should be disabled", async () => {
