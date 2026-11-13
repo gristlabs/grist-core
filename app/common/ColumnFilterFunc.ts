@@ -63,12 +63,26 @@ export function buildColFilter(filterJson: string | undefined,
 
 // Returns the unix timestamp for date in timezone. Function support relative date. Also support
 // optional mod argument that let you modify date as a moment instance.
+//
+// Bounds picked in the calendar or given as a relative date ("Today", ...) denote a calendar date,
+// stored as midnight UTC of that date. Such bounds are mapped to the start of the same calendar
+// date in the column's timezone (reading them as an instant would select the previous day for
+// timezones west of UTC). Bounds typed by the user are parsed in the column's timezone, so they
+// are real instants and are never a whole number of days, except in UTC itself.
 function changeTimezone(date: IRangeBoundType,
   timezone: string,
   mod: (m: Moment) => void = noop): number | undefined {
   if (date === undefined) { return undefined; }
   const val = isRelativeBound(date) ? relativeDateToUnixTimestamp(date) : date;
-  const m = moment.tz(val * 1000, timezone);
+  let m: Moment;
+  if (val % SECONDS_PER_DAY === 0) {
+    const utc = moment.utc(val * 1000);
+    m = moment.tz({ year: utc.year(), month: utc.month(), date: utc.date() }, timezone);
+  } else {
+    m = moment.tz(val * 1000, timezone);
+  }
   mod(m);
   return Math.floor(m.valueOf() / 1000);
 }
+
+const SECONDS_PER_DAY = 24 * 60 * 60;
