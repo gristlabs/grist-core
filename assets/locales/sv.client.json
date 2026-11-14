@@ -535,7 +535,10 @@
         "Pin filter": "Fäst filter",
         "Sort alphabetically (current: sorted by number of occurrences)": "Sortera i bokstavsordning (är nu sorterad efter antal förekomster)",
         "Sort by number of occurrences (current: sorted alphabetically)": "sorterad efter antal förekomster (är nu sorterad i bokstavsordning)",
-        "Unpin filter": "Lossa filter"
+        "Unpin filter": "Lossa filter",
+        "All filters": "Alla filter",
+        "Cancel": "Avbryt",
+        "Close": "Stäng"
     },
     "CustomSectionConfig": {
         " (optional)": " (ej obligatorisk)",
@@ -2603,7 +2606,8 @@
         "Your suggestions": "Dina ändringsförslag",
         "experiment": "experiment",
         "original document": "originaldokument",
-        "Undo dismissal": "Ångra avvisande"
+        "Undo dismissal": "Ångra avvisande",
+        "Could not apply this suggestion: {{detail}}": "Kunde inte applicera detta ändringsförslag: {{detail}}"
     },
     "commandList": {
         "Show accessibility options": "Visa tillgänglighetsinställningar",
@@ -3638,7 +3642,7 @@
         "{{count}} documents_one": "{{count}} dokument",
         "{{count}} documents_other": "{{count}} dokument",
         "{{count}} of {{total}} not reporting_one": "{{count}} av {{total}} svar ej",
-        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} annan server är registrerad men tar inte emot nya dokument.",
         "{{count}} other servers are registered but not accepting new documents._other": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
         "{{count}} other servers have stopped reporting that they are running._one": "{{count}} annan server har slutat rapportera att den är i drift.",
         "{{count}} other servers have stopped reporting that they are running._other": "{{count}} andra servrar har slutat rapportera att de är i drift.",
@@ -3700,12 +3704,46 @@
         "{{count}} dismissed_other": "{{count}} avfärdade",
         "Click to show them again.": "Klicka för att visa dom igen.",
         "Dismiss": "Avfärda",
-        "Show": "Visa"
+        "Show": "Visa",
+        "Grist may not be safe or may not work until these are fixed.": "Grist kan vara osäker eller fungerar inte tills dessa är lösta.",
+        "These may be fine for your setup, but check them.": "Dessa kan vara rimliga för din installation, men bör kontrolleras."
     },
     "WidgetCreatorSectionConfig": {
         "Ask assistant": "Fråga assistent",
         "Close editor": "Stäng redigerare",
         "Edit code": "Redigera kod",
-        "Edit source": "Redigera källa"
+        "Edit source": "Redigera källa",
+        "Use assistant": "Använd assistent",
+        "WIDGET": "WIDGET",
+        "In-document custom widget": "Documentintegrerad anpassad widget"
+    },
+    "WidgetCreatorView": {
+        "Ask the assistant": "Fråga assistenten",
+        "Close editor": "Stäng editor",
+        "Copy error": "Kopiera fel",
+        "Don't save": "Spara inte",
+        "Edit source": "Redigera källa",
+        "Empty": "Tommt",
+        "Error copied": "Felet kopierat",
+        "Error on line {{line}}: {{- message}}": "Fel på rad {{line}}: {{- message}}",
+        "Error: {{- message}}": "Fel: {{- message}}",
+        "Expand the widget": "Expandera widgeten",
+        "Fix this error in the widget code: {{- error}}": "Korrigera detta fel i widgetkoden: {{- error}}",
+        "Learn more": "Lär dig mer",
+        "Open the code": "Öppna koden",
+        "Save": "Spara",
+        "Save the code ({{shortcut}})": "Spara koden {{shortcut}}",
+        "Save your changes?": "Spara dina ändringar?",
+        "Saved": "Sparad",
+        "Send to assistant": "Skicka till assistent",
+        "Source": "Källa",
+        "This widget is empty.": "Denna widget är tom.",
+        "Toggle preview": "Slå på/av förhandsvisning",
+        "Too narrow for the code": "För smalt för koden",
+        "Use assistant": "Använd assistent",
+        "Write html and js code": "Skriv html och js kod",
+        "or": "eller",
+        "write it yourself": "skriv den själv",
+        "{{ask}}, or {{write}}": "{{ask}}, eller {{write}}"
     }
 }
