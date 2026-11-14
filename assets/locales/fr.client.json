@@ -283,7 +283,10 @@
         "Pin filter": "Épingler le filtre",
         "Sort alphabetically (current: sorted by number of occurrences)": "Trier par ordre alphabétique (actuellement : trié par nombre d'occurrences)",
         "Sort by number of occurrences (current: sorted alphabetically)": "Trier par nombre d'occurrences (actuellement : trié par ordre alphabétique)",
-        "Unpin filter": "Désépingler le filtre"
+        "Unpin filter": "Désépingler le filtre",
+        "All filters": "Tous les filtres",
+        "Cancel": "Annuler",
+        "Close": "Fermer"
     },
     "CustomSectionConfig": {
         "Add": "Ajouter",
@@ -846,7 +849,8 @@
     "PermissionsWidget": {
         "Allow all": "Tout autoriser",
         "Deny all": "Tout refuser",
-        "Read only": "Lecture seule"
+        "Read only": "Lecture seule",
+        "Checked": "Coché"
     },
     "PluginScreen": {
         "Import failed: ": "Échec de l'importation : "
@@ -2614,7 +2618,8 @@
         "Your suggestions": "Vos suggestions",
         "experiment": "expérimentation",
         "original document": "document original",
-        "Undo dismissal": "Annuler le rejet"
+        "Undo dismissal": "Annuler le rejet",
+        "Could not apply this suggestion: {{detail}}": "Impossible d'appliquer cette suggestion : {{detail}}"
     },
     "commandList": {
         "Show accessibility options": "Montrer les options d'accessibilité",
