@@ -77,7 +77,8 @@
         "Permission to access the document in full by unrestricted users": "Behörighet att komma åt hela dokumentet för användare utan begränsningar",
         "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Hindra alla utom Ägare från att kopiera eller ladda ner hela dokumentet. Notera: detta påverkar användare utan begränsningar för läsning, eftersom andra kommer att begränsar oavsett denna inställning.",
         "Allow Editors to edit structure (e.g. modify and delete tables and columns, and edit formulas, pages, widgets, and settings).  Important: if checked, Editors may be able to bypass table and column access rules, and to read and change all data!": "Tillåt Redigerare att ändra strukturen (som att ändra och ta bort tabeller, kolumner och redigera formler, sidor, widgetar och inställningar).  Viktigt: om vald, så kan Redigerare att kunna komma förbi formler behörighetsregler för tabeller och kolumner och då läsa och ändra all data!",
-        "Dismiss.": "Avfärda."
+        "Dismiss.": "Avfärda.",
+        "This option should be off unless you trust Editors as you would Owners on this document. ": "Detta alternativ bör vara av såvida du inte litar på redigerare lika mycket som ägare av detta dokument. "
     },
     "AccountPage": {
         "API": "API",
@@ -298,7 +299,8 @@
         "Override widget title": "Ignorera widget titel",
         "Provide a table name": "Ge ett tabellnamn",
         "WIDGET TITLE": "WIDGETTITEL",
-        "WIDGET DESCRIPTION": "WIDGETBESKRIVNING"
+        "WIDGET DESCRIPTION": "WIDGETBESKRIVNING",
+        "This table is managed by Grist and cannot be modified": "Denna tabell hanteras av Grist och kan inte ändras"
     },
     "modals": {
         "Save": "Spara",
@@ -1597,7 +1599,9 @@
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Med ändringsförslag kan användare göra ändringar i en egen kopia utan att ändra orginaldokumenet, sedan kan de skicka in dessa ändringsförslag för att bli granskade av dokumentägaren innan de accepteras.",
         "Unpin to hide the button while keeping the filter.": "Lossa för att dölja knappen och samtidigt behålla filtret.",
         "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Rad IDn är fasta och unika numeriska identifierare, som används av referenskolumner för att identifiera rader.",
-        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "För att ställa in din kalender, välj columner för start/slut datum och händelsetitel. Observera respektive kolumntyp."
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "För att ställa in din kalender, välj columner för start/slut datum och händelsetitel. Observera respektive kolumntyp.",
+        "This widget is one file of HTML and JavaScript, saved in this document. It reads the rows of the table you pick.": "Denna widget är en fil med HTML och JavaScript, sparad i detta dokument. Den läser raderna i den tabell du väljer.",
+        "Editors can edit structure, so they, like Owners, may bypass table and column access rules and read and change any data in this document. Turn off structure editing in Access Rules to limit them.": "Redigerare kan redigera struktur, så de kan likt ägare komma förbi behörighetsregler för tabeller och columner, läsa och ändra alla data i detta dokument. Sträng av redigering av strukturen under Behörighetsregler för att begränsa dom."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESKRIVNING",
@@ -1823,7 +1827,8 @@
         "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Att publicera ditt formulär genererar en delningslänk. Alla med länken kan se det tomma formuläret och skicka in ett svar.",
         "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Att avpublicera formuläret kommer att stänga av delningslänken så att användare som kommer åt ditt formulär via den länken får se ett felmeddelande.",
         "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Användare är begränsade till att skicka in svar (rader i din tabell) och läsa förifyllda värden i vissa fällt, så som referens- och alternativkolumner.",
-        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Ditt formulär år publicerat. Alla ändringar är live och synliga för användare med tillgång till formuläret. Om du vill göra ändringar i ett utkast, avpublicera formuläret."
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Ditt formulär år publicerat. Alla ändringar är live och synliga för användare med tillgång till formuläret. Om du vill göra ändringar i ett utkast, avpublicera formuläret.",
+        "This table does not accept new records.": "Denna tabell accepterar inte nya rader."
     },
     "Editor": {
         "Delete": "Radera"
@@ -2086,7 +2091,8 @@
         "Set GRIST_ADMIN_EMAIL so that someone can manage this server.": "Ställ in GRIST_ADMIN_EMAIL så att någon kan hantera denna server.",
         "Sign-in is broken": "Inloggningen fungerar inte",
         "The server cannot open a websocket to its own public URL. Check your reverse proxy.": "Servern kan inte öppna en websocket till sin egen publika URL. Kontrollera din omvända proxy.",
-        "Websockets do not work": "Websokets fungerar inte"
+        "Websockets do not work": "Websokets fungerar inte",
+        "Sign-in works only with the boot key. Set up a sign-in method so that other users can sign in.": "Inloggning fungerar bara med uppstartsnyckeln. Ställ in en inloggningsmetod så att andra användare kan logga in."
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -2428,7 +2434,8 @@
         "Sign up for a free Grist account to start using the AI Assistant.": "Registrera ett gratis Gristkonto för att börja använda AIassistenten.",
         "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Upgradera till Grist Företagsversion för att prova den nya Grist assistenten. {{learnMoreLink}}",
         "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "Konversation har blivit för lång och kan inte svara effektivt längre. Var god {{startANewChatButton}} för att fortsätta få hjälp.",
-        "start a new session": "starta en ny session"
+        "start a new session": "starta en ny session",
+        "The session has become too long and I can no longer respond effectively. Please {{startANewSessionButton}} to continue receiving assistance.": "Denna session har pågått för länge och kan inte ge effektiva svar länge. Var god {{startANewSessionButton}} för att fortsätta få stöd."
     },
     "apiconsole": {
         "Are you sure you want to delete the following?": "Är du säker på att du vill radera följande?",
@@ -3581,7 +3588,8 @@
         "We saved your details, but couldn't subscribe you to updates.": "Vi spara din kontaktuppgifter, men kunde inte anmäla dig till uppdateringar.",
         "We subscribed you for product updates, but couldn't save your other details.": "Vi har anmält dig till produkt uppdateringar, men kunde inte spara dina kontaktuppgifter.",
         "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställningsändringar har applicerats och servern har startats om. Grist är nu i drift och tillgänglig för anvädare.",
-        "Grist needs restarting": "Grist behöver starts om"
+        "Grist needs restarting": "Grist behöver starts om",
+        "We couldn't submit your details or your request to be kept up to date.": "Vi kunde inte skicka dina uppgifter eller din ansökan om att bli infomerad om nyheter."
     },
     "startHomeGristImport": {
         "Copy data from another document": "Kopiera data från ett annat dokument",
@@ -3715,7 +3723,8 @@
         "Edit source": "Redigera källa",
         "Use assistant": "Använd assistent",
         "WIDGET": "WIDGET",
-        "In-document custom widget": "Documentintegrerad anpassad widget"
+        "In-document custom widget": "Documentintegrerad anpassad widget",
+        "Its code is saved in this document, so copies and exports keep it.": "Dess kod sparas i detta dokument, koden finns kvar i kopior och exporter."
     },
     "WidgetCreatorView": {
         "Ask the assistant": "Fråga assistenten",
@@ -3744,6 +3753,12 @@
         "Write html and js code": "Skriv html och js kod",
         "or": "eller",
         "write it yourself": "skriv den själv",
-        "{{ask}}, or {{write}}": "{{ask}}, eller {{write}}"
+        "{{ask}}, or {{write}}": "{{ask}}, eller {{write}}",
+        "Too narrow for the code. Expand to see and edit it.": "För smal för koden. Utvidga för att se och redigera den.",
+        "What should this widget show?": "Vad ska denna widget visa?",
+        "The widget has changes that are not saved. If you close the editor without saving, they are lost.": "Denna widget har ändringar som inte är sparade. Om du stänger editorn utan att spara kommer de gå förlorade."
+    },
+    "errors": {
+        "The table '{{tableId}}' is managed by Grist and can't be modified": "Tabellen '{{tableId}}' hanteras av Grist och kan inte ändras"
     }
 }
