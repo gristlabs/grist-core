@@ -289,6 +289,8 @@ describe("AttachmentsTransfer", function() {
       // Even after reload.
       await driver.navigate().refresh();
       await storageType.waitForDisplay();
+      // Messages only show once the transfer status and stores are loaded.
+      await gu.waitForServer();
       assert.lengthOf(await messages(), 0);
       assert.equal(await storageType.value(), "Internal");
     });
