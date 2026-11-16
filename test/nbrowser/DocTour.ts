@@ -4,7 +4,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 
-import { assert, driver } from "mocha-webdriver";
+import { assert, driver, until } from "mocha-webdriver";
 
 describe("DocTour", function() {
   this.timeout(30000);
@@ -130,9 +130,13 @@ describe("DocTour", function() {
 
     // Switch back to Chimpy and remove the tour.
     await driver.find(".test-onboarding-close").click();
+    // Switching accounts in a doc reloads the page, so wait for the old page to go.
+    const oldPage = await driver.find("body");
     await driver.find(".test-user-icon").click();
     await driver.findContentWait(".test-usermenu-other-email", /chimpy@getgrist.com/, 1000).click();
-    await driver.wait(async () => (await gu.getEmail() === "chimpy@getgrist.com"), 500);
+    await driver.wait(until.stalenessOf(oldPage), 5000);
+    await gu.waitForDocToLoad();
+    assert.equal(await gu.getEmail(), "chimpy@getgrist.com");
     await driver.findWait(".test-onboarding-close", 1000).click();
     await driver.find(".test-tools-remove-doctour").click();
     await driver.find(".test-modal-confirm").click();
