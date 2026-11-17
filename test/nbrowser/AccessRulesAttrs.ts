@@ -54,6 +54,7 @@ describe("AccessRulesAttrs", function() {
     await enterRulePart(ruleSet, 1, '$SomeText == "foo"', "Allow all");
     await ruleSet.find(".test-rule-extra-add .test-rule-add").click();
     await enterRulePart(ruleSet, 2, null, "Deny all");
+    await gu.waitForServer();
     await driver.find(".test-rules-save").click();
     await gu.waitForServer();
 
@@ -65,6 +66,7 @@ describe("AccessRulesAttrs", function() {
     // Now try a rule that lowercases the text value.
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
     await enterRulePart(ruleSet, 1, '$SomeText.lower() == "foo"', "Allow all");
+    await gu.waitForServer();
     await driver.find(".test-rules-save").click();
     await gu.waitForServer();
     assert.deepEqual(await api.getDocAPI(docId).getRecords("TableFoo"), [
@@ -75,7 +77,8 @@ describe("AccessRulesAttrs", function() {
     // Try uppercase, with no matches.
     ruleSet = findDefaultRuleSetWait(/TableFoo/);
     await enterRulePart(ruleSet, 1, '$SomeText.upper() == "foo"', "Allow all");
-    await driver.findWait(".test-rules-save", 500).click();
+    await gu.waitForServer();
+    await driver.find(".test-rules-save").click();
     await gu.waitForServer();
     assert.deepEqual(await api.getDocAPI(docId).getRecords("TableFoo"), []);
   });
@@ -162,6 +165,7 @@ describe("AccessRulesAttrs", function() {
     await enterRulePart(ruleSet, 1, 'newRec.OtherText.lower() == "blah"', { U: "deny", C: "deny" });
     await ruleSet.find(".test-rule-extra-add .test-rule-add").click();
     await enterRulePart(ruleSet, 2, null, "Allow all");
+    await gu.waitForServer();
     await driver.find(".test-rules-save").click();
     await gu.waitForServer();
 
