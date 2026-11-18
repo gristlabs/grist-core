@@ -7,11 +7,15 @@ import { makeT } from "app/client/lib/localization";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { buildDateHelpersMenuItems } from "app/client/ui/GridViewMenusDateHelpers";
+import {
+  menuItemDropdownWithSearch, menuSubHeaderDropdownWithSearch,
+} from "app/client/ui/searchDropdown";
 import { withInfoTooltip } from "app/client/ui/tooltips";
 import { isNarrowScreen, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon } from "app/client/ui2018/icons";
 import {
+  cssEllipsisLabel,
   menuCssClass,
   menuDivider,
   menuGroup,
@@ -19,11 +23,7 @@ import {
   menuItem,
   menuItemCmd,
   menuItemSubmenu,
-  menuItemTrimmed,
-  menuSubHeaderMenu,
   menuText,
-  searchableMenu,
-  SearchableMenuItem,
 } from "app/client/ui2018/menus";
 import * as UserType from "app/client/widgets/UserType";
 import { isFullReferencingType, isListType, RecalcWhen } from "app/common/gristTypes";
@@ -197,21 +197,20 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
   } else {
     return [
       menuDivider(),
-      menuSubHeaderMenu(
-        () => {
-          return searchableMenu(
-            hiddenColumns.map(col => ({
-              cleanText: col.label().trim().toLowerCase(),
-              builder: () => menuItemTrimmed(
-                () => gridView.showColumn(col.id(), index),
-                col.label(),
-                testId("new-columns-menu-hidden-column-collapsed"),
-              ),
-            })),
-            { searchInputPlaceholder: t("Search columns") },
-          );
+      menuSubHeaderDropdownWithSearch(
+        {
+          placeholder: t("Search columns"),
+          options: () => hiddenColumns.map(col => ({
+            label: col.label(),
+            value: col,
+          })),
+          action: (col) => { void gridView.showColumn(col.id(), index); },
+          searchInputArgs: [testId("new-columns-menu-hidden-column-collapsed-search")],
+          renderItem: (item) => cssEllipsisLabel(
+            item.label,
+            testId("new-columns-menu-hidden-column-collapsed"),
+          ),
         },
-        { allowNothingSelected: true },
         t("Hidden Columns"),
         testId("new-columns-menu-hidden-columns-menu"),
       ),
@@ -320,9 +319,14 @@ function buildAuthorshipMenuItems(gridView: GridView, index?: number) {
 
 function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
   const { viewSection } = gridView;
-  return menuItemSubmenu(
-    () => searchableMenu(
-      viewSection.columns().map((col) => {
+  return menuItemDropdownWithSearch(
+    {
+      placeholder: t("Search columns"),
+      options: () => viewSection.columns().map(col => ({
+        label: col.label(),
+        value: col,
+      })),
+      action: async (col) => {
         function buildFormula() {
           if (isListType(col.type())) {
             return `any([len(${col.table().tableId()}.lookupRecords(${col.colId()}` +
@@ -334,54 +338,46 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
           }
         }
 
-        return {
-          cleanText: col.label().trim().toLowerCase(),
-          label: col.label(),
-          action: async () => {
-            await gridView.gristDoc.docData.bundleActions(t("Adding duplicates column"), async () => {
-              const newColInfo = await gridView.insertColumn(
-                t("Duplicate in {{- label}}", { label: col.label() }),
-                {
-                  colInfo: {
-                    label: t("Duplicate in {{- label}}", { label: col.label() }),
-                    type: "Bool",
-                    isFormula: true,
-                    formula: buildFormula(),
-                    recalcWhen: RecalcWhen.DEFAULT,
-                    recalcDeps: null,
-                    widgetOptions: JSON.stringify({
-                      rulesOptions: [{
-                        fillColor: "#ffc23d",
-                        textColor: "#262633",
-                      }],
-                    }),
-                  },
-                  index,
-                  skipPopup: true,
-                },
-              );
+        await gridView.gristDoc.docData.bundleActions(t("Adding duplicates column"), async () => {
+          const newColInfo = await gridView.insertColumn(
+            t("Duplicate in {{- label}}", { label: col.label() }),
+            {
+              colInfo: {
+                label: t("Duplicate in {{- label}}", { label: col.label() }),
+                type: "Bool",
+                isFormula: true,
+                formula: buildFormula(),
+                recalcWhen: RecalcWhen.DEFAULT,
+                recalcDeps: null,
+                widgetOptions: JSON.stringify({
+                  rulesOptions: [{
+                    fillColor: "#ffc23d",
+                    textColor: "#262633",
+                  }],
+                }),
+              },
+              index,
+              skipPopup: true,
+            },
+          );
 
-              // TODO: do the steps below as part of the AddColumn action.
-              const newField = viewSection.viewFields().all()
-                .find(field => field.colId() === newColInfo.colId);
-              if (!newField) {
-                throw new Error(`Unable to find field for column ${newColInfo.colId}`);
-              }
+          // TODO: do the steps below as part of the AddColumn action.
+          const newField = viewSection.viewFields().all()
+            .find(field => field.colId() === newColInfo.colId);
+          if (!newField) {
+            throw new Error(`Unable to find field for column ${newColInfo.colId}`);
+          }
 
-              await newField.addEmptyRule();
-              const newRule = newField.rulesCols()[0];
-              if (!newRule) {
-                throw new Error(`Unable to find conditional rule for field ${newField.label()}`);
-              }
+          await newField.addEmptyRule();
+          const newRule = newField.rulesCols()[0];
+          if (!newRule) {
+            throw new Error(`Unable to find conditional rule for field ${newField.label()}`);
+          }
 
-              await newRule.formula.setAndSave(`$${newColInfo.colId}`);
-            }, { nestInActiveBundle: true });
-          },
-        };
-      }),
-      { searchInputPlaceholder: t("Search columns") },
-    ),
-    { allowNothingSelected: true },
+          await newRule.formula.setAndSave(`$${newColInfo.colId}`);
+        }, { nestInActiveBundle: true });
+      },
+    },
     t("Detect duplicates in..."),
     testId("new-columns-menu-shortcuts-duplicates"),
   );
@@ -498,95 +494,53 @@ function buildLookupSection(gridView: GridView, index?: number) {
   }
 
   function buildLookupsMenuItems() {
-    // Function that builds a menu for one of our Ref columns, we will show all columns
-    // from the referenced table and offer to create a formula column with aggregation in case
-    // our column is RefList.
-    function buildRefColMenu(ref: ColumnRec, col: ColumnRec): SearchableMenuItem {
-      // Helper for searching for this entry.
-      const cleanText = col.label().trim().toLowerCase();
+    interface LookupOption {
+      label: string;
+      col: ColumnRec;
+      fun?: string;
+    }
 
-      // Next the label we will show.
-      let label: string | HTMLElement;
-      // For Ref column we will just show the column name.
+    function buildRefColOptions(ref: ColumnRec, col: ColumnRec): LookupOption[] {
       if (ref.pureType() === "Ref") {
-        label = col.label();
-      } else {
-        // For RefList column we will show the column name and the aggregation function which is the first
-        // on of suggested action (and a default action).
-        label = menuLabelWithBadge(col.label(), suggestAggregation(col)[0]);
+        return [{ label: col.label(), col }];
       }
+      // Flatten aggregation choices into separate searchable options.
+      return suggestAggregation(col).map(fun => ({
+        label: `${col.label()} (${fun})`,
+        col,
+        fun,
+      }));
+    }
 
-      return {
-        cleanText,
-        builder: buildItem,
-      };
+    function insertAggLookup(ref: ColumnRec, col: ColumnRec, fun: string) {
+      return gridView.insertColumn(`${ref.label()}_${col.label()}`, {
+        colInfo: {
+          label: `${ref.label()}_${col.label()}`,
+          ...buildColumnInfo(
+            fun,
+            `$${ref.colId()}`,
+            col,
+          ),
+          recalcDeps: null,
+        },
+        index,
+        skipPopup: true,
+      });
+    }
 
-      function buildItem() {
-        if (ref.pureType() === "Ref") {
-          // Just insert a plain menu item that will insert a formula column with lookup.
-          return menuItemTrimmed(
-            () => insertPlainLookup(), col.label(),
-            testId(`new-columns-menu-lookup-column`),
-            testId(`new-columns-menu-lookup-column-${col.colId()}`),
-          );
-        } else {
-          // Depending on the number of aggregation functions we will either create a plain menu item
-          // or submenu with all the functions.
-          const functions = suggestAggregation(col);
-          if (functions.length === 1) {
-            const action = () => insertAggLookup(functions[0]);
-            return menuItem(action, label,
-              testId(`new-columns-menu-lookup-column`),
-              testId(`new-columns-menu-lookup-column-${col.colId()}`),
-            );
-          } else {
-            return menuItemSubmenu(
-              () => functions.map(fun => menuItem(
-                () => insertAggLookup(fun), fun,
-                testId(`new-columns-menu-lookup-submenu-function`),
-                testId(`new-columns-menu-lookup-submenu-function-${fun}`),
-              )),
-              {
-                action: () => insertAggLookup(suggestAggregation(col)[0]),
-              },
-              label,
-              testId(`new-columns-menu-lookup-submenu`),
-              testId(`new-columns-menu-lookup-submenu-${col.colId()}`),
-            );
-          }
-        }
-      }
-
-      function insertAggLookup(fun: string) {
-        return gridView.insertColumn(`${ref.label()}_${col.label()}`, {
-          colInfo: {
-            label: `${ref.label()}_${col.label()}`,
-            ...buildColumnInfo(
-              fun,
-              `$${ref.colId()}`,
-              col,
-            ),
-            recalcDeps: null,
-          },
-          index,
-          skipPopup: true,
-        });
-      }
-
-      function insertPlainLookup() {
-        return gridView.insertColumn(`${ref.label()}_${col.label()}`, {
-          colInfo: {
-            label: `${ref.label()}_${col.label()}`,
-            isFormula: true,
-            formula: `$${ref.colId()}.${col.colId()}`,
-            recalcDeps: null,
-            type: col.type(),
-            widgetOptions: col.cleanWidgetOptionsJson(),
-          },
-          index,
-          skipPopup: true,
-        });
-      }
+    function insertPlainLookup(ref: ColumnRec, col: ColumnRec) {
+      return gridView.insertColumn(`${ref.label()}_${col.label()}`, {
+        colInfo: {
+          label: `${ref.label()}_${col.label()}`,
+          isFormula: true,
+          formula: `$${ref.colId()}.${col.colId()}`,
+          recalcDeps: null,
+          type: col.type(),
+          widgetOptions: col.cleanWidgetOptionsJson(),
+        },
+        index,
+        skipPopup: true,
+      });
     }
 
     const { viewSection } = gridView;
@@ -594,14 +548,29 @@ function buildLookupSection(gridView: GridView, index?: number) {
     const onlyRefOrRefList = (c: ColumnRec) => c.pureType() === "Ref" || c.pureType() === "RefList";
     const references = columns.filter(onlyRefOrRefList);
 
-    return references.map(ref => menuItemSubmenu(
-      () => searchableMenu(
-        ref.refTable()?.visibleColumns().map(buildRefColMenu.bind(null, ref)) ?? [],
-        {
-          searchInputPlaceholder: t("Search columns"),
+    return references.map(ref => menuItemDropdownWithSearch(
+      {
+        placeholder: t("Search columns"),
+        options: () => (ref.refTable()?.visibleColumns() ?? [])
+          .flatMap(col => buildRefColOptions(ref, col))
+          .map(opt => ({ label: opt.label, value: opt })),
+        action: (opt) => {
+          if (opt.fun) {
+            void insertAggLookup(ref, opt.col, opt.fun);
+          } else {
+            void insertPlainLookup(ref, opt.col);
+          }
         },
-      ),
-      { allowNothingSelected: true },
+        renderItem: (item) => cssEllipsisLabel(
+          item.value.fun ?
+            menuLabelWithBadge(item.value.col.label(), item.value.fun) :
+            item.value.col.label(),
+          testId(`new-columns-menu-lookup-column`),
+          testId(`new-columns-menu-lookup-column-${item.value.col.colId()}`),
+          item.value.fun ? testId(`new-columns-menu-lookup-submenu-function`) : null,
+          item.value.fun ? testId(`new-columns-menu-lookup-submenu-function-${item.value.fun}`) : null,
+        ),
+      },
       `${ref.refTable()?.tableNameDef()} [${ref.label()}]`,
       testId(`new-columns-menu-lookup-${ref.colId()}`),
       testId(`new-columns-menu-lookup`),
@@ -650,48 +619,40 @@ function buildLookupSection(gridView: GridView, index?: number) {
 
     const tablesWithAnyRefColumn = getReferencesToThisTable();
     return tablesWithAnyRefColumn.map((tab: RefTable) => tab.referenceFields.map((refCol) => {
-      const buildSubmenuForRevLookupMenuItem = (col: ColumnRec): SearchableMenuItem => {
+      interface RevLookupOption {
+        label: string;
+        col: ColumnRec;
+        fun: string;
+      }
+
+      // Flatten aggregation choices into separate searchable options.
+      const options = (): RevLookupOption[] => tab.columns.flatMap((col) => {
         const aggregationList = suggestAggregation(col);
-        const firstAggregation = aggregationList[0];
-        if (!firstAggregation) {
+        if (aggregationList.length === 0) {
           throw new Error(`No aggregation suggested for column ${col.label()}`);
         }
-        return {
-          cleanText: col.label().trim().toLowerCase(),
-          builder: () => {
-            const content = menuLabelWithBadge(col.label(), firstAggregation);
-            // In case we have only one suggested column we will just insert it, and there is no,
-            // need for submenu.
-            if (aggregationList.length === 1) {
-              const action = () => insertColumn(tab, col, refCol, firstAggregation);
-              return menuItem(action, content, testId("new-columns-menu-revlookup-column"));
-            } else {
-              // We have some other suggested columns, we will build submenu for them.
-              const submenu = () => {
-                const items = aggregationList.map((fun) => {
-                  const action = () => insertColumn(tab, col, refCol, fun);
-                  return menuItem(action, fun, testId("new-columns-menu-revlookup-column-function"));
-                });
-                return items;
-              };
-              const options = {};
-              return menuItemSubmenu(
-                submenu,
-                options,
-                content,
-                testId("new-columns-menu-revlookup-submenu"),
-              );
-            }
-          },
-        };
-      };
+        return aggregationList.map(fun => ({
+          label: aggregationList.length === 1 ? col.label() : `${col.label()} (${fun})`,
+          col,
+          fun,
+        }));
+      });
+
       const label = `${tab.tableName} [← ${refCol.label()}]`;
-      const options = { allowNothingSelected: true };
-      const submenu = () => {
-        const subItems = tab.columns.map(buildSubmenuForRevLookupMenuItem);
-        return searchableMenu(subItems, { searchInputPlaceholder: t("Search columns") });
-      };
-      return menuItemSubmenu(submenu, options, label, testId("new-columns-menu-revlookup"));
+      return menuItemDropdownWithSearch(
+        {
+          placeholder: t("Search columns"),
+          options: () => options().map(opt => ({ label: opt.label, value: opt })),
+          action: (opt) => { void insertColumn(tab, opt.col, refCol, opt.fun); },
+          renderItem: (item) => cssEllipsisLabel(
+            menuLabelWithBadge(item.value.col.label(), item.value.fun),
+            testId("new-columns-menu-revlookup-column"),
+            testId("new-columns-menu-revlookup-column-function"),
+          ),
+        },
+        label,
+        testId("new-columns-menu-revlookup"),
+      );
     }));
   }
 
