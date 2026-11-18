@@ -3534,10 +3534,18 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   public async getDocPrefs(scope: DocScope): Promise<FullDocPrefs> {
-    return await this.runInTransaction<FullDocPrefs>(undefined, async (manager) => {
-      const [, prefs] = await this._doGetDocPrefs(scope, manager);
-      return prefs;
-    });
+    const { urlId: docId, userId } = scope;
+    const docQb = this._doc(scope, { accessStyle: "openNoPublic", manager: this._connection.manager });
+    const prefsQuery = this._docPrefsQuery(this._connection.manager, docId, userId);
+    const [docResult, records] = await Promise.all([
+      this._verifyAclPermissions(docQb, { scope }),
+      prefsQuery.getMany(),
+    ]);
+    this.unwrapQueryResult(docResult);
+    return {
+      docDefaults: records.find(r => r.userId === null)?.prefs || {},
+      currentUser: records.find(r => r.userId === userId)?.prefs || {},
+    };
   }
 
   public async setDocPrefs(scope: DocScope, newPrefs: Partial<FullDocPrefs>): Promise<void> {
@@ -3772,17 +3780,20 @@ export class HomeDBManager implements HomeDBAuth {
     return this._usersManager.deleteApiKey(userId, transaction);
   }
 
+  private _docPrefsQuery(manager: EntityManager, docId: string, userId: number | undefined) {
+    return manager.createQueryBuilder()
+      .select("doc_pref")
+      .from(DocPref, "doc_pref")
+      .where("doc_id = :docId AND (user_id IS NULL OR user_id = :userId)", { docId, userId });
+  }
+
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
     const { urlId: docId, userId } = scope;
     const docQb = this._doc(scope, { accessStyle: "openNoPublic", manager });
     // The following combination throws ApiError for insufficient access.
     const doc = this.unwrapQueryResult(await this._verifyAclPermissions(docQb, { scope }))[0];
 
-    const records = await manager.createQueryBuilder()
-      .select("doc_pref")
-      .from(DocPref, "doc_pref")
-      .where("doc_id = :docId AND (user_id IS NULL OR user_id = :userId)", { docId, userId })
-      .getMany();
+    const records = await this._docPrefsQuery(manager, docId, userId).getMany();
 
     return [doc, {
       docDefaults: records.find(r => r.userId === null)?.prefs || {},
@@ -5439,11 +5450,6 @@ export class HomeDBManager implements HomeDBAuth {
       this.checkQueryResult(queryResult);
       const doc = getDocResult(queryResult);
 
-      // Retrieve the doc's ACL rules and groups/users so we can edit them.
-      // We do this as a separate query to avoid repeating the document
-      // row (which can be particulary costly since the main document
-      // query contains some non-trivial subqueries and postgres
-      // will re-execute them for each repeated document row).
       const aclQuery = this._docs(manager)
         .where({ id: doc.id })
         .leftJoinAndSelect("docs.aclRules", "acl_rules")

@@ -653,12 +653,12 @@ export class ApiServer {
     // Flattens personal orgs into a single org.
     this._app.get("/api/session/access/all", expressWrap(async (req, res) => {
       const scope = { ...getScope(req), users: getUserProfiles(req) };
-      const orgs = await this._dbManager.getMergedOrgs(scope);
+      const [orgs, users] = await Promise.all([
+        this._dbManager.getMergedOrgs(scope),
+        this._dbManager.completeProfiles(scope.users),
+      ]);
       if (orgs.errMessage) { throw new ApiError(orgs.errMessage, orgs.status); }
-      return sendOkReply(req, res, {
-        users: await this._dbManager.completeProfiles(scope.users),
-        orgs: orgs.data,
-      });
+      return sendOkReply(req, res, { users, orgs: orgs.data });
     }));
 
     // DELETE /users/:uid
