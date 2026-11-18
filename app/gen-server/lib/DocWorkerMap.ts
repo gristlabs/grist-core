@@ -32,6 +32,26 @@ const PERMIT_TTL_MSEC = 1 * 60 * 1000;  // 1 minute
 // Default doc worker group.
 const DEFAULT_GROUP = "default";
 
+// Documents cleared per round trip when retiring a worker.
+const UNLINK_BATCH = 500;
+
+// How many times to retry claiming a document before giving up.
+const ASSIGN_ATTEMPTS = 10;
+
+// Claims a document for a worker, failing if it is already claimed.
+// Keeps concurrent callers from colliding without a cluster-wide lock.
+// KEYS: doc hash, doc checksum, worker's doc set.
+// ARGV: worker contact json, doc id, checksum, checksum ttl in seconds.
+const CLAIM_SCRIPT = `
+if redis.call("EXISTS", KEYS[1]) == 1 then
+  return 0
+end
+redis.call("HSET", KEYS[1], "docWorker", ARGV[1], "isActive", "true")
+redis.call("SETEX", KEYS[2], ARGV[4], ARGV[3])
+redis.call("SADD", KEYS[3], ARGV[2])
+return 1
+`;
+
 // How long a worker's word that it is running lasts, kept here rather than taken from callers,
 // the claim being this map's to keep. Several turns of the timer that reports it, since a worker
 // briefly too busy to report has not gone anywhere. Read when needed rather than at load, since
@@ -261,6 +281,7 @@ export class DocWorkerMap implements IDocWorkerMap {
 
   public async removeWorker(workerId: string): Promise<void> {
     log.info(`DocWorkerMap.removeWorker ${workerId}`);
+    let assignments: string[] = [];
     const lock = await this._redlock.lock("workers-lock", LOCK_TIMEOUT);
     try {
       // Drop out of available set first.
@@ -272,13 +293,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       // At this point, this worker should no longer be receiving new doc assignments, though
       // clients may still be directed to the worker.
 
-      // Now, we start removing the assignments.
-      const assignments = await this._client.smembersAsync(`worker-${workerId}-docs`);
-      if (assignments) {
-        const op = this._client.multi();
-        for (const doc of assignments) { op.del(`doc-${doc}`); }
-        await op.execAsync();
-      }
+      assignments = await this._client.smembersAsync(`worker-${workerId}-docs`) || [];
 
       // Now remove worker-{workerId}* keys.
       await this._client.delAsync(`worker-${workerId}-docs`);
@@ -290,6 +305,14 @@ export class DocWorkerMap implements IDocWorkerMap {
       await this._client.delAsync(`worker-${workerId}-alive`);
     } finally {
       await lock.unlock();
+    }
+
+    // Clearing the per-document keys is not part of the critical section: a stale doc hash
+    // only makes the next reader re-check, so it need not be atomic with the steps above.
+    for (let i = 0; i < assignments.length; i += UNLINK_BATCH) {
+      const op = this._client.multi();
+      for (const doc of assignments.slice(i, i + UNLINK_BATCH)) { op.unlink(`doc-${doc}`); }
+      await op.execAsync();
     }
   }
 
@@ -481,19 +504,8 @@ export class DocWorkerMap implements IDocWorkerMap {
       return docStatus;
     }
 
-    // No assignment yet, so let's lock and set an assignment up.
-    const lock = await this._redlock.lock(`workers-lock`, LOCK_TIMEOUT);
-
-    try {
-      // Now that we've locked, recheck that the worker hasn't been reassigned
-      // in the meantime.  Return immediately if it has.
-      const docAndChecksum = await this._getDocAndChecksum(docId);
-      docStatus = docAndChecksum.doc;
-      if (docStatus) {
-        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned while acquiring lock ${docStatus.docWorker.id}`);
-        return docStatus;
-      }
-
+    // No assignment yet, so pick a worker and claim the document.
+    for (let attempt = 0; attempt < ASSIGN_ATTEMPTS; attempt++) {
       if (!workerId) {
         // Check if document has a preferred worker group set.
         const group = await this._client.getAsync(`doc-${docId}-group`) || DEFAULT_GROUP;
@@ -521,25 +533,25 @@ export class DocWorkerMap implements IDocWorkerMap {
       const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo | null;
       if (!docWorker) { throw new Error("no doc worker contact info available"); }
 
-      // We can now construct a DocStatus, preserving any existing checksum.
-      const checksum = docAndChecksum.checksum;
-      const newDocStatus = { docMD5: checksum, docWorker, isActive: true };
+      const { checksum } = await this._getDocAndChecksum(docId);
+      const claimed = await this._client.evalAsync(CLAIM_SCRIPT, 3,
+        `doc-${docId}`, `doc-${docId}-checksum`, `worker-${workerId}-docs`,
+        JSON.stringify(docWorker), docId, checksum || "null",
+        Math.ceil(CHECKSUM_TTL_MSEC / 1000.0));
 
-      // We add the assignment to worker-{workerId}-docs and save doc-{docId}.
-      const result = await this._client.multi()
-        .sadd(`worker-${workerId}-docs`, docId)
-        .hmset(`doc-${docId}`, {
-          docWorker: JSON.stringify(docWorker),  // redis can't store nested objects, strings only
-          isActive: JSON.stringify(true),         // redis can't store booleans, strings only
-        })
-        .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || "null")
-        .execAsync();
-      if (!result) { throw new Error("failed to store new assignment"); }
-      log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${newDocStatus.docWorker.id}`);
-      return newDocStatus;
-    } finally {
-      await lock.unlock();
+      if (claimed === 1) {
+        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${docWorker.id}`);
+        return { docMD5: checksum, docWorker, isActive: true };
+      }
+
+      // Another caller claimed it first: report what they chose.
+      docStatus = await this.getDocWorker(docId);
+      if (docStatus) {
+        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned concurrently to ${docStatus.docWorker.id}`);
+        return docStatus;
+      }
     }
+    throw new Error(`could not assign a worker to ${docId}`);
   }
 
   /**

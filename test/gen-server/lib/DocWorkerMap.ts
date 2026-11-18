@@ -90,6 +90,40 @@ describe("DocWorkerMap", function() {
           assert.equal(w, null);
         });
 
+        it("assigns a document to exactly one worker under concurrency", async function() {
+          const workers = new DocWorkerMap([cli]);
+          for (const id of ["w1", "w2", "w3", "w4"]) {
+            await workers.addWorker({ id, internalUrl: id, publicUrl: id });
+            await workers.setWorkerAvailability(id, true);
+          }
+
+          const results = await Promise.all(
+            Array.from({ length: 8 }, () => workers.assignDocWorker("contended-doc")));
+          const chosen = new Set(results.map(r => r.docWorker.id));
+          assert.equal(chosen.size, 1, `expected a single winner, got ${[...chosen]}`);
+
+          const stored = await workers.getDocWorker("contended-doc");
+          assert.equal(stored?.docWorker.id, [...chosen][0]);
+
+          const owners = await cli.smembersAsync("workers-available");
+          assert.isAtLeast(owners.length, 1);
+        });
+
+        it("clears a removed worker's documents", async function() {
+          const workers = new DocWorkerMap([cli]);
+          await workers.addWorker({ id: "gone", internalUrl: "i", publicUrl: "p" });
+          await workers.setWorkerAvailability("gone", true);
+          await workers.assignDocWorker("d1");
+          await workers.assignDocWorker("d2");
+          assert.isOk(await workers.getDocWorker("d1"));
+
+          await workers.removeWorker("gone");
+
+          assert.equal(await workers.getDocWorker("d1"), null);
+          assert.equal(await workers.getDocWorker("d2"), null);
+          assert.equal(await workers.getRegisteredWorkerCount(), 0);
+        });
+
         it("can release assignments", async function() {
           const workers = new DocWorkerMap([cli]);
 
