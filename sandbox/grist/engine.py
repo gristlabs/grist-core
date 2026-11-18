@@ -520,7 +520,7 @@ class Engine(object):
     for node, dirty_rows in self.recompute_map.items():
       log.debug("  Node %s: %s", node, dirty_rows)
 
-  def _use_node(self, node, relation, row_ids=[]):
+  def _use_node(self, node, relation, row_ids=None):
     # This is used whenever a formula accesses any part of any record. It's hot code, and
     # it's worth optimizing.
 
@@ -538,6 +538,12 @@ class Engine(object):
 
     # This check is not essential here, but is an optimization that saves cycles.
     if self.recompute_map.get(node) is None:
+      return
+
+    # No rows to bring up to date, e.g. for an empty RecordSet. This check is needed for
+    # correctness: an empty list would be interpreted by _recompute() to mean "all rows" (like
+    # None does) rather than "no rows", and incorrectly produce a circular dependency error.
+    if row_ids is not None and not row_ids:
       return
 
     self._recompute(node, row_ids)

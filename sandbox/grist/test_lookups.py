@@ -491,6 +491,55 @@ return ",".join(str(r.id) for r in Students.lookupRecords(firstName=fn, lastName
       [6,   "",     ""],
     ])
 
+  def test_empty_lookup_is_not_circular(self):
+    # Overhead is billed as 10% of Website's cost. When Website's last expense is removed, its
+    # SUM() over no rows must not count as reading Overhead, which would look like a cycle.
+    self.load_sample(testutil.parse_test_sample({
+      "SCHEMA": [
+        [1, "Projects", [
+          [11, "Name", "Text", False, "", "", ""],
+          [12, "Cost", "Numeric", True, "SUM(Expenses.lookupRecords(Project=$id).Cost)", "", ""],
+        ]],
+        [2, "Expenses", [
+          [21, "Project", "Ref:Projects", False, "", "", ""],
+          [22, "Item", "Text", False, "", "", ""],
+          [23, "Amount", "Numeric", False, "", "", ""],
+          [24, "OverheadOf", "Ref:Projects", False, "", "", ""],
+          [25, "Cost", "Numeric", True,
+           "$OverheadOf.Cost * 0.1 if $OverheadOf else $Amount", "", ""],
+        ]],
+      ],
+      "DATA": {
+        "Projects": [
+          ["id", "Name"],
+          [1, "Website"],
+          [2, "Marketing"],
+        ],
+        "Expenses": [
+          ["id", "Project", "Item", "Amount", "OverheadOf"],
+          [1, 2, "Ads", 500, 0],      # Belongs to "Marketing" project
+          [2, 2, "Overhead", 0, 1],   # Belongs to "Marketing" project, with cost as overhead of "Website" project
+          [3, 1, "Hosting", 200, 0],  # Belongs to "Website" project
+        ],
+      }
+    }))
+    self.assertPartialData("Projects", ["id", "Name", "Cost"], [
+      [1, "Website", 200.0],
+      [2, "Marketing", 520.0],
+    ])
+
+    # There was a bug which caused this to produce CircularRefError, because a dependency on an
+    # empty list of rows was interpreted as a dependency on the full column.
+    self.remove_record("Expenses", 3)   # Removes the only Expense for "Website" project.
+    self.assertPartialData("Projects", ["id", "Name", "Cost"], [
+      [1, "Website", 0.0],
+      [2, "Marketing", 500.0],
+    ])
+    self.assertPartialData("Expenses", ["id", "Item", "Cost"], [
+      [1, "Ads", 500.0],
+      [2, "Overhead", 0.0],
+    ])
+
   def test_lookups_of_computed_values(self):
     """
     Make sure that lookups get updated when the value getting looked up is a formula result.
