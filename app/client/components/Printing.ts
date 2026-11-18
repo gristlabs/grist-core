@@ -1,5 +1,4 @@
 import BaseView from "app/client/components/BaseView";
-import { CustomView } from "app/client/components/CustomView";
 import { markOverflowingMarkdownCells } from "app/client/lib/markdownOverflow";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import DataTableModel from "app/client/models/DataTableModel";
@@ -9,6 +8,16 @@ import { prefersColorSchemeDark, prefersColorSchemeDarkObs } from "app/client/ui
 import { dom } from "grainjs";
 
 type RowId = number | "new";
+
+/** A view that prints its own content, like a custom widget that prints the page in its frame. */
+export interface IPrintsItself {
+  triggerPrint(): Promise<unknown>;
+}
+
+function isPrintsItself(view: unknown): view is IPrintsItself {
+  return typeof view === "object" && view !== null && "triggerPrint" in view &&
+    typeof view.triggerPrint === "function";
+}
 
 function getViewSectionContent(viewInstance: BaseView | null) {
   const sectionElem = viewInstance?.viewPane?.closest(".viewsection_content");
@@ -33,12 +42,12 @@ function getViewSectionContent(viewInstance: BaseView | null) {
 export async function printViewSection(layout: any, viewSection: ViewSectionRec) {
   const viewInstance = viewSection.viewInstance.peek();
   const sectionElem = getViewSectionContent(viewInstance);
-  if (viewInstance instanceof CustomView) {
+  if (isPrintsItself(viewInstance)) {
     try {
       await viewInstance.triggerPrint();
       return;
     } catch (e) {
-      console.warn(`Failed to trigger print in CustomView: ${e}`);
+      console.warn(`Failed to trigger print in the widget: ${e}`);
       // continue on to trying to print from outside, which should work OK for a single page.
     }
   }

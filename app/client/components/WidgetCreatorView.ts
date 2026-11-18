@@ -33,6 +33,9 @@ import {
 } from "grainjs";
 import debounce from "lodash/debounce";
 
+import type { IPrintsItself } from "app/client/components/Printing";
+import type { WidgetFrame } from "app/client/components/WidgetFrame";
+
 const t = makeT("WidgetCreatorView");
 
 const AUTO_REFRESH_DELAY_MS = 800;
@@ -51,7 +54,7 @@ type SaveState = "save" | "saved" | "empty";
  * - `_htmlInPreview`: the HTML the preview runs while the editor is open. A refresh copies
  *   `_htmlInEditor` into it, a moment after the user stops typing.
  */
-export class WidgetCreatorView extends BaseView implements IWidgetCreator {
+export class WidgetCreatorView extends BaseView implements IWidgetCreator, IPrintsItself {
   /** If the user may change the HTML. A simple check: the server checks again on save. */
   public readonly canEdit: Computed<boolean>;
 
@@ -107,6 +110,9 @@ export class WidgetCreatorView extends BaseView implements IWidgetCreator {
 
   /** The Ace editor of the source, while the editor is open. */
   private _aceEditor: any = null;
+
+  /** The frame of the widget that runs now, in the preview or in the closed widget. */
+  private _frame: WidgetFrame | null = null;
 
   /** If this class puts text into Ace right now, so its change events do not count as typing. */
   private _isSettingAce = false;
@@ -183,6 +189,12 @@ export class WidgetCreatorView extends BaseView implements IWidgetCreator {
 
   public currentHtml() {
     return this.editing.get() ? this._htmlInEditor.get() : this._htmlInDocument.get();
+  }
+
+  public async triggerPrint() {
+    if (!this.isDisposed() && this._frame && !this._frame.isDisposed()) {
+      return await this._frame.print();
+    }
   }
 
   // The Save button in the top bar, and Ctrl+S.
@@ -678,6 +690,7 @@ If you close the editor without saving, they are lost.")),
       onWidgetError: (error) => { if (!this._error.get()) { this._error.set(error); } },
       access,
     });
+    this._frame = widgetFrame;
     return cssFrameBox(
       widgetFrame.buildDom(),
       dom.autoDispose(widgetFrame),

@@ -30,6 +30,8 @@ import { PluginInstance } from "app/common/PluginInstance";
 import { dom } from "grainjs";
 import * as ko from "knockout";
 
+import type { IPrintsItself } from "app/client/components/Printing";
+
 const t = makeT("CustomView");
 const testId = makeTestId("test-custom-widget-");
 
@@ -54,7 +56,7 @@ export interface CustomViewSettings {
  * the view config tab in the side pane. In "plugin" mode, shows notification if either the plugin
  * of the section could not be found.
  */
-export class CustomView extends BaseView {
+export class CustomView extends BaseView implements IPrintsItself {
   // Commands enabled only when the custom view is the actually user-focused region.
   private static _focusedCommands = {
     async viewAsCard(event: Event) {
@@ -166,7 +168,7 @@ export class CustomView extends BaseView {
 
   public async triggerPrint() {
     if (!this.isDisposed() && this._frame) {
-      return await this._frame.callRemote("print");
+      return await this._frame.print();
     }
   }
 

@@ -216,6 +216,15 @@ export class WidgetFrame extends DisposableWithEvents {
   }
 
   /**
+   * Asks the widget to print the page in its frame. Fails when the widget hasn't called ready(),
+   * because nothing in the frame would answer.
+   */
+  public async print() {
+    if (!this._readyCalled.get()) { throw new Error("The widget is not ready"); }
+    return await this.callRemote("print");
+  }
+
+  /**
    * Call remote function that is exposed by the widget.
    */
   public callRemote(name: string, ...args: any[]) {
@@ -229,8 +238,8 @@ export class WidgetFrame extends DisposableWithEvents {
       dom.cls("clipboard_allow_focus"),
       dom.cls("custom_view"),
       this._options.srcdoc !== undefined ? [
-        // No allow-same-origin: the code can't reach Grist's origin, only post messages.
-        { sandbox: "allow-scripts" },
+        // No allow-same-origin: the code must not get Grist's origin and the user's session.
+        { sandbox: "allow-scripts allow-modals allow-downloads allow-forms" },
         dom.attr("srcdoc", this._options.srcdoc),
       ] : dom.attr("src", this._url),
       // Allow widgets to write to the clipboard via the Clipboard API.
