@@ -1633,13 +1633,15 @@ export default class GridView extends BaseView {
                     this._buildInsertColumnMenu({ field }),
                   );
                 }),
-                this.isPreview ? null : (this.isReadonly ? null : () => (
-                  dom("div.column_name.mod-add-column.field",
+                dom.maybe(
+                  use => !this.isReadonly && !this.isPreview &&
+                    !use(this.tableModel.tableMetaRow.disableAddRemoveColumns),
+                  () => dom("div.column_name.mod-add-column.field",
                     "+",
                     dom.style("width", PLUS_WIDTH + "px"),
                     this._buildInsertColumnMenu(),
-                  )
-                )),
+                  ),
+                ),
               ),
             ), // end hbox
           ), // END COL HEADER BOX
@@ -2217,6 +2219,7 @@ export default class GridView extends BaseView {
       numFrozen: this.viewSection.numFrozen.peek(),
       disableModify: calcFieldsCondition(copySelection.fields, f => f.disableModify.peek()),
       isReadonly: this.isReadonly || this.isPreview,
+      disableInsertColumn: this.tableModel.tableMetaRow.disableAddRemoveColumns(),
       isRaw: this.viewSection.isRaw(),
       isFiltered: this.isFiltered(),
       isFormula: calcFieldsCondition(copySelection.fields, f => f.column.peek().isRealFormula.peek()),
@@ -2277,7 +2280,7 @@ export default class GridView extends BaseView {
       menuToggle(null,
         // Don't let the click through to the corner's select-all handler.
         dom.on("click", ev => ev.stopPropagation()),
-        menu(() => rowNumbersMenu(this.viewSection), { trigger: ["click"] }),
+        menu(ctl => rowNumbersMenu(this.viewSection, ctl), { trigger: ["click"] }),
         testId("corner-menu-trigger"),
       ),
     ];
@@ -2290,6 +2293,7 @@ export default class GridView extends BaseView {
       disableAnchorLink: this.viewSection.isVirtual(),
       disableMakeHeadersFromRow: Boolean(
         this.isReadonly ||
+        this.tableModel.tableMetaRow.locked() ||
         this.getSelection().rowIds.length !== 1 ||
         this.getSelection().onlyAddRowSelected() ||
         this.viewSection.table().summarySourceTable() !== 0,
@@ -2473,7 +2477,7 @@ export default class GridView extends BaseView {
   }
 
   protected _insertField(event: KeyboardEvent | undefined, index: number) {
-    if (this.gristDoc.isReadonly.get()) {
+    if (this.gristDoc.isReadonly.get() || this.tableModel.tableMetaRow.disableAddRemoveColumns()) {
       return;
     }
 

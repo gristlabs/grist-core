@@ -33,7 +33,7 @@ describe("links", function() {
     await gu.waitToPass(async () => {
       assert.equal(await driver.getCurrentUrl(), href.split("#")[0]);
     }, 1000);
-    await driver.navigate().back();
+    await gu.goBack();
   }
 
   async function assertNotSameDocumentLink(

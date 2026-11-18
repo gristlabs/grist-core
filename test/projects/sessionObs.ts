@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite, waitForFixture } from "test/projects/testUtils";
 
 import { assert, driver, Key } from "mocha-webdriver";
 
@@ -8,7 +8,7 @@ describe("sessionObs", function() {
 
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
-    await driver.get(`${server.getHost()}/sessionObs`);
+    await openFixture("sessionObs");
   });
 
   it("should initially show default values", async function() {
@@ -26,9 +26,10 @@ describe("sessionObs", function() {
     await driver.find(".test-save").click();
 
     await driver.navigate().refresh();
+    await waitForFixture();
 
     // The first (plain) value reverts to default; the rest keep their new values.
-    assert.equal(await driver.findWait(".test-plain-obs", 1000).value(), "Hello");
+    assert.equal(await driver.find(".test-plain-obs").value(), "Hello");
     assert.equal(await driver.find(".test-bool-obs").value(), "false");
     assert.equal(await driver.find(".test-num-obs").value(), "451");
     assert.equal(await driver.find(".test-fruit-obs").value(), "melons");
@@ -48,10 +49,11 @@ describe("sessionObs", function() {
     assert.equal(await driver.find(".test-fruit-obs").value(), "foo");
 
     await driver.navigate().refresh();
+    await waitForFixture();
 
     // The first (plain) value reverts to default because not saved;
     // the rest revert to default because invalid.
-    assert.equal(await driver.findWait(".test-plain-obs", 1000).value(), "Hello");
+    assert.equal(await driver.find(".test-plain-obs").value(), "Hello");
     assert.equal(await driver.find(".test-bool-obs").value(), "true");
     assert.equal(await driver.find(".test-num-obs").value(), "100");
     assert.equal(await driver.find(".test-fruit-obs").value(), "apples");

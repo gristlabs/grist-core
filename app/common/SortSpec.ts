@@ -14,7 +14,9 @@
  *   Sorting options modifies the sorting algorithm, supported options are:
  *   - orderByChoice: For choice column sorting function will use choice item order
  *                    instead of choice label text.
- *   - emptyLast:     Treat empty values as greater than non empty (default is empty values first).
+ *   - emptyFirst:    Sort empty values before all non-empty ones.
+ *   - emptyLast:     Sort empty values after all non-empty ones. Without either flag, empty
+ *                    values sort according to their type, which differs between column types.
  *   - naturalSort:   For text based columns, sorting function will compare strings with numbers
  *                    taking their numeric value rather then text representation ('a2' before 'a11)
  */
@@ -26,6 +28,7 @@ export namespace Sort {
     colRef: ColRef;
     direction: Direction;
     orderByChoice?: boolean;
+    emptyFirst?: boolean;
     emptyLast?: boolean;
     naturalSort?: boolean;
   }
@@ -57,7 +60,7 @@ export namespace Sort {
       return false;
     }
     const details = typeof colSpec !== "object" ? specToDetails(colSpec) : colSpec;
-    return Boolean(details.emptyLast || details.naturalSort || details.orderByChoice);
+    return Boolean(details.emptyFirst || details.emptyLast || details.naturalSort || details.orderByChoice);
   }
 
   /**
@@ -68,6 +71,8 @@ export namespace Sort {
     const tail = [];
     if (d.emptyLast) {
       tail.push("emptyLast");
+    } else if (d.emptyFirst) {    // This should not appear together with emptyLast.
+      tail.push("emptyFirst");
     }
     if (d.naturalSort) {
       tail.push("naturalSort");
@@ -113,6 +118,7 @@ export namespace Sort {
       colRef: maybeNumber(colRef),
       direction: sign === "-" ? DESC : ASC,
       orderByChoice: flags?.includes("orderByChoice"),
+      emptyFirst: flags?.includes("emptyFirst"),
       emptyLast: flags?.includes("emptyLast"),
       naturalSort: flags?.includes("naturalSort"),
     });

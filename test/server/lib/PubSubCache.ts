@@ -174,9 +174,10 @@ describe("PubSubCache", function() {
       assert.equal(await cache.getValue("foo"), "FOO@5");
       assert.equal(fetch.callCount, 4);
       assertSubscriptions({ sub: 3, unsub: 2 });
-      await waitForIt(async () => {
-        assertSubscriptions({ sub: 3, unsub: 3 });
-      }, 200, 50);
+      // The expiry timer was set before this one, with the same 100ms, so it fires first even if
+      // the process stalls.
+      await delay(100);
+      assertSubscriptions({ sub: 3, unsub: 3 });
     });
 
     it("should re-attempt subscriptions on failure to subscribe", async function() {

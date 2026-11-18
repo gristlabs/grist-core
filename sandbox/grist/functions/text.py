@@ -499,7 +499,7 @@ def REPT(text, number_times):
 def RIGHT(string, num_chars=1):
   """
   Returns a substring of length num_chars from the end of a specified string. If num_chars is
-  omitted, it is assumed to be 1. Same as `string[-num_chars:]`.
+  omitted, it is assumed to be 1. Same as `string[-num_chars:]` for positive num_chars.
 
   >>> RIGHT("Sale Price", 5)
   'Price'
@@ -507,6 +507,8 @@ def RIGHT(string, num_chars=1):
   'r'
   >>> RIGHT('Text', 100)
   'Text'
+  >>> RIGHT('Text', 0)
+  ''
   >>> RIGHT('Text', -1)
   Traceback (most recent call last):
   ...
@@ -514,7 +516,7 @@ def RIGHT(string, num_chars=1):
   """
   if num_chars < 0:
     raise ValueError("num_chars invalid")
-  return string[-num_chars:]
+  return string[max(0, len(string) - num_chars):]
 
 
 def SEARCH(find_text, within_text, start_num=1):

@@ -123,6 +123,7 @@ function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
     .filter(vs => !vs.table.peek().summarySourceTable.peek()) // Sections that have normal tables
     .filter(vs => !tablesOnOtherViews.has(vs.tableRef.peek())) // That aren't on other views
     .filter(vs => vs.table.peek().tableId.peek()) // Which we can access (has tableId)
+    .filter(vs => !vs.table.peek().disableRemoveTable.peek()) // Which may be removed
     .map(vs => vs.table.peek()))]; // Return tableRec object, and remove duplicates.
 
   const removePage = () => [["RemoveRecord", "_grist_Views", viewId]];

@@ -2,6 +2,11 @@ import { theme } from "app/client/ui2018/cssVars";
 
 import { DomArg, keyframes, Observable, observable, styled } from "grainjs";
 
+/**
+ * Duration in milliseconds before a spinner should be shown.
+ */
+export const DELAY_BEFORE_SPINNER_MS = 500;
+
 const rotate360 = keyframes(`
   from { transform: rotate(45deg); }
   75% { transform: rotate(405deg); }

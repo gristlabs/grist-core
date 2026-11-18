@@ -3,7 +3,7 @@
  */
 import {
   enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet, findRuleSetColumnWait,
-  findTable, findTableWait, startEditingAccessRules, triggerAutoComplete,
+  findTable, findTableWait, revertAccessRules, startEditingAccessRules, triggerAutoComplete,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server } from "test/nbrowser/testServer";
@@ -158,6 +158,7 @@ describe("AccessRules1", function() {
     await enterRulePart(ruleSet, 3, `user.Email == rec.Agent_Email`, { R: "allow" });
     await enterRulePart(ruleSet, 4, null, "Deny all");
 
+    await gu.waitForServer();
     await driver.find(".test-rules-save").click();
     await gu.waitForServer();
 
@@ -209,6 +210,7 @@ describe("AccessRules1", function() {
     const ruleSet = findDefaultRuleSet(/FinancialsTable/);
     await gu.scrollIntoView(ruleSet);
     await enterRulePart(ruleSet, 1, `rec.id == 1`, "Allow all");
+    await gu.waitForServer();
     await driver.find(".test-rules-save").click();
     await gu.waitForServer();
     await gu.openPage("FinancialsTable");
@@ -279,7 +281,8 @@ describe("AccessRules1", function() {
     // Remove the rule giving everyone access to Shared rows.
     await ruleSet.find(".test-rule-part-and-memo:nth-child(3) .test-rule-remove").click();
 
-    // Check that the Save button is enabled, and save.
+    // Check that the Save button is enabled once the formula is checked, and save.
+    await gu.waitForServer();
     assert.equal(await driver.find(".test-rules-save").isDisplayed(), true);
     await gu.userActionsCollect();
     await driver.find(".test-rules-save").click();
@@ -359,8 +362,7 @@ describe("AccessRules1", function() {
     assert.equal(await driver.find(".test-rules-non-save").isDisplayed(), false);
 
     // Revert the changes in this test case.
-    await driver.find(".test-rules-revert").click();
-    await gu.waitForServer();
+    await revertAccessRules();
   });
 
   it("should allow read control for columns with rec in formula", async function() {
@@ -431,6 +433,7 @@ describe("AccessRules1", function() {
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: "allow" });
 
     // Check that trying to save throws an error.
+    await gu.waitForServer();
     await driver.find(".test-rules-save").click();
     await gu.waitForServer();
     await driver.findContentWait(".test-notifier-toast-wrapper",
@@ -441,6 +444,8 @@ describe("AccessRules1", function() {
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', { R: "deny" });
     await gu.waitForServer();
     assert.lengthOf(await gu.getToasts(), 0);
+
+    await revertAccessRules();
   });
 
   it("'Add Widget to Page' should be disabled", async () => {
@@ -449,9 +454,10 @@ describe("AccessRules1", function() {
     await driver.findWait(".test-rule-set", 2000);
     await driver.find(".test-dp-add-new").doClick();
     await gu.findOpenMenu();
-    assert.includeMembers(await driver.findAll(".test-dp-add-new-menu > li.disabled", imp => imp.getText()), [
-      "Add widget to page",
-    ]);
+    assert.includeMembers(
+      await driver.findAll('.test-dp-add-new-menu > li[aria-disabled="true"]', imp => imp.getText()),
+      ["Add widget to page"],
+    );
     await gu.closeOpenMenu();
     await gu.waitAppFocus();
   });

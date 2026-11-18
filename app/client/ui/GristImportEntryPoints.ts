@@ -1,4 +1,5 @@
 import { GristDoc } from "app/client/components/GristDoc";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { startDocGristImport } from "app/client/lib/imports/grist/startDocGristImport";
 import { startHomeGristImport } from "app/client/lib/imports/grist/startHomeGristImport";
 import { makeT } from "app/client/lib/localization";
@@ -34,7 +35,7 @@ export function buildHomeGristImportMenuItem(home: HomeModel): DomContents {
     },
     menuIcon("Import"), t("Copy data from another document"),
     dom.show(isGristImportVisible()),
-    dom.cls("disabled", !home.newDocWorkspace.get()),
+    ariaDisabled(!home.newDocWorkspace.get()),
   );
 }
 
@@ -56,6 +57,6 @@ export function buildDocGristImportMenuItem(gristDoc: GristDoc, isReadonly: bool
     },
     menuIcon("Import"), t("Copy data from another document"),
     dom.show(isGristImportVisible()),
-    dom.cls("disabled", isReadonly),
+    ariaDisabled(isReadonly),
   );
 }

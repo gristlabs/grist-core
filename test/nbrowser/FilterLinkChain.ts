@@ -14,17 +14,19 @@ describe("FilterLinkChain", function() {
 
   it("should work with chains of filter links", async function() {
     async function checkCells(sectionName: string, cols: string[], expected: string[]) {
-      assert.deepEqual(
-        await gu.getVisibleGridCells({ section: sectionName, cols, rowNums: [1, 2] }),
-        expected,
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(
+          await gu.getVisibleGridCells({ section: sectionName, cols, rowNums: [1, 2] }),
+          expected,
+        );
 
-      // Sanity-check the selectors in checkSectionEmpty() below.
-      const section = gu.getSection(sectionName);
-      assert.isEmpty(await section.findAll(".disable_viewpane"));
-      assert.isNotEmpty(await section.findAll(".gridview_row .gridview_data_row_num"));
-      assert.isNotEmpty(await section.findAll(".gridview_row .record"));
-      assert.isNotEmpty(await section.findAll(".gridview_row .field"));
+        // Sanity-check the selectors in checkSectionEmpty() below.
+        const section = gu.getSection(sectionName);
+        assert.isEmpty(await section.findAll(".disable_viewpane"));
+        assert.isNotEmpty(await section.findAll(".gridview_row .gridview_data_row_num"));
+        assert.isNotEmpty(await section.findAll(".gridview_row .record"));
+        assert.isNotEmpty(await section.findAll(".gridview_row .field"));
+      });
     }
 
     async function checkTopCells(expected: string[]) {
@@ -40,11 +42,13 @@ describe("FilterLinkChain", function() {
     }
 
     async function checkSectionEmpty(sectionName: string, text: string) {
-      const section = gu.getSection(sectionName);
-      assert.equal(await section.find(".disable_viewpane").getText(), text);
-      assert.isEmpty(await section.findAll(".gridview_row .gridview_data_row_num"));
-      assert.isEmpty(await section.findAll(".gridview_row .record"));
-      assert.isEmpty(await section.findAll(".gridview_row .field"));
+      await gu.waitToPass(async () => {
+        const section = gu.getSection(sectionName);
+        assert.equal(await section.find(".disable_viewpane").getText(), text);
+        assert.isEmpty(await section.findAll(".gridview_row .gridview_data_row_num"));
+        assert.isEmpty(await section.findAll(".gridview_row .record"));
+        assert.isEmpty(await section.findAll(".gridview_row .field"));
+      });
     }
 
     async function checkBottomEmpty() {

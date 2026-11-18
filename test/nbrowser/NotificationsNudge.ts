@@ -83,9 +83,8 @@ describe("NotificationsNudge", function() {
     // Collapsed by default: the checklist exists but is hidden.
     assert.isFalse(await feature.find(".test-notifications-step").isDisplayed());
     await feature.find(".test-notifications-feature-head").click();
-    await gu.waitToPass(async () => {
-      assert.isTrue(await feature.find(".test-notifications-step").isDisplayed());
-    });
+    // Until the row has fully expanded, the lower steps are clipped and read as blank.
+    await feature.findWait("[data-fully-expanded]", 2000);
     const stepText = await Promise.all(
       (await feature.findAll(".test-notifications-step")).map(e => e.getText()));
     assert.deepEqual(stepText,
@@ -97,9 +96,8 @@ describe("NotificationsNudge", function() {
     assert.lengthOf(await feature.findAll(".test-notifications-step-todo"), emailDone ? 2 : 3);
     // Collapse again.
     await feature.find(".test-notifications-feature-head").click();
-    await gu.waitToPass(async () => {
-      assert.isFalse(await feature.find(".test-notifications-step").isDisplayed());
-    });
+    await feature.findWait("[data-fully-collapsed]", 2000);
+    assert.isFalse(await feature.find(".test-notifications-step").isDisplayed());
   });
 
   it("does not show the nudge on a fork (a non-live doc)", async function() {

@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver } from "mocha-webdriver";
 
@@ -7,7 +7,7 @@ describe("MultiSelector", () => {
 
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
-    await driver.get(`${server.getHost()}/MultiSelector`);
+    await openFixture("MultiSelector");
   });
 
   it("should start with no columns selected", async function() {

@@ -50,10 +50,13 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
     // (e.g. MIN($group.Date)) in the grid first.
     const isSummary = section.table.peek().summarySourceTable.peek() !== 0;
 
+    // A locked table forbids adding columns, so - as with a summary - offer existing columns only.
+    const canCreateColumns = !isSummary && !section.table.peek().disableAddRemoveColumns.peek();
+
     // Slot selections. Start/Title default to "create new"; End defaults to "none" (0).
-    const startVal = Observable.create<SlotValue>(owner, isSummary ? 0 : CREATE_NEW);
+    const startVal = Observable.create<SlotValue>(owner, canCreateColumns ? CREATE_NEW : 0);
     const endVal = Observable.create<SlotValue>(owner, 0);
-    const titleVal = Observable.create<SlotValue>(owner, isSummary ? 0 : CREATE_NEW);
+    const titleVal = Observable.create<SlotValue>(owner, canCreateColumns ? CREATE_NEW : 0);
 
     const dateCol = new ColumnToMapImpl({ name: "startDate", type: "Date,DateTime", strictType: true });
     const textCol = new ColumnToMapImpl({ name: "title", type: "Text", strictType: true });
@@ -64,7 +67,7 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
     const textColumns = Computed.create(owner, use =>
       use(section.columns).filter(col => textCol.canByMapped(use(col.pureType))));
 
-    const createNewOption: IOptionFull<SlotValue>[] = isSummary ? [] :
+    const createNewOption: IOptionFull<SlotValue>[] = !canCreateColumns ? [] :
       [{ value: CREATE_NEW, label: t("Create new column"), icon: "Plus" }];
     const dateOptions = (includeNone: boolean) => Computed.create(owner, (use): IOptionFull<SlotValue>[] => [
       ...createNewOption,
@@ -80,7 +83,7 @@ export function buildCalendarSetupModal(section: ViewSectionRec, gristDoc: Grist
     // When an existing Start column is chosen, its type fixes the date mode (and locks the
     // toggle): a Date column means date-only, a DateTime column means date+time. Creating a
     // new column leaves the choice to the user.
-    const startIsExisting = Computed.create(owner, use => isSummary || isRealColumn(use(startVal)));
+    const startIsExisting = Computed.create(owner, use => !canCreateColumns || isRealColumn(use(startVal)));
     owner.autoDispose(startVal.addListener((val) => {
       const col = colFor(section, val);
       if (col) { dateMode.set(isDateOnlyType(col.pureType.peek()) ? "date" : "datetime"); }

@@ -2,6 +2,9 @@ import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { DocAction } from "app/common/DocActions";
 import { StringUnion } from "app/common/StringUnion";
 
+import findLastIndex from "lodash/findLastIndex";
+import truncate from "lodash/truncate";
+
 /**
  * State related to a request for assistance.
  *
@@ -52,6 +55,13 @@ export interface AssistanceRequestV1 extends BaseAssistanceRequest {
 interface BaseAssistanceRequestV2 extends BaseAssistanceRequest {
   context: AssistanceContextV2;
   developerPromptVersion?: DeveloperPromptVersion;
+  requestId?: string;
+  /**
+   * If set, the response stops short of any tool call that needs the user's approval, and
+   * returns it as `pendingApproval` instead of running it. The turn continues once the answer
+   * is sent back in `approvals`, along with the response's `state`.
+   */
+  promptForApproval?: boolean;
 }
 
 /** A message from the user to the document assistant. */
@@ -61,17 +71,26 @@ export interface AssistanceUserRequestV2 extends BaseAssistanceRequestV2 {
 }
 
 /**
- * Brings back the answers of the tools that ran in the browser, so the model can finish the same
- * reply. It has no text.
+ * Brings back the answers of the tools that ran in the browser, or the user's answers to the tool
+ * calls that needed their approval, so the model can finish the same reply. It has no text.
  */
 export interface AssistanceToolRequestV2 extends BaseAssistanceRequestV2 {
   state: AssistanceState;
+  approvals?: AssistanceToolApproval[];
 }
 
 /**
  * A request for document assistance.
  */
 export type AssistanceRequestV2 = AssistanceUserRequestV2 | AssistanceToolRequestV2;
+
+/**
+ * The user's answer to a tool call that needed their approval.
+ */
+export interface AssistanceToolApproval {
+  toolCallId: string;
+  approved: boolean;
+}
 
 /** A request for document assistance without its context, which the client adds: what the user has open. */
 export type AssistantDraftRequest =
@@ -91,6 +110,21 @@ export function isAssistanceRequestV2(req: AssistanceRequest): req is Assistance
 /** Whether the request brings back the answers of the browser tools, and not a message from the user. */
 export function isToolRequest(req: AssistanceRequest): req is AssistanceToolRequestV2 {
   return isAssistanceRequestV2(req) && !("text" in req);
+}
+
+/**
+ * Returns true if `req` carries the user's answers to tool calls awaiting their approval.
+ */
+export function hasApprovals(req: AssistanceRequest): req is AssistanceToolRequestV2 {
+  return isToolRequest(req) && Boolean(req.approvals?.length);
+}
+
+/** The tool calls of the last model message that have no answer yet. */
+export function getUnansweredToolCalls(state: AssistanceState | undefined): AssistanceToolCall[] {
+  const messages = state?.messages ?? [];
+  const lastIndex = findLastIndex(messages, message => message.role === "assistant");
+  const answered = new Set(messages.slice(lastIndex + 1).map(message => message.tool_call_id));
+  return (messages[lastIndex]?.tool_calls ?? []).filter(call => !answered.has(call.id));
 }
 
 /** Which system prompt the document assistant starts with, for example for a new document. */
@@ -131,6 +165,22 @@ export interface AssistanceResponseV1 extends BaseAssistanceResponse {
 export interface AssistanceResponseV2 extends BaseAssistanceResponse {
   appliedActions?: ApplyUAResult[];
   confirmationRequired?: boolean;
+  /** Id of the run that produced this response. Matches the `runId` of its trace events. */
+  runId?: string;
+  /**
+   * A tool call that needs the user's approval before it runs. Set when the turn stopped short,
+   * in which case there is no reply.
+   */
+  pendingApproval?: AssistancePendingApproval;
+}
+
+/**
+ * A tool call awaiting the user's approval, with its arguments as JSON.
+ */
+export interface AssistancePendingApproval {
+  toolCallId: string;
+  toolName: string;
+  argsText: string;
 }
 
 /** Widget Creator tools the browser runs, on its open editor, when called with `draft: true`. */
@@ -155,4 +205,92 @@ interface BaseAssistanceResponse {
 interface AssistanceLimit {
   usage: number;
   limit: number;
+}
+
+/**
+ * A step of a request for document assistance (e.g. a tool call), sent to the client that made
+ * the request while it's in progress.
+ *
+ * Events include the `requestId` of their request. Clients ignore events for requests other than
+ * the current request (e.g. cancelled requests).
+ *
+ * Events of the same run also share a `runId`. A request that's retried (e.g. after the document
+ * is forked) is a new run, so the client can tell when to discard events of the earlier one.
+ */
+export type AssistanceTraceEvent = {
+  conversationId: string;
+  requestId?: string;
+  runId: string;
+} & AssistanceTraceEventPayload;
+
+/**
+ * An {@link AssistanceTraceEvent} without the ids of its conversation, request, and run.
+ */
+export type AssistanceTraceEventPayload =
+  AssistanceTraceText |
+  AssistanceTraceTextDelta |
+  AssistanceTraceTextReset |
+  AssistanceTraceToolCall |
+  AssistanceTraceToolResult;
+
+/**
+ * Text the model replied with alongside its tool calls (e.g. "Let me look at the tables.").
+ */
+export interface AssistanceTraceText {
+  type: "text";
+  text: string;
+}
+
+/**
+ * Text the model is replying with, sent as it streams in. Deltas with the same `textId` are
+ * parts of the same text.
+ */
+export interface AssistanceTraceTextDelta {
+  type: "text-delta";
+  textId: string;
+  delta: string;
+}
+
+/** Discards unfinished text with this `textId` from a failed completion before retrying it. */
+export interface AssistanceTraceTextReset {
+  type: "text-reset";
+  textId: string;
+}
+
+/**
+ * A tool call, sent before the tool is run. `argsText` is the call's arguments as JSON, cut short
+ * if `argsTruncated` is set.
+ */
+export interface AssistanceTraceToolCall {
+  type: "tool-call";
+  toolCallId: string;
+  toolName: string;
+  argsText: string;
+  argsTruncated?: boolean;
+}
+
+/**
+ * The result of a tool call, sent once the tool has run. `resultText` is the result as JSON, cut
+ * short if `resultTruncated` is set.
+ */
+export interface AssistanceTraceToolResult {
+  type: "tool-result";
+  toolCallId: string;
+  ok: boolean;
+  resultText: string;
+  resultTruncated?: boolean;
+}
+
+/** Maximum length of a tool call's `argsText`. Longer arguments are truncated. */
+export const MAX_TRACE_ARGS_CHARS = 1024;
+
+/** Maximum length of a tool call's `resultText`. Longer results are truncated. */
+export const MAX_TRACE_RESULT_CHARS = 4096;
+
+/**
+ * Returns `text` truncated to at most `limit` characters, along with `true` if it was truncated.
+ */
+export function truncateTraceText(text: string, limit: number): [string, boolean | undefined] {
+  const truncated = truncate(text, { length: limit, omission: "" });
+  return [truncated, truncated !== text || undefined];
 }

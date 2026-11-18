@@ -64,10 +64,17 @@ export function getAssistantV2Options(): AssistantV2Options {
       envVar: "ASSISTANT_STRUCTURED_OUTPUT",
       defaultValue: false,
     });
+  const streaming = appSettings
+    .section("assistant")
+    .flag("streaming")
+    .readBool({
+      envVar: "ASSISTANT_STREAMING",
+    });
   return {
     ...getAssistantV1Options(),
     maxToolCalls,
     structuredOutput,
+    streaming,
   };
 }
 

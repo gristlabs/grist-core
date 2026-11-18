@@ -1,14 +1,14 @@
 import * as commands from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
 import { copyToClipboard } from "app/client/lib/clipboardUtils";
-import { makeTestId } from "app/client/lib/domUtils";
+import { ariaDisabled, makeTestId } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { setTestState } from "app/client/lib/testState";
 import { TableRec } from "app/client/models/DocModel";
 import { docListHeader, docMenuTrigger } from "app/client/ui/DocMenuCss";
 import { duplicateTable, DuplicateTableResponse } from "app/client/ui/DuplicateTable";
 import { hoverTooltip, showTransientTooltip } from "app/client/ui/tooltips";
-import { buildTableName } from "app/client/ui/WidgetTitle";
+import { buildLockedTableIcon, buildTableName } from "app/client/ui/WidgetTitle";
 import * as css from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { loadingDots } from "app/client/ui2018/loaders";
@@ -137,13 +137,17 @@ export class DataTables extends Disposable {
       const rawViewSectionRef = use(fromKo(table.rawViewSectionRef));
       const isSummaryTable = use(table.summarySourceTable) !== 0;
       const isReadonly = use(this._gristDoc.isReadonly);
-      if (!rawViewSectionRef || isSummaryTable || isReadonly) {
-        // Some very old documents might not have a rawViewSection, and raw summary
-        // tables can't currently be renamed.
+      const isRenameDisabled = use(table.disableRenameTable);
+      // Some very old documents might not have a rawViewSection, and neither raw summary tables
+      // nor locked tables can be renamed.
+      if (!rawViewSectionRef || isReadonly || isRenameDisabled) {
         const tableName = [
           use(table.tableNameDef), isSummaryTable ? use(table.groupDesc) : "",
         ].filter(p => Boolean(p?.trim())).join(" ");
-        return cssTableName(tableName);
+        return [
+          cssTableName(tableName),
+          use(table.locked) ? buildLockedTableIcon(testId("lock")) : null,
+        ];
       } else {
         return cssFlexRow(
           dom.domComputed(fromKo(table.rawViewSection), vs =>
@@ -168,23 +172,19 @@ export class DataTables extends Disposable {
       menuItem(
         () => { isEditingName.set(true); },
         t("Rename table"),
-        dom.cls("disabled", use => use(isReadonly) || use(table.summarySourceTable) !== 0),
+        ariaDisabled(use => use(isReadonly) || use(table.disableRenameTable)),
         testId("menu-rename-table"),
       ),
       menuItem(
         () => this._duplicateTable(table),
         t("Duplicate table"),
-        dom.cls("disabled", use =>
-          use(isReadonly) ||
-          use(table.isHidden) ||
-          use(table.summarySourceTable) !== 0,
-        ),
+        ariaDisabled(use => use(isReadonly) || use(table.isHidden) || use(table.summarySourceTable) !== 0),
         testId("menu-duplicate-table"),
       ),
       menuItem(
         () => this._removeTable(table),
         t("Remove table"),
-        dom.cls("disabled", use => use(isReadonly) || (
+        ariaDisabled(use => use(isReadonly) || use(table.disableRemoveTable) || (
           // Can't delete last visible table, unless it is a hidden table.
           use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
         )),
@@ -196,7 +196,7 @@ export class DataTables extends Disposable {
           () => this._editRecordCard(table),
           cssMenuItemIcon("TypeCard"),
           t("Edit record card"),
-          dom.cls("disabled", use => use(isReadonly)),
+          ariaDisabled(isReadonly),
           testId("menu-edit-record-card"),
         ),
         dom.domComputed(use => use(use(table.recordCardViewSection).disabled), (isDisabled) => {
@@ -209,7 +209,7 @@ export class DataTables extends Disposable {
               }
             },
             t("{{action}} Record Card", { action: isDisabled ? "Enable" : "Disable" }),
-            dom.cls("disabled", use => use(isReadonly)),
+            ariaDisabled(isReadonly),
             testId(`menu-${isDisabled ? "enable" : "disable"}-record-card`),
           );
         }),
@@ -278,7 +278,7 @@ const cssMenuItemIcon = styled(menuIcon, `
     --icon-color: ${css.theme.menuItemSelectedFg};
   }
 
-  .${weasel.cssMenuItem.className}.disabled & {
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] & {
     --icon-color: ${css.theme.menuItemDisabledFg};
   }
 `);

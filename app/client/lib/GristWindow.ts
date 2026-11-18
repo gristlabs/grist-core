@@ -30,6 +30,7 @@ declare global {
       testNumPendingPastes?: () => number;
       testNumPendingMenuActions?: () => number;
       testNumPendingViewLoads?: () => number;
+      testNumPendingChartRenders?: () => number;
     };
     cmd?: { [name: string]: () => void };
     isRunningUnderElectron?: boolean;

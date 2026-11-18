@@ -41,7 +41,11 @@ import {
 } from "app/common/ActiveDocAPI";
 import { ApiError } from "app/common/ApiError";
 import {
-  AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2,
+  AssistanceContextV1,
+  AssistanceRequest,
+  AssistanceResponse,
+  AssistanceTraceEvent,
+  isAssistanceRequestV2,
 } from "app/common/Assistance";
 import { mapGetOrSet, MapWithTTL } from "app/common/AsyncCreate";
 import { AttachmentColumns, gatherAttachmentIds, getAttachmentColumns } from "app/common/AttachmentColumns";
@@ -128,6 +132,7 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive,
 } from "app/server/lib/Archive";
+import { AssistanceTracker } from "app/server/lib/AssistanceTracker";
 import { getAndRemoveAssistantStatePermit } from "app/server/lib/AssistantStatePermit";
 import { AttachmentFileManager, MismatchedFileHashError } from "app/server/lib/AttachmentFileManager";
 import { IAttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
@@ -340,6 +345,7 @@ export class ActiveDoc extends EventEmitter {
   private _fullyLoaded: boolean = false;
   private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
+  private _assistanceTracker = new AssistanceTracker();
   private _docUsage: DocumentUsage | null = null;
   private _mcpToolCalls = 0;
   private _mcpUsers = new Set<number>();
@@ -720,31 +726,36 @@ export class ActiveDoc extends EventEmitter {
       userId,
       org: docSession.org,
     };
-    await dbManager.increaseUsage(scope, "assistant", { delta: 1, dryRun: true });
+    const getResponse = async (delta: number): Promise<AssistanceResponse> => {
+      await dbManager.increaseUsage(scope, "assistant", { delta, dryRun: true });
 
-    const assistant = this._server.getAssistant();
-    if (!assistant) {
-      throw new Error("Please set ASSISTANT_CHAT_COMPLETION_ENDPOINT OPENAI_API_KEY");
-    }
+      const assistant = this._server.getAssistant();
+      if (!assistant) {
+        throw new Error("Please set ASSISTANT_CHAT_COMPLETION_ENDPOINT OPENAI_API_KEY");
+      }
 
-    let result: AssistanceResponse;
-    if (isAssistantV2(assistant) && isAssistanceRequestV2(params)) {
-      result = await assistant.getAssistance(docSession, this, params);
-    } else if (!isAssistantV2(assistant) && !isAssistanceRequestV2(params)) {
-      // Same code, different types.
-      result = await assistant.getAssistance(docSession, this, params);
-    } else {
-      throw new ApiError("Wrong type of assistance request", 400);
-    }
-    const limit = await dbManager.increaseUsage(scope, "assistant", { delta: 1 });
-    if (limit) { this._logAssistantLimit(docSession, limit); }
-    return {
-      ...result,
-      limit: !limit ? undefined : {
-        usage: limit.usage,
-        limit: limit.limit,
-      },
+      let result: AssistanceResponse;
+      if (isAssistantV2(assistant) && isAssistanceRequestV2(params)) {
+        result = await assistant.getAssistance(docSession, this, params);
+      } else if (!isAssistantV2(assistant) && !isAssistanceRequestV2(params)) {
+        // Same code, different types.
+        result = await assistant.getAssistance(docSession, this, params);
+      } else {
+        throw new ApiError("Wrong type of assistance request", 400);
+      }
+      const limit = await dbManager.increaseUsage(scope, "assistant", { delta });
+      if (limit && delta > 0) { this._logAssistantLimit(docSession, limit); }
+      return {
+        ...result,
+        limit: !limit ? undefined : {
+          usage: limit.usage,
+          limit: limit.limit,
+        },
+      };
     };
+    return isAssistanceRequestV2(params) ?
+      await this._assistanceTracker.track(userId, params, continuesTurn => getResponse(continuesTurn ? 0 : 1)) :
+      await getResponse(1);
   }
 
   /**
@@ -1016,9 +1027,12 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Apply a proposal to the document. The proposal is applied as a set of linked action groups
-   * for ease of undo, meaning each action group has a linkId refering to the previous one, and
-   * a otherId set to the first (or root) action group.
+   * Apply a proposal to the document. The proposal lands as a single action bundle, so it
+   * either applies in full or leaves the document untouched, and undoing it is one step.
+   *
+   * Note that the engine write and the proposal's status change are two separate writes with
+   * no transaction spanning them: a crash in between leaves the document patched and the
+   * proposal still open, and accepting it again would duplicate any rows it added.
    */
   public async applyProposal(docSession: OptDocSession, proposalId: number, options?: {
     dismiss?: boolean,
@@ -1043,24 +1057,27 @@ export class ActiveDoc extends EventEmitter {
     // recompute the changes since the branch point and now.
     const states = await this.getRecentStates(docSession);
     const hash = proposal.comparison.comparison?.parent?.h;
-
-    if (hash) {
-      const changes = await getChanges(docSession, this, {
-        states,
-        rightHash: states[0].h,
-        leftHash: hash,
-      });
-      const rightChanges = changes.details?.rightChanges;
-      if (rightChanges) {
-        rebaseSummary(rightChanges, origDetails.leftChanges);
-      }
+    if (!hash) {
+      // Details are only computed when there is a branch point.
+      throw new ApiError("Proposal branch point not found", 500);
     }
+    // Throws if the branch point has dropped out of recent history.
+    // Uncapped, like the proposal's own changes, since Patch reads cells
+    // from these too.
+    const changes = await getChanges(docSession, this, {
+      states,
+      rightHash: states[0].h,
+      leftHash: hash,
+      maxRows: null,
+    });
+    const trunkChanges = changes.details!.rightChanges;
+    rebaseSummary(trunkChanges, origDetails.leftChanges);
 
     let result: PatchLog = { changes: [], applied: false };
     if (options?.dismiss === undefined) {
       const patch = new Patch(this, docSession);
       const { details } = removeMetadataChangesFromDetails(origDetails);
-      result = await patch.applyChanges(details);
+      result = await patch.applyChanges(details, trunkChanges);
       if (result.applied) {
         await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
           status: "applied",
@@ -2388,6 +2405,23 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
+  /**
+   * Sends a step of an in-progress assistance request to the client that made the request. Does
+   * nothing if the request didn't come from a client (e.g. if it was made via the REST API).
+   */
+  public async sendAssistanceTraceNotification(docSession: OptDocSession, event: AssistanceTraceEvent) {
+    if (!(docSession instanceof DocSession)) { return; }
+
+    // Deltas could overflow a disconnected client's queue of missed messages.
+    if (event.type === "text-delta" && !docSession.client.isConnected()) { return; }
+
+    await docSession.client.sendMessageOrInterrupt({
+      type: "docChatter",
+      docFD: docSession.fd,
+      data: { assistant: event },
+    });
+  }
+
   public logAuditEvent<Action extends AuditEventAction>(
     requestOrSession: RequestOrSession,
     properties: AuditEventProperties<Action>,
@@ -2661,7 +2695,8 @@ export class ActiveDoc extends EventEmitter {
 
       if (this.docClients.clientCount() > 0) {
         this._log.warn(docSession, `Doc being closed with ${this.docClients.clientCount()} clients left`);
-        await this.docClients.broadcastDocMessage(null, "docShutdown", null);
+        await safeCallAndWait("broadcast docShutdown",
+          () => this.docClients.broadcastDocMessage(null, "docShutdown", null));
         this.docClients.interruptAllClients();
         this.docClients.removeAllClients();
       }
@@ -2677,6 +2712,7 @@ export class ActiveDoc extends EventEmitter {
 
       // Clear the MapWithTTL to remove all timers from the event loop.
       this._fetchCache.clear();
+      this._assistanceTracker.clear();
 
       await Promise.all(this._intervals.map(interval =>
         safeCallAndWait("interval.disableAndFinish", () => interval.disableAndFinish())));
@@ -2715,7 +2751,7 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._syncDocUsageToDatabase(true);
-      await this._logDocMetrics(docSession, "docClose");
+      await safeCallAndWait("_logDocMetrics", () => this._logDocMetrics(docSession, "docClose"));
 
       await safeCallAndWait("storageManager.closeDocument",
         () => this._docManager.storageManager.closeDocument(this.docName));
@@ -2996,11 +3032,12 @@ export class ActiveDoc extends EventEmitter {
       throw new ApiError(`Attachments must not exceed ${byteString(limit)}`, 413);
     }
 
+    const fileContents = await readFile(fileData.absPath);
     let dimensions: { width?: number, height?: number } = {};
     // imageSize returns an object with a width, height and type property if the file is an image.
     // The width and height properties are integers representing width and height in pixels.
     try {
-      dimensions = await bluebird.fromCallback((cb: any) => imageSize(fileData.absPath, cb));
+      dimensions = imageSize(fileContents);
     } catch (err) {
       // Non-images will fail in some way, and that's OK.
       dimensions.height = 0;
@@ -3008,7 +3045,7 @@ export class ActiveDoc extends EventEmitter {
     }
     const attachmentStoreId = this._getDocumentSettings().attachmentStoreId;
     const addFileResult = await this._attachmentFileManager
-      .addFile(attachmentStoreId, fileData.ext, await readFile(fileData.absPath));
+      .addFile(attachmentStoreId, fileData.ext, fileContents);
     this._log.info(
       docSession, "addAttachment: store: '%s', file: '%s' (image %sx%s) %s",
       attachmentStoreId ?? "local document", addFileResult.fileIdent, dimensions.width, dimensions.height,
@@ -3399,14 +3436,14 @@ export class ActiveDoc extends EventEmitter {
     const viewSectionRecords = viewSections?.getRecords() ?? [];
     const customWidgetIds: string[] = [];
     for (const r of viewSectionRecords) {
-      const { customView } = safeJsonParse(r.options, {});
+      const { customView } = safeJsonParse(r.options, {}) ?? {};
       if (!customView) { continue; }
 
-      const { pluginId, url } = safeJsonParse(customView, {});
-      if (!url) { continue; }
+      const { pluginId, url } = safeJsonParse(customView, {}) ?? {};
+      if (typeof url !== "string" || !url) { continue; }
 
       const isGristLabsWidget = url.startsWith(commonUrls.gristLabsCustomWidgets);
-      customWidgetIds.push(isGristLabsWidget ? pluginId : "externalId");
+      customWidgetIds.push(isGristLabsWidget ? (typeof pluginId === "string" ? pluginId : "") : "externalId");
     }
     const numCustomWidgets = customWidgetIds.length;
 
@@ -3466,7 +3503,11 @@ export class ActiveDoc extends EventEmitter {
         this._log.warn(docSession, "failed to initialize doc usage", e);
       }
     }
-    await this._logDocMetrics(docSession, "docOpen");
+    try {
+      await this._logDocMetrics(docSession, "docOpen");
+    } catch (e) {
+      this._log.warn(docSession, "failed to log doc metrics", e);
+    }
   }
 
   private _getAuditEventProperties<Action extends AuditEventAction>(): Partial<AuditEventProperties<Action>> {
@@ -3746,7 +3787,7 @@ export class ActiveDoc extends EventEmitter {
       limited: {
         forkIdDigest: fork.forkId,
         forkDocIdDigest: fork.docId,
-        trunkIdDigest: document.trunkId,
+        trunkIdDigest: document.id,
         isTemplate: document.type === "template",
         lastActivity: document.updatedAt,
       },
@@ -3774,7 +3815,7 @@ export class ActiveDoc extends EventEmitter {
     const columns: ColumnMetadata[] = [];
     (columnData.colId as string[]).forEach((id, index) => {
       const hasNoId = !id;
-      const isHidden = hasNoId || id === "manualSort" || id.startsWith("gristHelper_");
+      const isHidden = hasNoId || isHiddenCol(id);
       const fromDifferentTable = columnData.parentId[index] !== tableRef;
       const skip = (isHidden && !includeHidden) || hasNoId || fromDifferentTable;
       if (skip) {

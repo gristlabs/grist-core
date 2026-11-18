@@ -412,6 +412,8 @@ export class GranularAccess implements GranularAccessForBundle {
     user.SessionID = isAnonymous ? `a${docSession.altSessionId}` : `u${user.UserID}`;
     user.IsLoggedIn = !isAnonymous;
     user.UserRef = fullUser?.ref || null; // Empty string should be treated as null.
+    // Other systems can rely on locked tables only being writable from exceptional (system/nascent) sessions
+    user.SystemOnly.CanEditLockedTables = this._hasExceptionalFullAccess(docSession);
 
     if (this._ruler.ruleCollection.ruleError && !this._recoveryMode) {
       // It is important to signal that the doc is in an unexpected state,

@@ -249,12 +249,12 @@ export function pagePanels(page: PageContents) {
             prepare(elem, open) {
               const width = (open ? leftCollapsedWidth.get() : left.panelWidth.get()) + "px";
               elem.style.width = width;
-              onPanelTransitionStart(elem);
             },
             run(elem, open) {
               const width = (open ? left.panelWidth.get() : leftCollapsedWidth.get()) + "px";
               elem.style.width = width;
               contentWrapper.style.width = width;
+              onPanelTransitionStart(elem);
             },
             finish(elem, open) {
               onResize();
@@ -300,6 +300,8 @@ export function pagePanels(page: PageContents) {
               // While expanded on hover, the leftPanelOpen command pins the panel open instead.
               pinLeftExpansion = pinExpansion;
               watchBlur();
+              // Focus arriving somewhere can be checked right away; the delay is for focus leaving.
+              owner.autoDispose(dom.onElem(document, "focusin", () => { watchBlur(); watchBlur.flush(); }));
             };
             // Turns a hover expansion into a regular open panel. The panel stays where it is, and
             // the main pane slides over to make room for it, starting from under the panel.
@@ -463,11 +465,13 @@ export function pagePanels(page: PageContents) {
                   //    under the main content.
                   //  - When closing, a positive margin keeps the space the pane took up.
                   elem.style.marginRight = (open ? -1 : 1) * innerLeft.panelWidth.get() + "px";
-                  onPanelTransitionStart(elem);
                 },
                 // Called with transitions on. Animate margin-right to 0, so the main content slides
                 // over to uncover the pane or to fill its space.
-                run(elem, open) { elem.style.marginRight = ""; },
+                run(elem, open) {
+                  elem.style.marginRight = "";
+                  onPanelTransitionStart(elem);
+                },
                 finish(elem, open) {
                   onResize();
                   onPanelTransitionFinished(elem, open);
@@ -518,9 +522,11 @@ export function pagePanels(page: PageContents) {
           transition(use => (use(isNarrowScreenObs()) ? false : use(right.panelOpen)), {
             prepare(elem, open) {
               elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + "px";
+            },
+            run(elem, open) {
+              elem.style.marginLeft = "";
               onPanelTransitionStart(elem);
             },
-            run(elem, open) { elem.style.marginLeft = ""; },
             finish(elem, open) {
               onResize();
               onPanelTransitionFinished(elem, open);
@@ -945,6 +951,8 @@ function watchHeightElem(elem: HTMLElement, callback: (height: number) => void) 
   onChange();
 }
 
+// Called from run(), not prepare(): a change that reverses a transition in progress skips
+// prepare(), and the boolAttr bindings have already marked the new state as finished.
 function onPanelTransitionStart(elem: HTMLElement) {
   elem.removeAttribute(FULLY_COLLAPSED_PANEL_DATASET_KEY);
   elem.removeAttribute(FULLY_EXPANDED_PANEL_DATASET_KEY);

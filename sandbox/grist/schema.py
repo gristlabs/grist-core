@@ -13,7 +13,7 @@ from collections import OrderedDict, namedtuple
 
 import actions
 
-SCHEMA_VERSION = 46
+SCHEMA_VERSION = 47
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -54,6 +54,11 @@ def schema_create_actions():
       # A table may be marked as "onDemand", which will keep its data out of the data engine, and
       # only available to the frontend when requested.
       make_column("onDemand",     "Bool"),
+
+      # A locked table rejects user-created modifications of its data or schema.
+      # Only sessions with lock-bypassing enabled (system sessions) can modify them or the
+      # "locked" flag.
+      make_column("locked",       "Bool"),
 
       make_column("rawViewSectionRef", "Ref:_grist_Views_section"),
       make_column("recordCardViewSectionRef", "Ref:_grist_Views_section"),

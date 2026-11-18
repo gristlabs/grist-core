@@ -3,7 +3,7 @@ import { FormLayoutNodeType } from "app/client/components/FormRenderer";
 import * as components from "app/client/components/Forms/elements";
 import { FormView } from "app/client/components/Forms/FormView";
 import { BoxModel, Place } from "app/client/components/Forms/Model";
-import { makeTestId, stopEvent } from "app/client/lib/domUtils";
+import { ariaDisabled, makeTestId, stopEvent } from "app/client/lib/domUtils";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { getColumnTypes as getNewColumnTypes } from "app/client/ui/GridViewMenus";
@@ -103,38 +103,52 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
       const isQuick = ({ colType}: { colType: string }) => quick.includes(colType);
       const notQuick = ({ colType}: { colType: string }) => !quick.includes(colType);
       const isEnabled = ({ colType}: { colType: string }) => !disabled.includes(colType);
+      // A new question adds a column, which a locked table refuses. Existing (unmapped) columns and
+      // building blocks only touch the form layout, so they stay available.
+      const disableAddColumns = viewSection.table().disableAddRemoveColumns();
+      const disableNewQuestion = ariaDisabled(disableAddColumns);
 
       const insertMenu = (where: typeof above) => () => {
         return [
-          menus.menuSubHeader(t("New question")),
-          ...commonTypes()
-            .filter(isQuick)
-            .filter(isEnabled)
-            .map(ct => menus.menuItem(where({ add: ct.colType }), menus.menuIcon(ct.icon!), ct.displayName)),
-          menus.menuItemSubmenu(
-            () => commonTypes()
-              .filter(notQuick)
+          menus.menuGroup(
+            t("New question"),
+            ...commonTypes()
+              .filter(isQuick)
               .filter(isEnabled)
               .map(ct => menus.menuItem(
                 where({ add: ct.colType }),
                 menus.menuIcon(ct.icon!),
                 ct.displayName,
+                disableNewQuestion,
               )),
-            {},
-            menus.menuIcon("Dots"),
-            dom("span", t("More"), dom.style("margin-right", "8px")),
+            menus.menuItemSubmenu(
+              () => commonTypes()
+                .filter(notQuick)
+                .filter(isEnabled)
+                .map(ct => menus.menuItem(
+                  where({ add: ct.colType }),
+                  menus.menuIcon(ct.icon!),
+                  ct.displayName,
+                  disableNewQuestion,
+                )),
+              {},
+              menus.menuIcon("Dots"),
+              dom("span", t("More"), dom.style("margin-right", "8px")),
+            ),
           ),
           dom.maybe(oneTo5, () => [
             menus.menuDivider(),
-            menus.menuSubHeader(t("Unmapped fields")),
-            dom.domComputed(unmapped, uf =>
-              uf.map(({ label, icon, colId }) => menus.menuItem(
-                where({ show: colId }),
-                menus.menuIcon(icon),
-                label,
-                testId("unmapped"),
-                testId("unmapped-" + colId),
-              )),
+            menus.menuGroup(
+              t("Unmapped fields"),
+              dom.domComputed(unmapped, uf =>
+                uf.map(({ label, icon, colId }) => menus.menuItem(
+                  where({ show: colId }),
+                  menus.menuIcon(icon),
+                  label,
+                  testId("unmapped"),
+                  testId("unmapped-" + colId),
+                )),
+              ),
             ),
           ]),
           dom.maybe(moreThan5, () => [
@@ -153,11 +167,13 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
             ),
           ]),
           menus.menuDivider(),
-          menus.menuSubHeader(t("Building blocks")),
-          menus.menuItem(where(struct("Header")), menus.menuIcon("Headband"), t("Header")),
-          menus.menuItem(where(struct("Paragraph")), menus.menuIcon("Paragraph"), t("Paragraph")),
-          menus.menuItem(where(struct("Columns")), menus.menuIcon("Columns"), t("Columns")),
-          menus.menuItem(where(struct("Separator")), menus.menuIcon("Separator"), t("Separator")),
+          menus.menuGroup(
+            t("Building blocks"),
+            menus.menuItem(where(struct("Header")), menus.menuIcon("Headband"), t("Header")),
+            menus.menuItem(where(struct("Paragraph")), menus.menuIcon("Paragraph"), t("Paragraph")),
+            menus.menuItem(where(struct("Columns")), menus.menuIcon("Columns"), t("Columns")),
+            menus.menuItem(where(struct("Separator")), menus.menuIcon("Separator"), t("Separator")),
+          ),
 
           props.customItems ? menus.menuDivider() : null,
           ...(props.customItems ?? []),
@@ -170,8 +186,11 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
 
       return [
         disableInsert ? null : [
-          menus.menuItemSubmenu(insertMenu(above), { action: above({ add: "Text" }) }, t("Insert question above")),
-          menus.menuItemSubmenu(insertMenu(below), { action: below({ add: "Text" }) }, t("Insert question below")),
+          // Clicking these adds a Text column, so when locked we leave only the submenu.
+          menus.menuItemSubmenu(insertMenu(above),
+            disableAddColumns ? {} : { action: above({ add: "Text" }) }, t("Insert question above")),
+          menus.menuItemSubmenu(insertMenu(below),
+            disableAddColumns ? {} : { action: below({ add: "Text" }) }, t("Insert question below")),
           menus.menuDivider(),
         ],
         menus.menuItemCmd(allCommands.contextMenuCopy, t("Copy")),

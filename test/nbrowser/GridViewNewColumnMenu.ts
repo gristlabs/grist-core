@@ -9,7 +9,6 @@ import {
   hasAddNewColumMenu,
   hasLookupMenu,
   hasShortcuts,
-  isMenuPresent,
   MAX,
   MIN,
   PERCENT,
@@ -557,8 +556,7 @@ describe("GridViewNewColumnMenu", function() {
         await gu.clearInput();
         await checkResult(["B", "C", "New1", "New2", "New3", "New4"]);
 
-        await gu.sendKeys(Key.ESCAPE);
-        assert.isFalse(await isMenuPresent());
+        await closeAddColumnMenu();
 
         // Show it once again and add B and C.
         await clickAddColumn();
@@ -978,7 +976,7 @@ describe("GridViewNewColumnMenu", function() {
           }
 
           // Now add each function and make sure it is added with a proper name.
-          await gu.sendKeys(Key.ESCAPE);
+          await closeAddColumnMenu();
           switch (column) {
             case "Age":
               await addRevLookup("sum");
@@ -1096,7 +1094,7 @@ describe("GridViewNewColumnMenu", function() {
           }
 
           // Now add each function and make sure it is added with a proper name.
-          await gu.sendKeys(Key.ESCAPE);
+          await closeAddColumnMenu();
           switch (column) {
             case "Age":
               await addRevLookup("sum");

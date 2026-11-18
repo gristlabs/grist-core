@@ -1,4 +1,4 @@
-import { ApplyUAResult, ForkResult, FormulaTimingInfo,
+import { ApplyProposalResponse, ApplyUAResult, ForkResult, FormulaTimingInfo,
   PermissionDataWithExtraUsers, QueryFilters, TimingStatus } from "app/common/ActiveDocAPI";
 import { AssistanceRequest, AssistanceResponse } from "app/common/Assistance";
 import { BaseAPI, IOptions, UploadProgressCallbacks } from "app/common/BaseAPI";
@@ -11,7 +11,7 @@ import { DocStateComparison, DocStates } from "app/common/DocState";
 import { ApiCallsUsage, OrgUsageSummary } from "app/common/DocUsage";
 import { Features, Product } from "app/common/Features";
 import { isClient } from "app/common/gristUrls";
-import { encodeQueryParams } from "app/common/gutil";
+import { defaultLocale, encodeQueryParams } from "app/common/gutil";
 import { FullUser, UserProfile } from "app/common/LoginSessionAPI";
 import { OrgPrefs, UserOrgPrefs, UserPrefs } from "app/common/Prefs";
 import * as roles from "app/common/roles";
@@ -383,6 +383,17 @@ const roleNames: { [role: string]: string } = {
 
 export function getUserRoleText(user: UserAccessData) {
   return roleNames[user.access!] || user.access || "no access";
+}
+
+// Ignores case and accents, so that names differing only by those are ordered by email.
+const usersCollator = new Intl.Collator(defaultLocale, { sensitivity: "base" });
+
+/**
+ * Compares users for display in lists: by name, or by email for users without a name (as that's
+ * what gets shown instead), then by email to break ties.
+ */
+export function compareUsersForDisplay(a: { name: string, email: string }, b: { name: string, email: string }) {
+  return usersCollator.compare(a.name || a.email, b.name || b.email) || usersCollator.compare(a.email, b.email);
 }
 
 export interface ExtendedUser extends FullUser {
@@ -775,7 +786,7 @@ export interface DocAPI {
   getProposals(options?: {
     outgoing?: boolean
   }): Promise<{ proposals: Proposal[] }>;
-  applyProposal(proposalId: number): Promise<Proposal>;
+  applyProposal(proposalId: number): Promise<ApplyProposalResponse>;
 
   applyUserActions(actions: UserAction[]): Promise<ApplyUAResult>;
 }
@@ -1616,7 +1627,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
-  public async applyProposal(proposalId: number) {
+  public async applyProposal(proposalId: number): Promise<ApplyProposalResponse> {
     return this.requestJson(`${this._url}/proposals/${proposalId}/apply`, {
       method: "POST",
     });

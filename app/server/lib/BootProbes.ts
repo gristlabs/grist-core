@@ -2,10 +2,15 @@ import { ApiError } from "app/common/ApiError";
 import {
   BootProbeIds,
   BootProbeResult,
+  getPathsNeedingVolume,
+  getStorageRisks,
+  IMAGE_VOLUME,
+  PersistDataBootProbeDetails,
   summarizeOutgoingRequests,
 } from "app/common/BootProbe";
 import { removeTrailingSlash } from "app/common/gutil";
 import { appSettings } from "app/server/lib/AppSettings";
+import { getTypeORMSettings } from "app/server/lib/dbUtils";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
 import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
@@ -18,7 +23,7 @@ import {
   isRequestFunctionEnabled,
 } from "app/server/lib/outgoingRequests";
 import { getProxyAgentConfiguration, isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
-import { classifyStorage } from "app/server/lib/storageDurability";
+import { mountFor, readMounts } from "app/server/lib/storageDurability";
 
 import * as express from "express";
 import fetch from "node-fetch";
@@ -458,41 +463,58 @@ const _sandboxProvidersProbe: Probe = {
   },
 };
 
-// Heuristic: the official Docker image sets GRIST_DATA_DIR to this and expects a
-// volume at /persist. We use it to guess we're in that image, where `/` is a
-// throwaway layer — the filesystem alone can't tell us that.
-const IMAGE_DATA_DIR = "/persist/docs";
-
 /**
- * Warns when Grist's data would be lost on restart — i.e. it sits on the
- * container's own filesystem rather than a mounted volume or external storage.
+ * The fault verdict for the persist-data probe, or undefined when no store looks at risk.
+ * Hedged, since the facts only hint at whether storage survives a restart.
  */
-const _dataPersistsProbe: Probe = {
+export function _persistDataVerdict(details: PersistDataBootProbeDetails): string | undefined {
+  const risks = getStorageRisks(details);
+  const volumePaths = getPathsNeedingVolume(details);
+  const stores = [
+    { envVar: "GRIST_DATA_DIR", target: details.dataDir, risk: risks.docs },
+    { envVar: "TYPEORM_DATABASE", target: details.homeDb, risk: risks.home },
+  ];
+  // A set, since both stores can get the same advice.
+  const sentences = new Set<string>();
+  for (const { envVar, target, risk } of stores) {
+    if (!risk) { continue; }
+    sentences.add(risk === "in-memory" ?
+      `${envVar} (${target}) appears to be in memory, so anything stored there would be lost ` +
+      "when the server or container restarts." :
+      target && volumePaths.includes(target) ?
+        `${envVar} (${target}) appears to be in the container's own filesystem, so anything ` +
+        "stored there would be lost when the container is recreated." :
+        // Otherwise the official image's paths were folded into its one volume.
+        "Grist appears to be running in the official Docker image without a volume mounted at " +
+        `${IMAGE_VOLUME}, so data would be lost when the container is recreated.`);
+  }
+  return sentences.size > 0 ? [...sentences].join(" ") : undefined;
+}
+
+export const _dataPersistsProbe: Probe = {
   id: "persist-data",
   name: "Does data persist across restarts",
   apply: async () => {
-    const dataDir = process.env.GRIST_DATA_DIR;
-    const homeDb = process.env.TYPEORM_DATABASE;
-    // We can't truly detect ephemeral storage, so treat the official image's DATA_DIR as the signal.
-    const rootMayBeEphemeral = (dataDir === IMAGE_DATA_DIR);
-
-    const isExternalStorageActive = appSettings.section("externalStorage").flag("active").getAsBool();
-    const usesPostgres = (process.env.TYPEORM_TYPE === "postgres");
-
-    const docs = isExternalStorageActive ? "durable" : await classifyStorage(dataDir, rootMayBeEphemeral);
-    const home = usesPostgres ? "durable" : await classifyStorage(homeDb, rootMayBeEphemeral);
-
-    const details = { dataDir, homeDb, docs, home };
-    if (docs === "ephemeral" || home === "ephemeral") {
-      return {
-        status: "fault",
-        verdict: "Your data will be lost when Grist restarts. To keep it, mount a volume at /persist.",
-        details,
-      };
-    }
-    // Claim success only when both stores are positively durable; otherwise we
-    // couldn't fully verify and stay neutral.
-    const verified = docs === "durable" && home === "durable";
-    return { status: verified ? "success" : "none", details };
+    const dataDir = process.env.GRIST_DATA_DIR ?? null;
+    // The home database as the server will open it, defaults included.
+    const homeDbSettings = getTypeORMSettings();
+    const homeDb = typeof homeDbSettings.database === "string" ? homeDbSettings.database : null;
+    const usesPostgres = (homeDbSettings.type === "postgres");
+    const externalStorageActive = appSettings.section("externalStorage").flag("active").getAsBool() ?? false;
+    const mounts = await readMounts();
+    const mountOf = (target: string | null) => (target && mounts && mountFor(target, mounts)) || null;
+    const details: PersistDataBootProbeDetails = {
+      dataDir,
+      dataDirMount: mountOf(dataDir),
+      homeDb,
+      // For Postgres, homeDb is a database name rather than a path.
+      homeDbMount: usesPostgres ? null : mountOf(homeDb),
+      externalStorageActive,
+      usesPostgres,
+    };
+    const verdict = _persistDataVerdict(details);
+    if (verdict) { return { status: "fault", verdict, details }; }
+    // Only claim success when nothing depends on local disk; otherwise stay neutral.
+    return { status: externalStorageActive && usesPostgres ? "success" : "none", details };
   },
 };

@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import * as bluebird from "bluebird";
 import { assert, driver } from "mocha-webdriver";
@@ -10,8 +10,7 @@ describe("ApiKeyWidget", function() {
 
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
-    await driver.get(`${server.getHost()}/ApiKey`);
-    await driver.findWait(".test-apikey-container", 2000);
+    await openFixture("ApiKey");
   });
 
   it("should show only the create button when the api key has not been created", async function() {

@@ -30,10 +30,16 @@ const t = makeT("Reference");
 export class Reference extends NTextBox {
   protected _refTable: Computed<TableRec | null>;
   private _visibleColRef: Computed<number>;
+  private _visibleColDisabled: Computed<boolean>;
   private _validCols: Computed<IOptionFull<number>[]>;
 
   constructor(field: ViewFieldRec) {
     super(field);
+
+    this._visibleColDisabled = Computed.create(this, use =>
+      use(this.field.config.multiselect) ||
+      // Changing the visible column rewrites this table's hidden display helper columns, which is disabled
+      use(use(use(this.field.column).table).disableAddRemoveColumns));
 
     this._visibleColRef = Computed.create(this, use => use(this.field.visibleColRef));
     // Note that saveOnly is used here to prevent display value flickering on visible col change.
@@ -67,13 +73,11 @@ export class Reference extends NTextBox {
   }
 
   public buildTransformConfigDom() {
-    const disabled = Computed.create(null, use => use(this.field.config.multiselect));
     return [
       cssLabel(t("SHOW COLUMN")),
       cssRow(
-        dom.autoDispose(disabled),
         select(this._visibleColRef, this._validCols, {
-          disabled,
+          disabled: this._visibleColDisabled,
         }),
         testId("fbuilder-ref-col-select"),
       ),

@@ -4,7 +4,7 @@
 import {
   enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait,
   findRuleSet, findRuleSetColumnWait, findRuleSetWait, findTable,
-  findTableWait, getRuleText, startEditingAccessRules,
+  findTableWait, getRuleText, revertAccessRules, startEditingAccessRules,
 } from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
@@ -84,6 +84,8 @@ describe("AccessRules2", function() {
       ["AddRecord", "Zones", null, { Email: email2, City: "Boston" }],
       ["AddRecord", "Zones", null, { Email: "fast@speed.com", City: "Cambridge" }],
       ["AddRecord", "Zones", null, { Email: "slow@speed.com", City: "Springfield" }],
+      // Added last, so that it is listed first only if users are sorted.
+      ["AddRecord", "Zones", null, { Email: "aaa@speed.com", City: "Albany" }],
     ]);
     const records = await mainSession.createHomeApi().applyUserActions(docId, [
       ["AddRecord", "_grist_ACLRules", null, {
@@ -102,11 +104,11 @@ describe("AccessRules2", function() {
     await driver.findContentWait("button", /View as/, 3000).click();
     await gu.findOpenMenu();
 
-    // Check users from attribute table are present.
+    // Check users from attribute table are present, sorted alphabetically.
     assert.deepEqual(
       (await driver.findAll(".test-acl-user-item span", e => e.getText()))
         .filter(txt => txt.includes("@speed")),
-      ["fast@speed.com", "slow@speed.com"]);
+      ["aaa@speed.com", "fast@speed.com", "slow@speed.com"]);
 
     // 'View As' is present, except for current user.
     assert.equal(await driver.findContent(".test-acl-user-item", email1)
@@ -237,7 +239,7 @@ describe("AccessRules2", function() {
     await ruleSet.find(".test-rule-part-and-memo:nth-child(1) .test-rule-remove").click();
     await driver.findContentWait("button", /Add table rules/, 2000).click();
     assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).isPresent(), true);
-    assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).matches(".disabled"), false);
+    assert.equal(await gu.findOpenMenuItem("li", /FinancialsTable/).matches('[aria-disabled="true"]'), false);
     await driver.sendKeys(Key.ESCAPE);
 
     // Save
@@ -503,8 +505,7 @@ describe("AccessRules2", function() {
     assert.match(await driver.find(".test-access-rules-error").getText(), /Access rules have changed/);
 
     // Click "Reset" to update them.
-    await driver.find(".test-rules-revert").click();
-    await gu.waitForServer();
+    await revertAccessRules();
 
     // Finish undoing the renames.  Fiddling with a user attribute table currently forces
     // a reload.
@@ -724,8 +725,7 @@ describe("AccessRules2", function() {
     // then press and save.
     await driver.findWait(".test-rule-set", 5000);
     await driver.findContentWait("button", /Remove TmpTable2 rules/, 5000).click();
-    await driver.find(".test-rules-revert").click();
-    await gu.waitForServer();
+    await revertAccessRules();
     await driver.findContentWait("button", /Remove TmpTable2 rules/, 5000).click();
     await save();
     await gu.waitForServer();
@@ -838,7 +838,7 @@ describe("AccessRules2", function() {
     assert.equal(await driver.find(".test-rules-non-save").getText(), "Invalid");
 
     // click reset
-    await driver.find(".test-rules-revert").click();
+    await revertAccessRules();
   });
 
   it("should have a working dots menu", async function() {

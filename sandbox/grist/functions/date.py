@@ -185,6 +185,13 @@ def DATE(year, month, day):
   """
   if year < 1900:
     year += 1900
+  return _date(year, month, day)
+
+
+def _date(year, month, day):
+  """
+  Like DATE(), but takes the year as given, for use with years taken from actual dates.
+  """
   norm_month = (month - 1) % 12 + 1
   norm_year = year + (month - 1) // 12
   return datetime.date(norm_year, norm_month, 1) + datetime.timedelta(days=day - 1)
@@ -248,6 +255,14 @@ def DATEDIF(start_date, end_date, unit):
   1
   >>> DATEDIF("2001/1/1", "2003/1/1", "Y")
   2
+  >>> DATEDIF(datetime.date(1850, 6, 1), datetime.date(1950, 8, 15), "MD")
+  14
+  >>> DATEDIF(datetime.date(1950, 8, 15), datetime.date(1850, 6, 1), "MD")
+  17
+  >>> DATEDIF(datetime.date(1850, 6, 1), datetime.date(1950, 8, 15), "YD")
+  75
+  >>> DATEDIF(datetime.date(1950, 8, 15), datetime.date(1850, 6, 1), "YD")
+  290
 
   Technically, the number of days between these two datetimes is 0:
   >>> first_date, second_date = "2020-01-01 13:00 UTC+12:00", "2020-01-02 13:00 UTC-12:00"
@@ -276,13 +291,13 @@ def DATEDIF(start_date, end_date, unit):
     return years - year_delta
   elif unit == 'MD':
     month_delta = 0 if start_date.day <= end_date.day else 1
-    return (end_date - DATE(end_date.year, end_date.month - month_delta, start_date.day)).days
+    return (end_date - _date(end_date.year, end_date.month - month_delta, start_date.day)).days
   elif unit == 'YM':
     month_delta = 0 if start_date.day <= end_date.day else 1
     return (end_date.month - start_date.month - month_delta) % 12
   elif unit == 'YD':
     year_delta = 0 if (start_date.month, start_date.day) <= (end_date.month, end_date.day) else 1
-    return (end_date - DATE(end_date.year - year_delta, start_date.month, start_date.day)).days
+    return (end_date - _date(end_date.year - year_delta, start_date.month, start_date.day)).days
   else:
     raise ValueError('Invalid unit %s' % (unit,))
 
@@ -372,8 +387,21 @@ def EDATE(start_date, months):
   datetime.date(2013, 1, 1)
   >>> EDATE(DATE(2012, 5, 1), -2)
   datetime.date(2012, 3, 1)
+
+  If the day of `start_date` is past the end of the resulting month, returns the last day of that
+  month.
+  >>> EDATE(DATE(2023, 1, 31), 1)
+  datetime.date(2023, 2, 28)
+  >>> EDATE(DATE(2024, 1, 31), 1)
+  datetime.date(2024, 2, 29)
+  >>> EDATE(DATE(2023, 3, 31), -1)
+  datetime.date(2023, 2, 28)
+
+  More tests:
+  >>> EDATE(datetime.date(1850, 6, 15), 1)
+  datetime.date(1850, 7, 15)
   """
-  return DATE(start_date.year, start_date.month + months, start_date.day)
+  return DATEADD(start_date, months=months)
 
 
 def DATEADD(start_date, days=0, months=0, years=0, weeks=0):
@@ -392,9 +420,28 @@ def DATEADD(start_date, days=0, months=0, years=0, weeks=0):
   datetime.date(2009, 3, 4)
   >>> DATEADD(DATE(1975, 4, 30), years=50, weeks=-5)
   datetime.date(2025, 3, 26)
+
+  Months and years are added first, keeping the day of the month but not going past the end of
+  the resulting month. Days and weeks are added after that.
+  >>> DATEADD(DATE(2023, 1, 31), months=1)
+  datetime.date(2023, 2, 28)
+  >>> DATEADD(DATE(2024, 2, 29), years=1)
+  datetime.date(2025, 2, 28)
+  >>> DATEADD(DATE(2023, 1, 31), months=1, days=1)
+  datetime.date(2023, 3, 1)
+
+  More tests:
+  >>> DATEADD(datetime.date(1850, 6, 15), years=60)
+  datetime.date(1910, 6, 15)
+  >>> DATEADD(datetime.date(1850, 6, 15), days=1)
+  datetime.date(1850, 6, 16)
   """
-  return DATE(start_date.year + years, start_date.month + months,
-              start_date.day + days + weeks * 7)
+  months += years * 12
+  day = start_date.day
+  # Only days past the 28th can fall past the end of a month.
+  if months and day > 28:
+    day = min(day, EOMONTH(start_date, months).day)
+  return _date(start_date.year, start_date.month + months, day + days + weeks * 7)
 
 
 def EOMONTH(start_date, months):
@@ -411,8 +458,12 @@ def EOMONTH(start_date, months):
   datetime.date(2013, 1, 31)
   >>> EOMONTH(DATE(2012, 5, 1), -2)
   datetime.date(2012, 3, 31)
+
+  More tests:
+  >>> EOMONTH(datetime.date(1850, 6, 15), 0)
+  datetime.date(1850, 6, 30)
   """
-  return DATE(start_date.year, start_date.month + months + 1, 1) - datetime.timedelta(days=1)
+  return _date(start_date.year, start_date.month + months + 1, 1) - datetime.timedelta(days=1)
 
 
 def HOUR(time):

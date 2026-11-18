@@ -305,7 +305,10 @@ export class Importer extends DisposableWithEvents {
    * destTables is a list of tables user can choose to import data into, in the format suitable for the UI to consume.
    */
   private _destTables = Computed.create<IOptionFull<DestId>[]>(this, use => [
-    ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map(id => ({ value: id, label: id })),
+    // Omit tables that refuse new rows, as importing into them would be rejected.
+    ...use(this._gristDoc.docModel.visibleTables.getObservable())
+      .filter(table => !use(table.disableAddRemoveRows))
+      .map(table => ({ value: use(table.tableId), label: use(table.tableId) })),
   ]);
 
   /**

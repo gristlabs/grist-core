@@ -191,6 +191,34 @@ describe("UserManager2", function() {
     });
   }
 
+  // There was a bug where people added to a team site or workspace were annotated as guests.
+  it("does not annotate new team site or workspace members as guests", async function() {
+    const session = await gu.session().teamSite.login();
+    if (!hasMaxShares) {
+      // Guest annotations only appear on plans with share limits.
+      const product = (await session.createHomeApi().getOrg("current")).billingAccount!.product.name;
+      await gu.updateOrgPlan(session.settings.orgName, "team");
+      cleanup.addAfterEach(() => gu.updateOrgPlan(session.settings.orgName, product));
+    }
+    await session.loadDocMenu("/");
+
+    const addAndCheck = async (email: string) => {
+      await driver.findWait(".test-um-member-new", 2000).find("input").click();
+      await driver.sendKeys(email, Key.ENTER);
+      const member = await driver.findContentWait(".test-um-member", email, 2000);
+      assert.notMatch(await member.getText(), /guest|Add member to your team/i);
+      await driver.find(".test-um-cancel").click();
+      await driver.wait(async () => !(await driver.find(".test-modal-dialog").isPresent()), 3000);
+    };
+
+    await gu.editOrgAcls();
+    await addAndCheck("zig@getgrist.com");
+
+    await gu.openWsDropdown("Home");
+    await driver.findWait(".test-dm-workspace-access", 1000).click();
+    await addAndCheck("zag@getgrist.com");
+  });
+
   it("can give useful annotations on personal site", async function() {
     if (!hasMaxShares) { this.skip(); }
     // Open personal site

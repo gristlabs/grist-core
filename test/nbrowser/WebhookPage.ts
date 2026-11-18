@@ -290,12 +290,14 @@ describe("WebhookPage", function() {
     await setField(1, "Name", "1234");
     await gu.waitForServer();
     await clipboard.lockAndPerform(async (cb) => {
+      await gu.waitAppFocus();
       await cb.copy();
       const cell = await gu.getDetailCell({ col: "Memo", rowNum: 1 }).doClick();
       await driver.wait(() => cell.find(".has_cursor"), 1000);
+      await gu.waitAppFocus();
       await cb.paste();
     });
-    await gu.waitForServer();
+    await gu.waitForPaste();
     assert.equal(await getField(1, "Memo"), "1234");
   });
 
@@ -337,8 +339,8 @@ async function openWebhookPage() {
 
 async function waitForWebhookPage() {
   await driver.findContentWait("button", /Clear queue/, 3000);
+  // Until the webhooks load, the list shows only the blank row for adding one.
+  await gu.waitForViewLoads();
   // No section, so no easy utility for setting focus. Click on a random cell.
-  await gu.waitToPass(async () => {
-    await gu.getDetailCell({ col: "Webhook Id", rowNum: 1 }).click();
-  });
+  await gu.getDetailCell({ col: "Webhook Id", rowNum: 1 }).click();
 }

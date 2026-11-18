@@ -490,6 +490,7 @@ function buildCheckbox(...args: IDomArgs<HTMLInputElement>) {
     { style: "flex-shrink: 0;" },
     checkbox.cssCheckboxSquare(
       { type: "checkbox" },
+      dom.onKeyDown({ Escape$: (_ev, elem) => { elem.blur(); } }),
       ...args,
     ),
   );

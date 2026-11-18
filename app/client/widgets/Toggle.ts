@@ -77,7 +77,10 @@ export class ToggleCheckBox extends ToggleBase {
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()] as KoSaveableObservable<boolean>;
     return dom("div.field_clip",
-      buildCheckbox(value, this._addClickEventHandlers(row)),
+      buildCheckbox(value,
+        this._addClickEventHandlers(row),
+        dom.cls("disabled", fromKo(this.field.disableEditData)),
+      ),
     );
   }
 }

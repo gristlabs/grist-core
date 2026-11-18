@@ -1,4 +1,5 @@
 import { isDesktop } from "app/client/lib/browserInfo";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { cssEditorInput } from "app/client/ui/HomeLeftPane";
 import { hoverTooltip, overflowTooltip } from "app/client/ui/tooltips";
@@ -57,19 +58,19 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     menuItem(
       () => isRenaming.set(true),
       t("Rename"),
-      dom.cls("disabled", isReadonly),
+      ariaDisabled(isReadonly),
       testId("rename"),
     ),
     menuItem(
       onRemove,
       t("Remove"),
-      dom.cls("disabled", use => use(isReadonly) || isRemoveDisabled()),
+      ariaDisabled(use => use(isReadonly) || isRemoveDisabled()),
       testId("remove"),
     ),
     menuItem(
       onDuplicate,
       t("Duplicate page"),
-      dom.cls("disabled", isReadonly),
+      ariaDisabled(isReadonly),
       testId("duplicate"),
     ),
     dom.maybe(hasSubPages(), () => [
@@ -82,7 +83,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
             () => t("(default)"),
           ),
         }),
-        dom.cls("disabled", use => !use(isCollapsed)),
+        ariaDisabled(use => !use(isCollapsed)),
         testId("expand"),
       ),
       menuItemAsync(
@@ -90,7 +91,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
         t("Collapse {{maybeDefault}}", {
           maybeDefault: dom.maybe(isCollapsedByDefault, () => t("(default)")),
         }),
-        dom.cls("disabled", isCollapsed),
+        ariaDisabled(isCollapsed),
         testId("collapse"),
       ),
       menuItemAsync(

@@ -58,6 +58,7 @@ export class FormView extends BaseView {
   private _published: Computed<boolean>;
   private _showPublishedMessage: Observable<boolean>;
   private _isOwner: boolean;
+  private _noNewRecords: Computed<boolean>;
   private _openingForm: Observable<boolean>;
   private _formEditorBodyElement: HTMLElement;
 
@@ -408,6 +409,9 @@ export class FormView extends BaseView {
 
     this._isOwner = isOwner(this.gristDoc.docPageModel.currentDoc.get());
 
+    this._noNewRecords = Computed.create(this, use =>
+      use(use(this.viewSection.table).disableAddRemoveRows));
+
     this._openingForm = Observable.create(this, false);
 
     // Last line, build the dom.
@@ -426,20 +430,26 @@ export class FormView extends BaseView {
   public buildDom() {
     return style.cssFormView(
       testId("editor"),
-      this._formEditorBodyElement = style.cssFormEditBody(
-        style.cssFormContainer(
-          style.cssFormContainer.cls("-border", getGristConfig().formFraming === "border"),
-          dom("div", testId("content"), dom.forEach(this._root.children, (child) => {
-            if (!child) {
-              return dom("div", "Empty node");
-            }
-            const element = child.render();
-            if (!(element instanceof Node)) {
-              throw new Error("Element is not an HTMLElement");
-            }
-            return element;
-          })),
+      style.cssFormEditBodyWrapper(
+        this._formEditorBodyElement = style.cssFormEditBody(
+          style.cssFormContainer(
+            style.cssFormContainer.cls("-border", getGristConfig().formFraming === "border"),
+            dom("div", testId("content"), dom.forEach(this._root.children, (child) => {
+              if (!child) {
+                return dom("div", "Empty node");
+              }
+              const element = child.render();
+              if (!(element instanceof Node)) {
+                throw new Error("Element is not an HTMLElement");
+              }
+              return element;
+            })),
+          ),
         ),
+        // Cover the editor only, as unpublishing is still possible, and publish is blocked separately.
+        dom.maybe(this._noNewRecords, () => style.cssFormDisabledOverlay(
+          testId("no-new-records-overlay"),
+        )),
       ),
       this._buildPublisher(),
       dom.on("click", () => this.selectedBox.set(null)),
@@ -530,6 +540,9 @@ fields, such as reference and choice columns.",
   }
 
   private async _publishForm() {
+    // Avoid publishing if forms would fail to submit.
+    if (this._noNewRecords.get()) { return; }
+
     const page = this.viewSection.view().page();
     if (!page) {
       throw new Error("Unable to publish form: undefined page");
@@ -712,6 +725,7 @@ your form via that link will see an error.",
         dom.domComputed((use) => {
           const isFork = use(this._isFork);
           const published = use(this._published);
+          const noNewRecords = use(this._noNewRecords);
           return published ?
             style.cssSmallButton(
               dom("div", t("Unpublish")),
@@ -722,10 +736,13 @@ your form via that link will see an error.",
             ) :
             style.cssSmallButton(
               dom("div", t("Publish")),
-              dom.boolAttr("disabled", isFork),
-              !isFork ? null : hoverTooltip(t("Save your document to publish this form."), {
-                placement: "top",
-              }),
+              dom.boolAttr("disabled", isFork || noNewRecords),
+              !isFork && !noNewRecords ? null : hoverTooltip(
+                isFork ?
+                  t("Save your document to publish this form.") :
+                  t("This table does not accept new records."),
+                { placement: "top" },
+              ),
               dom.show(this._isOwner),
               cssButton.cls("-primary"),
               dom.on("click", () => this._handleClickPublish()),

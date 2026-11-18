@@ -1,4 +1,4 @@
-import { consolidateValues, sortByXValues, splitValuesByIndex } from "app/client/lib/chartUtil";
+import { consolidateValues, sortByXValues, sortedCategories, splitValuesByIndex } from "app/client/lib/chartUtil";
 
 import { assert } from "chai";
 import { Datum } from "plotly.js";
@@ -140,6 +140,12 @@ describe("chartUtil", function() {
           { values: [1, 0, 2, 0] },
         ],
       );
+    });
+  });
+
+  describe("sortedCategories", function() {
+    it("should return distinct values across all lists, sorted", function() {
+      assert.deepEqual(sortedCategories([["D1", "D3"], ["D1", "D2", "D3"]]), ["D1", "D2", "D3"]);
     });
   });
 });

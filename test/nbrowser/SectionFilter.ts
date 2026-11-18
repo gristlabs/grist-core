@@ -49,8 +49,10 @@ describe("SectionFilter", function() {
         { checked: true, value: "Bananas", count: 2 },
         { checked: true, value: "Oranges", count: 1 },
       ]);
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
-        ["Oranges", "Bananas", "Bananas"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
+          ["Oranges", "Bananas", "Bananas"]);
+      });
 
       await menu.findContent("label", /Apples/).click();
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -58,15 +60,19 @@ describe("SectionFilter", function() {
         { checked: true, value: "Bananas", count: 2 },
         { checked: true, value: "Oranges", count: 1 },
       ]);
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
-        ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
+          ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples"]);
+      });
 
       await driver.sendKeys(Key.ESCAPE);
     });
 
     it("should undo filter changes on cancel", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
-        ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
+          ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples"]);
+      });
 
       const menu = await gu.openColumnMenu("A", "Filter");
 
@@ -76,8 +82,10 @@ describe("SectionFilter", function() {
         { checked: true, value: "Bananas", count: 2 },
         { checked: true, value: "Oranges", count: 1 },
       ]);
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
-        ["Oranges", "Bananas", "Bananas"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
+          ["Oranges", "Bananas", "Bananas"]);
+      });
 
       await menu.find(".test-filter-menu-cancel-btn").click();
       await gu.waitToPass(async () => {
@@ -152,7 +160,7 @@ describe("SectionFilter", function() {
       // Reset the filter
       menu = await gu.openColumnMenu("A", "Filter");
       assert.deepEqual(
-        await driver.findAll(".test-filter-menu-bulk-action:not([class*=-disabled])", e => e.getText()),
+        await driver.findAll('.test-filter-menu-bulk-action:not([aria-disabled="true"])', e => e.getText()),
         ["All", "None"]);
       await driver.findContent(".test-filter-menu-bulk-action", /All/).click();
       await menu.find(".test-filter-menu-apply-btn").click();
@@ -187,15 +195,19 @@ describe("SectionFilter", function() {
       await (await gu.getCell(0, 1)).click();
       await gu.enterCell("Apples");
 
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
-        ["Apples", "Bananas", "Bananas"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
+          ["Apples", "Bananas", "Bananas"]);
+      });
 
       // Set back to Oranges and make sure it stays
       await driver.sendKeys(Key.UP);
       await gu.enterCell("Oranges");
 
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
-        ["Oranges", "Bananas", "Bananas"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3]),
+          ["Oranges", "Bananas", "Bananas"]);
+      });
 
       // Enter two new rows and make sure they're also not filtered out
       await driver.find(".gridview_row .record-add .field").click();
@@ -206,8 +218,10 @@ describe("SectionFilter", function() {
       await driver.find("body").sendKeys(Key.chord(await gu.modKey(), Key.ENTER));
       await gu.waitForServer();
 
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
-        ["Oranges", "Bananas", "Bananas", "Apples", "Bananas", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6]),
+          ["Oranges", "Bananas", "Bananas", "Apples", "Bananas", ""]);
+      });
 
       menu = await gu.openColumnMenu("A", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -218,11 +232,15 @@ describe("SectionFilter", function() {
       ]);
 
       await menu.findContent("label", /Apples/).click();
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples", "Apples", "Bananas"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["Apples", "Oranges", "Bananas", "Apples", "Bananas", "Apples", "Apples", "Bananas"]);
+      });
       await menu.findContent("label", /Apples/).click();
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4]),
-        ["Oranges", "Bananas", "Bananas", "Bananas"]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4]),
+          ["Oranges", "Bananas", "Bananas", "Bananas"]);
+      });
       await driver.sendKeys(Key.ESCAPE);
     });
   });
@@ -234,8 +252,10 @@ describe("SectionFilter", function() {
     });
 
     it("should properly filter strings", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["Foo", "Bar", "1", "2.0", "2016-01-01", "5+6", "", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["Foo", "Bar", "1", "2.0", "2016-01-01", "5+6", "", ""]);
+      });
 
       const menu = await gu.openColumnMenu("Text", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -257,8 +277,10 @@ describe("SectionFilter", function() {
     });
 
     it("should properly filter numbers", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["5.00", "6.00", "7.00", "-1.00", "foo", "0.00", "", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["5.00", "6.00", "7.00", "-1.00", "foo", "0.00", "", ""]);
+      });
 
       const menu = await gu.openColumnMenu("Number", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -281,8 +303,10 @@ describe("SectionFilter", function() {
     });
 
     it("should properly filter dates", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(2, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["2019-06-03", "2019-06-07", "2019-06-05", "bar", "2019-06-123", "0", "", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(2, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["2019-06-03", "2019-06-07", "2019-06-05", "bar", "2019-06-123", "0", "", ""]);
+      });
 
       const menu = await gu.openColumnMenu("Date", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -317,16 +341,20 @@ describe("SectionFilter", function() {
         ["2019-06-07"],
       );
       await menu.findContent(".test-filter-menu-bulk-action", /All shown/).click();
-      assert.deepEqual(
-        await gu.getVisibleGridCells(2, [1, 2]),
-        ["2019-06-07", ""],
-      );
+      await gu.waitToPass(async () => {
+        assert.deepEqual(
+          await gu.getVisibleGridCells(2, [1, 2]),
+          ["2019-06-07", ""],
+        );
+      });
       await menu.find(".test-filter-menu-cancel-btn").click();
     });
 
     it("should properly filter formulas", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["25", "36", "49", "1", "#TypeError", "0", "#TypeError", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(3, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["25", "36", "49", "1", "#TypeError", "0", "#TypeError", ""]);
+      });
 
       const menu = await gu.openColumnMenu("Formula", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -350,8 +378,10 @@ describe("SectionFilter", function() {
     });
 
     it("should properly filter references", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(4, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["alice", "carol", "bob", "denis", "0", "denis", "", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(4, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["alice", "carol", "bob", "denis", "0", "denis", "", ""]);
+      });
 
       const menu = await gu.openColumnMenu("Reference", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -375,8 +405,10 @@ describe("SectionFilter", function() {
     });
 
     it("should properly filter choice lists", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(5, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["Foo\nBar\nBaz", "Foo\nBar", "Foo", "InvalidChoice", "Baz\nBaz\nBaz", "Bar\nBaz", "", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(5, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["Foo\nBar\nBaz", "Foo\nBar", "Foo", "InvalidChoice", "Baz\nBaz\nBaz", "Bar\nBaz", "", ""]);
+      });
 
       const menu = await gu.openColumnMenu("ChoiceList", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -423,8 +455,10 @@ describe("SectionFilter", function() {
     });
 
     it("should properly filter errors in choice lists", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(6, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["25.0", "36.0", "49.0", "1.0", "#TypeError", "", "#TypeError", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(6, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["25.0", "36.0", "49.0", "1.0", "#TypeError", "", "#TypeError", ""]);
+      });
 
       await gu.scrollIntoView(gu.getColumnHeader("ChoiceListErrors"));
       const menu = await gu.openColumnMenu("ChoiceListErrors", "Filter");
@@ -455,8 +489,10 @@ describe("SectionFilter", function() {
     });
 
     it("should properly filter choices", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(7, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["Red", "Orange", "Yellow", "InvalidChoice", "", "Red", "", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(7, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["Red", "Orange", "Yellow", "InvalidChoice", "", "Red", "", ""]);
+      });
 
       const menu = await gu.openColumnMenu("Choice", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [
@@ -503,8 +539,10 @@ describe("SectionFilter", function() {
     });
 
     it("should properly filter reference lists", async () => {
-      assert.deepEqual(await gu.getVisibleGridCells(8, [1, 2, 3, 4, 5, 6, 7, 8]),
-        ["alice\ncarol", "bob", "carol\nbob\nalice", "[u'denis']", "[u'0']", "[u'denis', u'edward']", "", ""]);
+      await gu.waitToPass(async () => {
+        assert.deepEqual(await gu.getVisibleGridCells(8, [1, 2, 3, 4, 5, 6, 7, 8]),
+          ["alice\ncarol", "bob", "carol\nbob\nalice", "[u'denis']", "[u'0']", "[u'denis', u'edward']", "", ""]);
+      });
 
       const menu = await gu.openColumnMenu("ReferenceList", "Filter");
       assert.deepEqual(await gu.getFilterMenuState(), [

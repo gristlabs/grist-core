@@ -1,5 +1,6 @@
 import { allCommands } from "app/client/components/commands";
 import { GristDoc } from "app/client/components/GristDoc";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { loadSearch } from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
 import { AppModel, reportError } from "app/client/models/AppModel";
@@ -134,7 +135,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
         dom.hide(use => use(isSearchOpen)),
         hoverTooltip(t("Undo"), { key: "topBarBtnTooltip" }),
         cssHoverCircle.cls("-disabled", use => use(state.isUndoDisabled) || !use(isUndoRedoAvailable)),
-        dom.attr("aria-disabled", use => use(state.isUndoDisabled) ? "true" : "false"),
+        ariaDisabled(state.isUndoDisabled),
         dom.attr("aria-label", t("Undo")),
         testId("undo"),
       ),
@@ -143,7 +144,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
         dom.hide(use => use(isSearchOpen)),
         hoverTooltip(t("Redo"), { key: "topBarBtnTooltip" }),
         cssHoverCircle.cls("-disabled", use => use(state.isRedoDisabled) || !use(isUndoRedoAvailable)),
-        dom.attr("aria-disabled", use => use(state.isRedoDisabled) ? "true" : "false"),
+        ariaDisabled(state.isRedoDisabled),
         dom.attr("aria-label", t("Redo")),
         testId("redo"),
       ),

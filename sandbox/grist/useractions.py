@@ -248,11 +248,75 @@ class UserActions(object):
       self._indirection_level -= 1
       assert self._indirection_level >= 0
 
+  def _locks_bypassed(self):
+    """
+    Whether the current session can modify locked tables.
+    """
+    user = self._engine._user
+    return bool(user and user._SystemOnly.CanEditLockedTables)
+
+  def _table_locked(self, ref=None, table_id=None):
+    """
+    Checks whether the table specified by ref (row id) or tableId is locked. False if the table
+    doesn't exist.
+    """
+    tables_model = self._docmodel.tables
+    if ref is not None and ref in tables_model.table.row_ids:
+      return bool(tables_model.table.get_record(ref).locked)
+
+    if table_id is not None and (table_meta := tables_model.lookupOne(tableId=table_id)):
+      return bool(table_meta.locked)
+
+    return False
+
+  def _first_locked_ref(self, row_ids):
+    """The first of these _grist_Tables row ids that is a locked table, or None."""
+    return next((row_id for row_id in row_ids if self._table_locked(ref=row_id)), None)
+
+  def _check_locks(self, action):
+    """Refuses actions that modify locked tables, unless they're indirect or the user has
+    lock-bypassing enabled"""
+    if self._locks_bypassed():
+      return
+
+    # Indirect actions are engine-created consequences - always allow them, especially as rejecting
+    # them can result in the engine erroring (e.g. failing undo_to_checkpoint).
+    # This includes allowing summary tables to be automatically removed, even if locked.
+    if self._indirection_level != DIRECT_ACTION:
+      return
+
+    columns = getattr(action, 'columns', None)
+    table_id = getattr(action, 'table_id', None)
+    # All row ids affected by the action. Normalized to an array for both actions and bulk actions
+    row_ids = [action.row_id] if hasattr(action, 'row_id') else getattr(action, 'row_ids', [])
+
+    if table_id == '_grist_Tables':
+      # RemoveRecord needs to be rejected on _grist_Tables for locked tables, because if the
+      # _grist_Tables row is removed before RemoveTable is emitted, the table_id lookup for
+      # RemoveTable will show it as not locked.
+      if isinstance(action, (actions.RemoveRecord, actions.BulkRemoveRecord)):
+        if locked_ref := self._first_locked_ref(row_ids):
+          locked_table_id = self._docmodel.tables.table.get_record(locked_ref).tableId
+          raise ValueError(f"Cannot modify locked table {locked_table_id}")
+
+      # Only exceptional / bypass sessions can modify a table's 'locked' flag
+      if columns and 'locked' in columns:
+        raise ValueError("Only the system may change a table's locked flag")
+
+    # Actions that modify table/column metadata in _grist_Tables and _grist_Tables_column aren't
+    # blocked, as any that would materially change the table or data (tableId, colId, formula, etc)
+    # are accompanied by schema actions (e.g. ModifyColumn)
+
+    table_name = (action.old_table_id if isinstance(action, actions.RenameTable) else table_id)
+    if table_name and self._table_locked(table_id=table_name):
+      raise ValueError("Cannot modify locked table %s" % table_name)
+
   def _do_doc_action(self, action):
     if hasattr(action, 'simplify'):
       # Convert bulk actions to single actions if possible, or None if it affects no rows.
       action = action.simplify()
     if action:
+      self._check_locks(action)
       out = self._engine.out_actions
       out.stored.append(action)
       out.direct.append(self._indirection_level == DIRECT_ACTION)

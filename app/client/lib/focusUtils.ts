@@ -85,6 +85,11 @@ export function trapTabKey(container: HTMLElement, tabEvent: KeyboardEvent) {
 
   const activeEl = getActiveEl();
 
+  // Nothing to tab inside the container: prevent tabbing outside
+  if (activeEl === container && !firstFocusableEl && !lastFocusableEl) {
+    tabEvent.preventDefault();
+  }
+
   // If the SHIFT key is pressed while tabbing (moving backwards) and the
   // currently focused item is the first one, move the focus to the last
   // focusable item from the element
@@ -428,3 +433,10 @@ export function focusFallbackOnDispose() {
       ?.focus({ preventScroll: true });
   });
 }
+
+export const isMousetrapIgnoredElement = (el: EventTarget | null): boolean => {
+  if (!(el instanceof HTMLElement) || el.classList.contains("mousetrap")) {
+    return false;
+  }
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || el.isContentEditable;
+};

@@ -1,3 +1,4 @@
+import { lockFocusUntilRemoved } from "app/client/lib/focusUtils";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
 import { cssRow } from "app/client/ui/RightPanelStyles";
@@ -187,7 +188,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
   }
 
   return cssSelectorMenu(
-    { tabindex: "-1" }, // Allow menu to be focused
+    lockFocusUntilRemoved(ctl),
     testId("field-triggers-dropdown"),
     dom.cls(menuCssClass),
     dom.onDispose(onClose),
@@ -195,8 +196,6 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
       Enter: () => close(true),
       Escape: () => close(false),
     }),
-    // Set focus on open, so that keyboard events work.
-    (elem) => { setTimeout(() => elem.focus(), 0); },
 
     cssItemsFixed(
       cssSelectorItem(
@@ -244,12 +243,12 @@ const cssIndentedRow = styled(cssRow, `
 `);
 
 const cssSelectSummary = styled("div", `
-  flex: 1 1 0px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
   &:empty::before {
-    content: "Select fields";
+    content: "${t("Select fields")}";
     color: ${theme.selectButtonPlaceholderFg};
   }
 `);

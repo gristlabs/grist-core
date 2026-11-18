@@ -170,7 +170,11 @@
         "Memory Error": "Memory Error",
         "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users",
         "Disabled screen reader improvements": "Disabled screen reader improvements",
-        "Enabled screen reader improvements": "Enabled screen reader improvements"
+        "Enabled screen reader improvements": "Enabled screen reader improvements",
+        "Exit without saving": "Exit without saving",
+        "Stay on the page": "Stay on the page",
+        "Unsaved changes": "Unsaved changes",
+        "You have unsaved changes. If you leave now, your changes will be lost.": "You have unsaved changes. If you leave now, your changes will be lost."
     },
     "AppHeader": {
         "Home page": "Home page",
@@ -327,7 +331,10 @@
         "Pin filter": "Pin filter",
         "Sort alphabetically (current: sorted by number of occurrences)": "Sort alphabetically (current: sorted by number of occurrences)",
         "Sort by number of occurrences (current: sorted alphabetically)": "Sort by number of occurrences (current: sorted alphabetically)",
-        "Unpin filter": "Unpin filter"
+        "Unpin filter": "Unpin filter",
+        "All filters": "All filters",
+        "Cancel": "Cancel",
+        "Close": "Close"
     },
     "CustomSectionConfig": {
         " (optional)": " (optional)",
@@ -889,7 +896,8 @@
     "PermissionsWidget": {
         "Allow all": "Allow all",
         "Deny all": "Deny all",
-        "Read only": "Read only"
+        "Read only": "Read only",
+        "Checked": "Checked"
     },
     "PluginScreen": {
         "Import failed: ": "Import failed: "
@@ -1009,7 +1017,8 @@
         "Download document...": "Download document...",
         "Suggest changes": "Suggest changes",
         "current version": "current version",
-        "original": "original"
+        "original": "original",
+        "Return to {{termToUse}} (new tab)": "Return to {{termToUse}} (new tab)"
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
@@ -1026,7 +1035,8 @@
         "Sort in ascending order (current: descending)": "Sort in ascending order (current: descending)",
         "Sort in descending order (current: ascending)": "Sort in descending order (current: ascending)",
         "Sort options - {{- columnName }} column": "Sort options - {{- columnName }} column",
-        "{{- columnName }} column": "{{- columnName }} column"
+        "{{- columnName }} column": "{{- columnName }} column",
+        "Empty values first": "Empty values first"
     },
     "SortFilterConfig": {
         "Filter": "FILTER",
@@ -1076,7 +1086,8 @@
         "Cancel": "Cancel",
         "Close": "Close",
         "Current field ": "Current field ",
-        "OK": "OK"
+        "OK": "OK",
+        "Select fields": "Select fields"
     },
     "TypeTransformation": {
         "Apply": "Apply",
@@ -1168,6 +1179,7 @@
         "Override widget title": "Override widget title",
         "Provide a table name": "Provide a table name",
         "Save": "Save",
+        "This table is managed by Grist and cannot be modified": "This table is managed by Grist and cannot be modified",
         "WIDGET TITLE": "WIDGET TITLE",
         "WIDGET DESCRIPTION": "WIDGET DESCRIPTION"
     },
@@ -1807,6 +1819,7 @@
         "Save your document to publish this form.": "Save your document to publish this form.",
         "Share": "Share",
         "Share this form": "Share this form",
+        "This table does not accept new records.": "This table does not accept new records.",
         "View": "View",
         "# **Form Title**": "# **Form Title**",
         "Your form description goes here.": "Your form description goes here.",
@@ -2629,7 +2642,8 @@
         "Your suggestions": "Your suggestions",
         "experiment": "experiment",
         "original document": "original document",
-        "Undo dismissal": "Undo dismissal"
+        "Undo dismissal": "Undo dismissal",
+        "Could not apply this suggestion: {{detail}}": "Could not apply this suggestion: {{detail}}"
     },
     "commandList": {
         "Show accessibility options": "Show accessibility options",
@@ -3157,7 +3171,20 @@
         "Back up documents externally": "Back up documents externally",
         "Storage": "Storage",
         "checking": "checking",
-        "unknown": "unknown"
+        "unknown": "unknown",
+        "Check storage to continue": "Check storage to continue",
+        "Grist can't check this for itself.": "Grist can't check this for itself.",
+        "Grist is storing data in memory. Move it to a disk or volume.": "Grist is storing data in memory. Move it to a disk or volume.",
+        "I will check later": "I will check later",
+        "Is your data on persistent storage?": "Is your data on persistent storage?",
+        "Keep {{paths}} on a mounted volume so your data survives.": "Keep {{paths}} on a mounted volume so your data survives.",
+        "Mount a volume at /persist to keep your data.": "Mount a volume at /persist to keep your data.",
+        "My storage is persistent": "My storage is persistent",
+        "Persistent storage confirmed": "Persistent storage confirmed",
+        "You'll check storage later": "You'll check storage later",
+        "Your data may be lost.": "Your data may be lost.",
+        "at risk": "at risk",
+        "unconfirmed": "unconfirmed"
     },
     "PermissionsSetupSection": {
         "Allow anonymous access": "Allow anonymous access",
@@ -3520,7 +3547,9 @@
         "We couldn't submit your details or your request to be kept up to date. Please try again.": "We couldn't submit your details or your request to be kept up to date. Please try again.",
         "We saved your details, but couldn't subscribe you to updates.": "We saved your details, but couldn't subscribe you to updates.",
         "We subscribed you for product updates, but couldn't save your other details.": "We subscribed you for product updates, but couldn't save your other details.",
-        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users."
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.",
+        "Grist needs restarting": "Grist needs restarting",
+        "We couldn't submit your details or your request to be kept up to date.": "We couldn't submit your details or your request to be kept up to date."
     },
     "InstallationIdBlock": {
         "Copy": "Copy",
@@ -3707,5 +3736,8 @@
         "or": "or",
         "write it yourself": "write it yourself",
         "{{ask}}, or {{write}}": "{{ask}}, or {{write}}"
+    },
+    "errors": {
+        "The table '{{tableId}}' is managed by Grist and can't be modified": "The table '{{tableId}}' is managed by Grist and can't be modified"
     }
 }

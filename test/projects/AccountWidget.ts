@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key, stackWrapFunc } from "mocha-webdriver";
 
@@ -8,7 +8,7 @@ describe("AccountWidget", function() {
 
   const testCase = stackWrapFunc(async function(org: string, selectedOrgs: boolean[]) {
     // See the icon and open menu when loading plain DocMenu page.
-    await driver.get(`${server.getHost()}/DocMenu#org=${org}&user=santa`);
+    await openFixture(`DocMenu#org=${org}&user=santa`);
 
     // The sign-in buttons shouldn't be shown on top.
     const userIcon = driver.findWait(".test-user-icon", 1000);
@@ -23,13 +23,13 @@ describe("AccountWidget", function() {
     await driver.sendKeys(Key.ESCAPE);              // close the menu
 
     // With an anonymous user, should see "Sign In" and "Sign Up", but NOT a user icon.
-    await driver.get(`${server.getHost()}/DocMenu#org=${org}&user=anon`);
+    await openFixture(`DocMenu#org=${org}&user=anon`);
     assert.equal(await driver.findWait(".test-user-sign-in", 1000).getText(), "Sign in");
     assert.equal(await driver.find(".test-user-sign-up").getText(), "Sign up");
     assert.equal(await driver.find(".test-user-icon").isPresent(), false);
 
     // Same with a null user.
-    await driver.get(`${server.getHost()}/DocMenu#org=${org}&user=null`);
+    await openFixture(`DocMenu#org=${org}&user=null`);
     assert.equal(await driver.findWait(".test-user-sign-in", 1000).getText(), "Sign in");
     assert.equal(await driver.find(".test-user-sign-up").getText(), "Sign up");
     assert.equal(await driver.find(".test-user-icon").isPresent(), false);

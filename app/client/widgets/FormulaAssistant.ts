@@ -621,11 +621,11 @@ const MIN_CHAT_PANEL_BODY_HEIGHT_PX = 180;
 
 const CHAT_PANEL_HEADER_HEIGHT_PX = 30;
 
-export const cssAiIntroMessage = styled(cssAiMessage, `
+const cssAiIntroMessage = styled(cssAiMessage, `
   border-top: unset;
 `);
 
-export const cssAiMessageParagraph = styled("div", `
+const cssAiMessageParagraph = styled("div", `
   margin-bottom: 8px;
 `);
 

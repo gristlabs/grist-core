@@ -1,6 +1,6 @@
 import * as gu from "test/nbrowser/gristUtils";
 import * as fu from "test/projects/filterUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver } from "mocha-webdriver";
 
@@ -19,7 +19,7 @@ describe("RangeFilter", function() {
   let filterType = "Numeric";
 
   async function refresh() {
-    await driver.get(`${server.getHost()}/ColumnFilterMenu?filterType=${filterType}`);
+    await openFixture(`ColumnFilterMenu?filterType=${filterType}`);
     await gu.waitToPass(async () => {
       assert(await driver.find(".test-filter-menu-search-input").hasFocus());
     });

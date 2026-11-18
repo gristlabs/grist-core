@@ -120,6 +120,7 @@ export const cssFieldFormula = styled("div", `
     --icon-color: ${theme.iconDisabled};
   }
   &-disabled {
+    opacity: 0.4;
     pointer-events: none;
   }
 `);

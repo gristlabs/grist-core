@@ -453,7 +453,7 @@ describe("Fork", function() {
         const forkUrl = await driver.getCurrentUrl();
         assert.equal(await driver.findWait(".test-unsaved-tag", 4000).isPresent(), true);
 
-        await driver.executeScript("history.back()");
+        await gu.goBack();
         await gu.waitForUrl(/\/m\/fork/);
         assert.equal(await driver.getCurrentUrl(), initialUrl);
         await gu.waitForDocToLoad();
@@ -497,7 +497,7 @@ describe("Fork", function() {
         await gu.waitForUrl(/~/);
 
         // navigate back history
-        await driver.navigate().back();
+        await gu.goBack();
         await gu.waitForDocToLoad();
 
         // check number of entries in add new menu are the same
@@ -659,7 +659,7 @@ describe("Fork", function() {
           // check Replace Original does not let us proceed because we don't have
           // editing rights on trunk.
           await driver.find(".test-tb-share").click();
-          assert.equal(await driver.findWait(".test-replace-original", 1000).matches(".disabled"), true);
+          assert.equal(await driver.findWait(".test-replace-original", 1000).matches('[aria-disabled="true"]'), true);
           // Clicking the disabled element does nothing.
           await driver.find(".test-replace-original").click();
           assert.equal(await gu.findOpenMenu().isDisplayed(), true);

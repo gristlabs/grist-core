@@ -10,7 +10,12 @@ import * as ko from "knockout";
 import range from "lodash/range";
 
 function table(id: number, name: string) {
-  return { id: ko.observable(id), tableId: ko.observable(name), tableNameDef: ko.observable(name) } as any as TableRec;
+  return {
+    id: ko.observable(id),
+    tableId: ko.observable(name),
+    tableNameDef: ko.observable(name),
+    disableAddRemoveRows: ko.observable(false),
+  } as any as TableRec;
 }
 
 let colCounter = 0;

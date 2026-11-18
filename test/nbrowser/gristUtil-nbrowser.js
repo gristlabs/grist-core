@@ -268,6 +268,7 @@ const gu = {
     }
     await $("$Widget_dateFormat").wait().click();
     await $(`.test-select-menu .test-select-row:contains(${value})`).wait().click();
+    await gu.waitForServer();
   },
 
   /**
@@ -280,6 +281,7 @@ const gu = {
     }
     await $("$Widget_timeFormat").wait().click();
     await $(`.test-select-menu .test-select-row:contains(${value})`).wait().click();
+    await gu.waitForServer();
   },
 
   async getDetailValues(...options) {

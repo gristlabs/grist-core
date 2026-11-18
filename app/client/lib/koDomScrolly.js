@@ -569,7 +569,9 @@ Scrolly.prototype.scrollRowIntoView = function(rowIndex) {
     var top = this.rowOffsetTree.getSumTo(rowIndex);
     var bottom = top + this.rowHeights[rowIndex];
     // 43 = 23px to adjust for header, + 20px space
-    return gutil.clamp(this.scrollTop, bottom - this.shownHeight + 43, top - 10);
+    var showBottom = bottom - this.shownHeight + 43, showTop = top - 10;
+    // A row taller than the pane can't be shown whole. If the view is already within it, stay put.
+    return gutil.clamp(this.scrollTop, Math.min(showBottom, showTop), Math.max(showBottom, showTop));
   });
 };
 

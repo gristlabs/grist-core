@@ -23,7 +23,8 @@ class TestUser(test_engine.EngineTestCase):
       'StudentInfo': ['Students', 1],
       'SessionID': 'u1',
       'IsLoggedIn': True,
-      'ShareRef': None
+      'ShareRef': None,
+      'SystemOnly': { 'CanEditLockedTables': False }
     }
     u = User(data, self.engine.tables)
     self.assertEqual(u.Name, 'Foo Bar')
@@ -53,7 +54,8 @@ class TestUser(test_engine.EngineTestCase):
       'StudentInfo': ['Students', 1],
       'SessionID': 'u1',
       'IsLoggedIn': True,
-      'ShareRef': None
+      'ShareRef': None,
+      'SystemOnly': { 'CanEditLockedTables': False }
     }
     u = User(data, self.engine.tables, is_sample=True)
     self.assertEqual(u.StudentInfo.id, 0)

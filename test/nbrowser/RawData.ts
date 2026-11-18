@@ -105,9 +105,9 @@ describe("RawData", function() {
     await gu.findOpenMenu();
     assert.equal(await gu.findOpenMenuItem("li", /Widget options/).isDisplayed(), true);
     assert.equal(await gu.findOpenMenuItem("li", /Create a form/).isDisplayed(), false);
-    assert.equal(await gu.findOpenMenuItem("li", /Collapse widget/).matches(".disabled"), true);
-    assert.equal(await gu.findOpenMenuItem("li", /Duplicate widget/).matches(".disabled"), true);
-    assert.equal(await gu.findOpenMenuItem("li", /Delete widget/).matches(".disabled"), true);
+    assert.equal(await gu.findOpenMenuItem("li", /Collapse widget/).matches('[aria-disabled="true"]'), true);
+    assert.equal(await gu.findOpenMenuItem("li", /Duplicate widget/).matches('[aria-disabled="true"]'), true);
+    assert.equal(await gu.findOpenMenuItem("li", /Delete widget/).matches('[aria-disabled="true"]'), true);
     await gu.closeOpenMenu();    // Close the menu
     await driver.sendKeys(Key.ESCAPE);    // Close the preview popup
     await driver.wait(async () => !await driver.find(".test-raw-data-overlay").isPresent());
@@ -746,7 +746,7 @@ describe("RawData", function() {
     // Check that it's no longer possible to open a Record Card from outside
     // the Raw Data page, even with the keyboard shortcut.
     await gu.openPage("Country");
-    await (await gu.openRowMenu(1)).findContent("li.disabled", /View as card/);
+    await (await gu.openRowMenu(1)).findContent('li[aria-disabled="true"]', /View as card/);
     await gu.waitForMenuFocus();
     await gu.sendKeys(Key.ESCAPE, Key.SPACE);
     assert.isFalse(await driver.find(".test-record-card-popup-overlay").isPresent());
@@ -900,7 +900,7 @@ async function waitForRawData() {
 
 async function isRemovable(tableId: string) {
   await openMenu(tableId);
-  const disabledItems = await driver.findAll(".test-raw-data-menu-remove-table.disabled");
+  const disabledItems = await driver.findAll('.test-raw-data-menu-remove-table[aria-disabled="true"]');
   await gu.sendKeys(Key.ESCAPE);
   await driver.wait(async () => !await driver.find(".grist-floating-menu").isPresent());
   return disabledItems.length === 0;

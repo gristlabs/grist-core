@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, stackWrapFunc, until } from "mocha-webdriver";
 
@@ -8,7 +8,7 @@ describe("NotifyBar", function() {
 
   before(async function() {
     this.timeout(90000);      // Set a longer default timeout.
-    await driver.get(`${server.getHost()}/ErrorNotify`);
+    await openFixture("ErrorNotify");
   });
 
   describe("toasts", function() {

@@ -32,7 +32,8 @@ export class ReferenceEditor extends NTextEditor {
       vcol &&
       !vcol.isRealFormula() &&
       !!vcol.colId() &&
-      !this._utils.hasDropdownCondition
+      !this._utils.hasDropdownCondition &&
+      !options.field.column().refTable()?.disableAddRemoveRows()
     );
 
     // Decorate the editor to look like a reference column value (with a "link" icon).

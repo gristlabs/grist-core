@@ -571,7 +571,8 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       'Access': 'owners',
       'SessionID': 'u1',
       'IsLoggedIn': True,
-      'ShareRef': None
+      'ShareRef': None,
+      'SystemOnly': { 'CanEditLockedTables': False }
     }
     user2 = {
       'Name': 'Baz Qux',
@@ -584,7 +585,8 @@ class TestTriggerFormulas(test_engine.EngineTestCase):
       'Access': 'owners',
       'SessionID': 'u2',
       'IsLoggedIn': True,
-      'ShareRef': None
+      'ShareRef': None,
+      'SystemOnly': { 'CanEditLockedTables': False }
     }
     # Use formula to store last modified by data (user name and email). Check that it works as expected.
     self.load_sample(self.sample)

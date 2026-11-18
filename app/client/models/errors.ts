@@ -1,4 +1,5 @@
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { makeT } from "app/client/lib/localization";
 import * as log from "app/client/lib/log";
 import { INotification, INotifyOptions, MessageType, Notifier } from "app/client/models/NotifyModel";
 import { ErrorTooltips } from "app/client/ui/GristTooltips";
@@ -7,6 +8,8 @@ import { fetchFromHome, pageHasHome } from "app/common/urlUtils";
 
 import isError from "lodash/isError";
 import pick from "lodash/pick";
+
+const t = makeT("errors");
 
 const G = getBrowserGlobals("document", "window");
 
@@ -185,6 +188,13 @@ export function reportError(error: unknown, ev?: ErrorEvent): void {
     } else if (message.match(/\[Sandbox\].*between formula and data/)) {
       // Show nicer error message for summary tables.
       _notifier.createUserMessage(ErrorTooltips.summaryFormulas, { key: "summary" });
+    } else if (message.match(/\[Sandbox\].*Cannot modify locked table/)) {
+      const tableId = /Cannot modify locked table (?<tableId>\w+)/.exec(message)?.groups?.tableId ?? "????";
+      // Show nicer error message for locked tables.
+      _notifier.createUserMessage(
+        t("The table '{{tableId}}' is managed by Grist and can't be modified", { tableId }),
+        { key: "locked table" },
+      );
     } else {
       // If we don't recognize it, consider it an application error (bug) that the user should be
       // able to report.

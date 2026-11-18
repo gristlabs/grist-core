@@ -2175,10 +2175,11 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
         }
 
         const elementDataType = dataType.slice(0, -2);
-        if (value.some(element => typeof element !== elementDataType)) {
+        const invalidIndex = value.findIndex(element => typeof element !== elementDataType);
+        if (invalidIndex !== -1) {
           throw new Error(
             `Telemetry metadata ${key} of event ${event} expected a value of type ${elementDataType}[] ` +
-            `but received a value of type ${typeof value}[]`,
+            `but received an array containing an element of type ${typeof value[invalidIndex]}`,
           );
         }
       } else if (dataType === "date") {

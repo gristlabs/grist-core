@@ -32,7 +32,10 @@ export class TestPendingOps {
   public end(): void { this._count--; }
 }
 
-/** Admin panel checks (boot probes); results land in observables as they arrive. */
+/**
+ * Admin panel checks (boot probes), and the install prefs the Backups row also waits on; results
+ * land in observables as they arrive.
+ */
 export const testPendingChecks = new TestPendingOps();
 
 /**
@@ -56,3 +59,14 @@ export const testPendingMenuActions = new TestPendingOps();
  * Views waiting for data. Moving the cursor in one widget makes the widgets linked to it re-query.
  */
 export const testPendingViewLoads = new TestPendingOps();
+
+/**
+ * Content that renders once a promise settles, usually code loaded on first use. A panel section
+ * can be missing for a while after its panel opens.
+ */
+export const testPendingAsyncContent = new TestPendingOps();
+
+/**
+ * Chart renders. A chart redraws asynchronously after a debounce, once its data or options change.
+ */
+export const testPendingChartRenders = new TestPendingOps();

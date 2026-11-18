@@ -84,7 +84,7 @@ describe("sortUtil", function() {
     assert.deepEqual(Sort.setColDirection(`-${VirtualId("test")}`, Sort.DESC), `-${VirtualId("test")}`);
   });
 
-  const empty = { emptyLast: false, orderByChoice: false, naturalSort: false };
+  const empty = { emptyFirst: false, emptyLast: false, orderByChoice: false, naturalSort: false };
 
   it("should parse details", function() {
     assert.deepEqual(Sort.specToDetails(2), { colRef: 2, direction: Sort.ASC });

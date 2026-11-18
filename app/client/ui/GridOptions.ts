@@ -7,6 +7,7 @@ import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menu } from "app/client/ui2018/menus";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 import { RowNumbersMode } from "app/common/widgetTypes";
 
 import { Computed, Disposable, dom, Observable, styled } from "grainjs";
@@ -69,7 +70,7 @@ export class GridOptions extends Disposable {
           cssModeLink(
             dom.text(use => use(shownMode) === "rowId" ? t("row IDs") : t("row numbers")),
             icon("Dropdown"),
-            menu(() => rowNumbersMenu(this._section, { includeHidden: false })),
+            menu(ctl => rowNumbersMenu(this._section, ctl, { includeHidden: false })),
             testId("row-numbers-mode"),
           ),
           testId("row-numbers"),
@@ -82,7 +83,7 @@ export class GridOptions extends Disposable {
 }
 
 // Link-like trigger for the row-numbers mode menu, continuing the checkbox's label.
-const cssModeLink = styled("div", `
+const cssModeLink = styled(unstyledButton, `
   display: flex;
   align-items: center;
   margin-left: 4px;

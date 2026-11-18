@@ -1,5 +1,5 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, Key, Origin } from "mocha-webdriver";
 
@@ -16,7 +16,7 @@ describe("tooltips", function() {
   this.timeout(20000);      // Set a longer default timeout.
 
   before(async function() {
-    await driver.get(`${server.getHost()}/tooltips`);
+    await openFixture("tooltips");
   });
 
   it("should select text from the tooltip", async function() {

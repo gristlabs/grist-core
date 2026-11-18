@@ -1,4 +1,5 @@
 import { domAsync } from "app/client/lib/domAsync";
+import { loadMarkedKatex } from "app/client/lib/imports";
 import { constructUrl } from "app/client/models/gristUrlState";
 import { buildCodeHighlighter } from "app/client/ui/CodeHighlight";
 import { sanitizeHTMLIntoDOM } from "app/client/ui/sanitizeHTML";
@@ -31,14 +32,22 @@ renderer.image = ({ raw }) => raw;
 
 // Creator for a Marked instance that includes some extra features.
 const markedAsync = new AsyncCreate<Marked>(async () => {
-  const highlight = await buildCodeHighlighter({ maxLines: 60 });
+  const [highlight, markedKatex] = await Promise.all([
+    buildCodeHighlighter({ maxLines: 60 }),
+    loadMarkedKatex(),
+  ]);
   return new Marked(
     markedHighlight({
       highlight: code => highlight(code),
     }),
     markedLinkifyIt(),
+    markedKatex({ nonStandard: false, throwOnError: false }),
   );
 });
+
+// KaTeX wraps its MathML in <semantics>, with an <annotation> holding the TeX source. Allow both
+// tags so that the MathML, which is the copy screen readers use, comes through intact.
+const sanitizeConfig = { ADD_TAGS: ["semantics", "annotation"] };
 
 interface RenderOptions {
   onMarkedResolved?: () => void;
@@ -74,11 +83,17 @@ export function renderCellMarkdown(
   options: RenderOptions = {},
 ): DomContents {
   return domAsyncOrDirect((markedObj: Marked) => {
-    const source = markedObj.parse(markdownValue, {
-      async: false,
-      gfm: false,
-      renderer,
-    });
-    return sanitizeHTMLIntoDOM(source);
+    try {
+      const source = markedObj.parse(markdownValue, {
+        async: false,
+        gfm: false,
+        renderer,
+      });
+      return sanitizeHTMLIntoDOM(source, sanitizeConfig);
+    } catch {
+      // Pathological input can overflow the stack inside marked or KaTeX. Handle that by falling
+      // back to raw text, so that one bad cell doesn't break the whole view.
+      return markdownValue;
+    }
   }, options);
 }

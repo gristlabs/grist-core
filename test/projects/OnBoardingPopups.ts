@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from "test/projects/testUtils";
+import { openFixture, setupTestSuite } from "test/projects/testUtils";
 
 import { assert, driver, stackWrapFunc } from "mocha-webdriver";
 
@@ -9,7 +9,7 @@ describe("OnBoardingPopups", function() {
 
   before(async function() {
     this.timeout(60000);
-    await driver.get(`${server.getHost()}/OnBoardingPopups`);
+    await openFixture("OnBoardingPopups");
   });
 
   it("should work correctly", async () => {

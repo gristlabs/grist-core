@@ -5,12 +5,28 @@ import "test/nbrowser/testUtils";
 
 import { addToRepl, driver, enableDebugCapture, Key, useServer } from "mocha-webdriver";
 
-// Exports the webpack-dev-server that we set up in setupTestSuite(), mainly for its getHost()
-// method, e.g.
-//
-//    await driver.get(`${server.getHost()}/MY-PAGE`);
-//
+// Exports the webpack-dev-server that we set up in setupTestSuite().
 export { server };
+
+/**
+ * Loads a fixture page, e.g. `await openFixture("MY-PAGE?param=1")`, and waits for it to render.
+ * A change to only the #hash doesn't reload the page, so it has nothing to wait for.
+ */
+export async function openFixture(pathAndQuery: string) {
+  await driver.get(`${server.getHost()}/${pathAndQuery}`);
+  await waitForFixture();
+}
+
+/**
+ * Waits for a loaded or reloaded fixture page to render.
+ */
+export async function waitForFixture() {
+  // Check readyState too: a refresh can return while the new page is still loading, before the
+  // fixture's script has set the flag.
+  await driver.wait(
+    () => driver.executeScript("return document.readyState === 'complete' && !window.isFixtureRenderPending"),
+    5000, "Timed out waiting for the fixture to render");
+}
 
 // Sets up the test suite to use the webpack-dev-server to serve test/fixtures/projects files, and
 // to record logs and screenshots after failed tests (if MOCHA_WEBDRIVER_LOGDIR var is set).

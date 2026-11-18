@@ -87,7 +87,7 @@ describe("DocUsageTracking", function() {
         const classes = await driver.findWait("#preferredStorage", 1000).getAttribute("class");
         // Check that element has a -flash class, meaning it was highlighted.
         assert.equal(classes.includes("-flash"), true);
-        await driver.navigate().back();
+        await gu.goBack();
       } else {
         await driver.findWait(".test-top-panel", 100);
         assert.equal(await driver.find(".test-external-attachment-banner-text").isPresent(), false);

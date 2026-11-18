@@ -9,6 +9,9 @@ export type UserType = "login" | "service";
 
 /**
  * Information about a user, including any user attributes.
+ *
+ * Internal values live under the `SystemOnly` field on `User`: they're stripped from
+ * `toUserInfo()` (the client payload), but kept by `toJSON()` (the sandbox payload).
  */
 export interface UserInfo {
   Name: string | null;
@@ -46,6 +49,13 @@ export class User implements UserInfo {
   public ShareRef: number | null = null;
   public Type: UserType | null = null;
   public IsLoggedIn: boolean = false;
+
+  // Values which aren't user-facing, and only used by Grist internally (e.g. referenced by the data engine).
+  public SystemOnly = {
+    // Lets the session modify locked tables, set only for exceptional (system) session. Not user-facing.
+    CanEditLockedTables: false,
+  };
+
   [attribute: string]: any;
 
   constructor(info: Record<string, unknown> = {}) {
@@ -67,7 +77,7 @@ export class User implements UserInfo {
       } else {
         return value;
       }
-    });
+    }, { includeInternal: true });
   }
 
   /**
@@ -88,9 +98,10 @@ export class User implements UserInfo {
     }) as UserInfo;
   }
 
-  private _toObject(mapValue: (value: unknown) => unknown) {
+  private _toObject(mapValue: (value: unknown) => unknown, options = { includeInternal: false }) {
     const results: { [key: string]: any } = {};
     for (const [key, value] of Object.entries(this)) {
+      if (!options.includeInternal && key === "SystemOnly") { continue; }
       results[key] = mapValue(value);
     }
     return results;

@@ -1,5 +1,5 @@
 import { stripLinks } from "app/client/lib/markdown";
-import { hashFnv32a, simpleStringHash } from "app/client/lib/textUtils";
+import { findLinks, hashFnv32a, simpleStringHash } from "app/client/lib/textUtils";
 
 import { assert } from "chai";
 
@@ -84,6 +84,102 @@ describe("textUtils", function() {
       stripLinks(markdownText),
       expected,
       `failed for ${markdownText}`,
+    ));
+  });
+
+  it("should find links in text", function() {
+    const testData: [string, { value: string, isLink: boolean }[]][] = [
+      ["", [{ value: "", isLink: false }]],
+      ["Plain text", [{ value: "Plain text", isLink: false }]],
+      ["might.it be a link", [{ value: "might.it be a link", isLink: false }]],
+      ["Visit https://www.uk/docs now.", [
+        { value: "Visit ", isLink: false },
+        { value: "https://www.uk/docs", isLink: true },
+        { value: " now.", isLink: false },
+      ]],
+      ["Link (in http://www.uk?)", [
+        { value: "Link (in ", isLink: false },
+        { value: "http://www.uk", isLink: true },
+        { value: "?)", isLink: false },
+      ]],
+      ["http://www.uk,http://www.uk", [
+        { value: "", isLink: false },
+        { value: "http://www.uk", isLink: true },
+        { value: ",", isLink: false },
+        { value: "http://www.uk", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["https://www.uk:8080/a?b=c2", [
+        { value: "", isLink: false },
+        { value: "https://www.uk:8080/a?b=c2", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["https://www.uk/a?b=c-", [
+        { value: "", isLink: false },
+        { value: "https://www.uk/a?b=c-", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["See https://www.uk/some-page- for details.", [
+        { value: "See ", isLink: false },
+        { value: "https://www.uk/some-page-", isLink: true },
+        { value: " for details.", isLink: false },
+      ]],
+      ["See https://www.uk/some-page for details.", [
+        { value: "See ", isLink: false },
+        { value: "https://www.uk/some-page", isLink: true },
+        { value: " for details.", isLink: false },
+      ]],
+      ["See https://www.uk/s-o-m-e-p-a-g-e for details.", [
+        { value: "See ", isLink: false },
+        { value: "https://www.uk/s-o-m-e-p-a-g-e", isLink: true },
+        { value: " for details.", isLink: false },
+      ]],
+      // A hostname can't end in a dash, so this isn't a link.
+      ["See https://www.uk- for details.", [
+        { value: "See https://www.uk- for details.", isLink: false },
+      ]],
+      ["https://en.wikipedia.org/wiki/Saint-%C3%89tienne", [
+        { value: "", isLink: false },
+        { value: "https://en.wikipedia.org/wiki/Saint-%C3%89tienne", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["https://www.uk/a-/b and https://www.uk/page-?q=1", [
+        { value: "", isLink: false },
+        { value: "https://www.uk/a-/b", isLink: true },
+        { value: " and ", isLink: false },
+        { value: "https://www.uk/page-?q=1", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["(see https://www.uk/page)-", [
+        { value: "(see ", isLink: false },
+        { value: "https://www.uk/page", isLink: true },
+        { value: ")-", isLink: false },
+      ]],
+      ["Wiki https://en.wikipedia.org/wiki/Grist_(disambiguation).", [
+        { value: "Wiki ", isLink: false },
+        { value: "https://en.wikipedia.org/wiki/Grist_(disambiguation)", isLink: true },
+        { value: ".", isLink: false },
+      ]],
+      // Only http(s) links are recognized.
+      ["mailto:me@www.uk ftp://www.uk //www.uk me@www.uk", [
+        { value: "mailto:me@www.uk ftp://www.uk //www.uk me@www.uk", isLink: false },
+      ]],
+      ["HTTPS://WWW.UK/DOCS", [
+        { value: "", isLink: false },
+        { value: "HTTPS://WWW.UK/DOCS", isLink: true },
+        { value: "", isLink: false },
+      ]],
+      ["https://127.0.0.1:8080/api", [
+        { value: "", isLink: false },
+        { value: "https://127.0.0.1:8080/api", isLink: true },
+        { value: "", isLink: false },
+      ]],
+    ];
+
+    testData.forEach(([text, expected]) => assert.deepEqual(
+      findLinks(text),
+      expected,
+      `failed for ${text}`,
     ));
   });
 });

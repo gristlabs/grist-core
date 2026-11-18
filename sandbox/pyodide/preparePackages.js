@@ -35,28 +35,36 @@ async function findOnNet(src, dest) {
   console.log(`Cached`, {libs: libs.available.map(lib => lib.name)});
   for (const lib of libs.misses) {
     console.log("Fetching", lib);
-    const url = new URL(src);
-    url.pathname = url.pathname + lib.name + "-" + lib.version + ".json";
-    const result = await fetch(url.href);
-    if (result.status === 200) {
-      const data = await result.json();
-      const url2 = new URL(src);
-      url2.pathname = url2.pathname + data.fileName;
-      const result2 = await fetch(url2.href);
-      if (result2.status === 200) {
-        fs.writeFileSync(path.join(dest, `${lib.name}-${lib.version}.json`),
-          JSON.stringify(data, null, 2));
-        fs.writeFileSync(path.join(dest, data.fileName),
-          await result2.buffer());
-      } else {
-        console.error("No payload available", {lib});
-      }
-    } else {
-      console.error("No metadata available", {lib});
-    }
+    const meta = JSON.parse(await download(src, `${lib.name}-${lib.version}.json`));
+    const payload = await download(src, meta.fileName);
+    fs.writeFileSync(path.join(dest, meta.fileName), payload);
+    fs.writeFileSync(path.join(dest, `${lib.name}-${lib.version}.json`),
+      JSON.stringify(meta, null, 2));
   }
   libs = await listLibs(dest);
-  console.log(`Missing`, {libs: libs.misses.map(lib => lib.name)});
+  if (libs.misses.length) {
+    throw new Error(`Missing packages: ${libs.misses.map(lib => lib.name).join(", ")}`);
+  }
+}
+
+// Fetch a file from the package host. Network errors such as ECONNRESET are
+// retried a few times; anything else, or a status other than 200, is fatal.
+async function download(src, fileName) {
+  const url = new URL(src);
+  url.pathname = url.pathname + fileName;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const result = await fetch(url.href);
+      if (result.status !== 200) {
+        throw new Error(`Failed to fetch ${url.href}: status ${result.status}`);
+      }
+      return await result.buffer();
+    } catch (e) {
+      if (e.name !== "FetchError" || attempt >= 3) { throw e; }
+      console.warn(`Retrying after ${e.message}`);
+      await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+    }
+  }
 }
 
 async function main(src, dest) {
@@ -76,5 +84,8 @@ async function main(src, dest) {
 }
 
 if (require.main === module) {
-  main(...process.argv.slice(2)).catch(e => console.error(e));
+  main(...process.argv.slice(2)).catch(e => {
+    console.error(e);
+    process.exit(1);
+  });
 }

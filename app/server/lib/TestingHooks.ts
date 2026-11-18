@@ -1,3 +1,4 @@
+import { UserAction } from "app/common/DocActions";
 import { UserProfile } from "app/common/LoginSessionAPI";
 import { Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
 import { Deps as CommClientDeps } from "app/server/lib/Client";
@@ -5,6 +6,7 @@ import * as Client from "app/server/lib/Client";
 import { Comm } from "app/server/lib/Comm";
 import { Deps as DiscourseConnectDeps } from "app/server/lib/DiscourseConnect";
 import { Deps as DocManagerDeps } from "app/server/lib/DocManager";
+import { makeExceptionalDocSession } from "app/server/lib/DocSession";
 import { FlexServer } from "app/server/lib/FlexServer";
 import { invalidateAllReloadableSettings, invalidateReloadableSettings } from "app/server/lib/gristSettings";
 import { CapturedLogEntry, ClientJsonMemoryLimits, ITestingHooks } from "app/server/lib/ITestingHooks";
@@ -23,7 +25,11 @@ import clone from "lodash/clone";
 import * as t from "ts-interface-checker";
 import * as winston from "winston";
 
-const tiCheckers = t.createCheckers(ITestingHooksTI, { UserProfile: t.name("object") });
+const tiCheckers = t.createCheckers(ITestingHooksTI, {
+  UserProfile: t.name("object"),
+  // A UserAction is a heterogeneous array; only its shape as a list matters over the wire.
+  UserAction: t.array("any"),
+});
 
 export function startTestingHooks(socketPath: string, port: number,
   comm: Comm, flexServer: FlexServer,
@@ -393,5 +399,54 @@ export class TestingHooks implements ITestingHooks {
       log.remove(CaptureLogTransport.name);
     }
     return capturedEntries;
+  }
+
+  /**
+   * Applies actions to a document as the system, which isn't available via the API.
+   * The document is opened if it isn't already, on whichever worker owns it.
+   */
+  public async applySystemUserActions(docId: string, actions: UserAction[]): Promise<void> {
+    log.info("TestingHooks.applySystemUserActions called with", docId);
+    // Find the active doc in the local process if it's already open and try to run the actions.
+    const allInProcessServers = [this._server, ...this._workerServers];
+    for (const server of allInProcessServers) {
+      if (!server?.hasDocManager()) { continue; }
+      const activeDoc = await server.getDocManager().getActiveDoc(docId);
+      if (activeDoc) {
+        await activeDoc.applyUserActions(makeExceptionalDocSession("system"), actions);
+        return;
+      }
+    }
+
+    // Active doc not in the local process: ensure it's assigned to the worker, then try
+    // to run the actions on that process.
+    const docWorkerMap = this._server.getDocWorkerMap();
+    if (!docWorkerMap) {
+      throw new Error(`TestingHooks.applySystemUserActions: doc not open: ${docId}`);
+    }
+
+    const { docWorker } = await docWorkerMap.assignDocWorker(docId);
+
+    const assignedInProcessServer = allInProcessServers.find(server => docWorker.id === server.worker?.id);
+    // Doc was assigned to a server in the current process
+    if (assignedInProcessServer) {
+      // Likely not open as it wasn't found by the earlier check. Open it - safe as we have the assignment.
+      const activeDoc = await assignedInProcessServer.getDocManager()
+        .fetchDoc(makeExceptionalDocSession("system"), docId);
+      await activeDoc.applyUserActions(makeExceptionalDocSession("system"), actions);
+      return;
+    }
+
+    if (!docWorker.testingSocket) {
+      throw new Error(`TestingHooks.applySystemUserActions: worker ${docWorker.id} has no ` +
+        `testing socket, so ${docId} cannot be reached`);
+    }
+
+    const peer = await connectTestingHooks(docWorker.testingSocket);
+    try {
+      await peer.applySystemUserActions(docId, actions);
+    } finally {
+      peer.close();
+    }
   }
 }

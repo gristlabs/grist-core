@@ -3,7 +3,7 @@ import { AppModel } from "app/client/models/AppModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { menuDivider, menuIcon, menuItem, menuItemLink, menuSubHeader } from "app/client/ui2018/menus";
+import { menuDivider, menuGroup, menuIcon, menuItem, menuItemLink } from "app/client/ui2018/menus";
 import { getSingleOrg, isFeatureEnabled } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 import { getOrgName } from "app/common/UserAPI";
@@ -35,25 +35,27 @@ export function buildSiteSwitcher(appModel: AppModel) {
   const orgs = appModel.topAppModel.orgs;
 
   return [
-    menuSubHeader(t("Switch Sites")),
-    dom.forEach(orgs, org =>
-      menuItemLink(urlState().setLinkUrl({ org: org.domain || undefined }),
-        cssOrgSelected.cls("", appModel.currentOrg ? org.id === appModel.currentOrg.id : false),
-        getOrgName(org),
-        cssOrgCheckmark("Tick", testId("org-tick")),
-        testId("org"),
-      ),
-    ),
-    dom.maybe(
-      () => isFeatureEnabled("createSite") && (appModel.isInstallAdmin() || getGristConfig().canAnyoneCreateOrgs),
-      () => [
-        menuItem(
-          () => appModel.showNewSiteModal(),
-          menuIcon("Plus"),
-          t("Create new team site"),
-          testId("create-new-site"),
+    menuGroup(
+      t("Switch Sites"),
+      dom.forEach(orgs, org =>
+        menuItemLink(urlState().setLinkUrl({ org: org.domain || undefined }),
+          cssOrgSelected.cls("", appModel.currentOrg ? org.id === appModel.currentOrg.id : false),
+          getOrgName(org),
+          cssOrgCheckmark("Tick", testId("org-tick")),
+          testId("org"),
         ),
-      ],
+      ),
+      dom.maybe(
+        () => isFeatureEnabled("createSite") && (appModel.isInstallAdmin() || getGristConfig().canAnyoneCreateOrgs),
+        () => [
+          menuItem(
+            () => appModel.showNewSiteModal(),
+            menuIcon("Plus"),
+            t("Create new team site"),
+            testId("create-new-site"),
+          ),
+        ],
+      ),
     ),
   ];
 }

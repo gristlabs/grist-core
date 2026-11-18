@@ -1,3 +1,4 @@
+import * as kd from "app/client/lib/koDom";
 import * as kf from "app/client/lib/koForm";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -30,7 +31,8 @@ export class Spinner extends NumericTextBox {
     const value = row.cells[this.field.colId.peek()];
     return dom.update(super.buildDom(row),
       dom.cls("widget_spinner"),
-      kf.spinner(value, this._stepSize),
+      // Spinner writes data directly to the cell: can produce errors if not hidden when the server blocks cell changes
+      dom.update(kf.spinner(value, this._stepSize), kd.hide(this.field.disableEditData)),
     );
   }
 }

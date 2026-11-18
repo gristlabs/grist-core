@@ -119,6 +119,8 @@ async function addWidgetDescription(widgetName: string, desc: string, descSecond
     await widgetDescInput.sendKeys(Key.ENTER, descSecondLine);
   }
   await widgetDescInput.sendKeys(Key.CONTROL, Key.ENTER);
+  // The popup closes on a timer and saves as it closes.
+  await gu.waitForNotPresent(".test-widget-title-popup", 1000);
   await gu.waitForServer();
 }
 

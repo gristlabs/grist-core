@@ -1,29 +1,31 @@
 import * as gu from "test/nbrowser/gristUtils";
-import { cleanupExtraWindows, setupTestSuite } from "test/nbrowser/testUtils";
+import { setupTestSuite } from "test/nbrowser/testUtils";
 
 import { assert, driver, Key, WebElement } from "mocha-webdriver";
 
-// Checks that a click opened a new tab at the given URL, and closes it.
-//
-// Listing window handles waits for the new tab's response. After that, commands on the tab wait
-// for its page to finish loading, which the Help Center may never do (it pulls third-party
-// resources), so cap that wait at 1s.
-async function checkDocTab(url: string) {
-  const mainTab = await driver.getWindowHandle();
-  // Chrome opens the tab asynchronously, so wait for its handle.
-  await gu.waitToPass(async () => assert.lengthOf(await driver.getAllWindowHandles(), 2));
-  const docTab = (await driver.getAllWindowHandles()).find(h => h !== mainTab)!;
-  const timeouts = await driver.manage().getTimeouts();
-  await driver.manage().setTimeouts({ pageLoad: 1000 });
-  try {
-    await driver.switchTo().window(docTab);
-    // If the load times out, the driver stops it, and the next read returns the URL right away.
-    assert.equal(await driver.getCurrentUrl().catch(() => driver.getCurrentUrl()), url);
-  } finally {
-    await driver.close();
-    await driver.switchTo().window(mainTab);
-    await driver.manage().setTimeouts(timeouts);
-  }
+// Completion links open the Help Center in a new tab. Loading the real site would tie the test to
+// the network, so replace window.open, for one call, with a stub that records the URL.
+async function recordNextWindowOpen() {
+  await driver.executeScript(`
+    const origOpen = window.open;
+    window.testOpenedUrl = null;
+    window.open = (url) => { window.open = origOpen; window.testOpenedUrl = String(url); return null; };
+  `);
+}
+
+async function checkOpenedUrl(url: string) {
+  assert.equal(await driver.executeScript("return window.testOpenedUrl"), url);
+}
+
+// When the completion popup's contents change, Ace schedules a background tokenizer pass (31ms
+// for the input event, then 700ms), which redraws the lines and replaces any elements a test has
+// just found. Wait for all of that to finish.
+async function waitForCompletionsToSettle() {
+  await driver.wait(() => driver.executeScript(`
+    const popup = ace.edit(document.querySelector(".test-formula-editor .ace_editor")).completer?.popup;
+    return Boolean(popup) && !popup._$emitInputEvent.isPending() && !popup.session.bgTokenizer.running &&
+      !popup.renderer.$loop.pending;
+  `), 2000, "Timed out waiting for completions to settle");
 }
 
 async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
@@ -32,7 +34,6 @@ async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
 
 describe("Formulas", function() {
   this.timeout(20000);
-  cleanupExtraWindows();
   const cleanup = setupTestSuite();
 
   let session: gu.Session;
@@ -366,14 +367,11 @@ return [
       await checkHasLinkStyle(completions[0].findContent("span", /value/), false);
     });
 
+    await waitForCompletionsToSettle();
+    await recordNextWindowOpen();
     // Click the link part: it should open a new tab to a documentation URL.
-    // FIXME: ues waitToPass to circumvent an error that happens from time to time:
-    // "StaleElementReferenceError: stale element reference: stale element not found in the current frame"
-    // The fix is not ideal though, but can't find a reason of why it happens.
-    await gu.waitToPass(async () => {
-      await driver.findContent(".ace_autocomplete .ace_line span", /DIAN/).click();
-    });
-    await checkDocTab("https://support.getgrist.com/functions/#median");
+    await driver.findContent(".ace_autocomplete .ace_line span", /DIAN/).click();
+    await checkOpenedUrl("https://support.getgrist.com/functions/#median");
 
     // Click now a part of the completion that's not the link. It should insert the suggestion.
     await driver.findContent(".ace_autocomplete .ace_line span", /value/).click();
@@ -408,14 +406,11 @@ return [
       await checkHasLinkStyle(completions[2].findContent("span", /lookupRecords/), true);
     }, 4000);
 
+    await waitForCompletionsToSettle();
+    await recordNextWindowOpen();
     // Again, click the link part.
-    // FIXME: ues waitToPass to circumvent an error that happens from time to time:
-    // "StaleElementReferenceError: stale element reference: stale element not found in the current frame"
-    // The fix is not ideal though, but can't find a reason of why it happens.
-    await gu.waitToPass(async () => {
-      await driver.findContent(".ace_autocomplete .ace_line span", /lookupRecords/).click();
-    });
-    await checkDocTab("https://support.getgrist.com/functions/#lookuprecords");
+    await driver.findContent(".ace_autocomplete .ace_line span", /lookupRecords/).click();
+    await checkOpenedUrl("https://support.getgrist.com/functions/#lookuprecords");
 
     // Now click the non-link part.
     await driver.findContent(".ace_autocomplete .ace_line", /lookupRecords/).findContent("span", /Friends/).click();

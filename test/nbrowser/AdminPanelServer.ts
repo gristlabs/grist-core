@@ -1,4 +1,5 @@
 import { InstallAPIImpl } from "app/common/InstallAPI";
+import { toggleItem } from "test/nbrowser/AdminPanelTools";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import * as testUtils from "test/server/testUtils";
@@ -49,10 +50,10 @@ describe("AdminPanelServer", function() {
     });
 
     it("should not flag Base URL as dirty until Test + Confirm", async function() {
+      // Check results fill in the problems box above and move this item; a click during the move is lost.
+      await gu.waitForAdminChecks();
       // Do everything in one expanded session so the item stays open.
-      const header = await driver.findWait(".test-admin-panel-item-name-base-url", 1000);
-      await header.click();
-      await driver.sleep(500);
+      await toggleItem("base-url");
 
       // Edit the URL. Typing alone should NOT flag Base URL as dirty — the
       // confirmed pill should stay hidden, the Confirm URL button should

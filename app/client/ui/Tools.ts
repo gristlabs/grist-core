@@ -5,6 +5,7 @@ import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import { makeT } from "app/client/lib/localization";
 import { urlState } from "app/client/models/gristUrlState";
 import { getUserOrgPrefObs, markAsSeen } from "app/client/models/UserPrefs";
+import { buildOpenAssistantButton } from "app/client/ui/assistant/AssistantPanel";
 import { createAutomationsPageEntry } from "app/client/ui/AutomationsPageEntry";
 import { showExampleCard } from "app/client/ui/ExampleCard";
 import { buildExamples } from "app/client/ui/ExampleInfo";
@@ -32,7 +33,6 @@ import { icon } from "app/client/ui2018/icons";
 import { confirmModal } from "app/client/ui2018/modals";
 import { stretchedLink } from "app/client/ui2018/stretchedLink";
 import { unstyledButton } from "app/client/ui2018/unstyled";
-import { buildOpenAssistantButton } from "app/client/widgets/AssistantPanel";
 import { isOwner } from "app/common/roles";
 
 import { Computed, computed, Disposable, dom, makeTestId,

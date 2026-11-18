@@ -17,6 +17,7 @@ import {
 } from "grainjs";
 import debounce from "lodash/debounce";
 import * as weasel from "popweasel";
+import { uniqueId } from "underscore";
 
 const t = makeT("menus");
 
@@ -224,10 +225,16 @@ export const menuItemStyle = `
     color: ${theme.menuItemSelectedFg};
     --icon-color: ${theme.menuItemSelectedFg};
   }
-  &.disabled {
+  &.disabled, &.disabled:hover, &[aria-disabled="true"], &[aria-disabled="true"]:hover {
     cursor: default;
     color: ${theme.menuItemDisabledFg};
     --icon-color: ${theme.menuItemDisabledFg};
+  }
+`;
+
+const menuGroupStyle = `
+  .${weasel.cssMenuGroup.className} [role="presentation"] {
+    padding: 0;
   }
 `;
 
@@ -552,7 +559,7 @@ export function autocomplete(
 export function selectMenu(
   label: DomElementArg,
   items: () => DomElementArg[],
-  ...args: IDomArgs<HTMLDivElement>
+  ...args: IDomArgs<HTMLButtonElement>
 ) {
   return cssSelectBtn(
     label,
@@ -572,7 +579,9 @@ export function listOfMenuItems(items: () => DomElementArg[]) {
       menuWrapCssClass: cssMenuWrapElem.className,
       stretchToSelector: `.${cssSelectBtn.className}`,
       trigger: [(triggerElem, ctl) => {
-        const isDisabled = () => triggerElem.classList.contains("disabled");
+        const isDisabled = () => (
+          triggerElem.classList.contains("disabled") || triggerElem.getAttribute("aria-disabled") === "true"
+        );
         dom.onElem(triggerElem, "click", () => isDisabled() || ctl.toggle());
         dom.onKeyElem(triggerElem as HTMLElement, "keydown", {
           ArrowDown: () => isDisabled() || ctl.open(),
@@ -611,7 +620,24 @@ export const cssPointer = styled("div", `
   cursor: pointer;
 `);
 
-export const menuText = styled("div", `
+/**
+ * This automatically adds the menu text as the parent menu's aria-describedby,
+ * so that the help text gets vocalized by screen readers when opening the menu.
+ */
+const menuTextAutoDescription = (...args: IDomArgs<HTMLDivElement>) => dom(
+  "div",
+  { id: uniqueId("menu-text-"), role: "presentation" },
+  (el) => {
+    setTimeout(() => {
+      const menu = el.closest('[role="menu"], [role="listbox"]');
+      const existingDesc = menu?.getAttribute("aria-describedby") || "";
+      menu?.setAttribute("aria-describedby", existingDesc ? `${existingDesc} ${el.id}` : el.id);
+    }, 0);
+  },
+  ...args,
+);
+
+const menuTextStyle = `
   display: flex;
   align-items: center;
   font-size: ${vars.smallFontSize};
@@ -619,9 +645,30 @@ export const menuText = styled("div", `
   padding: 8px 24px 4px 24px;
   max-width: 250px;
   cursor: default;
-`);
+`;
+
+/**
+ * A menu text element that automatically adds itself as the menu's aria-describedby attribute,
+ * so that the text gets vocalized by screen readers when opening the menu.
+ */
+export const menuText = styled(menuTextAutoDescription, menuTextStyle);
+
+/**
+ * A menu text element that just shows text, without impacting menu's aria-describedby attribute.
+ * This should be manually tied to something with aria-describedby attribute, such as a menu item,
+ * as screen reader users can't access the text directly.
+ */
+export const bareMenuText = styled("div", menuTextStyle);
 
 export const menuItem = styled(weasel.menuItem, menuItemStyle);
+
+export const menuItemCheckbox = styled(weasel.menuItemCheckbox, menuItemStyle);
+
+const styledMenuGroup = styled(weasel.menuGroup, menuGroupStyle);
+
+export const menuGroup = (heading: DomElementArg, ...args: DomElementArg[]) => {
+  return styledMenuGroup(menuSubHeader(heading), ...args);
+};
 
 export const menuItemLink = styled(weasel.menuItemLink, menuItemStyle);
 
@@ -749,6 +796,7 @@ export const cssOptionRowIcon = styled(icon, `
     background-color: ${theme.menuItemSelectedFg};
   }
 
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] &,
   .${weasel.cssMenuItem.className}.disabled & {
     background-color: ${theme.menuItemDisabledFg};
   }
@@ -771,6 +819,7 @@ export const cssOptionLabel = styled("div", `
     background-color: ${theme.menuItemSelectedBg};
   }
 
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] &,
   .${weasel.cssMenuItem.className}.disabled & {
     color: var(--grist-option-label-color-disabled);
   }
@@ -801,6 +850,7 @@ export const cssMenuItemCmd = styled("div", `
     --icon-color: ${theme.menuItemSelectedFg};
   }
 
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] &,
   .${weasel.cssMenuItem.className}.disabled & {
     --icon-color: ${theme.menuItemDisabledFg};
   }
@@ -815,6 +865,7 @@ export const cssCmdKey = styled("span", `
     color: ${theme.menuItemIconSelectedFg};
   }
 
+  .${weasel.cssMenuItem.className}[aria-disabled="true"] &,
   .${weasel.cssMenuItem.className}.disabled & {
     color: ${theme.menuItemDisabledFg};
   }
@@ -878,7 +929,7 @@ const cssMenuItemSubmenu = styled("div", `
     color: ${theme.menuItemSelectedFg};
     --icon-color: ${theme.menuItemSelectedFg};
   }
-  &.disabled {
+  &.disabled, &.disabled:hover, &[aria-disabled="true"], &[aria-disabled="true"]:hover {
     cursor: default;
     color: ${theme.menuItemDisabledFg};
     --icon-color: ${theme.menuItemDisabledFg};
@@ -964,7 +1015,7 @@ export function* buildMenuItems(current: MenuItem[]): IterableIterator<Element> 
       item.icon && menuIcon(item.icon),
       item.label,
       item.shortcut && cssCmdKey(item.shortcut),
-      item.disabled ? dom.cls("disabled", item.disabled) : null,
+      item.disabled ? dom.attr("aria-disabled", "true") : null,
     );
   }
 }

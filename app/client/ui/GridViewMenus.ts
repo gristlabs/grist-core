@@ -2,6 +2,7 @@ import { allCommands } from "app/client/components/commands";
 import * as commands from "app/client/components/commands";
 import GridView from "app/client/components/GridView";
 import { GristDoc } from "app/client/components/GristDoc";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -13,12 +14,12 @@ import { icon } from "app/client/ui2018/icons";
 import {
   menuCssClass,
   menuDivider,
+  menuGroup,
   menuIcon,
   menuItem,
   menuItemCmd,
   menuItemSubmenu,
   menuItemTrimmed,
-  menuSubHeader,
   menuSubHeaderMenu,
   menuText,
   searchableMenu,
@@ -28,7 +29,7 @@ import * as UserType from "app/client/widgets/UserType";
 import { isFullReferencingType, isListType, RecalcWhen } from "app/common/gristTypes";
 import { Sort } from "app/common/SortSpec";
 
-import { dom, DomElementArg, styled } from "grainjs";
+import { dom, DomElementArg, onKeyDown, styled } from "grainjs";
 import isEqual from "lodash/isEqual";
 import * as weasel from "popweasel";
 
@@ -180,14 +181,16 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
   if (hiddenColumns.length <= 5) {
     return [
       menuDivider(),
-      menuSubHeader(t("Hidden Columns"), testId("new-columns-menu-hidden-columns-header")),
-      hiddenColumns.map((col: ColumnRec) =>
-        menuItem(
-          async () => {
-            await gridView.showColumn(col.id(), index);
-          },
-          col.label(),
-          testId("new-columns-menu-hidden-column-inlined"),
+      menuGroup(
+        [t("Hidden Columns"), testId("new-columns-menu-hidden-columns-header")],
+        hiddenColumns.map((col: ColumnRec) =>
+          menuItem(
+            async () => {
+              await gridView.showColumn(col.id(), index);
+            },
+            col.label(),
+            testId("new-columns-menu-hidden-column-inlined"),
+          ),
         ),
       ),
     ];
@@ -219,12 +222,14 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
 function buildShortcutsMenuItems(gridView: GridView, index?: number) {
   return [
     menuDivider(),
-    menuSubHeader(t("Shortcuts"), testId("new-columns-menu-shortcuts")),
-    buildTimestampMenuItems(gridView, index),
-    buildAuthorshipMenuItems(gridView, index),
-    buildDetectDuplicatesMenuItems(gridView, index),
-    buildDateHelpersMenuItems(gridView, index),
-    buildUUIDMenuItem(gridView, index),
+    menuGroup(
+      [t("Shortcuts"), testId("new-columns-menu-shortcuts")],
+      buildTimestampMenuItems(gridView, index),
+      buildAuthorshipMenuItems(gridView, index),
+      buildDetectDuplicatesMenuItems(gridView, index),
+      buildDateHelpersMenuItems(gridView, index),
+      buildUUIDMenuItem(gridView, index),
+    ),
   ];
 }
 
@@ -702,15 +707,10 @@ function buildLookupSection(gridView: GridView, index?: number) {
 
   return [
     menuDivider(),
-    menuSubHeader(
-      withInfoTooltip(
-        t("Lookups"),
-        "lookups",
-        { variant: "hover" },
-      ),
-      testId("new-columns-menu-lookups"),
+    menuGroup(
+      [withInfoTooltip(t("Lookups"), "lookups", { variant: "hover" }), testId("new-columns-menu-lookups")],
+      ...menuContent,
     ),
-    ...menuContent,
   ];
 }
 
@@ -724,6 +724,8 @@ export interface IMultiColumnContextMenu {
   disableModify: boolean | "mixed";
 
   isReadonly: boolean;
+  // Blocks adding columns, but - unlike isReadonly - leaves view-layer items (sort, filter) enabled.
+  disableInsertColumn: boolean;
   isRaw: boolean;
   isFiltered: boolean; // If this view shows a proper subset of all rows in the table.
   isFormula: boolean | "mixed";
@@ -747,12 +749,12 @@ export function calcFieldsCondition(
 export function buildColumnContextMenu(options: IColumnContextMenu) {
   const { disableModify, filterOpenFunc, colRowId, sortSpec, isReadonly } = options;
 
-  const disableForReadonlyColumn = dom.cls("disabled", Boolean(disableModify) || isReadonly);
+  const disableForReadonlyColumn = ariaDisabled(Boolean(disableModify) || isReadonly);
 
   const addToSortLabel = getAddToSortLabel(sortSpec, colRowId);
 
   const isVirtual = typeof colRowId === "string";
-  const disabledForVirtual = dom.cls("disabled", isVirtual);
+  const disabledForVirtual = ariaDisabled(isVirtual);
 
   return [
     !isVirtual ? menuItemCmd(allCommands.fieldTabOpen, t("Column Options")) : null,
@@ -823,8 +825,9 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
  * makes sense.
  */
 export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
-  const disableForReadonlyColumn = dom.cls("disabled", Boolean(options.disableModify) || options.isReadonly);
-  const disableForReadonlyView = dom.cls("disabled", options.isReadonly);
+  const disableForReadonlyColumn = ariaDisabled(Boolean(options.disableModify) || options.isReadonly);
+  const disableForReadonlyView = ariaDisabled(options.isReadonly);
+  const disableForReadonlyTable = ariaDisabled(options.isReadonly || options.disableInsertColumn);
   const num: number = options.numColumns;
   const nameClearColumns = options.isFiltered ?
     t("Reset {{count}} entire columns", { count: num }) :
@@ -848,8 +851,8 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
     menuDivider(),
-    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"), disableForReadonlyView),
-    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyView),
+    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"), disableForReadonlyTable),
+    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyTable),
   ];
 }
 
@@ -1007,7 +1010,9 @@ const cssCustomMenuItem = styled("div", `
     padding-left: 24px;
     flex: 1 0 auto;
   }
-  &-selected, &-selected:not(:hover) {
+  &-selected, &-selected:not(:hover),
+  &.${weasel.cssMenuItem.className}-sel {
+    outline: none;
     background-color: ${theme.menuItemSelectedBg};
     color: ${theme.menuItemSelectedFg};
     --icon-color: ${theme.menuItemSelectedFg};
@@ -1017,7 +1022,11 @@ const cssCustomMenuItem = styled("div", `
 function customMenuItem(action: () => void, ...args: DomElementArg[]) {
   const element: HTMLElement = cssCustomMenuItem(
     ...args,
+    { tabindex: "-1", role: "menuitem" },
     dom.on("click", () => action()),
+    onKeyDown({
+      Enter$: () => action(),
+    }),
   );
   return element;
 }

@@ -24,11 +24,11 @@ export interface SearchModel {
   value: Observable<string>;       // string in the search input
   isOpen: Observable<boolean>;     // indicates whether the search bar is expanded to show the input
   /**
-   * True when the search menu is fully expanded (transition has finished)
+   * True when the search menu is fully expanded (any transition has finished)
    */
   isExpanded: Observable<boolean>;
   /**
-   * True when the search menu is fully collapsed (transition has finished)
+   * True when the search menu is fully collapsed (any transition has finished)
    */
   isCollapsed: Observable<boolean>;
   noMatch: Observable<boolean>;    // indicates if there are no search matches
@@ -242,10 +242,13 @@ class FinderImpl implements IFinder {
     this._sectionStepper.index = sections.findIndex(s => s.getRowId() === this._pageStepper.value.activeSectionId());
     if (this._sectionStepper.index < 0) { return false; }
 
+    // The page may still be loading, e.g. if an earlier search has just opened it, so wait for
+    // its rows.
+    const viewInstance = (await waitObs(this._sectionStepper.value.viewInstance))!;
+    await viewInstance.getLoadingDonePromise();
     this._initNewSectionShown();
 
     // Find the current cursor position in the current section.
-    const viewInstance = this._sectionStepper.value.viewInstance.peek()!;
     const pos = viewInstance.cursor.getCursorPos();
     this._rowStepper.index = pos.rowIndex!;
     this._fieldStepper.index = pos.fieldIndex!;
@@ -340,6 +343,8 @@ class FinderImpl implements IFinder {
     if (skip) {
       this._rowStepper.array = [];
     } else if (viewInstance) {
+      // The view may not have its rows yet, e.g. if an earlier search has just opened its page.
+      await viewInstance.getLoadingDonePromise();
       this._rowStepper.array = viewInstance.sortedRows.getKoArray().peek() as number[];
     } else {
       // If we are searching through another page (not currently loaded), we will NOT have a
@@ -508,8 +513,9 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   }
 
   public async findNext() {
-    if (this.isRunning.get() || this.noMatch.get()) { return; }
+    if (this.isRunning.get() || this.noMatch.get() || this.isEmpty.get()) { return; }
     if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
+    if (!this._finder) { return; }
     await this._run(async (finder) => {
       await finder.nextField(1);
       await finder.matchNext(1);
@@ -517,8 +523,9 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   }
 
   public async findPrev() {
-    if (this.isRunning.get() || this.noMatch.get()) { return; }
+    if (this.isRunning.get() || this.noMatch.get() || this.isEmpty.get()) { return; }
     if (this._isRestartNeeded) { return this._findFirst(this.value.get()); }
+    if (!this._finder) { return; }
     await this._run(async (finder) => {
       await finder.nextField(-1);
       await finder.matchNext(-1);
@@ -532,14 +539,19 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   private async _findFirst(value: string) {
     this._isRestartNeeded = false;
     this.isEmpty.set(!value);
-    await this._updateFinder(value);
-    if (!value || !this._finder) { this.noMatch.set(true); return; }
+    if (!await this._updateFinder(value)) { return; }
+    if (!value || !this._finder) {
+      this.noMatch.set(true);
+      this.isRunning.set(false);
+      return;
+    }
     await this._run(async (finder) => {
       await finder.matchNext(1);
     });
   }
 
-  private async _updateFinder(value: string) {
+  // Returns false if a newer search started while this one was initializing.
+  private async _updateFinder(value: string): Promise<boolean> {
     if (this._finder) { this._finder.abort(); }
     const impl = new FinderImpl(this._gristDoc,
       value,
@@ -547,8 +559,12 @@ export class SearchModelImpl extends Disposable implements SearchModel {
       this.multiPage,
       this._onPageChange,
     );
+    // Set it before init(), which can wait for a page to load, so that a newer search aborts it.
+    this._finder = impl;
     const isValid = await impl.init();
-    this._finder = isValid ? impl : null;
+    if (this._finder !== impl) { return false; }
+    if (!isValid) { this._finder = null; }
+    return true;
   }
 
   // Internal helper that runs cb, passing it the current `this._finder` as first argument and sets
@@ -571,6 +587,11 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   private async _openDocPage(viewId: IDocPage) {
     await this._gristDoc.openDocPage(viewId);
     this._isRestartNeeded = false;
+    // Navigation moves the focus off the search box; take it back now rather than after the page
+    // loads, so that keys typed meanwhile still go into the search.
+    if (this._onPageChange) {
+      this._onPageChange();
+    }
   }
 }
 

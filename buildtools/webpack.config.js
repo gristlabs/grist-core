@@ -57,12 +57,26 @@ module.exports = {
   // typescript ("cheap-module-eval-source-map" is faster, but breakpoints are largely broken).
   devtool: "source-map",
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".tsx", ".js"],
+    // React and its renderer must share an installation, including imports from
+    // extension dependencies installed separately (e.g. /node_modules in Docker).
+    // https://react.dev/warnings/invalid-hook-call-warning#duplicate-react
+    alias: Object.fromEntries(["react", "react-dom"].map(name => [
+      name,
+      path.dirname(require.resolve(`${name}/package.json`, {
+        paths: [
+          // Skip missing packages so Node's ancestor lookup doesn't bypass later extra paths.
+          ...extraModulePaths.filter(p => fs.existsSync(path.join(p, name, "package.json"))),
+          path.resolve("./ext"),
+          base,
+        ],
+      })),
+    ])),
     modules: [
       path.resolve("."),
       path.resolve("./ext"),
       path.resolve("./stubs"),
-      path.resolve("./node_modules"),
+      "node_modules",
       base,
       ...extraModulePaths,
     ],
@@ -74,9 +88,10 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|ts)?$/,
+        test: /\.(js|tsx?)$/,
         loader: "esbuild-loader",
         options: {
+          jsx: "automatic",
           target: "es2020",
           sourcemap: true,
         },
@@ -84,6 +99,8 @@ module.exports = {
       },
       { test: /\.js$/,
         use: ["source-map-loader"],
+        // rehype-harden publishes a source map without the sources it points to.
+        exclude: /node_modules\/rehype-harden\//,
         enforce: "pre"
       },
       {

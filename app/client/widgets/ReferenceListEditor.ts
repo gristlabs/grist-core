@@ -64,7 +64,8 @@ export class ReferenceListEditor extends NewBaseEditor {
       vcol &&
       !vcol.isRealFormula() &&
       !!vcol.colId() &&
-      !this._utils.hasDropdownCondition
+      !this._utils.hasDropdownCondition &&
+      !options.field.column().refTable()?.disableAddRemoveRows()
     );
 
     const acOptions: IAutocompleteOptions<ReferenceItem> = {

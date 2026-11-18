@@ -19,7 +19,8 @@ class TestCompletion(test_engine.EngineTestCase):
     'Access': 'owners',
     'SessionID': 'u1',
     'IsLoggedIn': True,
-    'ShareRef': None
+    'ShareRef': None,
+    'SystemOnly': { 'CanEditLockedTables': False }
   }
 
   def setUp(self):
@@ -136,7 +137,8 @@ class TestCompletion(test_engine.EngineTestCase):
       'Access': 'owners',
       'SessionID': 'u2',
       'IsLoggedIn': True,
-      'ShareRef': None
+      'ShareRef': None,
+      'SystemOnly': { 'CanEditLockedTables': False }
     }
     self.assertEqual(
       self.autocomplete("user.", "Schools", "lastModified", user2, row_id=2),

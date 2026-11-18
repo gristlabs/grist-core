@@ -85,8 +85,15 @@ class FocusLayerManager extends Disposable {
     // Move the focus to the new layer. Not just grabFocus, because if the focus is on the previous
     // layer's defaultFocusElem, the new layer might consider it "allowed" and never get the focus.
     // Deferred, since the element is usually still being built, and cannot take focus until it is
-    // attached to the page.
-    setTimeout(() => layer.focusDefaultElem(), 0);
+    // attached to the page. If the focus is already inside the new layer (e.g. after a click), it
+    // stays there.
+    setTimeout(() => {
+      if (layer.defaultFocusElem.contains(document.activeElement)) {
+        this.grabFocus();
+      } else {
+        layer.focusDefaultElem();
+      }
+    }, 0);
   }
 
   public removeLayer(layer: FocusLayer) {

@@ -1,5 +1,5 @@
-import { server } from "test/fixtures/projects/webpack-test-server";
 import * as gu from "test/nbrowser/gristUtils";
+import { openFixture, server } from "test/projects/testUtils";
 
 import { addToRepl, assert, driver, Key, stackWrapFunc, useServer, WebElement } from "mocha-webdriver";
 
@@ -16,10 +16,7 @@ describe("tokenfield", function() {
   });
 
   beforeEach(async function() {
-    await driver.get(`${server.getHost()}/tokenfield`);
-    // Wait for the tokenfield to render — the fixture initializes asynchronously
-    // via withLocale(), so tokens may not be in the DOM when driver.get() resolves.
-    await driver.findWait(".test-tokenfield-plain .test-tokenfield-token", 2000);
+    await openFixture("tokenfield");
   });
 
   type TFType = "plain" | "ac";

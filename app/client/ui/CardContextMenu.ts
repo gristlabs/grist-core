@@ -1,8 +1,7 @@
 import { allCommands } from "app/client/components/commands";
+import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { menuDivider, menuItemCmd } from "app/client/ui2018/menus";
-
-import { dom } from "grainjs";
 
 const t = makeT("CardContextMenu");
 
@@ -23,24 +22,24 @@ export function CardContextMenu({
   if (isViewSorted) {
     result.push(
       menuItemCmd(allCommands.insertRecordAfter, t("Insert card"),
-        dom.cls("disabled", disableInsert)),
+        ariaDisabled(disableInsert)),
     );
   } else {
     result.push(
       menuItemCmd(allCommands.insertRecordBefore, t("Insert card above"),
-        dom.cls("disabled", disableInsert)),
+        ariaDisabled(disableInsert)),
       menuItemCmd(allCommands.insertRecordAfter, t("Insert card below"),
-        dom.cls("disabled", disableInsert)),
+        ariaDisabled(disableInsert)),
     );
   }
   result.push(
     menuItemCmd(allCommands.duplicateRows, t("Duplicate card"),
-      dom.cls("disabled", disableInsert || numRows === 0)),
+      ariaDisabled(disableInsert || numRows === 0)),
   );
   result.push(
     menuDivider(),
     menuItemCmd(allCommands.deleteRecords, t("Delete card"),
-      dom.cls("disabled", disableDelete)),
+      ariaDisabled(disableDelete)),
   );
   result.push(
     menuDivider(),

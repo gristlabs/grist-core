@@ -177,9 +177,10 @@ export class DocClients extends EventEmitter {
         }
       }
     } catch (e) {
-      if (e.code === "AUTH_NO_VIEW") {
+      // A doc deleted for good is no longer in the home db, which reports it as not found.
+      if (e.code === "AUTH_NO_VIEW" || e.status === 404) {
         // Skip sending data to this user, they have no view access.
-        this._log.debug(target, "skip broadcastDocMessage because AUTH_NO_VIEW");
+        this._log.debug(target, "skip broadcastDocMessage because of no view access");
         // Go further and trigger a shutdown for this user, in case they are granted
         // access again later.
         return { type: "docShutdown", data: null };

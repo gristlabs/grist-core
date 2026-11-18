@@ -74,6 +74,7 @@ export interface AssistantV2Options extends AssistantV1Options {
   maxToolCalls?: number;
   noModel?: boolean;
   structuredOutput?: boolean;
+  streaming?: boolean;
 }
 
 export function isAssistantV2(assistant: IAssistant): assistant is AssistantV2 {

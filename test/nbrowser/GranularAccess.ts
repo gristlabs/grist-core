@@ -1164,7 +1164,7 @@ describe("GranularAccess", function() {
       /No write access/);
     await gu.wipeToasts();
     await driver.findWait(".test-dp-add-new", 2000).click();
-    assert(await driver.findWait(".test-dp-empty-table", 2000).matches(".disabled"));
+    assert(await driver.findWait(".test-dp-empty-table", 2000).matches('[aria-disabled="true"]'));
   });
 
   it("can handle changes of many rows", async function() {

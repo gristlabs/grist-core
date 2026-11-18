@@ -27,6 +27,10 @@ import * as fse from "fs-extra";
 import fetch from "node-fetch";
 import { createClient } from "redis";
 
+// axios types paramsSerializer by the type of params, so a general one conflicts with the specific
+// params in `{ ...chimpy, params: {...} }`. Leaving it out lets tests write that.
+type UserConfig = Omit<AxiosRequestConfig, "paramsSerializer">;
+
 /**
  * Context provided to tests - contains everything needed to run API tests.
  */
@@ -42,15 +46,15 @@ export interface TestContext {
   /** Document IDs for fixture documents */
   docIds: { [name: string]: string };
   /** Axios config for Chimpy user */
-  chimpy: AxiosRequestConfig;
+  chimpy: UserConfig;
   /** Axios config for Kiwi user */
-  kiwi: AxiosRequestConfig;
+  kiwi: UserConfig;
   /** Axios config for Charon user */
-  charon: AxiosRequestConfig;
+  charon: UserConfig;
   /** Axios config for anonymous user */
-  nobody: AxiosRequestConfig;
+  nobody: UserConfig;
   /** Axios config for support user */
-  support: AxiosRequestConfig;
+  support: UserConfig;
   /** Whether home API is available (false when direct to docworker) */
   hasHomeApi: boolean;
   /** Home server instance */

@@ -391,11 +391,14 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * Shut down all open docs.
    */
   public async shutdownDocs() {
+    // One doc failing to shut down shouldn't cut short the wait for the others.
     await Promise.all(Array.from(
-      this._activeDocs.values(),
-      adocPromise => adocPromise.then(async (adoc) => {
+      this._activeDocs.entries(),
+      ([docName, adocPromise]) => adocPromise.then(async (adoc) => {
         log.debug("DocManager.shutdownDocs starting activeDoc shutdown", adoc.docName);
         await adoc.shutdown();
+      }).catch((err) => {
+        log.error("DocManager.shutdownDocs failed for %s: %s", docName, err);
       })));
   }
 

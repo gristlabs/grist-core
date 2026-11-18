@@ -1,5 +1,7 @@
 import { GristDoc } from "app/client/components/GristDoc";
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
+import { ariaDisabled } from "app/client/lib/domUtils";
+import { FocusLayer } from "app/client/lib/FocusLayer";
 import koArray from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
 import { makeT } from "app/client/lib/localization";
@@ -12,14 +14,14 @@ import { textButton } from "app/client/ui2018/buttons";
 import { labeledLeftSquareCheckbox } from "app/client/ui2018/checkbox";
 import { theme } from "app/client/ui2018/cssVars";
 import { cssDragger } from "app/client/ui2018/draggableList";
-import { menu } from "app/client/ui2018/menus";
+import { menu, menuDivider, menuItemCheckbox } from "app/client/ui2018/menus";
 import { unstyledButton } from "app/client/ui2018/unstyled";
 import { Sort } from "app/common/SortSpec";
 
 import { Computed, Disposable, dom, makeTestId, MultiHolder, styled } from "grainjs";
 import difference from "lodash/difference";
 import isEqual from "lodash/isEqual";
-import { cssMenuItem, IMenuOptions } from "popweasel";
+import { IMenuOptions } from "popweasel";
 
 interface SortableColumn {
   label: string;
@@ -138,29 +140,45 @@ export class SortConfig extends Disposable {
       this._saveSort(specs);
     });
 
+    const updateDetails = (update: Partial<Sort.ColSpecDetails>) => {
+      const specs = sortSpec.peek();
+      const specDetails = { ...Sort.specToDetails(Sort.findCol(specs, colRef)!), ...update };
+      this._saveSort(Sort.replace(specs, Sort.getColRef(colRef), specDetails));
+    };
+
     const computedFlag = (
       flag: keyof Sort.ColSpecDetails,
       allowedTypes: string[] | null,
       label: string,
+      alsoSet: Partial<Sort.ColSpecDetails> = {},
     ) => {
-      const computed = Computed.create(holder, details, (_, d) => d[flag] || false);
-      computed.onWrite((value) => {
-        const specs = sortSpec.peek();
-        // Get existing details
-        const specDetails = Sort.specToDetails(Sort.findCol(specs, colRef)!) as any;
-        // Update flags
-        specDetails[flag] = value;
-        // Replace the colSpec at the index
-        this._saveSort(Sort.replace(specs, Sort.getColRef(colRef), specDetails));
-      });
+      const computed = Computed.create(holder, details, (_, d) => Boolean(d[flag]));
+      computed.onWrite(value => updateDetails({ ...alsoSet, [flag]: value }));
       return { computed, allowedTypes, flag, label };
     };
     const orderByChoice = computedFlag("orderByChoice", ["Choice"], t("Use choice position"));
     const naturalSort   = computedFlag("naturalSort", ["Text"], t("Natural sort"));
-    const emptyLast     = computedFlag("emptyLast", null, t("Empty values last"));
-    const flags = [orderByChoice, emptyLast, naturalSort];
+    // The empty-side options exclude each other: turning one on clears the other.
+    const emptyFirst    = computedFlag("emptyFirst", null, t("Empty values first"), { emptyLast: false });
+    const emptyLast     = computedFlag("emptyLast", null, t("Empty values last"), { emptyFirst: false });
 
     const column = columns.get().find(c => c.value === Sort.getColRef(colRef));
+
+    const buildOption = ({ computed, allowedTypes, flag, label }: ReturnType<typeof computedFlag>) => {
+      // when allowedTypes is null, flag can be used for every column
+      const enabled = !allowedTypes || allowedTypes.includes(column!.type);
+      return menuItemCheckbox(
+        computed as any,
+        labeledLeftSquareCheckbox(
+          computed as any,
+          label,
+          dom.prop("disabled", !enabled),
+        ),
+        ariaDisabled(!enabled),
+        testId("option"),
+        testId(`option-${flag}`),
+      );
+    };
 
     return cssSortRow(
       dom.autoDispose(holder),
@@ -195,22 +213,15 @@ export class SortConfig extends Disposable {
           cssIcon("Dots", dom.cls(cssBgAccent.className, hasSpecs)),
           testId("options-icon"),
         ),
-        menu(_ctl => flags.map(({ computed, allowedTypes, flag, label }) => {
-          // when allowedTypes is null, flag can be used for every column
-          const enabled = !allowedTypes || allowedTypes.includes(column!.type);
-          return cssMenuItem(
-            labeledLeftSquareCheckbox(
-              computed as any,
-              label,
-              dom.prop("disabled", !enabled),
-            ),
-            dom.cls(cssOptionMenuItem.className),
-            dom.cls("disabled", !enabled),
-            testId("option"),
-            testId(`option-${flag}`),
-          );
-        },
-        ), menuOptions),
+        menu(_ctl => [
+          (elem) => { FocusLayer.create(_ctl, { defaultFocusElem: elem, pauseMousetrap: true }); },
+          dom.style("min-width", "max-content"),  // To prevent wrapping when opened from ViewSectionMenu.
+          buildOption(orderByChoice),
+          buildOption(naturalSort),
+          menuDivider(),
+          buildOption(emptyFirst),
+          buildOption(emptyLast),
+        ], menuOptions),
       ),
       cssSortIconBtn(
         { "aria-label": t("Remove sort setting - {{- columnName }} column", { columnName: column!.label }) },
@@ -264,7 +275,8 @@ export class SortConfig extends Disposable {
           testId("update"),
           dom.show(use => (
             use(use(this._section.table).supportsManualSort) &&
-            !use(this._gristDoc.isReadonly)
+            !use(this._gristDoc.isReadonly) &&
+            !use(use(this._section.table).disableEditData)
           )),
         ),
       ),
@@ -352,20 +364,6 @@ const cssMenu = styled(unstyledButton, `
   margin-left: 6px;
   &:hover, &.weasel-popup-open {
     background-color: ${theme.hover};
-  }
-`);
-
-const cssOptionMenuItem = styled("div", `
-  &:hover {
-    background-color: ${theme.hover};
-  }
-  & label {
-    flex: 1;
-    cursor: pointer;
-  }
-  &.disabled * {
-    color: ${theme.menuItemDisabledFg} important;
-    cursor: not-allowed;
   }
 `);
 

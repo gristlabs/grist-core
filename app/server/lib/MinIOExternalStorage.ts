@@ -11,13 +11,18 @@ import * as minio from "minio";
 // The minio-js v8.0.0 typings are sometimes incorrect. Here are some workarounds.
 interface MinIOClient extends
   // Some of them are not directly extendable, must be omitted first and then redefined.
-  Omit<minio.Client, "listObjects" | "getBucketVersioning" | "removeObjects">
+  Omit<minio.Client, "listObjectsQuery" | "getBucketVersioning" | "removeObjects">
 {
   // The official typing returns `Promise<Readable>`, dropping some useful metadata.
   getObject(bucket: string, key: string, options: { versionId?: string }): Promise<IncomingMessage>;
-  // The official typing dropped "options" in their .d.ts file, but it is present in the underlying impl.
-  listObjects(bucket: string, key: string, recursive: boolean,
-    options: { IncludeVersion?: boolean }): minio.BucketStream<minio.BucketItem>;
+  // The official typing drops the version-specific fields of listed objects.
+  listObjectsQuery(bucket: string, prefix: string, marker: string, options: {
+    Delimiter: string,
+    MaxKeys: number,
+    IncludeVersion: boolean,
+    keyMarker?: string,
+    versionIdMarker?: string,
+  }): Promise<MinIOVersionListing>;
   // The released v8.0.0 wrongly returns `Promise<void>`; borrowed from PR #1297
   getBucketVersioning(bucketName: string): Promise<MinIOVersioningStatus>;
   // The released v8.0.0 typing is outdated; copied over from commit 8633968.
@@ -30,6 +35,20 @@ type MinIOVersioningStatus = "" | {
   ExcludeFolders?: boolean,
   ExcludedPrefixes?: { Prefix: string }[]
 };
+
+interface MinIOVersionListing {
+  objects: MinIOObjectVersion[];
+  isTruncated?: boolean;
+  keyMarker?: string;
+  versionIdMarker?: string;
+}
+
+interface MinIOObjectVersion {
+  name?: string;
+  lastModified?: Date;
+  versionId?: string;
+  isDeleteMarker?: boolean;
+}
 
 type RemoveObjectsParam = string[] | { name: string, versionId?: string }[];
 
@@ -156,10 +175,10 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public async removeAllWithPrefix(prefix: string) {
-    const objects = await this._listObjects(this.bucket, prefix, true, { IncludeVersion: true });
+    const objects = await this._listVersions(prefix, true);
     const objectsToDelete = objects.filter(o => o.name !== undefined).map(o => ({
-      name: o.name,
-      versionId: (o as any).versionId as (string | undefined),
+      name: o.name!,
+      versionId: o.versionId,
     }));
     await this._deleteObjects(objectsToDelete);
   }
@@ -172,17 +191,17 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public async versions(key: string, options?: { includeDeleteMarkers?: boolean }) {
-    const results = await this._listObjects(this.bucket, key, false, { IncludeVersion: true });
+    const results = await this._listVersions(key, false);
     return results
       .filter(v => v.name === key &&
-        v.lastModified && (v as any).versionId &&
-        (options?.includeDeleteMarkers || !(v as any).isDeleteMarker))
+        v.lastModified && v.versionId &&
+        (options?.includeDeleteMarkers || !v.isDeleteMarker))
       .map(v => ({
         lastModified: v.lastModified!.toISOString(),
         // Circumvent inconsistency of MinIO API with versionId by casting it to string
         // PR to MinIO so we don't have to do that anymore:
         // https://github.com/minio/minio-js/pull/1193
-        snapshotId: String((v as any).versionId),
+        snapshotId: String(v.versionId),
       }));
   }
 
@@ -241,12 +260,50 @@ export class MinIOExternalStorage implements ExternalStorage {
     }
   }
 
-  private async _listObjects(...args: Parameters<MinIOClient["listObjects"]>): Promise<minio.BucketItem[]> {
-    const bucketItemStream = this._s3.listObjects(...args);
-    const results: minio.BucketItem[] = [];
-    for await (const data of bucketItemStream) {
-      results.push(data);
+  // List all versions of all objects starting with the given prefix.
+  //
+  // We page through the listing ourselves because the listObjects() stream in minio-js
+  // (as of 8.0.7) doesn't escape the markers it sends for later pages, which breaks
+  // request signing for keys containing a slash. Some stores, like DigitalOcean Spaces,
+  // return short pages, so even a single key's listing can span many pages.
+  // See https://github.com/gristlabs/grist-core/issues/2626
+  private async _listVersions(prefix: string, recursive: boolean): Promise<MinIOObjectVersion[]> {
+    const results: MinIOObjectVersion[] = [];
+    let keyMarker = "";
+    let versionIdMarker = "";
+    for (;;) {
+      const page = await this._s3.listObjectsQuery(this.bucket, prefix, "", {
+        Delimiter: recursive ? "" : "/",
+        MaxKeys: this._batchSize || 1000,
+        IncludeVersion: true,
+        // minio-js passes these markers through to the query string as they are.
+        keyMarker: keyMarker && uriEscape(keyMarker),
+        versionIdMarker: versionIdMarker && uriEscape(versionIdMarker),
+      });
+      results.push(...page.objects);
+      if (!page.isTruncated) { return results; }
+      // minio-js asks for keys to be url-encoded in the response, and decodes the keys
+      // of listed objects, but leaves the key marker encoded.
+      const nextKeyMarker = page.keyMarker ? decodeObjectKey(page.keyMarker) : "";
+      const nextVersionIdMarker = page.versionIdMarker || "";
+      if (!nextKeyMarker ||
+        (nextKeyMarker === keyMarker && nextVersionIdMarker === versionIdMarker)) {
+        // Fail rather than accumulate the same versions forever.
+        throw new Error(`MinIOExternalStorage: version listing for ${prefix} is not advancing`);
+      }
+      keyMarker = nextKeyMarker;
+      versionIdMarker = nextVersionIdMarker;
     }
-    return results;
   }
+}
+
+// Decode a url-encoded object key, the way minio-js does for listed objects.
+function decodeObjectKey(key: string) {
+  return decodeURIComponent(key.replace(/\+/g, " "));
+}
+
+// Escape a query parameter value, the way minio-js does for the ones it does escape,
+// which matches what S3 expects when checking a request signature.
+function uriEscape(value: string) {
+  return encodeURIComponent(value).replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16).toUpperCase());
 }

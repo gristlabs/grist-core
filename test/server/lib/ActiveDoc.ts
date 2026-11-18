@@ -1,6 +1,8 @@
 import { PermissionSet } from "app/common/ACLPermissions";
 import { getEnvContent } from "app/common/ActionBundle";
 import { ServerQuery } from "app/common/ActiveDocAPI";
+import { AssistanceMessage, AssistanceRequestV2, AssistanceTraceEvent } from "app/common/Assistance";
+import { CommDocChatter } from "app/common/CommTypes";
 import { delay } from "app/common/delay";
 import { BulkColValues, CellValue, fromTableDataAction, UserAction } from "app/common/DocActions";
 import * as gristTypes from "app/common/gristTypes";
@@ -18,7 +20,12 @@ import { AuthCredential } from "app/server/lib/AuthCredential";
 import { AuthSession } from "app/server/lib/AuthSession";
 import { Client } from "app/server/lib/Client";
 import { DummyAuthorizer } from "app/server/lib/DocAuthorizer";
-import { makeExceptionalDocSession, makeOptDocSession, OptDocSession } from "app/server/lib/DocSession";
+import {
+  DocSessionPrecursor,
+  makeExceptionalDocSession,
+  makeOptDocSession,
+  OptDocSession,
+} from "app/server/lib/DocSession";
 import { getSandboxFlavor } from "app/server/lib/gristSettings";
 import { guessExt } from "app/server/lib/guessExt";
 import log from "app/server/lib/log";
@@ -919,6 +926,7 @@ describe("ActiveDoc", async function() {
           Access: "owners",
           Email: "test@test",
           IsLoggedIn: true,
+          SystemOnly: { CanEditLockedTables: true },
           LinkKey: {},
           Origin: null,
           Name: "testUser",
@@ -977,6 +985,7 @@ describe("ActiveDoc", async function() {
           Access: "owners",
           Email: "test@test",
           IsLoggedIn: true,
+          SystemOnly: { CanEditLockedTables: true },
           LinkKey: {},
           Origin: null,
           Name: "testUser",
@@ -1556,6 +1565,90 @@ describe("ActiveDoc", async function() {
       const { activeDoc, session } = await setup("webhook-wrong-table");
       const addPerson: UserAction = ["AddRecord", "People", null, { Name: "x" }];
       await assert.isRejected(activeDoc.applyWebhookActions(session, [addPerson]), /_grist_Triggers/);
+    });
+  });
+
+  describe("sendAssistanceTraceNotification", function() {
+    const event: AssistanceTraceEvent = {
+      conversationId: "conversation-1",
+      runId: "run-1",
+      type: "tool-call",
+      toolCallId: "call-1",
+      toolName: "get_tables",
+      argsText: "{}",
+    };
+
+    async function setup(docName: string) {
+      const activeDoc = await docTools.createDoc(docName);
+      const client = new Client(null as any, null as any, null!);
+      const session = client.addDocSession(
+        activeDoc, new DocSessionPrecursor(client, new DummyAuthorizer("owners", docName), {}));
+      const isConnected = sandbox.stub(client, "isConnected").returns(true);
+      const sendMessageOrInterrupt = sandbox.stub(client, "sendMessageOrInterrupt").resolves();
+      return { activeDoc, session, isConnected, sendMessageOrInterrupt };
+    }
+
+    it("sends the event to the requesting client only", async function() {
+      const { activeDoc, session, sendMessageOrInterrupt } = await setup("trace-send");
+
+      await activeDoc.sendAssistanceTraceNotification(session, event);
+
+      assert.equal(sendMessageOrInterrupt.callCount, 1);
+      const expected: CommDocChatter = {
+        type: "docChatter",
+        docFD: session.fd,
+        data: { assistant: event },
+      };
+      assert.deepEqual(sendMessageOrInterrupt.firstCall.args[0], expected);
+    });
+
+    it("skips text deltas for a disconnected client", async function() {
+      const { activeDoc, session, isConnected, sendMessageOrInterrupt } = await setup("trace-disconnected");
+      isConnected.returns(false);
+      const delta: AssistanceTraceEvent = { ...event, type: "text-delta", textId: "text-1", delta: "Hi" };
+
+      await activeDoc.sendAssistanceTraceNotification(session, delta);
+      assert.equal(sendMessageOrInterrupt.callCount, 0);
+
+      await activeDoc.sendAssistanceTraceNotification(session, event);
+      assert.equal(sendMessageOrInterrupt.callCount, 1);
+    });
+
+    it("does nothing for a session without a client", async function() {
+      const activeDoc = await docTools.createDoc("trace-no-client");
+      await activeDoc.sendAssistanceTraceNotification(makeOptDocSession(null), event);
+    });
+  });
+
+  describe("getAssistance", function() {
+    it("charges one credit for a turn, and none for a failed request", async function() {
+      const activeDoc = await docTools.createDoc("assistance-credits");
+      const increaseUsage = sandbox.stub().resolves({ usage: 1, limit: 10 });
+      sandbox.stub(activeDoc, "getHomeDbManager").returns({ getAnonymousUserId: () => 0, increaseUsage } as any);
+      const getAssistance = sandbox.stub();
+      sandbox.stub((activeDoc as any)._server, "getAssistant").returns({ version: 2, getAssistance });
+      const history: AssistanceMessage[] = [
+        { role: "system", content: "" },
+        { role: "user", content: "Make a widget" },
+        { role: "assistant", content: null, tool_calls: [{ id: "call-1", function: { name: "f", arguments: "{}" } }] },
+      ];
+      getAssistance.onCall(0).resolves({ state: { messages: history } });
+      getAssistance.onCall(1).rejects(new Error("Failed"));
+      getAssistance.resolves({ reply: "Done" });
+
+      const ask = (request: AssistanceRequestV2) => activeDoc.getAssistance(makeOptDocSession(null), request);
+      const continuation: AssistanceRequestV2 = {
+        conversationId: "c1",
+        context: {},
+        state: { messages: [...history, { role: "tool", tool_call_id: "call-1", content: "{}" }] },
+      };
+      await ask({ conversationId: "c1", context: {}, text: "Make a widget" });
+      await assert.isRejected(ask(continuation), /Failed/);
+      await ask(continuation);
+      await ask(continuation);
+
+      const deltas = increaseUsage.getCalls().filter(call => !call.args[2].dryRun).map(call => call.args[2].delta);
+      assert.deepEqual(deltas, [1, 0, 1]);
     });
   });
 });

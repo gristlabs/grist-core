@@ -71,7 +71,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   hasReverse: ko.Computed<boolean>;
 
   disableModifyBase: ko.Computed<boolean>;    // True if column config can't be modified (name, type, etc.)
-  disableModify: ko.Computed<boolean>;        // True if column can't be modified (is summary) or is being transformed.
+  disableModify: ko.Computed<boolean>;        // True if disableModifyBase, or the column is being transformed.
   disableEditData: ko.Computed<boolean>;      // True to disable editing of the data in this column.
 
   isHiddenCol: ko.Computed<boolean>;
@@ -156,9 +156,13 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
   this.hasReverse = this.autoDispose(ko.pureComputed(() => Boolean(this.reverseColModel().id())));
   this.visibleColModel = refRecord(docModel.columns, this.visibleCol);
 
-  this.disableModifyBase = ko.pureComputed(() => Boolean(this.summarySourceCol()));
+  this.disableModifyBase = ko.pureComputed(() =>
+    Boolean(this.summarySourceCol()) || Boolean(this.table().locked()));
   this.disableModify = ko.pureComputed(() => this.disableModifyBase() || this.isTransforming());
-  this.disableEditData = ko.pureComputed(() => Boolean(this.summarySourceCol()));
+  this.disableEditData = ko.pureComputed(() =>
+    Boolean(this.summarySourceCol()) || Boolean(this.table().disableEditData()) ||
+    // Prevent two-way references from trying to modify the other table if data edits are disabled.
+    (this.hasReverse() && Boolean(this.reverseColModel().table().disableEditData())));
 
   this.isHiddenCol = ko.pureComputed(() => gristTypes.isHiddenCol(this.colId()));
   this.isFormCol = ko.pureComputed(() => (

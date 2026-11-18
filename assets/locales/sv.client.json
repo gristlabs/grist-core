@@ -75,7 +75,10 @@
         "Circumvent all read restrictions and allow everyone to copy the entire document, or view it in full in fiddle mode. Only use for for examples and templates, not for documents with sensitive data.": "Kringgå alla läsbegränsningar och tillåt alla att kopiera hela dokumentet, eller läsa det i experiment läge. Använd bara för exempel och mallar, inte för dokument med känsliga data.",
         "Permission to access the document in full by all users": "Behörighet att komma åt hela dokumentet för alla användare",
         "Permission to access the document in full by unrestricted users": "Behörighet att komma åt hela dokumentet för användare utan begränsningar",
-        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Hindra alla utom Ägare från att kopiera eller ladda ner hela dokumentet. Notera: detta påverkar användare utan begränsningar för läsning, eftersom andra kommer att begränsar oavsett denna inställning."
+        "Restrict non-Owners from copying or downloading the full document. Note: this only affects users without read restrictions, since others will be restricted regardless of this setting.": "Hindra alla utom Ägare från att kopiera eller ladda ner hela dokumentet. Notera: detta påverkar användare utan begränsningar för läsning, eftersom andra kommer att begränsar oavsett denna inställning.",
+        "Allow Editors to edit structure (e.g. modify and delete tables and columns, and edit formulas, pages, widgets, and settings).  Important: if checked, Editors may be able to bypass table and column access rules, and to read and change all data!": "Tillåt Redigerare att ändra strukturen (som att ändra och ta bort tabeller, kolumner och redigera formler, sidor, widgetar och inställningar).  Viktigt: om vald, så kan Redigerare att kunna komma förbi formler behörighetsregler för tabeller och kolumner och då läsa och ändra all data!",
+        "Dismiss.": "Avfärda.",
+        "This option should be off unless you trust Editors as you would Owners on this document. ": "Detta alternativ bör vara av såvida du inte litar på redigerare lika mycket som ägare av detta dokument. "
     },
     "AccountPage": {
         "API": "API",
@@ -266,7 +269,8 @@
         "Download document...": "Ladda ner dokument...",
         "Suggest changes": "Föreslå ändringar",
         "current version": "nuvarande version",
-        "original": "original"
+        "original": "original",
+        "Return to {{termToUse}} (new tab)": "Återvänd till {{termToUse}} (ny flik)"
     },
     "SortFilterConfig": {
         "Save": "Spara",
@@ -295,7 +299,8 @@
         "Override widget title": "Ignorera widget titel",
         "Provide a table name": "Ge ett tabellnamn",
         "WIDGET TITLE": "WIDGETTITEL",
-        "WIDGET DESCRIPTION": "WIDGETBESKRIVNING"
+        "WIDGET DESCRIPTION": "WIDGETBESKRIVNING",
+        "This table is managed by Grist and cannot be modified": "Denna tabell hanteras av Grist och kan inte ändras"
     },
     "modals": {
         "Save": "Spara",
@@ -532,7 +537,10 @@
         "Pin filter": "Fäst filter",
         "Sort alphabetically (current: sorted by number of occurrences)": "Sortera i bokstavsordning (är nu sorterad efter antal förekomster)",
         "Sort by number of occurrences (current: sorted alphabetically)": "sorterad efter antal förekomster (är nu sorterad i bokstavsordning)",
-        "Unpin filter": "Lossa filter"
+        "Unpin filter": "Lossa filter",
+        "All filters": "Alla filter",
+        "Cancel": "Avbryt",
+        "Close": "Stäng"
     },
     "CustomSectionConfig": {
         " (optional)": " (ej obligatorisk)",
@@ -1077,7 +1085,10 @@
         "SELECT BY": "VAL AV",
         "{{table}} grouped by… (press to select fields)": "{{table}} grupperad på...(tryck för att välja fällt)",
         "Press Space to add fields": "Tryck på mellanslag för att lägga till fällt",
-        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Använd upp- och nerpils knapparna för att bläddra igenom alternativen. Tryck Enter och Esc för att växla mellan olika steg."
+        "Use up and down arrow keys to move through options. Press Enter and Esc to move between steps.": "Använd upp- och nerpils knapparna för att bläddra igenom alternativen. Tryck Enter och Esc för att växla mellan olika steg.",
+        "Create your own": "Skapa din egen",
+        "More": "Mer",
+        "NEW": "NY"
     },
     "Pages": {
         "Delete": "Radera",
@@ -1091,7 +1102,8 @@
     "PermissionsWidget": {
         "Allow all": "Tillåt alla",
         "Deny all": "Neka alla",
-        "Read only": "Endast rättigheter"
+        "Read only": "Endast rättigheter",
+        "Checked": "Kontollerad"
     },
     "PluginScreen": {
         "Import failed: ": "Import misslyckades: "
@@ -1139,7 +1151,8 @@
         "Sort in ascending order (current: descending)": "Sortera i stigande ordning (nuvarande: fallande)",
         "Sort in descending order (current: ascending)": "Sortera i fallande ordning (nuvarande: stigande)",
         "Sort options - {{- columnName }} column": "Sorteringsinställningar - kolumn {{- columnName }}",
-        "{{- columnName }} column": "kolumn {{- columnName }}"
+        "{{- columnName }} column": "kolumn {{- columnName }}",
+        "Empty values first": "Tomma värden först"
     },
     "ThemeConfig": {
         "Appearance ": "Utseende ",
@@ -1182,7 +1195,8 @@
         "Cancel": "Avbryt",
         "Close": "Stäng",
         "Current field ": "Nuvarande fällt ",
-        "OK": "OK"
+        "OK": "OK",
+        "Select fields": "Välj fällt"
     },
     "TypeTransformation": {
         "Apply": "Applicera",
@@ -1585,7 +1599,9 @@
         "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Med ändringsförslag kan användare göra ändringar i en egen kopia utan att ändra orginaldokumenet, sedan kan de skicka in dessa ändringsförslag för att bli granskade av dokumentägaren innan de accepteras.",
         "Unpin to hide the button while keeping the filter.": "Lossa för att dölja knappen och samtidigt behålla filtret.",
         "Row IDs are stable and unique numeric identifiers, used by reference columns to identify records.": "Rad IDn är fasta och unika numeriska identifierare, som används av referenskolumner för att identifiera rader.",
-        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "För att ställa in din kalender, välj columner för start/slut datum och händelsetitel. Observera respektive kolumntyp."
+        "To configure your calendar, select columns for start/end dates and event titles. Note each column's type.": "För att ställa in din kalender, välj columner för start/slut datum och händelsetitel. Observera respektive kolumntyp.",
+        "This widget is one file of HTML and JavaScript, saved in this document. It reads the rows of the table you pick.": "Denna widget är en fil med HTML och JavaScript, sparad i detta dokument. Den läser raderna i den tabell du väljer.",
+        "Editors can edit structure, so they, like Owners, may bypass table and column access rules and read and change any data in this document. Turn off structure editing in Access Rules to limit them.": "Redigerare kan redigera struktur, så de kan likt ägare komma förbi behörighetsregler för tabeller och columner, läsa och ändra alla data i detta dokument. Sträng av redigering av strukturen under Behörighetsregler för att begränsa dom."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESKRIVNING",
@@ -1705,7 +1721,8 @@
         "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Din {{resourceType}} kommer att vara tillgänglig för vem som helst med länken, oavsett om den delas direkt eller hittas via en sökmotor.\n Säkerställ att din {{resourceType}} inte innehåller någon känslig data innan du delar.",
         "Configure notifications": "Ställa in notiser",
         "Invitation emails are not enabled on this installation.": "Inbjudnings e-post är inte aktiverad i denna Gristinstallation.",
-        "Invitation emails are not sent on Grist Community edition.": "Inbjudningse-post skickas inte ut i öppen version av Grist."
+        "Invitation emails are not sent on Grist Community edition.": "Inbjudningse-post skickas inte ut i öppen version av Grist.",
+        "Owner-like data access": "Åtkomstbehörighet lik dokumentägarens"
     },
     "SearchModel": {
         "Search all pages": "Sök på alla sidor",
@@ -1810,7 +1827,8 @@
         "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Att publicera ditt formulär genererar en delningslänk. Alla med länken kan se det tomma formuläret och skicka in ett svar.",
         "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Att avpublicera formuläret kommer att stänga av delningslänken så att användare som kommer åt ditt formulär via den länken får se ett felmeddelande.",
         "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Användare är begränsade till att skicka in svar (rader i din tabell) och läsa förifyllda värden i vissa fällt, så som referens- och alternativkolumner.",
-        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Ditt formulär år publicerat. Alla ändringar är live och synliga för användare med tillgång till formuläret. Om du vill göra ändringar i ett utkast, avpublicera formuläret."
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Ditt formulär år publicerat. Alla ändringar är live och synliga för användare med tillgång till formuläret. Om du vill göra ändringar i ett utkast, avpublicera formuläret.",
+        "This table does not accept new records.": "Denna tabell accepterar inte nya rader."
     },
     "Editor": {
         "Delete": "Radera"
@@ -2057,7 +2075,24 @@
         "Switch to Community edition?": "Växla till Öppen version?",
         "Switch to full Grist?": "Växla till komplett Grist?",
         "This will also apply your other pending changes:": "Detta kommer också att applicera andra väntande ändringar du gjort:",
-        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist kör i en miljö som inte stöder omstart från administrationspanelen. Din ändring kommer att sparas nu och blir aktiverad nästa gång du startar om Grist mauellt."
+        "Grist is running in an environment that doesn't support restarting from the admin panel. Your change will be saved now, and takes effect the next time you restart Grist manually.": "Grist kör i en miljö som inte stöder omstart från administrationspanelen. Din ändring kommer att sparas nu och blir aktiverad nästa gång du startar om Grist mauellt.",
+        "Any document can run code with full access to this server.": "Alla dokument kan köra kod med full åtkomst till denna server.",
+        "Anyone can open this server": "Vem som helst kan öppna denna server",
+        "Could not read admin accounts": "Kunde inte läsa in administratörskonton",
+        "Could not run the {{name}} check": "Kunde inte köra {{name}} kontrollen",
+        "Formulas are not sandboxed": "Formler körs inte isolerade",
+        "Health check is failing": "Hälsokontrollen går inte igenom",
+        "No install admin": "Ingen installatörsadministratör",
+        "No sign-in method": "Ingen inloggningsmetod",
+        "No sign-in method is set up. Anyone who can reach this server can see all data.": "Ingen inloggningsmetod är inställd. Vem som helst kan komma åt denna server och se all data.",
+        "Only the admin can sign in": "Bara administratören kan logga in",
+        "Sandbox is not working": "Isoleringen fungerar inte",
+        "Sandbox {{flavor}} is set up but fails to start.": "Isoleringen {{flavor}} är inställd men startar inte.",
+        "Set GRIST_ADMIN_EMAIL so that someone can manage this server.": "Ställ in GRIST_ADMIN_EMAIL så att någon kan hantera denna server.",
+        "Sign-in is broken": "Inloggningen fungerar inte",
+        "The server cannot open a websocket to its own public URL. Check your reverse proxy.": "Servern kan inte öppna en websocket till sin egen publika URL. Kontrollera din omvända proxy.",
+        "Websockets do not work": "Websokets fungerar inte",
+        "Sign-in works only with the boot key. Set up a sign-in method so that other users can sign in.": "Inloggning fungerar bara med uppstartsnyckeln. Ställ in en inloggningsmetod så att andra användare kan logga in."
     },
     "Columns": {
         "Remove Column": "Ta bort kolumn"
@@ -2398,7 +2433,9 @@
         "upgrade your plan": "uppgradera ditt abonnemang",
         "Sign up for a free Grist account to start using the AI Assistant.": "Registrera ett gratis Gristkonto för att börja använda AIassistenten.",
         "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Upgradera till Grist Företagsversion för att prova den nya Grist assistenten. {{learnMoreLink}}",
-        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "Konversation har blivit för lång och kan inte svara effektivt längre. Var god {{startANewChatButton}} för att fortsätta få hjälp."
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "Konversation har blivit för lång och kan inte svara effektivt längre. Var god {{startANewChatButton}} för att fortsätta få hjälp.",
+        "start a new session": "starta en ny session",
+        "The session has become too long and I can no longer respond effectively. Please {{startANewSessionButton}} to continue receiving assistance.": "Denna session har pågått för länge och kan inte ge effektiva svar länge. Var god {{startANewSessionButton}} för att fortsätta få stöd."
     },
     "apiconsole": {
         "Are you sure you want to delete the following?": "Är du säker på att du vill radera följande?",
@@ -2576,7 +2613,8 @@
         "Your suggestions": "Dina ändringsförslag",
         "experiment": "experiment",
         "original document": "originaldokument",
-        "Undo dismissal": "Ångra avvisande"
+        "Undo dismissal": "Ångra avvisande",
+        "Could not apply this suggestion: {{detail}}": "Kunde inte applicera detta ändringsförslag: {{detail}}"
     },
     "commandList": {
         "Show accessibility options": "Visa tillgänglighetsinställningar",
@@ -2700,7 +2738,8 @@
         "Open the formula assistant": "Öppna formulärassistenten",
         "Shortcut to close the inner left panel": "Genväg för att stänga den inre vänstra panelen",
         "Shortcut to open the inner left panel": "Genväg för att öppna den inre vänstra panelen",
-        "Toggle the assistant": "Slå av/på assistenten"
+        "Toggle the assistant": "Slå av/på assistenten",
+        "Save the code of a custom widget in its editor": "Spara koden för en anpassad widget i dess editor"
     },
     "GridViewMenusDateHelpers": {
         "12-hour format": "12-timmarsformat",
@@ -2862,7 +2901,7 @@
         "The change will be saved when you apply pending changes, and will take effect after you restart Grist.": "Ändringarna kommer sparas när du applicerar väntande ändringar, de kommer att få effekt efter att du startar om Grist.",
         "configuration updated": "Inställningarna uppdaterade",
         "disabled": "avstängd",
-        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Din server är inställd för autentisering av användare genom OpenID Connect. Användarna.",
+        "Your server is configured to authenticate users via OpenID Connect. Users sign in through your identity provider.": "Din server är inställd för autentisering av användare genom OpenID Connect. Användarna loggar in genom din identitetsleverantör.",
         "Your server is configured to authenticate users via SAML 2.0. Users sign in through your enterprise identity provider.": "Din server är inställd för autentisering av användare genom SAML 2.0. Användare loggar in genom din identitetsleverantör.",
         "Your server is using a boot key as a fallback login method. Configure one of the authentication methods below.": "Din server använder uppstartsnyckel som reservmetod för inloggning. Ställ in en av autentiseringsmetoderna nedan.",
         "Your server trusts authentication from a reverse proxy. Make sure only your proxy can reach the Grist backend.": "Din server litar på autentisering från en omvänd proxy. Säkerställ att enbart proxyn kan nå Grist servern.",
@@ -3094,7 +3133,24 @@
         "Any S3-compatible store with bucket versioning, such as RustFS, or AWS S3 itself.": "Valfri S3-kompatibel lagring med versionshanterade buckets, så som RustFS eller bara AWS S3.",
         "Set these environment variables and restart Grist to enable S3-compatible storage:": "Ställ in följande miljövariabler och starta om Grist för att använda S3-kompatibel lagring:",
         "To preserve it, mount a volume at /persist.": "För att spara det, montera en lagringsvolym på /persist.",
-        "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Spara säkerhetskopior av dokumentet på en extern tjänst så som S3 eller Azure. Detta skyddar mot daraförlust om serverns hårddisk havererar."
+        "Store document backups on an external service like S3 or Azure. This protects against data loss if the server's disk fails.": "Spara säkerhetskopior av dokumentet på en extern tjänst så som S3 eller Azure. Detta skyddar mot daraförlust om serverns hårddisk havererar.",
+        "Back up documents externally": "Säkerhetskopiera dokument externt",
+        "Storage": "Lagring",
+        "checking": "kontrollerar",
+        "unknown": "okännd",
+        "Check storage to continue": "Kontrollera lagring för att fortsätta",
+        "Grist can't check this for itself.": "Grist kan inte kontrollera detta själv.",
+        "Grist is storing data in memory. Move it to a disk or volume.": "Grist lagrar data i ramminnet. Flytta det till en hårddisk eller lagringsvolym.",
+        "I will check later": "Jag kommer kontrollera senare",
+        "Is your data on persistent storage?": "Är din data lagrad på permanent lagring?",
+        "Keep {{paths}} on a mounted volume so your data survives.": "Behåll {{paths}} på ett monterat lagringsutrymme så att din data överlever.",
+        "Mount a volume at /persist to keep your data.": "Montera ett lagringsutrymme på /persist för att behålla din data.",
+        "My storage is persistent": "Mitt lagringsutrymme är permanent",
+        "Persistent storage confirmed": "Permanent lagring bekräftad",
+        "You'll check storage later": "Du kommer kontrollera lagringen senare",
+        "Your data may be lost.": "Din data kan gå förlorad.",
+        "at risk": "utsatt för risken",
+        "unconfirmed": "obekräftad"
     },
     "QuickSetupContinueButton": {
         "Continue": "Fortsätt",
@@ -3343,13 +3399,15 @@
         "Grist sends them straight out. You've opted out of URL filtering.": "Grist skickar dom direkt. Du har valt bort URLfiltrering.",
         "No URL filter is set up. Features that need one stay switched off.": "Inget URLfilter är inställt. Funktioner som behöver det är därför avstängda.",
         "Not filtered.": "Inte filtrerade.",
-        "Search docs for: {{envVar}}": "Sök efter dokument för: {{envVar}}",
+        "Search docs for: {{envVar}}": "Sök i dokumentationen efter: {{envVar}}",
         "These requests go through your HTTPS proxy.": "Dessa förfrågningar går genom din HTTPS proxy.",
         "Three features can make Grist send HTTP requests on behalf of your users. Here's how each one is set up right now.": "Denna funktion möjliggör att Grist kan skicka HTTP förfrågningar åt dina användare. Såhär är de inställda nu.",
         "When Grist itself reaches out…": "När Grist själv skickar förfrågningar…",
         "When your users reach out…": "När dina användare skickar förfrågningar…",
         "bypassed": "förbikopplad",
-        "Open to any host. The URL proxy is what keeps this safe.": "Tillgänglig för alla. URLproxyn är det som ser till att detta är säkert."
+        "Open to any host. The URL proxy is what keeps this safe.": "Tillgänglig för alla. URLproxyn är det som ser till att detta är säkert.",
+        "How user actions can reach the outside world": "Hur användaråtgärder kan nå världen utanför",
+        "Outgoing requests": "Utgående anrop"
     },
     "McpConnectBanner": {
         "**New!** Connect Grist to Claude and ChatGPT. [Try it now]({{mcp}})": "**Nytt!** Anslut Grist till Claude och ChatGPT. [Testa nu]({{mcp}})"
@@ -3529,7 +3587,9 @@
         "We couldn't submit your details or your request to be kept up to date. Please try again.": "Vi kunde varken skicka in dina kontaktuppgifter eller din begäran om att hållas uppdaterad. Försök igen.",
         "We saved your details, but couldn't subscribe you to updates.": "Vi spara din kontaktuppgifter, men kunde inte anmäla dig till uppdateringar.",
         "We subscribed you for product updates, but couldn't save your other details.": "Vi har anmält dig till produkt uppdateringar, men kunde inte spara dina kontaktuppgifter.",
-        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställningsändringar har applicerats och servern har startats om. Grist är nu i drift och tillgänglig för anvädare."
+        "Your configuration changes have been applied and the server has been restarted. Grist is now in service and available to users.": "Dina inställningsändringar har applicerats och servern har startats om. Grist är nu i drift och tillgänglig för anvädare.",
+        "Grist needs restarting": "Grist behöver starts om",
+        "We couldn't submit your details or your request to be kept up to date.": "Vi kunde inte skicka dina uppgifter eller din ansökan om att bli infomerad om nyheter."
     },
     "startHomeGristImport": {
         "Copy data from another document": "Kopiera data från ett annat dokument",
@@ -3560,7 +3620,7 @@
         "1 server": "1 server",
         "1 document": "1 dokument",
         "{{count}} of {{total}} not reporting_other": "{{count}} av {{total}} svarar inte",
-        "{{count}} servers_one": "{{count}} servrar",
+        "{{count}} servers_one": "{{count}} server",
         "{{count}} servers_other": "{{count}} servrar",
         "{{percent}}% load": "{{percent}}% belastning",
         "1 other server has stopped reporting that it is running.": "1 annan server har slutat att rapportera att den är i drift.",
@@ -3587,12 +3647,12 @@
         "running": "i drift",
         "shared address": "delad adress",
         "this server": "denna server",
-        "{{count}} documents_one": "{{count}}dokument",
+        "{{count}} documents_one": "{{count}} dokument",
         "{{count}} documents_other": "{{count}} dokument",
         "{{count}} of {{total}} not reporting_one": "{{count}} av {{total}} svar ej",
-        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
+        "{{count}} other servers are registered but not accepting new documents._one": "{{count}} annan server är registrerad men tar inte emot nya dokument.",
         "{{count}} other servers are registered but not accepting new documents._other": "{{count}} andra servrar är registrerade men tar inte emot nya dokument.",
-        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} andra servrar har slutat rapportera att de är i drift.",
+        "{{count}} other servers have stopped reporting that they are running._one": "{{count}} annan server har slutat rapportera att den är i drift.",
         "{{count}} other servers have stopped reporting that they are running._other": "{{count}} andra servrar har slutat rapportera att de är i drift.",
         "Grist Fleet is not in your activation key": "Grist Fleet ingår inte i din aktiveringsnyckel",
         "draining": "invallidering",
@@ -3642,5 +3702,63 @@
         "Try for free": "Testa gratis",
         "Try full Grist": "Pröva komplett Grist",
         "loading your tables...": "laddar dina tabeller..."
+    },
+    "TopProblems": {
+        "{{count}} problems need attention_one": "{{count}} problem behöver din uppmärksamhet",
+        "{{count}} problems need attention_other": "{{count}} problem behöver din uppmärksamhet",
+        "{{count}} warnings_one": "{{count}} varning",
+        "{{count}} warnings_other": "{{count}} varningar",
+        "{{count}} dismissed_one": "{{count}} avfärdad",
+        "{{count}} dismissed_other": "{{count}} avfärdade",
+        "Click to show them again.": "Klicka för att visa dom igen.",
+        "Dismiss": "Avfärda",
+        "Show": "Visa",
+        "Grist may not be safe or may not work until these are fixed.": "Grist kan vara osäker eller fungerar inte tills dessa är lösta.",
+        "These may be fine for your setup, but check them.": "Dessa kan vara rimliga för din installation, men bör kontrolleras."
+    },
+    "WidgetCreatorSectionConfig": {
+        "Ask assistant": "Fråga assistent",
+        "Close editor": "Stäng redigerare",
+        "Edit code": "Redigera kod",
+        "Edit source": "Redigera källa",
+        "Use assistant": "Använd assistent",
+        "WIDGET": "WIDGET",
+        "In-document custom widget": "Documentintegrerad anpassad widget",
+        "Its code is saved in this document, so copies and exports keep it.": "Dess kod sparas i detta dokument, koden finns kvar i kopior och exporter."
+    },
+    "WidgetCreatorView": {
+        "Ask the assistant": "Fråga assistenten",
+        "Close editor": "Stäng editor",
+        "Copy error": "Kopiera fel",
+        "Don't save": "Spara inte",
+        "Edit source": "Redigera källa",
+        "Empty": "Tommt",
+        "Error copied": "Felet kopierat",
+        "Error on line {{line}}: {{- message}}": "Fel på rad {{line}}: {{- message}}",
+        "Error: {{- message}}": "Fel: {{- message}}",
+        "Expand the widget": "Expandera widgeten",
+        "Fix this error in the widget code: {{- error}}": "Korrigera detta fel i widgetkoden: {{- error}}",
+        "Learn more": "Lär dig mer",
+        "Open the code": "Öppna koden",
+        "Save": "Spara",
+        "Save the code ({{shortcut}})": "Spara koden {{shortcut}}",
+        "Save your changes?": "Spara dina ändringar?",
+        "Saved": "Sparad",
+        "Send to assistant": "Skicka till assistent",
+        "Source": "Källa",
+        "This widget is empty.": "Denna widget är tom.",
+        "Toggle preview": "Slå på/av förhandsvisning",
+        "Too narrow for the code": "För smalt för koden",
+        "Use assistant": "Använd assistent",
+        "Write html and js code": "Skriv html och js kod",
+        "or": "eller",
+        "write it yourself": "skriv den själv",
+        "{{ask}}, or {{write}}": "{{ask}}, eller {{write}}",
+        "Too narrow for the code. Expand to see and edit it.": "För smal för koden. Utvidga för att se och redigera den.",
+        "What should this widget show?": "Vad ska denna widget visa?",
+        "The widget has changes that are not saved. If you close the editor without saving, they are lost.": "Denna widget har ändringar som inte är sparade. Om du stänger editorn utan att spara kommer de gå förlorade."
+    },
+    "errors": {
+        "The table '{{tableId}}' is managed by Grist and can't be modified": "Tabellen '{{tableId}}' hanteras av Grist och kan inte ändras"
     }
 }

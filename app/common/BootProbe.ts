@@ -62,6 +62,74 @@ export interface BackupsBootProbeDetails {
   backend?: StorageBackendName;
 }
 
+/** The mount a path is on, as read from the OS mount table. */
+export interface MountInfo {
+  mountPoint: string;   // e.g. "/", "/persist"
+  fsType: string;       // e.g. "ext4", "overlay", "tmpfs"
+}
+
+/**
+ * Facts about where Grist keeps its data. A mount is null when there's no path, the home
+ * database is in Postgres, or the mount table can't be read (e.g. not on Linux).
+ */
+export interface PersistDataBootProbeDetails {
+  // GRIST_DATA_DIR, where documents are kept; null when unset.
+  dataDir: string | null;
+  dataDirMount: MountInfo | null;
+  // TYPEORM_DATABASE: the home database file for SQLite, or a database name for Postgres.
+  homeDb: string | null;
+  homeDbMount: MountInfo | null;
+  externalStorageActive: boolean;
+  usesPostgres: boolean;
+}
+
+/** Why a store may not survive a restart. */
+export type StorageRisk = "in-memory" | "no-volume";
+
+// Filesystems that live in RAM and so never survive a restart.
+const RAM_FILESYSTEMS = ["tmpfs", "ramfs"];
+
+// The official Docker image sets GRIST_DATA_DIR to this and expects a volume at IMAGE_VOLUME.
+const IMAGE_DATA_DIR = "/persist/docs";
+export const IMAGE_VOLUME = "/persist";
+
+/**
+ * The likely risk to documents and to the home database, read from the persist-data facts.
+ * This only spots likely problems: a store with no risk found might still be temporary, e.g. a
+ * Kubernetes emptyDir has a mount of its own.
+ */
+export function getStorageRisks(details: PersistDataBootProbeDetails): {
+  docs?: StorageRisk; home?: StorageRisk;
+} {
+  // A root mount is probably a throwaway container layer if it is an overlay (as Docker and
+  // containerd use by default), or if we're in the official image, whatever its storage driver.
+  const inOfficialImage = details.dataDir === IMAGE_DATA_DIR;
+  const risk = (mount: MountInfo | null): StorageRisk | undefined =>
+    !mount ? undefined :
+      RAM_FILESYSTEMS.includes(mount.fsType) ? "in-memory" :
+        mount.mountPoint === "/" && (inOfficialImage || mount.fsType === "overlay") ? "no-volume" :
+          undefined;
+  return {
+    docs: details.externalStorageActive ? undefined : risk(details.dataDirMount),
+    home: details.usesPostgres ? undefined : risk(details.homeDbMount),
+  };
+}
+
+/**
+ * The paths of stores that need a volume (a "no-volume" risk). In the official image, when they
+ * are all under IMAGE_VOLUME, one volume there covers them, so this returns just IMAGE_VOLUME.
+ */
+export function getPathsNeedingVolume(details: PersistDataBootProbeDetails): string[] {
+  const risks = getStorageRisks(details);
+  const paths = [
+    risks.docs === "no-volume" ? details.dataDir : null,
+    risks.home === "no-volume" ? details.homeDb : null,
+  ].filter((p): p is string => Boolean(p));
+  const inImageVolume = (p: string) => p.startsWith(IMAGE_VOLUME + "/");
+  return details.dataDir === IMAGE_DATA_DIR && paths.length > 0 && paths.every(inImageVolume) ?
+    [IMAGE_VOLUME] : paths;
+}
+
 /**
  * Authoritative state of a single outgoing-request feature as reported
  * by the probe. The client renders these verbatim; it does not recompute.

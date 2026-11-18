@@ -16,6 +16,7 @@ import {
   ViewRec,
 } from "app/client/models/DocModel";
 import { BEHAVIOR } from "app/client/models/entities/ColumnRec";
+import { UserError } from "app/client/models/errors";
 import * as modelUtil from "app/client/models/modelUtil";
 import { removeRule, RuleOwner } from "app/client/models/RuleOwner";
 import { LinkConfig } from "app/client/ui/LinkConfig";
@@ -890,7 +891,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     this.overrideDisableAddRemoveRows() ?? this.table().disableAddRemoveRows());
 
   this.isSorted = ko.pureComputed(() => this.activeSortSpec().length > 0);
-  this.disableDragRows = ko.pureComputed(() => this.isSorted() || !this.table().supportsManualSort());
+  this.disableDragRows = ko.pureComputed(() =>
+    this.isSorted() || !this.table().supportsManualSort() || Boolean(this.table().locked()));
 
   // Number of frozen columns
   this.rawNumFrozen = modelUtil.customValue(this.optionsObj.prop("numFrozen"));
@@ -1002,6 +1004,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   }));
 
   this.insertColumn = async (colId: string | null = null, options: InsertColOptions = {}) => {
+    // The grid, form and calendar add-column flows all funnel through here, so guard once and
+    // fail cleanly instead of being rejected by the server.
+    if (this.table.peek().disableAddRemoveColumns.peek()) {
+      throw new UserError(`Table '${this.table.peek().tableId.peek()}' does not allow columns to be added`);
+    }
     const { colInfo = {}, index = this.viewFields().peekLength } = options;
     const parentPos = fieldInsertPositions(this.viewFields(), index)[0];
     const action = ["AddColumn", colId, {

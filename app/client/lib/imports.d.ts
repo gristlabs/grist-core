@@ -13,6 +13,7 @@ import * as searchModule from "app/client/ui2018/search";
 
 import Calendar, { TZDate } from "@toast-ui/calendar";
 import * as ace from "ace-builds";
+import markedKatex from "marked-katex-extension";
 import * as momentTimezone from "moment-timezone";
 import * as plotly from "plotly.js";
 
@@ -35,6 +36,7 @@ export function loadAdminPanel(): Promise<typeof AdminPanelModule>;
 export function loadGristDoc(): Promise<typeof GristDocModule>;
 export function loadAce(): Promise<Ace>;
 export function loadEmojiPicker(): Promise<typeof EmojiPickerModule>;
+export function loadMarkedKatex(): Promise<typeof markedKatex>;
 export function loadMomentTimezone(): Promise<MomentTimezone>;
 export function loadPlotly(): Promise<PlotlyType>;
 export function loadToastUICalendar(): Promise<ToastUICalendarModule>;

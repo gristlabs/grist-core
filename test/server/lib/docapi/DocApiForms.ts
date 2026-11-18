@@ -144,6 +144,71 @@ function addFormsTests(getCtx: () => TestContext) {
       assert.equal(resp.data.details?.code, "FormNotFound");
     });
 
+    it("returns 404 when the table cannot accept records", async function() {
+      const { serverUrl, userApi, chimpy, nobody, docs } = getCtx();
+      const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
+      const docId = await userApi.newDoc({ name: "FormsLockedTable" }, wid);
+      const docUrl = `${serverUrl}/api/docs/${docId}`;
+      const sectionId = await getPrimarySectionId(docUrl, chimpy, "Table1");
+      await makeForm(docUrl, chimpy, sectionId);
+      const key = await publishForm(docUrl, docId, chimpy, sectionId);
+
+      const tablesResp = await axios.get(`${docUrl}/tables/_grist_Tables/records`, chimpy);
+      const tableRef = tablesResp.data.records.find((r: any) => r.fields.tableId === "Table1").id;
+
+      // A form over a summary table can never accept a record either. Colref 2 is Table1.A in a
+      // fresh doc (manualSort=1, A=2, B=3, C=4).
+      const summaryResp = await axios.post(`${docUrl}/apply`, [
+        ["CreateViewSection", tableRef, 0, "record", [2], null],
+      ], chimpy);
+      assert.equal(summaryResp.status, 200);
+      const summarySectionId = summaryResp.data.retValues[0].sectionRef;
+      await makeForm(docUrl, chimpy, summarySectionId);
+
+      const countRecords = async () => {
+        const recordsResp = await axios.get(`${docUrl}/tables/Table1/records`, chimpy);
+        assert.equal(recordsResp.status, 200);
+        return recordsResp.data.records.length;
+      };
+
+      // The published form is served while the table accepts records, via the share and in-doc.
+      let resp = await axios.get(`${serverUrl}/api/s/${key}/forms/${sectionId}`, nobody);
+      assert.equal(resp.status, 200);
+      resp = await axios.get(`${docUrl}/forms/${sectionId}`, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Submitting a form POSTs to this share-scoped endpoint (see FormAPIImpl.createRecord). It
+      // accepts a record while the table is unlocked, so the refusal below can't pass vacuously.
+      const submitUrl = `${serverUrl}/api/s/${key}/tables/Table1/records`;
+      resp = await axios.post(submitUrl, { records: [{ fields: { A: "unlocked" } }] }, nobody);
+      assert.equal(resp.status, 200);
+      const countBeforeLock = await countRecords();
+
+      // Only the system may set the locked flag, so this goes through a testing hook.
+      await docs.testingHooks.applySystemUserActions(docId,
+        [["UpdateRecord", "_grist_Tables", tableRef, { locked: true }]]);
+
+      // Both paths now refuse the form, so nobody can fill in records the engine would reject.
+      resp = await axios.get(`${serverUrl}/api/s/${key}/forms/${sectionId}`, nobody);
+      assert.equal(resp.status, 404);
+      assert.equal(resp.data.details?.code, "FormNotPublished");
+      resp = await axios.get(`${docUrl}/forms/${sectionId}`, chimpy);
+      assert.equal(resp.status, 404);
+      assert.equal(resp.data.details?.code, "FormNotPublished");
+
+      // Not serving the form is only advisory: the share stays live, so a cached form page or a
+      // direct hit still submits. The POST is where the lock has to hold.
+      resp = await axios.post(submitUrl, { records: [{ fields: { A: "locked" } }] }, nobody);
+      assert.equal(resp.status, 400);
+      assert.match(resp.data.error, /lock/i);
+      assert.equal(await countRecords(), countBeforeLock);
+
+      // The summary form is refused regardless of the lock.
+      resp = await axios.get(`${docUrl}/forms/${summarySectionId}`, chimpy);
+      assert.equal(resp.status, 404);
+      assert.equal(resp.data.details?.code, "FormNotPublished");
+    });
+
     it("returns 404 for forms whose tables viewers cannot read", async function() {
       const { serverUrl, userApi, chimpy, kiwi } = getCtx();
       const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;

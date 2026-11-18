@@ -1400,3 +1400,14 @@ def migration46(tdset):
   return tdset.apply_doc_actions([
     add_column('_grist_Triggers', 'condition', 'Text'),
   ])
+
+
+@migration(schema_version=47)
+def migration47(tdset):
+  """
+  Adds the "locked" flag to _grist_Tables. A locked table rejects user-provided
+  modifications of its data or schema; only a lock-bypassing (system) session may write it.
+  """
+  return tdset.apply_doc_actions([
+    add_column('_grist_Tables', 'locked', 'Bool'),
+  ])

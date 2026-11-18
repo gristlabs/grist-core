@@ -22,8 +22,10 @@ describe("SleepWake", function() {
     hooks = await server.getTestingHooks();
   });
 
+  // Bring the network back even if a test failed partway, since later suites share the server.
   afterEach(async function() {
     await hooks.setDocOpenPaused(false);
+    await hooks.commRestart();
   });
 
   beforeEach(async function() {

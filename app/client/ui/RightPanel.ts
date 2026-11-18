@@ -515,9 +515,8 @@ export class RightPanel extends Disposable {
           Computed.create(owner, use => use(activeSection.titleDef)),
           val => activeSection.titleDef.saveOnly(val),
           dom.boolAttr("disabled", (use) => {
-            const isRawTable = use(activeSection.isRaw);
-            const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
-            return isRawTable && isSummaryTable;
+            // The engine turns a raw view section's title save into a table rename, so disable if renames are blocked.
+            return use(activeSection.isRaw) && use(use(activeSection.table).disableRenameTable);
           }),
           { id: "right-widget-title-input" },
           kbJumperAnchor,
