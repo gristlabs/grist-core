@@ -41,6 +41,6 @@ describe("roundTrips", function() {
     const { count } = stop();
 
     assert.equal(user.name, "Kiwi");
-    assert.equal(count, 3);
+    assert.equal(count, 1);
   });
 });
