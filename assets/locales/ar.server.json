@@ -1,7 +1,25 @@
 {
     "sendAppPage": {
-        "Loading...": "تحميل ...",
-        "og-description": "برنامج حديث لجداول البيانات يتجاوز المخططات التقليدية",
-        "og-title": "قريست، الجيل القادم من جداول البيانات"
+        "Loading...": "يُحمَّل...",
+        "og-description": "جدول بيانات حديث مفتوح المصدر يتجاوز الشبكة",
+        "og-title": "غرست، ارتقاء جداول البيانات"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "تحقق من إيميلك عند مزوِّد الهوية، ثم ادخل من جديد من فضلك."
+    },
+    "access": {
+        "docDisabled": "هذا المستند معطَّل.",
+        "docNoAccess": "لا نفاذ لك إلى هذا المستند.",
+        "userDisabled": "المستخدم معطَّل (السبب: {{- reason }})",
+        "userDisabledReasonMissing": "لم يُذكر سبب"
+    },
+    "admin": {
+        "emptyOrg": "ما من مالكين في مؤسسة الإدارة المحدَّدة بـ `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "المستخدم مالك في مؤسسة الإدارة المحدَّدة بـ `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noAdminEmail": "حساب المسؤول غائب لأن `GRIST_ADMIN_EMAIL` و `GRIST_DEFAULT_EMAIL` غير مضبوطين",
+        "accountByEmail": "حساب المسؤول محدَّد بـ `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "مستند بلا عنوان"
     }
 }
