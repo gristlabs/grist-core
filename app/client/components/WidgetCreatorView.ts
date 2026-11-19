@@ -718,7 +718,7 @@ const ACE_DRACULA_BG = "#282a36";
 
 const cssBody = styled("div", `
   position: relative;
-  flex: auto;
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
   min-height: 0;

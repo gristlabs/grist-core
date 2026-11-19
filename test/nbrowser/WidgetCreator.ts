@@ -295,6 +295,31 @@ describe("WidgetCreator", function() {
     await driver.findWait(".test-widget-creator-dont-save", 1000).click();
   });
 
+  it("shrinks with its section when the layout leaves it little space", async function() {
+    await gu.selectSectionByTitle("TABLE1");
+    const tableSectionId = await gu.getSectionId();
+    await gu.selectSectionByTitle("TABLE1 Custom");
+    const creatorSectionId = await gu.getSectionId();
+    await gu.sendActions([["UpdateRecord", "_grist_Views", 1, {
+      layoutSpec: JSON.stringify({ children: [{ leaf: creatorSectionId }, { leaf: tableSectionId }] }),
+    }]]);
+
+    const creatorBox = () => gu.getSection("TABLE1 Custom").findClosest(".layout_box");
+    const extraSpace = (await creatorBox().rect()).height - 100;
+    await creatorBox().find(".ui-resizable-s").mouseMove();
+    await driver.mouseDown();
+    // A small first move, so the drag is set up before the mouse goes over the widget's iframe.
+    await driver.mouseMoveBy({ y: -1 });
+    await driver.mouseMoveBy({ y: -extraSpace });
+    await driver.mouseUp();
+    await gu.waitForServer();
+
+    const box = await creatorBox().rect();
+    assert.isBelow(box.height, 120);
+    const widget = await driver.find(".test-widget-creator").rect();
+    assert.isAtMost(widget.y + widget.height, box.y + box.height);
+  });
+
   async function toggleSource(on: "switch" | "label") {
     const target = on === "switch" ?
       driver.find(".test-widget-creator-source .test-toggle-switch-circle") :
