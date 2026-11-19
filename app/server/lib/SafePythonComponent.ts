@@ -37,7 +37,7 @@ export class SafePythonComponent extends BaseComponent {
     if (!this._tmpDir) {
       throw new Error("Sanbox should have a tmpDir");
     }
-    this._sandbox = this._server.create.NSandbox({
+    this._sandbox = await this._server.create.NSandbox({
       importMount: this._tmpDir,
       logTimes: true,
       logMeta: this._logMeta,

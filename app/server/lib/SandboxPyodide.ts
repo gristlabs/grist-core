@@ -7,14 +7,24 @@
  * Pyodide is run via deno. The GRIST_PYODIDE_SKIP_DENO=1 flag can be
  * used to call it directly, but this is not a good sandbox.
  *
+ * A sandbox can start from a memory snapshot of one that has already
+ * loaded the data engine, kept as a file in a checkpoint directory (see
+ * NSandbox), which takes a fraction of the time of loading it from scratch.
+ *
  */
 
 import { isAffirmative } from "app/common/gutil";
+import log from "app/server/lib/log";
 import { ISandboxOptions } from "app/server/lib/NSandbox";
 import { getUnpackedAppRoot } from "app/server/lib/places";
+import { cleanEnv } from "app/server/lib/serverUtils";
 
+import { ChildProcess, fork, spawn } from "child_process";
 import fs from "fs";
 import path from "path";
+
+// Pyodide's snapshot within a checkpoint directory.
+export const PYODIDE_SNAPSHOT_NAME = "pyodide.snap";
 
 export interface PyodideSettings {
   scriptPath: string,
@@ -24,9 +34,81 @@ export interface PyodideSettings {
   dataToSandboxDescriptor?: number,
   dataFromSandboxDescriptor?: number,
   stdio: ("pipe" | "ipc")[],
+  env: NodeJS.ProcessEnv,
 }
 
-export function getPyodideSettings(options: ISandboxOptions): PyodideSettings {
+/**
+ * Settings for a sandbox, started from the snapshot in the given checkpoint
+ * directory if there is one.
+ */
+export function getPyodideSettings(options: ISandboxOptions, checkpoint?: string): PyodideSettings {
+  const settings = getBaseSettings(options);
+  if (checkpoint) {
+    // Paths are canonicalized at the OS level, to match what deno checks
+    // permissions against (e.g. long names rather than Windows 8.3 short names).
+    const snapshot = fs.realpathSync.native(path.join(checkpoint, PYODIDE_SNAPSHOT_NAME));
+    settings.env.GRIST_PYODIDE_SNAPSHOT_LOAD = snapshot;
+    // Only deno needs permission; pipe.js drops it before running user code.
+    if (settings.command) {
+      settings.args.push(`--allow-read=${snapshot}`);
+    }
+  }
+  return settings;
+}
+
+/**
+ * Start pipe.js, with the extra environment variables given.
+ */
+export function launchPyodide(
+  options: ISandboxOptions, settings: PyodideSettings, env: NodeJS.ProcessEnv,
+): ChildProcess {
+  const { cwd, scriptPath, stdio } = settings;
+  const spawnOptions = {
+    stdio,
+    env: {
+      ...env,
+      ...settings.env,
+      // If running in electron, forces the child process to behave as plain Node.js (no Chromium or browser)
+      ELECTRON_RUN_AS_NODE: "1",
+    },
+  };
+  const command = options.command ?? settings.command;
+  if (command) {
+    const args = [
+      ...settings.args,
+      ...options.testSandboxArgs,
+      // Ignore options.pythonArgs - no python process runs for pyodide
+      scriptPath,
+      ...(options.comment ? [options.comment] : []),
+      ...(options.appendArgs ?? []),
+    ];
+    log.rawInfo("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
+    return spawn(command, args, { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) });
+  }
+  // Under node, we fork with three regular pipes (stdin, stdout, stderr), then
+  // ipc (mandatory for calling fork), and a replacement pipe for stdin
+  // and for stdout. See getBaseSettings.
+  log.rawInfo("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
+  return fork(scriptPath, { cwd, ...spawnOptions, env: cleanEnv(spawnOptions.env) });
+}
+
+/**
+ * Start a sandbox that loads the data engine, saves a snapshot in the given
+ * checkpoint directory, and exits.
+ */
+export function launchPyodideSnapshotMaker(options: ISandboxOptions, dir: string): ChildProcess {
+  const settings = getBaseSettings(options);
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(fs.realpathSync.native(dir), PYODIDE_SNAPSHOT_NAME);
+  // Don't leave an old snapshot in place if making this one fails.
+  fs.rmSync(file, { force: true });
+  if (settings.command) {
+    settings.args.push(`--allow-write=${file}`);
+  }
+  return launchPyodide(options, settings, { GRIST_PYODIDE_SNAPSHOT_MAKE: file });
+}
+
+function getBaseSettings(options: ISandboxOptions): PyodideSettings {
   const base = getUnpackedAppRoot();
   const scriptPath = fs.realpathSync(
     path.resolve(base, "sandbox", "pyodide", "pipe.js"),
@@ -64,6 +146,7 @@ export function getPyodideSettings(options: ISandboxOptions): PyodideSettings {
 
       // Provide the promised descriptors.
       stdio: ["ignore", "ignore", "pipe", "ipc", "pipe", "pipe"] as ("pipe" | "ipc")[],
+      env: {},
     };
   }
 
@@ -74,14 +157,6 @@ export function getPyodideSettings(options: ISandboxOptions): PyodideSettings {
   // sandbox directory. We drop this access before running user code with pyodide.
   const readDir = fs.realpathSync(
     path.resolve(base, "sandbox", "pyodide"),
-  );
-
-  // Pyodide maintains its own cache of packages. The pipe.js process supplies
-  // packages, and pyodide will want to copy them into a cache. So we give
-  // access to a directory for that purpose. We drop this access before
-  // running user code.
-  const writeDir = fs.realpathSync(
-    path.resolve(base, "sandbox", "pyodide", "_build", "cache"),
   );
 
   // The code for the data engine lives outside the sandbox/pyodide directory,
@@ -115,10 +190,10 @@ export function getPyodideSettings(options: ISandboxOptions): PyodideSettings {
       `--allow-read=${readDir}`,
       `--allow-read=${gristDir}`,
       `--allow-read=${reqFile}`,
-      `--allow-write=${writeDir}`,
       "--allow-env",
       ...importAllow,
     ],
+    env: {},
   };
 }
 

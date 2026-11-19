@@ -75,7 +75,7 @@ import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
 import { IWebSocketProxy } from "app/server/lib/IWebSocketProxy";
 import log, { logAsJson, metaField } from "app/server/lib/log";
 import { disableCache, noop } from "app/server/lib/middleware";
-import { testSandboxFlavor } from "app/server/lib/NSandbox";
+import { prepareSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
 import { IPermitStore } from "app/server/lib/Permit";
 import { getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot } from "app/server/lib/places";
@@ -193,6 +193,7 @@ export class FlexServer implements GristServer {
   private _auditLogger: IAuditLogger;
   private _telemetry: ITelemetry;
   private _processMonitorStop?: () => void;    // Callback to stop the ProcessMonitor
+  private _prepareSandboxesStop?: () => void;
   private _docWorkerMap: IDocWorkerMap;
   private _docWorkerLoadTracker?: DocWorkerLoadTracker;
   private _docApiUsageTracker?: DocApiUsageTracker;
@@ -1193,6 +1194,7 @@ export class FlexServer implements GristServer {
 
   public async close() {
     this._processMonitorStop?.();
+    this._prepareSandboxesStop?.();
     await this._updateManager?.clear();
     if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
@@ -1774,6 +1776,8 @@ export class FlexServer implements GristServer {
       addDocApiRoutes(this.app, docWorker, this._docWorkerMap, docManager, this._dbManager,
         this._attachmentStoreProvider, this, tracker);
     }
+
+    this._prepareSandboxesStop = prepareSandboxes();
   }
 
   public async getSandboxInfo(): Promise<SandboxInfo> {

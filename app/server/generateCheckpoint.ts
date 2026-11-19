@@ -3,27 +3,28 @@
  * This opens a sandbox in order to capture a checkpoint of the sandbox after Grist
  * python code has been loaded within it. This helps run Grist's 1000s of tests under
  * gvisor on a ptrace platform, for which all the file accesses on sandbox startup
- * are relatively slow.
+ * are relatively slow, and under pyodide, which is slow to load.
  *
  */
 
 import "app/server/lib/lockdown";
-import { getCreate } from "app/server/lib/create";
+import { getConfiguredFlavor, makeCheckpoint } from "app/server/lib/NSandbox";
 
 export async function main() {
-  if (!process.env.GRIST_CHECKPOINT) {
-    throw new Error("GRIST_CHECKPOINT must be defined");
+  const dir = process.env.GRIST_CHECKPOINT;
+  if (!dir || dir === "none") {
+    throw new Error("GRIST_CHECKPOINT must name a directory");
   }
-  if (!process.env.GRIST_CHECKPOINT_MAKE) {
-    throw new Error("GRIST_CHECKPOINT_MAKE must be defined");
+  const flavor = getConfiguredFlavor();
+  if (!flavor) {
+    throw new Error("GRIST_SANDBOX_FLAVOR must be defined");
   }
-  getCreate().NSandbox({
-    preferredPythonVersion: "3",
-  });
+  await makeCheckpoint(flavor, dir);
 }
 
 if (require.main === module) {
   main().catch((e) => {
     console.error(e);
+    process.exitCode = 1;
   });
 }

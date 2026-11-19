@@ -32,5 +32,5 @@ export interface ISandbox {
 }
 
 export interface ISandboxCreator {
-  create(options: ISandboxCreationOptions): ISandbox;
+  create(options: ISandboxCreationOptions): Promise<ISandbox>;
 }

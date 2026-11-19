@@ -89,7 +89,7 @@ export interface ICreate {
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
   Assistant(gristConfig: GristServer): IAssistant | undefined;
 
-  NSandbox(options: ISandboxCreationOptions): ISandbox;
+  NSandbox(options: ISandboxCreationOptions): Promise<ISandbox>;
 
   // Create the logic to determine which users are authorized to manage this Grist installation.
   createInstallAdmin(dbManager: HomeDBManager): Promise<InstallAdmin>;
@@ -193,7 +193,7 @@ export class BaseCreate implements ICreate {
     return undefined;
   }
 
-  public NSandbox(options: ISandboxCreationOptions): ISandbox {
+  public NSandbox(options: ISandboxCreationOptions): Promise<ISandbox> {
     return createSandbox("unsandboxed", options);
   }
 

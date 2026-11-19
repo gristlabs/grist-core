@@ -27,6 +27,3 @@ if [[ "${INST_PYODIDE_VERSION}" != "${PYODIDE_VERSION}" ]]; then
   echo "Run make clean and try again."
   exit 1
 fi
-
-# Need an area for pyodide package cache.
-mkdir -p _build/cache
