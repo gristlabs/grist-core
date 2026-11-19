@@ -27,6 +27,7 @@ import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { makeForkIds, makeId } from "app/server/lib/idUtils";
 import { insightLogDecorate, insightLogEntry } from "app/server/lib/InsightLog";
 import log from "app/server/lib/log";
+import { trackActiveDocs } from "app/server/lib/metrics";
 import { PluginManager } from "app/server/lib/PluginManager";
 import { getScope } from "app/server/lib/requestUtils";
 import { checkAllegedGristDoc } from "app/server/lib/serverUtils";
@@ -99,6 +100,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     public gristServer: GristServer,
   ) {
     super();
+    trackActiveDocs(this);
   }
 
   public setRecovery(docId: string, recovery: boolean) {
