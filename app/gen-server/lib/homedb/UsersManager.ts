@@ -570,7 +570,8 @@ export class UsersManager {
   public async deleteUser(scope: Scope, userIdToDelete: number,
     name?: string): Promise<QueryResult<User>> {
     const userIdDeleting = scope.userId;
-    if (userIdDeleting !== userIdToDelete) {
+    // The server relies on the special users existing.
+    if (userIdDeleting !== userIdToDelete || this.getSpecialUserIds().includes(userIdToDelete)) {
       throw new ApiError("not permitted to delete this user", 403);
     }
 

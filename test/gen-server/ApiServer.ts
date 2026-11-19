@@ -2314,6 +2314,20 @@ describe("ApiServer", function() {
     assert.deepEqual(countsAfter, countsBefore);
   });
 
+  it("DELETE /api/user/:uid cannot delete special users", async function() {
+    const anonId = dbManager.getAnonymousUserId();
+    let resp = await axios.delete(`${homeUrl}/api/users/${anonId}`, { data: { name: "" }, ...nobody });
+    assert.equal(resp.status, 403);
+    assert.match(resp.data.error, /not permitted/);
+    assert.exists(await dbManager.getUser(anonId));
+
+    // The support user can log in, and is equally needed by the server.
+    const supportId = dbManager.getSupportUserId();
+    resp = await axios.delete(`${homeUrl}/api/users/${supportId}`, { data: { name: "Support" }, ...support });
+    assert.equal(resp.status, 403);
+    assert.exists(await dbManager.getUser(supportId));
+  });
+
   describe("Service Accounts", function() {
     afterEach(async () => {
       await dbManager.testDeleteAllServiceAccounts();
