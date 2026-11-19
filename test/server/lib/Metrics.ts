@@ -1,7 +1,9 @@
 import {
-  gristActiveDocDataEngineBytes, gristActiveDocOpen, gristDocWorkerLoadRatio,
+  gristActiveDocDataEngineBytes, gristActiveDocOpen, gristActiveDocOpenDuration, gristDocWorkerLoadRatio,
   gristDocWorkerMemoryTotalBytes, gristDocWorkerMemoryUsedBytes, gristHomeDbPoolConnections,
-  recordDocWorkerLoad, trackActiveDocs, trackHomeDbPool,
+  gristHttpRequestDuration, gristRedisOpDuration, gristRedisOpErrors, gristRpcDuration,
+  instrumentRedisClient, instrumentRpcMethod, normalizeRoute, observeDocOpen, observeHttpRequest,
+  recordDocWorkerLoad, requestRoute, trackActiveDocs, trackHomeDbPool,
 } from "app/server/lib/metrics";
 
 import { assert } from "chai";
@@ -70,6 +72,103 @@ describe("metrics", function() {
       recordDocWorkerLoad({ loadRatio: 0, memoryUsedMB: 10, memoryTotalMB: Infinity });
       assert.deepEqual((await gristDocWorkerMemoryTotalBytes.get()).values, []);
       assert.deepEqual((await gristDocWorkerMemoryUsedBytes.get()).values.map(v => v.value), [10 * MB]);
+    });
+  });
+  describe("normalizeRoute()", function() {
+    it("drops the doc worker prefix, since any worker serves the same endpoint", function() {
+      assert.equal(normalizeRoute("/dw/10.0.0.2/api/docs/abc/tables"), "/api/docs/abc/tables");
+    });
+
+    it("collapses ids, and keeps endpoint names", function() {
+      assert.equal(normalizeRoute("/api/docs/p3cn2fnzbxFMgmU2PFZUMa/tables"), "/api/docs/:id/tables");
+      assert.equal(normalizeRoute("/api/docs/p3cn2fnzbxFMgmU2PFZUMa"), "/api/docs/:id");
+      assert.equal(normalizeRoute("/api/orgs/2/workspaces"), "/api/orgs/:id/workspaces");
+      assert.equal(normalizeRoute("/attachments/ZXhhbXBsZS1hdHRhY2htZW50"), "/attachments/:id");
+      assert.equal(normalizeRoute("/o/docs-5/api/docs"), "/o/docs-5/api/docs");
+      assert.equal(normalizeRoute("/attachments"), "/attachments");
+      assert.equal(normalizeRoute("/status"), "/status");
+    });
+
+    it("takes the matched route when express found one", function() {
+      assert.equal(
+        requestRoute({ path: "/api/docs/2/tables", baseUrl: "/dw/w1", route: { path: "/docs/:docId" } }),
+        "/docs/:docId");
+      assert.equal(requestRoute({ path: "/nowhere" }), "/nowhere");
+    });
+  });
+
+  describe("grist_http_request_duration_seconds", function() {
+    beforeEach(function() {
+      gristHttpRequestDuration.reset();
+    });
+
+    it("records the route, the method and the status class", async function() {
+      observeHttpRequest({ role: "server(home,docs)", method: "GET", route: "/api/docs/:id" }, 404, 0.5);
+      const { values } = await gristHttpRequestDuration.get();
+      const count = values.find(v => v.metricName?.endsWith("_count"))!;
+      assert.equal(count.value, 1);
+      assert.deepEqual(count.labels,
+        { role: "server(home,docs)", method: "GET", route: "/api/docs/:id", status: "4xx" });
+      const sum = values.find(v => v.metricName?.endsWith("_sum"))!;
+      assert.equal(sum.value, 0.5);
+    });
+  });
+
+  describe("grist_rpc_duration_seconds", function() {
+    it("records the method the client called, whatever its outcome", async function() {
+      gristRpcDuration.reset();
+      const ok = instrumentRpcMethod("getDoc", async (_client: unknown, _docName: string) => "result");
+      const failing = instrumentRpcMethod("applyUserActions",
+        async (_client: unknown, _actions: unknown[]) => { throw new Error("nope"); });
+      assert.equal(await ok({}, "doc"), "result");
+      await assert.isRejected(failing({}, []), /nope/);
+      const methods = (await gristRpcDuration.get()).values
+        .filter(v => v.metricName?.endsWith("_count") && v.labels.method !== undefined)
+        .map(v => v.labels.method);
+      assert.includeMembers(methods, ["getDoc", "applyUserActions"]);
+    });
+  });
+
+  describe("grist_activedoc_open_duration_seconds", function() {
+    it("records the open mode", async function() {
+      gristActiveDocOpenDuration.reset();
+      observeDocOpen("recovery", 12);
+      const { values } = await gristActiveDocOpenDuration.get();
+      assert.isTrue(values.every(v => v.labels.mode === "recovery"));
+      assert.isTrue(values.some(v => v.metricName?.endsWith("_sum") && v.value === 12));
+    });
+  });
+
+  describe("instrumentRedisClient()", function() {
+    it("times the commands the v3 client sends, and reports the ones that fail", async function() {
+      gristRedisOpDuration.reset();
+      gristRedisOpErrors.reset();
+      class FakeRedisClient {
+        public internal_send_command(command: any) {
+          command.callback?.(command.command === "get" ? null : new Error("fail"), "OK");
+          return "sent";
+        }
+      }
+      instrumentRedisClient(FakeRedisClient);
+      const client = new FakeRedisClient();
+      const replies: unknown[] = [];
+      assert.equal(client.internal_send_command({ command: "get", callback: (err: unknown, res: unknown) => {
+        replies.push([err, res]);
+      } }), "sent");
+      client.internal_send_command({ command: "hgetall", callback: (err: unknown) => replies.push(err) });
+      assert.deepEqual(replies, [[null, "OK"], new Error("fail")]);
+      const ops = (await gristRedisOpDuration.get()).values
+        .filter(v => v.metricName?.endsWith("_count") && v.labels.op !== undefined)
+        .map(v => v.labels.op);
+      assert.includeMembers(ops, ["get", "hgetall"]);
+      const errors = (await gristRedisOpErrors.get()).values
+        .filter(v => v.labels.op === "hgetall");
+      assert.deepEqual(errors.map(v => v.value), [1]);
+    });
+
+    it("does nothing when the client does not have the v3 shape", function() {
+      class NotRedis {}
+      assert.doesNotThrow(() => instrumentRedisClient(NotRedis));
     });
   });
 });

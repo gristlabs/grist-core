@@ -1,4 +1,4 @@
-import { collectDefaultMetrics, Gauge } from "prom-client";
+import { collectDefaultMetrics, Counter, Gauge, Histogram } from "prom-client";
 
 import type { DataSource } from "typeorm";
 
@@ -7,6 +7,14 @@ const BYTES_PER_MB = 1024 ** 2;
 export interface ActiveDocMetricsSource {
   numOpenDocs(): number;
   getTotalMemoryUsedMB(): number;
+}
+
+export type DocOpenMode = "normal" | "recovery";
+
+export interface HttpRequestLabels {
+  role: string;
+  method: string;
+  route: string;
 }
 
 export interface DocWorkerLoadMeasurement {
@@ -83,6 +91,40 @@ export const gristDocWorkerMemoryTotalBytes = unreportedGauge(
   "Memory budget of this doc worker, absent when unbounded",
 );
 
+export const gristHttpRequestDuration = new Histogram({
+  name: "grist_http_request_duration_seconds",
+  help: "Latency of the HTTP requests this server answered",
+  labelNames: ["role", "method", "route", "status"],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30],
+});
+
+export const gristRpcDuration = new Histogram({
+  name: "grist_rpc_duration_seconds",
+  help: "Latency of the RPC methods this server answered",
+  labelNames: ["method"],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30],
+});
+
+export const gristActiveDocOpenDuration = new Histogram({
+  name: "grist_activedoc_open_duration_seconds",
+  help: "Latency of opening a document, from fetch to loaded",
+  labelNames: ["mode"],
+  buckets: [0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60, 120, 300],
+});
+
+export const gristRedisOpDuration = new Histogram({
+  name: "grist_redis_op_duration_seconds",
+  help: "Latency of the Redis commands this server sent",
+  labelNames: ["op"],
+  buckets: [0.0005, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5],
+});
+
+export const gristRedisOpErrors = new Counter({
+  name: "grist_redis_op_errors_total",
+  help: "Redis commands that failed",
+  labelNames: ["op"],
+});
+
 function unreportedGauge(name: string, help: string): Gauge {
   const gauge = new Gauge({ name, help });
   gauge.remove();
@@ -117,6 +159,91 @@ export function trackHomeDbPool(connection: DataSource | undefined) {
   _homeDbConnection = connection;
 }
 
+export function observeHttpRequest(labels: HttpRequestLabels, statusCode: number, seconds: number) {
+  const status = `${Math.floor(statusCode / 100)}xx`;
+  gristHttpRequestDuration.observe({ ...labels, status }, seconds);
+}
+
+export function observeRpcMethod(method: string, seconds: number) {
+  gristRpcDuration.observe({ method }, seconds);
+}
+
+export function observeDocOpen(mode: DocOpenMode, seconds: number) {
+  gristActiveDocOpenDuration.observe({ mode }, seconds);
+}
+
+export function secondsTimer(): () => number {
+  const start = process.hrtime.bigint();
+  return () => Number(process.hrtime.bigint() - start) / 1e9;
+}
+
+export function instrumentRpcMethod<M extends (client: any, ...args: any[]) => unknown>(
+  methodName: string, method: M,
+): M {
+  return (async function(client: any, ...args: any[]) {
+    const elapsed = secondsTimer();
+    try {
+      return await method(client, ...args);
+    } finally {
+      observeRpcMethod(methodName, elapsed());
+    }
+  }) as M;
+}
+
+const ID_SEGMENT = /^(?:\d+|[A-Za-z0-9_-]{12,})$/;
+
+export function normalizeRoute(path: string): string {
+  const withoutWorker = path.replace(/^\/dw\/[^/]+/, "");
+  return withoutWorker.split("/").map(segment => (ID_SEGMENT.test(segment) ? ":id" : segment)).join("/");
+}
+
+export function requestRoute(req: { baseUrl?: string, path: string, route?: { path?: unknown } }): string {
+  const matched = req.route?.path;
+  return normalizeRoute(typeof matched === "string" ? `${req.baseUrl ?? ""}${matched}` : req.path);
+}
+
+const INSTRUMENTED = Symbol("gristMetricsInstrumented");
+
+interface SendingCommands {
+  call(thisArg: unknown, command: unknown): unknown;
+}
+
+export function instrumentRedisClient(redisClient?: { prototype: unknown }) {
+  const redis = redisClient ?? loadRedisClient();
+  const proto = redis?.prototype as { [INSTRUMENTED]?: boolean, internal_send_command?: SendingCommands };
+  if (!proto?.internal_send_command || proto[INSTRUMENTED]) {
+    return;
+  }
+  const send = proto.internal_send_command;
+  proto[INSTRUMENTED] = true;
+  proto.internal_send_command = function(this: unknown, command: any) {
+    const callback = command?.callback;
+    if (typeof callback !== "function") {
+      return send.call(this, command);
+    }
+    const op = String(command?.command ?? "unknown").toLowerCase();
+    const elapsed = secondsTimer();
+    command.callback = function(err: Error | null, res: unknown) {
+      gristRedisOpDuration.observe({ op }, elapsed());
+      if (err) {
+        gristRedisOpErrors.inc({ op });
+      }
+      return callback.call(this, err, res);
+    };
+    return send.call(this, command);
+  };
+}
+
+function loadRedisClient(): { prototype: unknown } | undefined {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("redis").RedisClient;
+  } catch (e) {
+    return undefined;
+  }
+}
+
 export function initMetrics() {
   collectDefaultMetrics();
+  instrumentRedisClient();
 }

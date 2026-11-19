@@ -99,6 +99,7 @@ export class MergedServer {
     ms.flexServer.addTagChecker();
 
     ms.flexServer.addHealthCheck();
+    ms.flexServer.addMetrics();
     ms.flexServer.denyRequestsIfNotReady();
 
     if (ms.hasComponent("home") || ms.hasComponent("static") || ms.hasComponent("app")) {
