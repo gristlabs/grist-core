@@ -193,6 +193,8 @@ export class DocWorkerLoadTracker {
   }
 
   private async _updateLoad() {
+    await this._restoreRegistration();
+
     let load: number;
     try {
       load = await this.getLoad();
@@ -203,5 +205,14 @@ export class DocWorkerLoadTracker {
       throw e;
     }
     await this._docWorkerMap.setWorkerLoad(this._docWorkerInfo, load);
+  }
+
+  private async _restoreRegistration() {
+    if (await this._docWorkerMap.isWorkerRegistered(this._docWorkerInfo)) {
+      return;
+    }
+    this._log.warn(null, `worker ${this._docWorkerInfo.id} is no longer in the worker pool`);
+    await this._docWorkerMap.addWorker(this._docWorkerInfo);
+    await this._docWorkerMap.setWorkerAvailability(this._docWorkerInfo.id, true);
   }
 }
