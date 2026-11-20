@@ -94,6 +94,7 @@ describe("LinkingBidirectional", function() {
   it("should keep position after refresh", async function() {
     // Nothing should change after a refresh
     await gu.reloadDoc();
+    await gu.waitForCursorMoves();
 
     assert.deepEqual(await getCursorAndArrow("Classes1"), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
     assert.deepEqual(await getCursorAndArrow("Classes2"), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
@@ -144,6 +145,7 @@ describe("LinkingBidirectional", function() {
     // Go to Classes1, and refresh (its cursor will be restored).
     await gu.selectSectionByTitle("Classes1");
     await gu.reloadDoc();
+    await gu.waitForCursorMoves();
 
     // Nothing should change after a refresh
     assert.deepEqual(await getCursorAndArrow("Classes1"), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
@@ -159,6 +161,7 @@ describe("LinkingBidirectional", function() {
     await gu.onNewTab(async () => {
       await driver.get(anchor);
       await gu.waitForDocToLoad();
+      await gu.waitForCursorMoves();
 
       assert.deepEqual(await getCursorAndArrow("Classes1"), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
       await expectNoArrowNoCursor("Classes2");
@@ -172,6 +175,7 @@ describe("LinkingBidirectional", function() {
     await gu.onNewTab(async () => {
       await driver.get(anchor2);
       await gu.waitForDocToLoad();
+      await gu.waitForCursorMoves();
 
       assert.deepEqual(await getCursorAndArrow("Classes1"), { arrow: 3,    cursor: { rowNum: 3, col: 0 } });
       await expectNoArrowNoCursor("Classes2");
