@@ -134,11 +134,17 @@ describe("DocWorkerLoadTracker", function() {
     let getLoadStub: sinon.SinonStub;
     let setWorkerLoadStub: sinon.SinonStub;
     let recordWorkerAliveStub: sinon.SinonStub;
+    let isWorkerRegisteredStub: sinon.SinonStub;
+    let addWorkerStub: sinon.SinonStub;
+    let setWorkerAvailabilityStub: sinon.SinonStub;
     let logErrorStub: sinon.SinonStub;
     beforeEach(function() {
       getLoadStub = sandbox.stub(docWorkerLoadTracker, "getLoad").resolves(0);
       setWorkerLoadStub = sandbox.stub(docWorkerMap, "setWorkerLoad").resolves(undefined);
       recordWorkerAliveStub = sandbox.stub(docWorkerMap, "recordWorkerAlive").resolves(undefined);
+      isWorkerRegisteredStub = sandbox.stub(docWorkerMap, "isWorkerRegistered").resolves(true);
+      addWorkerStub = sandbox.stub(docWorkerMap, "addWorker").resolves(undefined);
+      setWorkerAvailabilityStub = sandbox.stub(docWorkerMap, "setWorkerAvailability").resolves(undefined);
       logErrorStub = sandbox.stub(docWorkerLoadTracker["_log"], "error").returns(undefined);
     });
 
@@ -164,6 +170,38 @@ describe("DocWorkerLoadTracker", function() {
       assert.include(logErrorStub.firstCall.args, error, "the error should have been logged");
       // Still running, whatever its memory files say. A worker that cannot measure itself must
       // not read as one that has stopped, which is an invitation to deregister it.
+      assert.deepEqual(recordWorkerAliveStub.firstCall?.args, [docWorkerInfoMap.id]);
+    });
+
+    it("should put a worker that has left the worker pool back into it", async function() {
+      isWorkerRegisteredStub.resolves(false);
+
+      await triggerTimer();
+
+      assert.deepEqual(addWorkerStub.firstCall?.args, [docWorkerInfoMap]);
+      assert.deepEqual(setWorkerAvailabilityStub.firstCall?.args, [docWorkerInfoMap.id, true]);
+      assert.equal(setWorkerLoadStub.callCount, 1);
+      sinon.assert.callOrder(addWorkerStub, setWorkerAvailabilityStub, setWorkerLoadStub);
+    });
+
+    it("should leave a worker that is still in the worker pool alone", async function() {
+      await triggerTimer();
+
+      assert.equal(addWorkerStub.callCount, 0);
+      assert.equal(setWorkerAvailabilityStub.callCount, 0);
+      assert.equal(setWorkerLoadStub.callCount, 1);
+    });
+
+    it("should put a worker back even when it cannot measure its load", async function() {
+      isWorkerRegisteredStub.resolves(false);
+      const error = new Error("an error");
+      getLoadStub.rejects(error);
+
+      await triggerTimer();
+
+      assert.equal(addWorkerStub.callCount, 1);
+      assert.equal(setWorkerAvailabilityStub.callCount, 1);
+      assert.equal(setWorkerLoadStub.callCount, 0);
       assert.deepEqual(recordWorkerAliveStub.firstCall?.args, [docWorkerInfoMap.id]);
     });
   });
