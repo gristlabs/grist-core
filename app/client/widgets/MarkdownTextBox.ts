@@ -1,3 +1,4 @@
+import { alignmentToTextAlign } from "app/client/lib/direction";
 import { watchForOverflow } from "app/client/lib/markdownOverflow";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -29,7 +30,7 @@ export class MarkdownTextBox extends NTextBox {
       cssMarkdown(
         watchForOverflow,
         cssMarkdown.cls("-text-wrap", this.wrapping),
-        dom.style("text-align", this.alignment),
+        dom.style("text-align", use => alignmentToTextAlign(use(this.alignment))),
         dom.on("contextmenu", (ev) => {
           // Disable Grist cell context menu on links.
           if ((ev.target as HTMLElement).closest("a")) {
@@ -153,7 +154,7 @@ export const cssMarkdown = styled("div", `
     white-space: pre-wrap;
   }
   & ul, & ol {
-    padding-left: 2em;
+    padding-inline-start: 2em;
   }
   & li > ol, & li > ul {
     margin: 0;

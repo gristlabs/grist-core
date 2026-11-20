@@ -41,6 +41,7 @@
 import { ContentBox, Layout, LayoutBox } from "app/client/components/Layout";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { Delay } from "app/client/lib/Delay";
+import { DIRECTION_HOLD, isRtl } from "app/client/lib/direction";
 import { Disposable, emptyNode } from "app/client/lib/dispose";
 import dom from "app/client/lib/dom";
 import koDom from "app/client/lib/koDom";
@@ -117,6 +118,9 @@ class Floater extends Disposable implements ContentBox {
         return leafContent;
       }),
     ));
+    // The box being dragged shows a part of the page layout, which cannot yet be laid out either way.
+    this.dom.setAttribute("dir", "ltr");
+    this.dom.setAttribute(DIRECTION_HOLD, "");
     G.document.body.appendChild(this.dom);
 
     this.mouseOffsetX = 0;
@@ -280,7 +284,10 @@ class DropTargeter extends Disposable {
     this.currentAffinity = affinity;
 
     const upDown = isAffinityUpDown(affinity);
-    const isAfter = isAffinityAfter(affinity);
+    // The affinity names a side of the screen, and the hints are drawn on that side. Along a row,
+    // which side comes after the box depends on the direction the row is laid out in.
+    const onFarSide = isAffinityAfter(affinity);
+    const isAfter = !upDown && isRtl(layoutBox.dom!) ? !onFarSide : onFarSide;
 
     const targetParts: TargetPart[] = [];
     // Allow dragging a leaf into another leaf as a child, splitting the latter into two.
@@ -313,7 +320,7 @@ class DropTargeter extends Disposable {
     }
 
     // Render the hint parts.
-    if (!isAfter) {
+    if (!onFarSide) {
       targetParts.reverse();
     }
 
@@ -336,7 +343,7 @@ class DropTargeter extends Disposable {
     this.targetsDom = dom("div.layout_editor_drop_targeter",
       koDom.style(pTop,
         (innerRect[pTop] - outerRect[pTop] +
-          (isAfter ? innerRect[pHeight] - totalHeight : 0)) + "px",
+          (onFarSide ? innerRect[pHeight] - totalHeight : 0)) + "px",
       ),
       targetParts.map((part, index) => {
         const rect = part.box.dom!.getBoundingClientRect();
@@ -349,7 +356,7 @@ class DropTargeter extends Disposable {
         dom.on("mouseenter", function(this: HTMLElement) {
           this.classList.add("layout_hover");
           self.activeTarget = part;
-          const padDir = upDown ? (isAfter ? "Bottom" : "Top") : (isAfter ? "Right" : "Left");
+          const padDir = upDown ? (onFarSide ? "Bottom" : "Top") : (onFarSide ? "Right" : "Left");
           const padding = "padding" + padDir;
           part.box.dom!.style.transition = "padding .3s";
           part.box.dom!.style[padding as any] = "20px";

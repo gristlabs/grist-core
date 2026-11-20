@@ -78,7 +78,8 @@ export function buildNameConfig(
           dom.boolAttr("readonly",
             use => use(disabled) || use(origColumn.disableModify) || !use(origColumn.untieColIdFromLabel)),
           cssCodeBlock.cls(""),
-          { style: "margin-top: 8px" },
+          // An identifier is code: it reads left-to-right in any language ("$A", not "A$").
+          { style: "margin-top: 8px", dir: "ltr" },
           testId("field-col-id"),
           setEditor(1),
         ),
@@ -489,7 +490,7 @@ function buildFormula(
 }
 
 const cssToggleButton = styled(cssIconButton, `
-  margin-left: 8px;
+  margin-inline-start: 8px;
   background-color: ${components.buttonGroupBg};
   box-shadow: inset 0 0 0 1px ${components.buttonGroupBorder};
   cursor: pointer;
@@ -527,9 +528,9 @@ const cssColTieConnectors = styled("div", `
   border: 2px solid ${theme.inputBorder};
   top: -9px;
   bottom: -9px;
-  right: 11px;
-  left: 0px;
-  border-left: none;
+  inset-inline-end: 11px;
+  inset-inline-start: 0px;
+  border-inline-start: none;
   z-index: -1;
 `);
 

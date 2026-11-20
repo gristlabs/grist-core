@@ -132,7 +132,8 @@ const cssLabel = styled("div", `
 
 const cssFilterIcon = styled(cssIcon, `
   flex: none;
-  margin: 0px 6px 0px 0px;
+  margin-block: 0px;
+  margin-inline: 0px 6px;
   background-color: ${theme.controlSecondaryFg};
 
   &-accent {
@@ -153,5 +154,5 @@ const cssRemoveFilterButton = styled(unstyledButton, `
 `);
 
 const cssPinFilterButton = styled(cssPinButton, `
-  margin-left: 6px;
+  margin-inline-start: 6px;
 `);

@@ -510,20 +510,21 @@ const cssNameColumn = styled("div", `
 
 const cssWorkspaceColumn = styled("div", `
   flex: 1 1 20%;
-  margin-right: 40px;
+  margin-inline-end: 40px;
   max-width: 200px;
 `);
 
 const cssEditedAtColumn = styled("div", `
   flex: 1 1 30%;
-  margin-right: 16px;
+  margin-inline-end: 16px;
   max-width: 250px;
 `);
 
 const cssOptionsColumn = styled("div", `
   flex: none;
   width: 44px;
-  margin: 0 4px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 4px;
   padding: 4px;
   display: flex;
 `);
@@ -596,7 +597,7 @@ const cssDocNameAndBadges = styled("div", `
   align-items: center;
   gap: 8px;
   width: 100%;
-  margin-right: 35px;
+  margin-inline-end: 35px;
   overflow: hidden;
 
   @media ${mediaMedium} {
@@ -653,12 +654,12 @@ const cssDocBadges = styled("div", `
   align-items: center;
   flex-shrink: 0;
   column-gap: 8px;
-  margin-left: auto;
+  margin-inline-start: auto;
   min-height: 16px;
 
   @media ${mediaMedium} {
     & {
-      margin-left: initial;
+      margin-inline-start: initial;
     }
   }
 `);
@@ -710,7 +711,8 @@ const cssDocOptions = styled(unstyledButton, `
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 4px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 4px;
   height: 44px;
   width: 44px;
   padding: 4px;
@@ -764,5 +766,5 @@ const cssMoveDocListText = styled("div", `
 `);
 
 const cssMoveDocListHintText = styled(cssMoveDocListText, `
-  text-align: right;
+  text-align: end;
 `);

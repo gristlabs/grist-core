@@ -1,14 +1,15 @@
 import { makeT } from "app/client/lib/localization";
 import { obsPropWithSaveOnWrite } from "app/client/lib/obsPropWithSaveOnWrite";
 import { ViewSectionRec } from "app/client/models/DocModel";
-import { cssGroupLabel, cssRow } from "app/client/ui/RightPanelStyles";
+import { reportError } from "app/client/models/errors";
+import { cssGroupLabel, cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
 import { rowNumbersMenu } from "app/client/ui/RowNumbersMenu";
 import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { menu } from "app/client/ui2018/menus";
+import { IOptionFull, menu, select } from "app/client/ui2018/menus";
 import { unstyledButton } from "app/client/ui2018/unstyled";
-import { RowNumbersMode } from "app/common/widgetTypes";
+import { RowNumbersMode, SheetOrientation } from "app/common/widgetTypes";
 
 import { Computed, Disposable, dom, Observable, styled } from "grainjs";
 
@@ -36,6 +37,22 @@ export class GridOptions extends Disposable {
 
     const showRowNumbers = Computed.create(this, use => use(rowNumbers) !== "hidden")
       .onWrite(show => rowNumbers.set(show ? shownMode.get() : "hidden"));
+
+    // "inherit" stands for an absent value: the option is removed rather than stored, so that a
+    // widget nobody decided about keeps following its container.
+    type OrientationChoice = SheetOrientation | "inherit";
+    const orientation = Computed.create<OrientationChoice>(this, use => use(options).sheetOrientation ?? "inherit")
+      .onWrite((value) => {
+        const { sheetOrientation: current, ...rest } = options.peek();
+        if (value === (current ?? "inherit")) { return; }
+        options.setAndSaveOrRevert(value === "inherit" ? rest : { ...rest, sheetOrientation: value })
+          .catch(reportError);
+      });
+    const orientationChoices: IOptionFull<OrientationChoice>[] = [
+      { value: "inherit", label: t("Not specified") },
+      { value: "rtl", label: t("Right to left") },
+      { value: "ltr", label: t("Left to right") },
+    ];
 
     return dom("div",
       { "role": "group", "aria-labelledby": "grid-options-label" },
@@ -76,6 +93,15 @@ export class GridOptions extends Disposable {
           testId("row-numbers"),
         ),
 
+        cssLabel(t("Sheet orientation"), { id: "sheet-orientation-label" }),
+        cssRow(
+          dom.update(
+            select(orientation, orientationChoices),
+            { "aria-labelledby": "sheet-orientation-label" },
+          ),
+          testId("sheet-orientation"),
+        ),
+
         testId("grid-options"),
       ]),
     );
@@ -86,7 +112,7 @@ export class GridOptions extends Disposable {
 const cssModeLink = styled(unstyledButton, `
   display: flex;
   align-items: center;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   color: ${theme.controlFg};
   --icon-color: ${theme.controlFg};
   cursor: pointer;

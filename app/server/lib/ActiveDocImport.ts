@@ -12,6 +12,7 @@ import { isBlankValue } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
 import { localTimestampToUTC } from "app/common/RelativeDates";
 import { guessColInfoForImports } from "app/common/ValueGuesser";
+import { SheetOrientation } from "app/common/widgetTypes";
 import { ParseFileResult, ParseOptions } from "app/plugin/FileParserAPI";
 import { GristColumn, GristTable } from "app/plugin/GristTable";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
@@ -297,7 +298,7 @@ export class ActiveDocImport {
         const intoNewTable: boolean = destTableId ? false : true;
         const destTable = destTableId || table.table_name || basename;
         createdTableId = await this._transformAndFinishImport(docSession, hiddenTableId, destTable,
-          intoNewTable, ruleCanBeApplied ? transformRule : null, mergeOptions);
+          intoNewTable, ruleCanBeApplied ? transformRule : null, mergeOptions, table.sheet_orientation);
       }
 
       fixedColumnIdsByTable[createdTableId] = hiddenTableColIds;
@@ -417,6 +418,7 @@ export class ActiveDocImport {
     hiddenTableId: string, destTableId: string,
     intoNewTable: boolean, transformRule: TransformRule | null,
     mergeOptions: MergeOptions | null,
+    sheetOrientation?: SheetOrientation,
   ): Promise<string> {
     log.debug("ActiveDocImport._transformAndFinishImport(%s, %s, %s, %s, %s)",
       hiddenTableId, destTableId, intoNewTable, transformRule, mergeOptions);
@@ -461,6 +463,9 @@ export class ActiveDocImport {
         ({ type, id, label, widgetOptions }));
       const newTable = await this._activeDoc.applyUserActions(docSession, [["AddTable", destTableId, colSpecs]]);
       destTableId = newTable.retValues[0].table_id;
+      if (sheetOrientation) {
+        await this._setSheetOrientation(docSession, newTable.retValues[0].id, sheetOrientation);
+      }
     }
 
     await this._activeDoc.applyUserActions(docSession,
@@ -469,6 +474,22 @@ export class ActiveDocImport {
       { parseStrings: !intoNewTable });
 
     return destTableId;
+  }
+
+  /**
+   * Gives the grids of a newly created table the orientation its source had. An import into an
+   * existing table leaves that table's grids as they are.
+   */
+  private async _setSheetOrientation(
+    docSession: OptDocSession, tableRef: number, sheetOrientation: SheetOrientation,
+  ): Promise<void> {
+    const sections = this._activeDoc.docData!.getMetaTable("_grist_Views_section")
+      .filterRecords({ tableRef, parentKey: "record" });
+    if (sections.length === 0) { return; }
+    await this._activeDoc.applyUserActions(docSession, [[
+      "BulkUpdateRecord", "_grist_Views_section", sections.map(s => s.id),
+      { options: sections.map(s => JSON.stringify({ ...gutil.safeJsonParse(s.options, {}), sheetOrientation })) },
+    ]]);
   }
 
   /**

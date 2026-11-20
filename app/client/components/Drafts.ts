@@ -431,7 +431,7 @@ const styledTooltip = styled("div", `
   --icon-color: ${theme.controlFg};
 
   & > .${cssLink.className} {
-    margin-left: 8px;
+    margin-inline-start: 8px;
   }
 `);
 

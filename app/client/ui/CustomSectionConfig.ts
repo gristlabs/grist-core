@@ -711,7 +711,7 @@ function typeDesc(column: ColumnToMapImpl): string {
 }
 
 const cssWarningWrapper = styled("div", `
-  padding-left: 8px;
+  padding-inline-start: 8px;
   padding-top: 6px;
   --icon-color: ${theme.iconError}
 `);
@@ -735,14 +735,14 @@ const cssSection = styled("div", `
 `);
 
 const cssAddIcon = styled(icon, `
-  margin-right: 4px;
+  margin-inline-end: 4px;
 `);
 
 const cssRemoveIcon = styled(icon, `
   display: none;
   cursor: pointer;
   flex: none;
-  margin-left: 8px;
+  margin-inline-start: 8px;
   .${cssFieldEntry.className}:hover & {
     display: block;
   }
@@ -811,7 +811,7 @@ const cssShowWidgetDetailsIcon = styled(icon, `
   flex-shrink: 0;
 
   &-collapsed {
-    transform: rotate(-90deg);
+    transform: rotate(calc(-90deg * var(--inline-sign)));
   }
 `);
 

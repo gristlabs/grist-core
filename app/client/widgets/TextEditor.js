@@ -5,6 +5,7 @@ var kd = require("../lib/koDom");
 var dispose = require("../lib/dispose");
 var BaseEditor = require("./BaseEditor");
 var commands = require("../components/commands");
+const {alignmentToTextAlign} = require("app/client/lib/direction");
 const {testId} = require("app/client/ui2018/cssVars");
 const {createMobileButtons, getButtonMargins} = require("app/client/widgets/EditorButtons");
 const {EditorPlacement} = require("app/client/widgets/EditorPlacement");
@@ -44,7 +45,7 @@ function TextEditor(options) {
       this.contentSizer = dom("div.celleditor_content_measure"),
       this.textInput = dom("textarea.celleditor_text_editor",
         kd.attr("placeholder", options.placeholder || ""),
-        kd.style("text-align", this._alignment),
+        kd.style("text-align", alignmentToTextAlign(this._alignment)),
         kd.boolAttr("readonly", options.readonly),
         kd.value(initialValue),
         this.commandGroup.attach(),

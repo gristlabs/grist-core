@@ -37,7 +37,9 @@ export class CodeEditorPanel extends DisposableWithEvents {
       dom.maybe(this._code, (code) => {
         // The reason to scope and rebuild instead of using `kd.text(code)` is because
         // hljs.highlightBlock(elem) replaces `elem` with a whole new dom tree.
+        // Code is written left-to-right in any language.
         const elem = dom("code.g-code-viewer",
+          { dir: "ltr" },
           dom.text(code),
           dom.hide(true),
         );

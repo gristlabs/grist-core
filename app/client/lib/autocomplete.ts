@@ -2,7 +2,9 @@
  * Implements an autocomplete dropdown.
  */
 import { ACItem, ACResults, HighlightFunc } from "app/client/lib/ACIndex";
+import { interfaceRtl } from "app/client/lib/direction";
 import { attachMouseOverOnMove, findAncestorChild } from "app/client/lib/domUtils";
+import { mirrorPlacement } from "app/client/lib/popupDirection";
 import { reportError } from "app/client/models/errors";
 import { testId, theme } from "app/client/ui2018/cssVars";
 import { MaybePromise } from "app/plugin/gutil";
@@ -117,6 +119,9 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
 
     // Prepare and create the Popper instance, which places the content according to the options.
     const popperOptions = merge({}, defaultPopperOptions, _options.popperOptions);
+    if (popperOptions.placement) {
+      popperOptions.placement = mirrorPlacement(popperOptions.placement, interfaceRtl().get());
+    }
     this._popper = createPopper(_triggerElem, content, popperOptions);
     this.onDispose(() => this._popper.destroy());
   }

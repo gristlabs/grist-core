@@ -123,9 +123,9 @@ const cssForm = styled("form", `
 
 const cssQuestion = styled("div", `
   margin: 32px 0;
-  padding-left: 24px;
+  padding-inline-start: 24px;
   & > :first-child {
-    margin-left: -24px;
+    margin-inline-start: -24px;
   }
 `);
 
@@ -145,7 +145,7 @@ const cssCheckboxLabel = styled(cssLabel, `
 
 const cssCheckbox = styled(cssCheckboxSquare, `
   position: relative;
-  margin-right: 12px !important;
+  margin-inline-end: 12px !important;
   border-radius: var(--radius);
 `);
 

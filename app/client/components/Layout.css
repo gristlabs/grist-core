@@ -61,9 +61,9 @@
 }
 
 .layout_new {
-  border-left: 1px solid lightgrey;
+  border-inline-start: 1px solid lightgrey;
   border-top: 1px solid lightgrey;
-  border-right: 1px solid grey;
+  border-inline-end: 1px solid grey;
   border-bottom: 1px solid grey;
   color: grey;
 }
@@ -75,9 +75,9 @@
 }
 
 .layout_leaf_test {
-  border-left: 1px solid lightgrey;
+  border-inline-start: 1px solid lightgrey;
   border-top: 1px solid lightgrey;
-  border-right: 1px solid grey;
+  border-inline-end: 1px solid grey;
   border-bottom: 1px solid grey;
   color: grey;
   width: 100%;

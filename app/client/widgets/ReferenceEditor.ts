@@ -152,7 +152,7 @@ export function renderACItem(text: string, highlightFunc: HighlightFunc, isAddNe
 
 const cssRefEditor = styled("div", `
   & > .celleditor_text_editor, & > .celleditor_content_measure {
-    padding-left: 18px;
+    padding-inline-start: 18px;
   }
 `);
 
@@ -206,7 +206,7 @@ export const cssPlusButton = styled("div", `
   width: 20px;
   height: 20px;
   border-radius: 20px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   align-items: center;
   justify-content: center;
   background-color: ${theme.autocompleteAddNewCircleBg};
@@ -225,7 +225,7 @@ const cssRefEditIcon = styled(icon, `
   background-color: ${theme.lightText};
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   margin: 3px 3px 0 3px;
 `);
 

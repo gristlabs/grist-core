@@ -1469,7 +1469,7 @@ const cssRestartBanner = styled(cssSection, ``);
 
 const cssDraftChangesList = styled("ul", `
   margin: 0 0 12px 0;
-  padding-left: 20px;
+  padding-inline-start: 20px;
   color: ${theme.text};
   & > li {
     margin-bottom: 4px;
@@ -1490,7 +1490,7 @@ const cssRestartButtonRow = styled("div", `
 const cssExpandedContent = styled("div", `
   display: flex;
   justify-content: space-between;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   margin-bottom: 1rem;
   align-items: center;
 `);
@@ -1512,8 +1512,8 @@ const cssGrayed = styled("span", `
 const cssLabel = styled("div", `
   display: inline-block;
   min-width: 100px;
-  text-align: right;
-  padding-right: 5px;
+  text-align: end;
+  padding-inline-end: 5px;
 `);
 
 const cssAdminAccountList = styled("ul", `
@@ -1542,7 +1542,8 @@ const cssAdminAccountReason = styled("span", `
 const cssAdminAccountItemPart = styled("span", `
   width: 50%;
   &>:not(div) {
-    padding: 12px 24px 12px 16px;
+    padding-block: 12px;
+    padding-inline: 16px 24px;
   }
 `);
 

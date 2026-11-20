@@ -181,7 +181,7 @@ const cssOrgButton = styled(bigBasicButtonLink, `
 const cssPersonalOrg = styled("div", `
   display: flex;
   align-items: center;
-  margin-left: -8px;
+  margin-inline-start: -8px;
   gap: 8px;
   color: ${theme.lightText};
 `);

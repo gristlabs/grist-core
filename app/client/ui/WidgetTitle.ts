@@ -364,7 +364,7 @@ const cssLockIcon = styled(icon, `
   align-self: center;
   width: 11px;
   height: 11px;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   cursor: default;
   --icon-color: ${theme.lightText};
 `);
@@ -392,6 +392,6 @@ const cssButtons = styled("div", `
   display: flex;
   margin-top: 16px;
   & > .${cssButton.className}:not(:first-child) {
-    margin-left: 8px;
+    margin-inline-start: 8px;
   }
 `);

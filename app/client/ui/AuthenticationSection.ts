@@ -1358,7 +1358,7 @@ const cssHeroTop = styled("div", `
 
 // "Was: …" lead-in above the name; padded to line up with the name, distinguished by color.
 const cssHeroWasLine = styled("div", `
-  padding-left: 28px;
+  padding-inline-start: 28px;
   margin-bottom: 4px;
   color: ${theme.lightText};
   font-weight: 600;

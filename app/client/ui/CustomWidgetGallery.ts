@@ -532,14 +532,14 @@ const cssSearchInputWrapper = styled("div", `
 `);
 
 const cssSearchIcon = styled(icon, `
-  margin-left: 8px;
+  margin-inline-start: 8px;
   position: absolute;
   --icon-color: ${theme.accentIcon};
 `);
 
 const cssSearchInput = styled(textInput, `
   height: 28px;
-  padding-left: 32px;
+  padding-inline-start: 32px;
 `);
 
 const cssShadowScroll = styled("div", `

@@ -352,6 +352,6 @@ export const cssEditorInput = styled(transientInput, `
   flex: 1 1 0px;
   min-width: 0px;
   background-color: ${theme.inputBg};
-  margin-right: 16px;
+  margin-inline-end: 16px;
   font-size: inherit;
 `);

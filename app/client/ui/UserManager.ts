@@ -815,13 +815,13 @@ const cssCopyBtn = styled(basicButton, `
   font-weight: normal;
   padding: 0 8px;
   &-header {
-    float: right;
+    float: inline-end;
     margin-top: 8px;
   }
 `);
 
 const cssCopyIcon = styled(icon, `
-  margin-right: 4px;
+  margin-inline-end: 4px;
   margin-top: -2px;
 `);
 
@@ -858,7 +858,7 @@ const cssOptionRowMultiple = styled("div", `
 `);
 
 const cssLabel = styled("span", `
-  margin-left: 4px;
+  margin-inline-start: 4px;
 `);
 
 const cssOptionBtn = styled("span", `
@@ -923,7 +923,7 @@ const cssCollapseIcon = styled(icon, `
 
 const cssAccessLink = styled(cssLink, `
   align-self: center;
-  margin-left: auto;
+  margin-inline-start: auto;
 `);
 
 const cssOrgName = styled("div", `
@@ -941,7 +941,7 @@ const cssAccessOverviewList = styled("div", `
 
 const cssAccessOverview = styled("div", `
   font-size: 16px;
-  margin-left: 64px;
+  margin-inline-start: 64px;
   margin-bottom: 14px;
   margin-top: 16px;
   font-weight: 600;

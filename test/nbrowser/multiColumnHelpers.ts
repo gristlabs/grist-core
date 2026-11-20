@@ -259,28 +259,24 @@ export async function colWrap(col: string) {
 
 export async function colAlignment(col: string) {
   // TODO: unify how widgets are aligned.
+  // The alignment is named by the side of a left-to-right sheet it is drawn on: cells carry it as
+  // an inline side (the start or the end of the sheet), see app/client/lib/direction.ts.
+  const sides: Record<string, string> = {
+    "var(--inline-start-side)": "left", "var(--inline-end-side)": "right",
+    "flex-start": "left", "flex-end": "right", "center": "center",
+  };
   let cell = await gu.getCell(col, 1).find(".field_clip");
   let style = await cell.getAttribute("style");
   if (!style) {
     // We might have a choice column, use flex attribute of first child;
     cell = await gu.getCell(col, 1).find(".field_clip > div");
     style = await cell.getAttribute("style");
-    // Get justify-content style
-    const match = style.match(/justify-content: ([\w-]+)/);
-    if (!match) { return null; }
-    switch (match[1]) {
-      case "left": return "left";
-      case "center": return "center";
-      case "flex-end": return "right";
-    }
   }
-  let match = style.match(/text-align: (\w+)/);
-  if (!match) {
-    // We might be in a choice list column, so check if we have a flex attribute.
-    match = style.match(/justify-content: ([\w-]+)/);
-  }
+  const match = style.match(/text-align: ([^;]+)/) ||
+    // We might be in a choice or a choice list column, so check if we have a flex attribute.
+    style.match(/justify-content: ([^;]+)/);
   if (!match) { return null; }
-  return match[1] === "flex-end" ? "right" : match[1];
+  return sides[match[1].trim()] ?? match[1].trim();
 }
 
 export async function wrap(state?: boolean) {

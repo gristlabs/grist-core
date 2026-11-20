@@ -263,7 +263,7 @@ const cssDropdownStatus = styled("div", `
 const cssDropdownStatusText = styled("div", `
   display: inline-block;
   margin: 8px 0 0 0;
-  text-align: left;
+  text-align: start;
   color: ${theme.lightText};
 `);
 
@@ -272,7 +272,7 @@ const cssDropdownStatusText = styled("div", `
 const cssSnackbarWrapper = styled("div", `
   position: fixed;
   bottom: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   z-index: ${vars.notificationZIndex};
 
   display: flex;
@@ -328,23 +328,23 @@ const cssToastWrapper = styled("div", `
     background-color: ${theme.toastMemoBg};
   }
   &-error {
-    border-left: 6px solid ${theme.toastErrorBg};
-    padding-left: 6px;
+    border-inline-start: 6px solid ${theme.toastErrorBg};
+    padding-inline-start: 6px;
     --icon-color: ${theme.toastErrorIcon};
   }
   &-success {
-    border-left: 6px solid ${theme.toastSuccessBg};
-    padding-left: 6px;
+    border-inline-start: 6px solid ${theme.toastSuccessBg};
+    padding-inline-start: 6px;
     --icon-color: ${theme.toastSuccessIcon};
   }
   &-warning {
-    border-left: 6px solid ${theme.toastWarningBg};
-    padding-left: 6px;
+    border-inline-start: 6px solid ${theme.toastWarningBg};
+    padding-inline-start: 6px;
     --icon-color: ${theme.toastWarningIcon};
   }
   &-info {
-    border-left: 6px solid ${theme.toastInfoBg};
-    padding-left: 6px;
+    border-inline-start: 6px solid ${theme.toastInfoBg};
+    padding-inline-start: 6px;
     --icon-color: ${theme.toastInfoIcon};
   }
   &-info .${cssToastActions.className} {
@@ -352,10 +352,10 @@ const cssToastWrapper = styled("div", `
   }
 
   &-left-icon {
-    padding-left: 12px;
+    padding-inline-start: 12px;
   }
   &-left-icon > .${cssToastBody.className} {
-    padding-left: 10px;
+    padding-inline-start: 10px;
   }
 
   &-expiring, &-expired {
@@ -394,13 +394,14 @@ const cssToastClose = styled("div", `
   height: 16px;
   line-height: 16px;
   text-align: center;
-  margin: -4px -4px -4px 4px;
+  margin-block: -4px;
+  margin-inline: 4px -4px;
 `);
 
 const cssToastAction = styled("div", `
   cursor: pointer;
   user-select: none;
-  margin-right: 24px;
+  margin-inline-end: 24px;
   &, &:hover, &:focus {
     color: inherit;
   }

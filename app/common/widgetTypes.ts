@@ -6,6 +6,10 @@
 // or nothing (gutter collapsed).
 export type RowNumbersMode = "number" | "rowId" | "hidden";
 
+// Which way a sheet runs: columns from the right ("rtl") or from the left ("ltr"). A widget
+// with no value follows the direction of what contains it.
+export type SheetOrientation = "rtl" | "ltr";
+
 // What a widget shows when its options say nothing. Read by the client models and by the
 // server tools that report a widget's options.
 export const DEFAULT_VIEW_SECTION_OPTIONS = {

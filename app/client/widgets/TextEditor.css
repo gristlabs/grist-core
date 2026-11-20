@@ -15,7 +15,7 @@
 /* make room for lock icon */
 .readonly_editor .celleditor_cursor_editor .celleditor_text_editor,
 .readonly_editor .celleditor_cursor_editor .celleditor_content_measure {
-  padding-left: 18px;
+  padding-inline-start: 18px;
 }
 
 .readonly_editor::before {
@@ -25,7 +25,7 @@
    * would otherwise paint over this lock icon. */
   z-index: 11;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   margin: 4px 3px 0 3px;
   width: 13px;
   height: 13px;
@@ -45,8 +45,11 @@
 /* Make overflow hidden, since editor might be 1 pixel bigger due to fix for devices
  * with different pixel ratio */
 .formula_editor {
+  /* Formulas are code and read left-to-right whatever the direction of the cell being edited. */
+  direction: ltr;
   background-color: var(--grist-theme-ace-editor-bg, white);
-  padding: 4px 4px 2px 21px;
+  padding-block: 4px 2px;
+  padding-inline: 21px 4px;
   z-index: 10;
   overflow: hidden;
   flex: none;
@@ -58,11 +61,12 @@
   border-radius: 3px;
 }
 .formula_editor_sidepane > .formula_editor {
-  padding: 5px 0 5px 24px;
+  padding-block: 5px;
+  padding-inline: 24px 0;
   border-radius: 3px;
 }
 .formula_editor_sidepane > .formula_field_edit::before, .formula_field_sidepane::before {
-  left: 4px;
+  inset-inline-start: 4px;
 }
 
 .celleditor_cursor_editor {
@@ -89,6 +93,8 @@
   background-color: var(--grist-theme-cell-editor-bg, unset);
   color: var(--grist-theme-cell-editor-fg, black);
 
+  /* As in a cell, each paragraph orders its characters by its own content (see .field_clip). */
+  unicode-bidi: plaintext;
   /* Inherit styles, same as for .celleditor_content_measure, to ensure that sizes correspond. */
   font-family: inherit;
   font-size: inherit;
@@ -101,7 +107,7 @@
 
 .celleditor_content_measure {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   border: none;
   visibility: hidden;
@@ -138,7 +144,8 @@
 }
 
 .error_details_inner {
-  padding: 2px 2px 2px 28px;
+  padding-block: 2px;
+  padding-inline: 28px 2px;
 }
 
 .kf_collapser {

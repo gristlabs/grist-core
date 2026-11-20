@@ -264,7 +264,7 @@ const cssPageInitial = styled("div", `
   background-color: ${theme.pageInitialsBg};
   width: 20px;
   height: 20px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -277,7 +277,7 @@ const cssPageInitial = styled("div", `
     color: ${theme.text};
   }
   .${treeViewContainer.className}-close & {
-    margin-right: 0;
+    margin-inline-end: 0;
   }
   .${itemHeader.className}.selected &-emoji {
     box-shadow: none;
@@ -321,8 +321,8 @@ const cssPageMenuTrigger = styled(unstyledButton, `
   z-index: 2;
   cursor: default;
   display: none;
-  margin-right: 4px;
-  margin-left: auto;
+  margin-inline-end: 4px;
+  margin-inline-start: auto;
   line-height: 0px;
   border-radius: 3px;
   height: 24px;

@@ -1,3 +1,4 @@
+import { isRtl } from "app/client/lib/direction";
 import { makeT } from "app/client/lib/localization";
 import { TreeItem, TreeModel, TreeNode, walkTree } from "app/client/models/TreeModel";
 import { mouseDrag, MouseDragHandler, MouseDragStart } from "app/client/ui/mouseDrag";
@@ -227,7 +228,7 @@ export class TreeViewComponent extends Disposable {
       dom.hide(this._hideTarget),
       dom.style("width", use => use(this._target).width + "px"),
       dom.style("top", use => use(this._target).top + "px"),
-      dom.style("left", use => use(this._target).left + "px"),
+      dom.style("inset-inline-start", use => use(this._target).left + "px"),
     );
   }
 
@@ -295,8 +296,11 @@ export class TreeViewComponent extends Disposable {
     // vertical distance in px the user is dragging the item
     const deltaY = observable(0);
     const children = treeItem.children();
-    const offsetLeft = () =>
-      labelElement.getBoundingClientRect().left - this._containerElement.getBoundingClientRect().left;
+    // Measured from the edge of the tree where a line starts, like every horizontal distance here.
+    const offsetLeft = () => {
+      const [label, container] = [labelElement.getBoundingClientRect(), this._containerElement.getBoundingClientRect()];
+      return isRtl(this._containerElement) ? container.right - label.right : label.left - container.left;
+    };
     const highlight = observable(false);
 
     let headerElement: HTMLElement;
@@ -328,7 +332,8 @@ export class TreeViewComponent extends Disposable {
             dom.attr("aria-label", use => use(collapsed) ? t("Expand") : t("Collapse")),
             css.dropdown("Dropdown"),
             testId("itemArrow"),
-            dom.style("transform", use => use(collapsed) ? "rotate(-90deg)" : ""),
+            // A collapsed item's arrow points the way a line runs.
+            dom.style("transform", use => use(collapsed) ? "rotate(calc(-90deg * var(--inline-sign)))" : ""),
             dom.on("click", ev => toggle(collapsed)),
             // Let's prevent dragging to start when un-intentionally holding the mouse down on an arrow.
             dom.on("mousedown", ev => ev.stopPropagation()),
@@ -422,14 +427,14 @@ export class TreeViewComponent extends Disposable {
     }
   }
 
-  // compute the px distance between the left side of the container and the right side of the header
+  // compute the px distance between the start edge of the container and the end edge of the header
   private _getDropZoneRight(dropZone: DropZone): number {
-    const headerRight = dropZone.item.headerElement.getBoundingClientRect().right;
-    const containerRight = this._containerElement.getBoundingClientRect().left;
-    return headerRight - containerRight;
+    const header = dropZone.item.headerElement.getBoundingClientRect();
+    const container = this._containerElement.getBoundingClientRect();
+    return isRtl(this._containerElement) ? container.right - header.left : header.right - container.left;
   }
 
-  // compute the px distance between the left side of the container and the drop zone
+  // compute the px distance between the start edge of the container and the drop zone
   private _getDropZoneOffsetLeft(dropZone: DropZone): number {
     // when target is 'within' the item we must add one level of indentation to the items left offset
     return dropZone.item.offsetLeft() + (dropZone.zone === "within" ? this._options.offset : 0);

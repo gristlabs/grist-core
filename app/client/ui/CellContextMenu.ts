@@ -1,4 +1,5 @@
 import { allCommands } from "app/client/components/commands";
+import { InlineSide, toPhysicalSide } from "app/client/lib/direction";
 import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { IMultiColumnContextMenu } from "app/client/ui/GridViewMenus";
@@ -22,6 +23,9 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
   // isReadonly is true for readonly mode.
   const disableForReadonlyColumn = ariaDisabled(Boolean(disableModify) || isReadonly);
   const disableForReadonlyTable = ariaDisabled(isReadonly || disableInsertColumn);
+
+  const insertColumnLabel = (side: InlineSide) => toPhysicalSide(side, Boolean(colOptions.rtl)) === "left" ?
+    t("Insert column to the left") : t("Insert column to the right");
 
   const nameClearColumns = isFiltered ?
     t("Reset {{count}} entire columns", { count: numColumns }) :
@@ -78,9 +82,10 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
     ),
     menuItemCmd(allCommands.duplicateRows, t("Duplicate rows", { count: numRows }),
       ariaDisabled(disableInsert || numRows === 0)),
-    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"),
+    // As in the column menu, each item names the side of the screen the new column appears on.
+    menuItemCmd(allCommands.insertFieldBefore, insertColumnLabel("start"),
       disableForReadonlyTable),
-    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"),
+    menuItemCmd(allCommands.insertFieldAfter, insertColumnLabel("end"),
       disableForReadonlyTable),
 
     menuDivider(),

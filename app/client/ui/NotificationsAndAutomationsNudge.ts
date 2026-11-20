@@ -287,7 +287,7 @@ const cssFeatureName = styled("div", `
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-right: auto;
+  margin-inline-end: auto;
   font-weight: bold;
   color: ${theme.text};
 `);
@@ -332,7 +332,8 @@ const cssStepCount = styled("div", `
 `);
 
 const cssExpanded = styled("div", `
-  padding: 2px 8px 10px 38px;
+  padding-block: 2px 10px;
+  padding-inline: 38px 8px;
 `);
 
 const cssFeatureDesc = styled("div", `

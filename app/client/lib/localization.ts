@@ -1,4 +1,6 @@
 import { hooks } from "app/client/Hooks";
+import { installPopupDirection } from "app/client/lib/popupDirection";
+import { languageDirection } from "app/common/languageDirection";
 import { getGristConfig } from "app/common/urlUtils";
 
 import { DomContents } from "grainjs";
@@ -9,6 +11,8 @@ export async function setupLocale() {
   const now = Date.now();
   const supportedLngs = getGristConfig().supportedLngs ?? ["en"];
   const lng = detectCurrentLang();
+  applyInterfaceLanguage(lng);
+  installPopupDirection();
   const ns = getGristConfig().namespaces ?? ["client"];
   // Initialize localization plugin
   try {
@@ -62,6 +66,21 @@ export async function setupLocale() {
   } catch (error: any) {
     reportError(error);
   }
+}
+
+/**
+ * States the language of the interface on the page, and with it the direction the interface is
+ * laid out in: a default that comes with the language, with no setting of its own. The parts of
+ * the interface that cannot yet be laid out either way are each held left-to-right (see holdLtr()
+ * in direction.ts). A document does not take any of this: each widget states the direction of
+ * its own document.
+ */
+export function applyInterfaceLanguage(
+  lang: string,
+  root: Pick<HTMLElement, "lang" | "dir"> = document.documentElement,
+) {
+  root.lang = lang;
+  root.dir = languageDirection(lang);
 }
 
 export function detectCurrentLang() {

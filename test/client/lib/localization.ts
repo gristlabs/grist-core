@@ -1,4 +1,6 @@
-import { interpolationMarkers, makeT, splitInterpolationMarkers, t } from "app/client/lib/localization";
+import {
+  applyInterfaceLanguage, interpolationMarkers, makeT, splitInterpolationMarkers, t,
+} from "app/client/lib/localization";
 
 import { assert } from "chai";
 import { Disposable, dom, DomContents, observable } from "grainjs";
@@ -147,5 +149,21 @@ describe("localization", function() {
 
   it("keeps missing interpolation values as placeholders", function() {
     assert.deepEqual(splitInterpolationMarkers("a [[[x]]] b", {}), ["a ", "{{x}}", " b"]);
+  });
+
+  describe("applyInterfaceLanguage", function() {
+    function apply(lang: string) {
+      const root = { lang: "", dir: "" };
+      applyInterfaceLanguage(lang, root);
+      return root;
+    }
+
+    it("states the language on the page, and the direction that comes with it", function() {
+      assert.deepEqual(apply("en"), { lang: "en", dir: "ltr" });
+      assert.deepEqual(apply("fr"), { lang: "fr", dir: "ltr" });
+      assert.deepEqual(apply("ar"), { lang: "ar", dir: "rtl" });
+      assert.deepEqual(apply("fa"), { lang: "fa", dir: "rtl" });
+      assert.deepEqual(apply("he"), { lang: "he", dir: "rtl" });
+    });
   });
 });

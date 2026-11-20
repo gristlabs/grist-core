@@ -3,6 +3,7 @@ This module reads a file path that is passed in using ActiveDoc.importFile()
 and returns a object formatted so that it can be used by grist for a bulk add records action
 """
 import logging
+from xml.etree import ElementTree
 
 import openpyxl
 from openpyxl.utils.datetime import from_excel
@@ -101,11 +102,16 @@ def parse_open_file(file_obj):
     log.info("Output table %r with %d columns", table_name, len(column_metadata))
     for c in column_metadata:
       log.debug("Output column %s", c)
-    export_list.append({
+    table = {
       "table_name": table_name,
       "column_metadata": column_metadata,
       "table_data": table_data
-    })
+    }
+    # A sheet that Excel shows right-to-left keeps its orientation. One that it does not is left
+    # undecided rather than marked left-to-right: in Excel that is the absence of a choice.
+    if _is_right_to_left(sheet):
+      table["sheet_orientation"] = "rtl"
+    export_list.append(table)
 
   if not export_list:
     if skipped_tables:
@@ -114,6 +120,30 @@ def parse_open_file(file_obj):
 
   parse_options = {}
   return parse_options, export_list
+
+def _is_right_to_left(sheet):
+  """
+  Returns whether the sheet is marked in Excel to be shown right-to-left (columns starting from
+  the right). A workbook opened in read-only mode does not parse sheet views, so the flag is read
+  from the sheet's XML, where the views come before any data.
+  """
+  try:
+    source = sheet._get_source()    # pylint: disable=protected-access
+  except Exception:                 # pylint: disable=broad-except
+    return False
+  try:
+    for _event, elem in ElementTree.iterparse(source, events=("start",)):
+      tag = elem.tag.rsplit("}", 1)[-1]
+      if tag == "sheetView":
+        return elem.get("rightToLeft") in ("1", "true")
+      if tag == "sheetData":
+        break
+  except ElementTree.ParseError:
+    pass
+  finally:
+    source.close()
+  return False
+
 
 def _with_padding(rows):
   if not rows:

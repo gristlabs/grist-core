@@ -177,7 +177,9 @@ export const cssEllipsisLabel = styled("div", `
 
 export const cssExpandIcon = styled(icon, `
   position: absolute;
-  right: 4px;
+  inset-inline-end: 4px;
+  /* Points the way the submenu opens. */
+  transform: scaleX(var(--inline-sign));
 `);
 
 const cssSubMenuElem = styled("div", `
@@ -709,7 +711,7 @@ export function menuItemCmd(
     typeof label === "string" ?
       dom("span", label, testId("cmd-name")) :
       dom("div", label(), testId("cmd-name")),
-    cmd.humanKeys?.length ? cssCmdKey(cmd.humanKeys[0]) : null,
+    cmd.humanKeys?.length ? cssCmdKey(keysInOrder(cmd.humanKeys[0])) : null,
     cssMenuItemCmd.cls(""), // overrides some menu item styles
     ...args,
   );
@@ -731,7 +733,7 @@ export const menuDivider = styled(weasel.cssMenuDivider, `
 
 export const menuIcon = styled(icon, `
   flex: none;
-  margin-right: 8px;
+  margin-inline-end: 8px;
 `);
 
 const cssSelectMenuElem = styled(cssMenuElem, `
@@ -781,15 +783,17 @@ export const cssOptionRow = styled("span", `
 const cssOptionRowLoadingSpinner = styled("div", `
   display: flex;
   align-items: center;
-  margin-left: 8px;
+  margin-inline-start: 8px;
 `);
 
 export const cssOptionRowIcon = styled(icon, `
   height: 16px;
   width: 16px;
   background-color: var(--icon-color, ${theme.menuItemIconFg});
-  margin: -3px 8px 0 2px;
-  margin: 0 8px 0 0;
+  margin-block: -3px 0;
+  margin-inline: 2px 8px;
+  margin-block: 0;
+  margin-inline: 0 8px;
   flex: none;
 
   .${weasel.cssMenuItem.className}-sel & {
@@ -832,7 +836,7 @@ const cssInlineCollapseIcon = styled(icon, `
 
 const cssCollapseIcon = styled(icon, `
   position: absolute;
-  right: 12px;
+  inset-inline-end: 12px;
   top: calc(50% - 8px);
   pointer-events: none;
   background-color: ${theme.selectButtonFg};
@@ -856,10 +860,15 @@ export const cssMenuItemCmd = styled("div", `
   }
 `);
 
+// A key combination reads in one order in any language: "Ctrl + M", never "M + Ctrl".
+function keysInOrder(keys: string) {
+  return dom("span", { dir: "ltr" }, keys);
+}
+
 export const cssCmdKey = styled("span", `
-  margin-left: 16px;
+  margin-inline-start: 16px;
   color: ${theme.menuItemIconFg};
-  margin-right: -12px;
+  margin-inline-end: -12px;
 
   .${weasel.cssMenuItem.className}-sel > & {
     color: ${theme.menuItemIconSelectedFg};
@@ -877,7 +886,7 @@ const cssAnnotateMenuItem = styled("span", `
   font-size: 8px;
   vertical-align: super;
   margin-top: -4px;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   font-weight: bold;
 
   .${weasel.cssMenuItem.className}-sel > & {
@@ -911,7 +920,7 @@ const cssCheckboxLabel = styled(cssLabel, `
 `);
 
 const cssCheckboxText = styled(cssLabelText, `
-  margin-right: 12px;
+  margin-inline-end: 12px;
   color: ${theme.text};
   white-space: pre;
 `);
@@ -1014,7 +1023,7 @@ export function* buildMenuItems(current: MenuItem[]): IterableIterator<Element> 
       action,
       item.icon && menuIcon(item.icon),
       item.label,
-      item.shortcut && cssCmdKey(item.shortcut),
+      item.shortcut && cssCmdKey(keysInOrder(item.shortcut)),
       item.disabled ? dom.attr("aria-disabled", "true") : null,
     );
   }

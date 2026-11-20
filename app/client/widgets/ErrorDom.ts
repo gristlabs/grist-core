@@ -1,3 +1,4 @@
+import { alignmentToTextAlign } from "app/client/lib/direction";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
 import { getObjCode } from "app/common/gristTypes";
@@ -13,7 +14,7 @@ export function buildErrorDom(row: DataRowModel, field: ViewFieldRec) {
   return dom("div.field_clip.invalid",
     // Sets CSS class field-error-P, field-error-U, etc.
     dom.clsPrefix("field-error-", use => getObjCode(use(value)) || ""),
-    dom.style("text-align", options.prop("alignment")),
+    dom.style("text-align", use => alignmentToTextAlign(use(options.prop("alignment")))),
     dom.cls("text_wrapping", use => Boolean(use(options.prop("wrap")))),
     dom.text(use => formatUnknown(value ? use(value) : "???")),
   );

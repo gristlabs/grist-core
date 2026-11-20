@@ -185,6 +185,8 @@ AceEditor.prototype.setFontSize = function(pxVal) {
 };
 
 AceEditor.prototype._setup = function() {
+  // Code is written left-to-right in any language: formulas are Python.
+  this.editorDom.setAttribute("dir", "ltr");
   // Standard editor setup
   this.editor = this.autoDisposeWith("destroy", ace.edit(this.editorDom));
   if (this._getSuggestions) {

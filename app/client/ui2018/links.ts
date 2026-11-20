@@ -149,7 +149,8 @@ const cssMaybeWrap = styled("span", `
 // A gentle transition effect on hover in, and the same effect on hover out with a little delay.
 export const cssHoverIn = (parentClass: string) => styled("span", `
   --icon-color: var(--grist-actual-cell-color, ${theme.link});
-  margin: -1px 2px 2px 0;
+  margin-block: -1px 2px;
+  margin-inline: 0 2px;
   border-radius: 3px;
   transition-property: background-color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);

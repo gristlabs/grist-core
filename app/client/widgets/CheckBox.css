@@ -34,7 +34,7 @@
   -ms-transform: rotate(40deg); /* IE 9 */
   -webkit-transform: rotate(40deg); /* Chrome, Safari, Opera */
   transform: rotate(40deg);
-  left: 4px;
+  inset-inline-start: 4px;
   top: 2px;
 }
 
@@ -44,7 +44,7 @@
   height: 12px;
   background-color: var(--grist-actual-cell-color, var(--grist-theme-toggle-checkbox-fg, #606060));
   border: 1px solid var(--grist-actual-cell-color, var(--grist-theme-toggle-checkbox-fg, #606060));
-  left: 3px;
+  inset-inline-start: 3px;
   top: -5px;
 }
 

@@ -127,7 +127,8 @@ export const cssHomeTools = styled(cssTools, `
 `);
 
 export const cssSectionHeader = styled("div", `
-  margin: 24px 0 8px 24px;
+  margin-block: 24px 8px;
+  margin-inline: 24px 0;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -148,7 +149,8 @@ export const cssSectionHeaderText = styled("span", `
 `);
 
 export const cssPageEntry = styled("div", `
-  margin: 0px 16px 0px 0px;
+  margin-block: 0px;
+  margin-inline: 0px 16px;
   border-radius: 0 3px 3px 0;
   color: ${theme.text};
   --icon-color: ${theme.lightText};
@@ -168,7 +170,7 @@ export const cssPageEntry = styled("div", `
     --icon-color: ${theme.disabledPageFg};
   }
   .${cssTools.className}-collapsed > & {
-    margin-right: 0;
+    margin-inline-end: 0;
   }
 `);
 
@@ -179,7 +181,7 @@ const cssPageAction = `
   align-items: center;
   height: 32px;
   line-height: 32px;
-  padding-left: 24px;
+  padding-inline-start: 24px;
   outline: none;
   cursor: pointer;
   outline-offset: -3px;
@@ -193,7 +195,7 @@ const cssPageAction = `
     cursor: default;
   }
   .${cssTools.className}-collapsed & {
-    padding-left: 16px;
+    padding-inline-start: 16px;
   }
 `;
 
@@ -220,16 +222,16 @@ export const cssLinkText = styled("span", `
 
 export const cssPageIcon = styled(icon, `
   flex: none;
-  margin-right: var(--page-icon-margin, 8px);
+  margin-inline-end: var(--page-icon-margin, 8px);
   .${cssTools.className}-collapsed & {
-    margin-right: 0;
+    margin-inline-end: 0;
   }
 `);
 
 const cssContextIcon = styled(icon, `
   width: 18px;
   height: 18px;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   --icon-color: currentColor;
   .${cssTools.className}-collapsed & {
     display: none;
@@ -238,16 +240,16 @@ const cssContextIcon = styled(icon, `
 
 // A hint that the link opens elsewhere, placed like the F4 hint on the Accessibility row.
 const cssExternalLinkIcon = styled(icon, `
-  margin-left: auto;
-  margin-right: 16px;
+  margin-inline-start: auto;
+  margin-inline-end: 16px;
   .${cssTools.className}-collapsed & {
     display: none;
   }
 `);
 
 export const cssKeyboardShortcut = styled("span", `
-  margin-left: auto;
-  margin-right: 16px;
+  margin-inline-start: auto;
+  margin-inline-end: 16px;
   color: ${theme.lightText};
   text-transform: uppercase;
 
@@ -259,7 +261,7 @@ export const cssKeyboardShortcut = styled("span", `
     position: absolute;
     line-height: 1;
     top: 3px;
-    right: 3px;
+    inset-inline-end: 3px;
     margin: 0;
     font-size: 0.8em;
   }
@@ -299,7 +301,8 @@ export const cssPageEntrySmall = styled(cssPageEntry, `
 export const cssMenuTrigger = styled(unstyledButton, `
   position: relative;
   z-index: 2;
-  margin: 0 4px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 4px;
   height: 24px;
   width: 24px;
   padding: 4px;
@@ -340,6 +343,6 @@ export const cssChangeDot = styled("span", `
   height: 8px;
   border-radius: 50%;
   background-color: ${tokens.warningLight};
-  margin-left: 6px;
+  margin-inline-start: 6px;
   vertical-align: baseline;
 `);

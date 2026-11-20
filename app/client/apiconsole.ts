@@ -1,3 +1,4 @@
+import { holdLtr } from "app/client/lib/direction";
 import { loadCssFile, loadScript } from "app/client/lib/loadScript";
 import { makeT } from "app/client/lib/localization";
 import { reportError } from "app/client/models/errors";
@@ -354,7 +355,7 @@ createAppPage((appModel) => {
   // Default Grist page prevents scrolling unnecessarily.
   document.documentElement.style.overflow = "initial";
 
-  const rootNode = cssWrapper();
+  const rootNode = cssWrapper(holdLtr());
   const onComplete = initialize(appModel);
 
   externalScriptsPromise.then(() => {

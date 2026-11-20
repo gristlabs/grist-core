@@ -67,7 +67,7 @@ const cssOrgSelected = styled("div", `
 
 const cssOrgCheckmark = styled(icon, `
   flex: none;
-  margin-left: 16px;
+  margin-inline-start: 16px;
   --icon-color: ${theme.siteSwitcherActiveFg};
   display: none;
   .${cssOrgSelected.className} > & {

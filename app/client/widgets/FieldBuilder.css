@@ -25,7 +25,7 @@
 
 .fieldbuilder_settings_button {
   display: inline-block;
-  float: right;
+  float: inline-end;
   padding: 0 1rem;
   border-radius: 5px;
   background-color: var(--grist-theme-right-panel-field-settings-button-bg, lightgrey);
@@ -39,10 +39,10 @@
   display: block;
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   width: 0;
   height: 0;
   border-top: 11px solid var(--grist-color-orange);
-  border-left: 11px solid transparent;
+  border-inline-start: 11px solid transparent;
   cursor: pointer;
 }

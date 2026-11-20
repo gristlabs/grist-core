@@ -24,11 +24,11 @@ export const textBtn = styled("button", `
   font-size: ${vars.mediumFontSize};
   color: ${theme.controlFg};
   cursor: pointer;
-  margin-left: 16px;
+  margin-inline-start: 16px;
   background-color: transparent;
   border: none;
   padding: 0;
-  text-align: left;
+  text-align: start;
   min-width: 110px;
 
   &:hover {
@@ -38,7 +38,8 @@ export const textBtn = styled("button", `
 
 export const icon = styled(gristIcon, `
   background-color: ${theme.controlFg};
-  margin: 0 4px 2px 0;
+  margin-block: 0 2px;
+  margin-inline: 0 4px;
 
   .${textBtn.className}:hover > & {
     background-color: ${theme.controlHoverFg};
@@ -109,7 +110,8 @@ export const summaryFeatures = styled("div", `
 
 export const summaryFeature = styled("div", `
   color: ${theme.text};
-  margin: 16px 0 16px 20px;
+  margin-block: 16px;
+  margin-inline: 20px 0;
   text-indent: -20px;
 `);
 
@@ -120,10 +122,12 @@ export const summaryText = styled("span", `
 
 export const tickIcon = styled(gristIcon, `
   background-color: ${theme.accentIcon};
-  margin: 0 4px 2px 0;
+  margin-block: 0 2px;
+  margin-inline: 0 4px;
 `);
 
 export const badIcon = styled(gristIcon, `
   background-color: ${theme.errorText};
-  margin: 0 4px 2px 0;
+  margin-block: 0 2px;
+  margin-inline: 0 4px;
 `);

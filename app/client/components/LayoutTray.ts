@@ -1,3 +1,4 @@
+import { holdLtr } from "app/client/lib/direction";
 import BaseView from "app/client/components/BaseView";
 import { buildCollapsedSectionDom, buildViewSectionDom } from "app/client/components/buildViewSectionDom";
 import * as commands from "app/client/components/commands";
@@ -778,6 +779,7 @@ class MiniFloater extends Disposable {
 
   public buildDom() {
     return cssMiniFloater(
+      holdLtr(),
       dom.show(use => Boolean(use(this.content))),
       // dom.cls('layout_editor_floater'),
       dom.domComputed(this.content, c => c),

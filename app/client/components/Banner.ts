@@ -169,7 +169,7 @@ const cssButtons = styled("div", `
   display: flex;
   gap: 16px;
   flex-shrink: 0;
-  margin-left: auto;
+  margin-inline-start: auto;
 `);
 
 const cssButton = styled(icon, `

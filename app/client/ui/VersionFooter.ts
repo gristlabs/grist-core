@@ -1,3 +1,4 @@
+import { interfaceRtl } from "app/client/lib/direction";
 import { makeT } from "app/client/lib/localization";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { testId, vars } from "app/client/ui2018/cssVars";
@@ -86,9 +87,14 @@ function buildVersionPopup(): DomContents {
   );
 }
 
+// The arrow after a link points onward, the way the line runs.
+function forwardArrow(): string {
+  return interfaceRtl().get() ? " ←" : " →";
+}
+
 function buildReleaseNotesLink(): DomContents {
   return cssPopupLink(
-    t("Release notes") + " →",
+    t("Release notes") + forwardArrow(),
     {
       href: `${commonUrls.githubGristCore}/releases/tag/v${version.version}`,
       target: "_blank",
@@ -100,7 +106,7 @@ function buildReleaseNotesLink(): DomContents {
 
 function buildEditionComparisonLink(): DomContents {
   return cssPopupLink(
-    t("Compare editions") + " →",
+    t("Compare editions") + forwardArrow(),
     {
       href: commonUrls.editionComparison,
       target: "_blank",
@@ -116,7 +122,8 @@ const cssVersionFooter = styled("div", `
   align-items: center;
   gap: 8px;
   margin-top: auto;
-  padding: 8px 16px 8px 24px;
+  padding-block: 8px;
+  padding-inline: 24px 16px;
   border-top: 1px solid ${components.pagePanelsBorder};
   cursor: default;
 
@@ -172,7 +179,7 @@ const cssFooterSupport = styled("span", `
 const cssVersionPopup = styled("div", `
   width: 250px;
   padding: 12px 14px;
-  text-align: left;
+  text-align: start;
   background-color: ${components.popupBg};
   color: ${components.text};
   font-family: ${vars.fontFamily};

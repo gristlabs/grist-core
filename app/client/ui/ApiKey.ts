@@ -149,11 +149,12 @@ const cssRow = styled("div", `
 `);
 
 const cssTextBtn = styled(textButton, `
-  text-align: left;
+  text-align: start;
   width: 90px;
-  margin-left: 16px;
+  margin-inline-start: 16px;
 `);
 
 const cssTextBtnIcon = styled(icon, `
-  margin: 0 4px 2px 0;
+  margin-block: 0 2px;
+  margin-inline: 0 4px;
 `);

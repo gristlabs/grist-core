@@ -125,7 +125,7 @@ export const textButton = styled(cssButton, `
   z-index: 1;
   border: none;
   padding: 0px;
-  text-align: left;
+  text-align: start;
   background-color: inherit !important;
   &:disabled, &[aria-disabled="true"] {
     color: ${theme.controlPrimaryBg};
@@ -136,8 +136,8 @@ export const textButton = styled(cssButton, `
     content: '';
     position: absolute;
     inset: -3px;
-    left: -6px;
-    right: -6px;
+    inset-inline-start: -6px;
+    inset-inline-end: -6px;
     border-radius: ${tokens.controlBorderRadius};
     background-color: ${components.textButtonHoverBg};
     border: 1px solid ${components.textButtonHoverBorder};
@@ -148,8 +148,8 @@ export const textButton = styled(cssButton, `
   }
   &-hover-bg-padding-sm:hover::after {
     inset: -1px;
-    left: -3px;
-    right: -3px;
+    inset-inline-start: -3px;
+    inset-inline-end: -3px;
   }
   &:active::after {
     border-color: transparent;

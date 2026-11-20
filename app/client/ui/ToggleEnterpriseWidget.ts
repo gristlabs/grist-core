@@ -394,7 +394,7 @@ const cssRow = styled("div", `
   align-items: baseline;
   flex-wrap: wrap;
   & label {
-    margin-right: 8px;
+    margin-inline-end: 8px;
   }
   & div {
     flex-grow: 1;
@@ -403,7 +403,7 @@ const cssRow = styled("div", `
 
 const cssLabel = styled("label", `
   font-weight: bold;
-  margin-right: 8px;
+  margin-inline-end: 8px;
 `);
 
 const cssRowWithEdit = styled("div", `

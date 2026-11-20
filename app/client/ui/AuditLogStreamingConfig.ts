@@ -334,7 +334,8 @@ const cssDestinationUrl = styled("div", `
 
 const cssDestinationOptions = styled("div", `
   flex-shrink: 0;
-  margin: 0 4px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 4px;
   height: 24px;
   width: 24px;
   padding: 4px;

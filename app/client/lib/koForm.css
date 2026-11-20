@@ -44,8 +44,8 @@
   width: 0;
   height: 0;
   margin: 0 auto;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
+  border-inline-start: 5px solid transparent;
+  border-inline-end: 5px solid transparent;
   border-bottom: 5px solid rgba(60, 60, 60, .9);
 }
 
@@ -115,7 +115,7 @@ div:hover > .kf_tooltip {
 .kf_prompt_pointer {
   position: absolute;
   top: -5px;
-  right: 20px;
+  inset-inline-end: 20px;
   width: 10px;
   height: 10px;
   transform: rotate(45deg);
@@ -126,7 +126,7 @@ div:hover > .kf_tooltip {
 .kf_prompt_pointer_overlap {
   position: absolute;
   top: -5px;
-  right: 20px;
+  inset-inline-end: 20px;
   width: 10px;
   height: 10px;
   background-color: var(--grist-theme-popup-bg, white);
@@ -205,7 +205,7 @@ div:hover > .kf_tooltip {
 
 .kf_draggable_content {
   display: inline-block;
-  margin-left: 2px;
+  margin-inline-start: 2px;
 }
 
 .kf_draggable:hover .drag_delete {
@@ -214,17 +214,18 @@ div:hover > .kf_tooltip {
 
 .drag_delete {
   display: none;
-  float: right;
+  float: inline-end;
   cursor: pointer;
   font-size: 1.0rem;
-  margin: 2px 2px 0 0;
+  margin-block: 2px 0;
+  margin-inline: 0 2px;
   color: #777777;
 }
 
 .kf_button {
   text-align: center;
-  margin-left: -1px;
-  border-left: 1px solid #ddd;
+  margin-inline-start: -1px;
+  border-inline-start: 1px solid #ddd;
   padding: 0.5rem 0.5rem;
   height: 2.3rem;
   line-height: 1.1rem;
@@ -276,15 +277,15 @@ div:hover > .kf_tooltip {
 }
 
 .kf_button:first-child {
-  margin-left: 0;
-  border-left: none;
-  border-top-left-radius: 3px;
-  border-bottom-left-radius: 3px;
+  margin-inline-start: 0;
+  border-inline-start: none;
+  border-start-start-radius: 3px;
+  border-end-start-radius: 3px;
 }
 .kf_button:last-child {
-  border-right: none;
-  border-top-right-radius: 3px;
-  border-bottom-right-radius: 3px;
+  border-inline-end: none;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
 }
 .kf_button:active:not(.disabled) {
   background: linear-gradient(to bottom, #f0f0f0 0%,#fafafa 100%);
@@ -313,7 +314,7 @@ div:hover > .kf_tooltip {
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
-  margin-right: 5px;
+  margin-inline-end: 5px;
 }
 
 .kf_btn_text {
@@ -361,7 +362,7 @@ div:hover > .kf_tooltip {
   box-sizing: content-box;
   width: 9px;
   height: 17px;
-  right: 1px;
+  inset-inline-end: 1px;
   top: -1px;
 
   color: #606060;
@@ -389,8 +390,8 @@ div:hover > .kf_tooltip {
 .kf_spinner_arrow {
   width: 0px;
   height: 0px;
-  border-left: 3px solid transparent;
-  border-right: 3px solid transparent;
+  border-inline-start: 3px solid transparent;
+  border-inline-end: 3px solid transparent;
 }
 .kf_spinner_arrow.up {
   border-top: none;
@@ -454,7 +455,7 @@ div:hover > .kf_tooltip {
 .kf_num_text {
   display: block;
   width: 100%;
-  text-align: right;
+  text-align: end;
 }
 
 .kf_row {
@@ -483,11 +484,11 @@ div:hover > .kf_tooltip {
 }
 
 .kf_left {
-  text-align: left;
+  text-align: start;
 }
 
 .kf_right {
-  text-align: right;
+  text-align: end;
 }
 
 fieldset:disabled {
@@ -504,7 +505,7 @@ fieldset:disabled {
 }
 
 .kf_status_indicator {
-  border-right: 1px black;
+  border-inline-end: 1px black;
   font-size: 4rem;
   flex-grow: 0;
   -moz-user-select: none;
@@ -622,7 +623,7 @@ fieldset:disabled {
 
 .kf_select_arrow:after {
   content: '\25bc';
-  margin-left: -1.4rem;
+  margin-inline-start: -1.4rem;
   font-size: .7rem;
   pointer-events:none;
 }
@@ -648,8 +649,8 @@ fieldset:disabled {
 }
 
 .kf_mid_tab_label {
-  margin-left: -1px;
-  border-left: 1px solid #e4e4e4;
+  margin-inline-start: -1px;
+  border-inline-start: 1px solid #e4e4e4;
   text-align: center;
   padding: 0.5rem 0.5rem;
   font-size: 1.3rem;
@@ -661,7 +662,7 @@ fieldset:disabled {
   z-index: 1;
 }
 .kf_mid_tab_label:first-child {
-  border-left: none;
+  border-inline-start: none;
 }
 
 .kf_mid_tab_label:active, .kf_mid_tab_label.active:active {
@@ -687,7 +688,7 @@ fieldset:disabled {
 }
 
 .kf_top_tab_label {
-  margin-left: -1px;
+  margin-inline-start: -1px;
   border: 1px solid #C8C8C8;
   text-align: center;
   padding: 0.5rem 0.5rem;

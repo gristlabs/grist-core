@@ -132,9 +132,10 @@ const TopBarButtonIcon = styled(icon, `
 
 const GreyIcon = styled(icon, `
   --icon-color: ${theme.shortcutKeySecondaryFg};
-  margin-right: 8px;
+  margin-inline-end: 8px;
 `);
 
 const cssInlineIcon = styled(icon, `
-  margin: -3px 8px 0 4px;
+  margin-block: -3px 0;
+  margin-inline: 4px 8px;
 `);

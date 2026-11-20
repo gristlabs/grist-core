@@ -122,7 +122,7 @@ const cssYouTubePlayerContainer = styled("div", `
 const cssYouTubePlayer = styled("div", `
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
 `);
 
 const cssVideoTourTextButton = styled("div", `
@@ -137,7 +137,8 @@ const cssVideoTourTextButton = styled("div", `
 const cssVideoIcon = styled(icon, `
   background-color: ${theme.controlFg};
   cursor: pointer;
-  margin: 0px 4px 3px 0;
+  margin-block: 0px 3px;
+  margin-inline: 0 4px;
 
   .${cssVideoTourTextButton.className}:hover > & {
     background-color: ${theme.controlHoverFg};

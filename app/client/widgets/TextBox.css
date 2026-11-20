@@ -4,7 +4,7 @@
 
 @media not print {
   .formula_field, .formula_field_edit {
-    padding-left: 18px;
+    padding-inline-start: 18px;
   }
   .formula_field_edit {
     color: #D0D0D0;
@@ -17,7 +17,7 @@
     content: "";
     position: absolute;
     top: 4px;
-    left: 2px;
+    inset-inline-start: 2px;
     display: inline-block;
     vertical-align: middle;
     -webkit-mask-repeat: no-repeat;

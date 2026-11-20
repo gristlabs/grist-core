@@ -406,7 +406,7 @@ const cssUpperCase = styled("span", `
   letter-spacing: 0.81px;
   font-weight: 500;
   font-size: 9px; /* xxsmallFontSize is to small */
-  margin-right: 2px;
+  margin-inline-end: 2px;
   flex: 0;
   white-space: nowrap;
 `);

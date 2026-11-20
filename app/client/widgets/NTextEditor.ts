@@ -2,6 +2,7 @@
  * This is a copy of TextEditor.js, converted to typescript.
  */
 import { createGroup } from "app/client/components/commands";
+import { alignmentToTextAlign } from "app/client/lib/direction";
 import { testId } from "app/client/ui2018/cssVars";
 import { createMobileButtons, getButtonMargins } from "app/client/widgets/EditorButtons";
 import { EditorPlacement, ISize } from "app/client/widgets/EditorPlacement";
@@ -45,7 +46,7 @@ export class NTextEditor extends NewBaseEditor {
           this._contentSizer = dom("div.celleditor_content_measure"),
           this.textInput = dom("textarea",
             dom.cls("celleditor_text_editor"),
-            dom.style("text-align", this._alignment),
+            dom.style("text-align", alignmentToTextAlign(this._alignment)),
             dom.prop("value", initialValue),
             dom.boolAttr("readonly", options.readonly),
             this.commandGroup.attach(),

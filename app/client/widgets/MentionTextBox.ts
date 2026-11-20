@@ -479,7 +479,7 @@ const cssAcItem = styled("li", `
   display: flex;
   gap: 4px;
   align-items: center;
-  padding-left: 12px;
+  padding-inline-start: 12px;
   color: ${theme.menuItemFg};
   background-color: ${theme.menuBg};
   &.selected {
@@ -502,7 +502,7 @@ const cssMatchText = styled("span", `
 
 const cssMentionAvatar = styled(createUserImage, `
   margin-top: 0px;
-  margin-right: 4px;
+  margin-inline-end: 4px;
 `);
 
 // Note: "white-space: pre-wrap" is better than "white-space: pre-line" in that on Firefox, after

@@ -27,7 +27,7 @@ const cssFullBreadcrumbs = styled("ol", `
   list-style: none;
   margin: 0;
   padding: 0;
-  margin-left: 16px;
+  margin-inline-start: 16px;
   & > li:not(:first-child)::before {
     content: "/";
     color: ${theme.lightText};
@@ -49,7 +49,7 @@ export function fullBreadcrumbs(...args: DomContents[]) {
 }
 
 const cssHeadingBreadcrumbs = styled(cssFullBreadcrumbs, `
-  margin-left: 0;
+  margin-inline-start: 0;
   font-weight: normal;
   & > li:not(:first-child)::before {
     content: "\\2022";
@@ -71,12 +71,12 @@ const cssIcon = styled(icon, `
 `);
 
 const cssPublicIcon = styled(cssIcon, `
-  margin-left: 8px;
+  margin-inline-start: 8px;
   margin-top: -4px;
 `);
 
 const cssWorkspaceName = styled(cssLink, `
-  margin-left: 8px;
+  margin-inline-start: 8px;
 `);
 
 const cssWorkspaceNarrowScreen = styled(icon, `
@@ -84,8 +84,8 @@ const cssWorkspaceNarrowScreen = styled(icon, `
   width: 32px;
   height: 32px;
   margin-bottom: 4px;
-  margin-left: -7px;
-  margin-right: 8px;
+  margin-inline-start: -7px;
+  margin-inline-end: 8px;
   background-color: ${theme.lightText};
   cursor: pointer;
   @media ${mediaNotSmall} {
@@ -106,7 +106,7 @@ const cssTag = styled("span", `
   color: ${theme.breadcrumbsTagFg};
   border-radius: 3px;
   padding: 0 4px;
-  margin-left: 4px;
+  margin-inline-start: 4px;
 `);
 
 const cssAlertTag = styled(cssTag, `

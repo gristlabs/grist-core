@@ -97,7 +97,7 @@ const cssContainer = styled("div", `
   }
   & .viewsection_content {
     margin: 0px;
-    margin-left: 4px;
+    margin-inline-start: 4px;
   }
 `);
 

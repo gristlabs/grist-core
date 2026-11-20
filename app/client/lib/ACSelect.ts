@@ -160,7 +160,7 @@ const cssInput = styled("input", `
 
 const cssIcon = styled(icon, `
   position: absolute;
-  right: 6px;
+  inset-inline-end: 6px;
   top: calc(50% - 8px);
 `);
 

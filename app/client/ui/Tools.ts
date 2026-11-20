@@ -264,8 +264,8 @@ export interface AutomaticHelpToolInfo {
 
 const cssExampleCardOpener = styled(unstyledButton, `
   cursor: pointer;
-  margin-right: 4px;
-  margin-left: auto;
+  margin-inline-end: 4px;
+  margin-inline-start: auto;
   border-radius: 16px;
   border-radius: 3px;
   height: 24px;

@@ -179,5 +179,5 @@ const cssModeSelect = styled(makeButtonSelect, `
 const cssSignSelect = styled(makeButtonSelect, `
   flex: 1 1 0px;
   background-color: ${theme.inputBg};
-  margin-left: 16px;
+  margin-inline-start: 16px;
 `);

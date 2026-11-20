@@ -507,14 +507,14 @@ const cssTooltipCorner = styled("div", `
   width: 0;
   height: 0;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   visibility: hidden;
 `);
 
 const cssInfoTooltipTransientPopup = styled("div", `
   position: relative;
   white-space: pre-wrap;
-  text-align: left;
+  text-align: start;
   text-overflow: ellipsis;
   overflow: hidden;
   line-height: 1.4;
@@ -526,7 +526,7 @@ const cssDescriptionInfoTooltipButton = styled("div", `
   --icon-color: ${theme.infoButtonFg};
   border-radius: 50%;
   display: inline-block;
-  padding-left: 5px;
+  padding-inline-start: 5px;
   line-height: 0px;
 
   &:hover  {
@@ -567,7 +567,8 @@ const cssTooltipCloseButton = styled("div", `
   height: 16px;
   line-height: 16px;
   text-align: center;
-  margin: -4px -4px -4px 8px;
+  margin-block: -4px;
+  margin-inline: 8px -4px;
   --icon-color: ${theme.tooltipCloseButtonFg};
   border-radius: 16px;
 
@@ -626,7 +627,7 @@ const cssInfoTooltipPopup = styled("div", `
 
 const cssInfoTooltipPopupBody = styled("div", `
   color: ${theme.text};
-  text-align: left;
+  text-align: start;
   padding: 0px 16px 16px 16px;
 `);
 
@@ -635,7 +636,8 @@ const cssInfoTooltipPopupCloseButton = styled("div", `
   align-self: flex-end;
   cursor: pointer;
   --icon-color: ${theme.controlSecondaryFg};
-  margin: 8px 8px 4px 0px;
+  margin-block: 8px 4px;
+  margin-inline: 0px 8px;
   padding: 2px;
   border-radius: 4px;
 

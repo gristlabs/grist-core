@@ -475,7 +475,7 @@ const cssRefresh = styled("div", `
   display: flex;
   justify-content: flex-end;
   flex: 0 0 auto;
-  margin-left: auto;
+  margin-inline-start: auto;
 `);
 
 const cssRefreshButton = styled(textButton, `
