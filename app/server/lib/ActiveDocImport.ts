@@ -6,7 +6,7 @@ import { ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, Impo
   TransformRule,
   TransformRuleMap } from "app/common/ActiveDocAPI";
 import { ApiError } from "app/common/ApiError";
-import { BulkColValues, CellValue, fromTableDataAction, UserAction } from "app/common/DocActions";
+import { AddTableRetValue, BulkColValues, CellValue, fromTableDataAction, UserAction } from "app/common/DocActions";
 import { DocStateComparison } from "app/common/DocState";
 import { isBlankValue } from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";
@@ -26,16 +26,6 @@ import flatten from "lodash/flatten";
 import * as _ from "underscore";
 
 const IMPORT_TRANSFORM_COLUMN_PREFIX = "gristHelper_Import_";
-
-/*
- * AddTableRetValue contains return value of user actions 'AddTable'
-*/
-interface AddTableRetValue {
-  table_id: string;
-  id: number;
-  columns: string[];
-  views: object[];
-}
 
 interface ReferenceDescription {
   // the table index

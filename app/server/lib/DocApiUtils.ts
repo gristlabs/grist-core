@@ -54,13 +54,15 @@ export interface DocWorkerEndpointOptions {
  * By default the document is looked up in the org the request was made to. Pass an `org` to
  * look elsewhere - importing from another site does this, since the source document is
  * chosen independently of the site the user happens to be on.
+ * Pass `null` as the org to look up in all orgs.
  */
 export async function confirmDocIdForRead(
-  dbManager: HomeDBManager, req: Request, urlId: string, options: { org?: string } = {},
+  dbManager: HomeDBManager, req: Request, urlId: string, options: { org?: string | null } = {},
 ): Promise<string> {
   const scope = getScope(req);
+  const org = options.org === null ? undefined : (options.org ?? scope.org);
   const docAuth = await makeDocAuthResult(
-    dbManager.getDoc({ ...scope, org: options.org ?? scope.org, urlId }));
+    dbManager.getDoc({ ...scope, org, urlId }));
   if (docAuth.error) { throw docAuth.error; }
   assertAccess("viewers", docAuth);
   if (!docAuth.docId) { throw new ApiError("document not found", 404); }

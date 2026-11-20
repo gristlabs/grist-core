@@ -49,13 +49,17 @@ export type ApiErrorCode =
   "SyncOrphaned" |
   "SyncConfigMismatch" |
   "SyncAccessRestricted" |
+  "SyncNoDestinationAccess" |
   "SyncSourceError" |
   "SyncTablesNotFound" |
   "SyncNotAllowed" |
+  "SyncChainedSource" |
+  "SyncChainedDestination" |
   "SyncFormulaColumns" |
   "SyncReferenceColumns" |
   "SyncAttachmentColumns" |
-  "SyncRowLimitExceeded";
+  "SyncRowLimitExceeded" |
+  "SyncDeleted";
 
 /**
  * An error with an http status code.

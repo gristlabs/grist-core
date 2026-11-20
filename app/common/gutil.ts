@@ -983,6 +983,12 @@ export function isNonNullish<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
 }
 
+export type WithNonNullishFields<T, F extends keyof T> =
+  T & { [K in F]-?: NonNullable<T[K]> };
+export function hasNonNullishField<T, F extends keyof T>(obj: T, field: F): obj is WithNonNullishFields<T, F> {
+  return isNonNullish(obj[field]);
+}
+
 /**
  * Ensures that a value is truthy, with a type guard for the return type.
  */
