@@ -50,6 +50,7 @@ declare module "redis" {
     public keysAsync(pattern: string): Promise<string[]>;
     public multi(): Multi;
     public quitAsync(): Promise<void>;
+    public end(flush?: boolean): void;
     public saddAsync(key: string, val: string): Promise<"OK">;
     public scardAsync(key: string): Promise<number>;
     public selectAsync(db: number): Promise<void>;
