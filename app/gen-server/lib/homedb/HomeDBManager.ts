@@ -2931,6 +2931,25 @@ export class HomeDBManager implements HomeDBAuth {
     }
     const docIds = Object.keys(docUpdateMap);
     return this._connection.transaction(async (manager) => {
+      if (this._dbType === "postgres") {
+        await manager.query(
+          `UPDATE "docs" AS d
+             SET "updated_at" = COALESCE(m."updated_at", d."updated_at"),
+                 "usage" = CASE WHEN m."has_usage" THEN m."usage" ELSE d."usage" END
+           FROM (
+             SELECT * FROM unnest($1::varchar[], $2::timestamptz[], $3::json[], $4::boolean[])
+               AS t("id", "updated_at", "usage", "has_usage")
+           ) AS m
+           WHERE d."id" = m."id"`,
+          [
+            docIds,
+            docIds.map(id => docUpdateMap[id].updatedAt ?? null),
+            docIds.map(id => (docUpdateMap[id].usage === undefined ?
+              null : JSON.stringify(docUpdateMap[id].usage))),
+            docIds.map(id => docUpdateMap[id].usage !== undefined),
+          ]);
+        return { status: 200 };
+      }
       const updateTasks = docIds.map((docId) => {
         return manager.createQueryBuilder()
           .update(Document)

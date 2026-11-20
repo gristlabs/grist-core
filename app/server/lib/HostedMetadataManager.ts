@@ -1,6 +1,8 @@
 import { DocumentMetadata } from "app/gen-server/lib/homedb/HomeDBManager";
 import log from "app/server/lib/log";
 
+const PUSH_JITTER_FRACTION = 0.15;
+
 // Callback that persists the updated metadata to storage for each document.
 export type SaveDocsMetadataFunc = (metadata: { [docId: string]: DocumentMetadata }) => Promise<any>;
 
@@ -123,6 +125,8 @@ export class HostedMetadataManager {
   private _schedulePush(delayMs?: number): void {
     if (delayMs === undefined) {
       delayMs = Math.round(this._minPushDelayMs - (Date.now() - this._lastPushTime));
+      const jitter = Math.round(delayMs * PUSH_JITTER_FRACTION);
+      if (jitter > 0) { delayMs += Math.round((Math.random() * 2 - 1) * jitter); }
     }
     if (this._timeout) { clearTimeout(this._timeout); }
     this._timeout = setTimeout(() => this._update(), delayMs < 0 ? 0 : delayMs);
