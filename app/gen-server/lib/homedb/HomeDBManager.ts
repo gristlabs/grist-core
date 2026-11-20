@@ -110,6 +110,7 @@ import { getPersonalOrgsEnabled } from "app/server/lib/gristSettings";
 import { makeId } from "app/server/lib/idUtils";
 import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import log from "app/server/lib/log";
+import { trackHomeDbPool } from "app/server/lib/metrics";
 import { Permit } from "app/server/lib/Permit";
 import { IPubSubManager } from "app/server/lib/PubSubManager";
 import { getScope } from "app/server/lib/requestUtils";
@@ -382,10 +383,12 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async connect(): Promise<void> {
     this._connection = await getOrCreateConnection();
+    trackHomeDbPool(this._connection);
   }
 
   public connectTo(connection: DataSource) {
     this._connection = connection;
+    trackHomeDbPool(this._connection);
   }
 
   // make sure special users and workspaces are available
