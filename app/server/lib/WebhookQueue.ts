@@ -17,6 +17,7 @@ import { decodeObject } from "app/plugin/objtypes";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import log from "app/server/lib/log";
 import { fetchUntrustedWithAgent } from "app/server/lib/ProxyAgent";
+import { createRedisClient } from "app/server/lib/redisClient";
 import { delayAbort } from "app/server/lib/serverUtils";
 import { isWebhookUrlAllowed } from "app/server/lib/Triggers";
 import { LogSanitizer } from "app/server/utils/LogSanitizer";
@@ -24,7 +25,7 @@ import { LogSanitizer } from "app/server/utils/LogSanitizer";
 import { promisifyAll } from "bluebird";
 import * as _ from "lodash";
 import { AbortController, AbortSignal } from "node-abort-controller";
-import { createClient, Multi, RedisClient } from "redis";
+import { Multi, RedisClient } from "redis";
 
 import type { IDocNotificationManager, PendingItem } from "app/server/lib/IDocNotificationManager";
 
@@ -155,7 +156,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
     if (redisUrl) {
       // We create a transient client just for this purpose because it makes it easy
       // to quit it afterwards and avoid keeping a client open for documents without triggers.
-      this._getRedisQueuePromise = this._getRedisQueue(createClient(redisUrl));
+      this._getRedisQueuePromise = this._getRedisQueue(this._createRedisClient(redisUrl));
     }
   }
 
@@ -357,6 +358,10 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
     return { triggerName: "", tableName: "" };
   }
 
+  protected _createRedisClient(redisUrl: string) {
+    return createRedisClient(redisUrl, err => this._log(`redis client error: ${err}`, { level: "warn" }));
+  }
+
   private _log(msg: string, { level = "info", ...meta }: any = {}) {
     log.origLog(level, "WebhookQueue: " + msg, {
       ...meta,
@@ -555,7 +560,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
     const redisUrl = process.env.REDIS_URL;
     if (redisUrl) {
       this._log("Creating redis client");
-      this._redisClientField = createClient(redisUrl);
+      this._redisClientField = this._createRedisClient(redisUrl);
     }
     return this._redisClientField;
   }
