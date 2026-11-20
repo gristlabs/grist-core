@@ -43,7 +43,7 @@ export const DEPS = { fetch, delayTime: 1000, agents };
  * header if set. An api key is required for the default OpenAI endpoint.
  *
  * If a model string is set in ASSISTANT_MODEL, this will be passed
- * along. For the default OpenAI endpoint, a gpt-4o variant will be
+ * along. For the default OpenAI endpoint, a gpt-6-luna model will be
  * set by default.
  *
  * If a request fails because of context length limitation, and
@@ -54,7 +54,7 @@ export const DEPS = { fetch, delayTime: 1000, agents };
  */
 export class OpenAIAssistantV1 implements AssistantV1 {
   public static readonly VERSION = 1;
-  public static readonly DEFAULT_MODEL = "gpt-4o-2024-08-06";
+  public static readonly DEFAULT_MODEL = "gpt-6-luna";
   public static readonly DEFAULT_LONGER_CONTEXT_MODEL = "";
 
   private _apiKey = this._options.apiKey;
@@ -201,7 +201,8 @@ export class OpenAIAssistantV1 implements AssistantV1 {
       },
       body: JSON.stringify({
         messages,
-        temperature: 0,
+        // GPT-6 Luna only accepts the default temperature.
+        ...(/^gpt-6-luna(?:-|$)/.test(model || "") ? undefined : { temperature: 0 }),
         ...(model ? { model } : undefined),
         user,
         ...(this._maxTokens ?
