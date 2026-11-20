@@ -4087,6 +4087,33 @@ describe("GranularAccess", function() {
     assert.equal((await cliEditor.read()).type, "docUserAction");
   });
 
+  it("sends trigger monitor rows only to owners", async function() {
+    await freshDoc();
+    const tableRef = (await owner.applyUserActions(docId, [
+      ["AddTable", "Data1", [{ id: "Name", type: "Text" }]],
+    ])).retValues[0].id;
+    // A trigger with no actions still feeds the monitor, which is on by default.
+    await owner.applyUserActions(docId, [
+      ["AddRecord", "_grist_Triggers", null, {
+        tableRef, eventTypes: [GristObjCode.List, "add"], actions: "[]", enabled: true,
+      }],
+    ]);
+    const activeDoc = (await docManager.getActiveDoc(docId))!;
+    const broadcast = sandbox.spy(activeDoc.docClients, "broadcastDocMessage");
+    await owner.applyUserActions(docId, [["AddRecord", "Data1", null, { Name: "Ann" }]]);
+
+    // The monitor message isn't awaited by the action, so wait for it to go out to every session.
+    const monitorCalls = broadcast.getCalls().filter(call => call.args[1] === "docChatter");
+    assert.lengthOf(monitorCalls, 1);
+    await monitorCalls[0].returnValue;
+    await cliOwner.waitForServer();
+    await cliEditor.waitForServer();
+    const ownerChatter = cliOwner.messages.filter(m => m.type === "docChatter");
+    assert.deepEqual(ownerChatter.map(m => m.data.trigger.rows.map((r: any) => [r.rowId, r.data.Name])),
+      [[[1, "Ann"]]]);
+    assert.notInclude(cliEditor.messages.map(m => m.type), "docChatter");
+  });
+
   it("controls read and write access to attachment content", async function() {
     await freshDoc();
 

@@ -337,7 +337,8 @@ export class DocTriggers {
       );
 
       if (isMonitorEnabled && rowIndexesToSend.length > 0) {
-        // Monitor enabled: broadcast matched rows to connected clients via docChatter.
+        // The rows are read without access rules, so only owners get them, matching the
+        // owner-only trigger endpoints.
         const monitorRows = rowIndexesToSend.map(rowIndex => ({
           rowId: bulkColValues.id[rowIndex],
           data: makePayload(rowIndex),
@@ -355,7 +356,8 @@ export class DocTriggers {
             rows: monitorRows,
             actions: actions.map(action => ({ id: action.id, type: action.type, blocked: getBlockedReason() })),
           },
-        }).catch(e => this._log(`Error broadcasting monitor result: ${e}`, { level: "warn" }));
+        }, async (session, data) => (await this._activeDoc.isOwner(session)) ? data : undefined,
+        ).catch(e => this._log(`Error broadcasting monitor result: ${e}`, { level: "warn" }));
       }
 
       // Only enqueue actual action events when the trigger is enabled.
