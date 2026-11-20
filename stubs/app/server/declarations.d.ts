@@ -74,6 +74,7 @@ declare module "redis" {
 
   class Multi {
     public del(key: string): Multi;
+    public unlink(key: string): Multi;
     public execAsync(): Promise<any[] | null>;
     public get(key: string): Multi;
     public hgetall(key: string): Multi;
