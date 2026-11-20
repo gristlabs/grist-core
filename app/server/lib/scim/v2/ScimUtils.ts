@@ -113,15 +113,29 @@ function parseId(id: string, type: typeof SCIMMY_USER_TYPE | typeof SCIMMY_GROUP
   return parsedId;
 }
 
+function getMemberType(member: { type?: string; $ref?: string }): typeof SCIMMY_USER_TYPE | typeof SCIMMY_GROUP_TYPE {
+  if (member.type === SCIMMY_GROUP_TYPE) {
+    return SCIMMY_GROUP_TYPE;
+  }
+  if (member.type === SCIMMY_USER_TYPE) {
+    return SCIMMY_USER_TYPE;
+  }
+  if (member.$ref && /\/Groups\//i.test(member.$ref)) {
+    return SCIMMY_GROUP_TYPE;
+  }
+  // RFC 7643 §8.7.1: `type` is optional for group members and defaults to User
+  return SCIMMY_USER_TYPE;
+}
+
 function membersDescriptors(
   members: NonNullable<SCIMMY.Schemas.Group["members"]>,
 ): Pick<GroupWithMembersDescriptor, "memberUsers" | "memberGroups"> {
   return {
     memberUsers: members
-      .filter(member => member.type === SCIMMY_USER_TYPE)
+      .filter(member => getMemberType(member) === SCIMMY_USER_TYPE)
       .map(member => parseId(member.value, SCIMMY_USER_TYPE)),
     memberGroups: members
-      .filter(member => member.type === SCIMMY_GROUP_TYPE)
+      .filter(member => getMemberType(member) === SCIMMY_GROUP_TYPE)
       .map(member => parseId(member.value, SCIMMY_GROUP_TYPE)),
   };
 }

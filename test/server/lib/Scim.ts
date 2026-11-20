@@ -1001,6 +1001,29 @@ describe("Scim", () => {
             });
           });
 
+          it("should allow to create a group with members without type attribute", function() {
+            return withGroupName("test-group-members-without-type", async (groupName) => {
+              const res = await axios.post(scimUrl("/Groups"), {
+                schemas: ["urn:ietf:params:scim:schemas:core:2.0:Group"],
+                displayName: groupName,
+                members: [
+                  { value: String(userIdByName.chimpy) },
+                ],
+              }, chimpy);
+              assert.equal(res.status, 201);
+              const newGroupId = parseInt(res.data.id);
+              assert.deepEqual(res.data, {
+                schemas: ["urn:ietf:params:scim:schemas:core:2.0:Group"],
+                id: String(newGroupId),
+                displayName: groupName,
+                members: [
+                  getUserMemberWithRef("chimpy"),
+                ],
+                meta: { resourceType: "Group", location: `/api/scim/v2/Groups/${newGroupId}` },
+              });
+            });
+          });
+
           it("should allow to create a group without members", function() {
             return withGroupName("test-group-without-members", async (groupName) => {
               const res = await axios.post(scimUrl("/Groups"), {
