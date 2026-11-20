@@ -229,11 +229,15 @@ export function buildColorPicker(
         fontStrikethroughModel,
       }),
       dom.create(PickerComponent, textColorModel, {
-        title: t("text"),
+        // title is used to name the css container and classes
+        // should not be translated because it could break the css.
+        title: "text",
         ...textColor,
       }),
       dom.create(PickerComponent, fillColorModel, {
-        title: t("fill"),
+        // title is used to name the css container and classes
+        // should not be translated because it could break the css.
+        title: "fill",
         ...fillColor,
       }),
     ),
