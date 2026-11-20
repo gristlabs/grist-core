@@ -197,14 +197,22 @@ describe("DocWorkerMap", function() {
 
             const assignDocuments = async () => {
               assignmentCountByWorkerId.clear();
-              for (let i = 1; i <= docCount; i++) {
-                const docId = `doc${i}`;
-                const { docWorker } = await workerMap.assignDocWorker(docId);
-                const count = assignmentCountByWorkerId.get(docWorker.id) ?? 0;
-                assignmentCountByWorkerId.set(docWorker.id, count + 1);
-                // We call this function multiple times, so we need to release
-                // the assignment to prevent it from affecting future calls.
-                await workerMap.releaseAssignment(docWorker.id, docId);
+              // Workers are picked by a random draw. Make the draws evenly spaced instead, so
+              // each worker's share is exact and the checks below can't fail by chance.
+              let draw = 0;
+              const random = sinon.stub(Math, "random").callsFake(() => (draw++ + 0.5) / docCount);
+              try {
+                for (let i = 1; i <= docCount; i++) {
+                  const docId = `doc${i}`;
+                  const { docWorker } = await workerMap.assignDocWorker(docId);
+                  const count = assignmentCountByWorkerId.get(docWorker.id) ?? 0;
+                  assignmentCountByWorkerId.set(docWorker.id, count + 1);
+                  // We call this function multiple times, so we need to release
+                  // the assignment to prevent it from affecting future calls.
+                  await workerMap.releaseAssignment(docWorker.id, docId);
+                }
+              } finally {
+                random.restore();
               }
             };
 
