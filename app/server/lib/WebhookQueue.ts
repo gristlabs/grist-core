@@ -157,6 +157,7 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
       // We create a transient client just for this purpose because it makes it easy
       // to quit it afterwards and avoid keeping a client open for documents without triggers.
       this._getRedisQueuePromise = this._getRedisQueue(this._createRedisClient(redisUrl));
+      this._getRedisQueuePromise.catch(() => { this._getRedisQueuePromise = undefined; });
     }
   }
 
@@ -387,14 +388,23 @@ export class WebhookQueue implements ActionQueue<WebhookActionPayload> {
   }
 
   private async _getRedisQueue(redisClient: RedisClient) {
-    const strings = await redisClient.lrangeAsync(this._redisQueueKey, 0, -1);
-    if (strings.length) {
-      this._log("Webhook events found on redis queue", { numEvents: strings.length });
-      const events = strings.map(s => JSON.parse(s));
-      this._webHookEventQueue.unshift(...events);
-      this._startSendLoop();
+    try {
+      const strings = await redisClient.lrangeAsync(this._redisQueueKey, 0, -1);
+      if (strings.length) {
+        this._log("Webhook events found on redis queue", { numEvents: strings.length });
+        const events = strings.map(s => JSON.parse(s));
+        this._webHookEventQueue.unshift(...events);
+        this._startSendLoop();
+      }
+    } finally {
+      if (redisClient.connected) {
+        await redisClient.quitAsync().catch(
+          e => this._log("Error quitting redis: " + e, { level: "warn" }),
+        );
+      } else {
+        redisClient.end(true);
+      }
     }
-    await redisClient.quitAsync();
   }
 
   private async _getWebHook(id: string): Promise<WebHookSecret | undefined> {
