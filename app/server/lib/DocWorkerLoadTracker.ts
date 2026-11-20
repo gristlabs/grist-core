@@ -7,6 +7,7 @@ import { DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import { readLoadIntervalMs } from "app/server/lib/docWorkerSettings";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
+import { DocWorkerLoadMeasurement, recordDocWorkerLoad } from "app/server/lib/metrics";
 
 import fs from "node:fs/promises";
 export const Deps = {
@@ -115,9 +116,17 @@ export class DocWorkerLoadTracker {
    * assignment algorithm.
    */
   public async getLoad() {
+    return (await this._readLoad()).loadRatio;
+  }
+
+  private async _readLoad(): Promise<DocWorkerLoadMeasurement> {
     const memoryUsedMB = await this._getMemoryUsedMB();
     const memoryTotalMB = await this._getMemoryTotalMB();
-    return clamp(memoryUsedMB / memoryTotalMB, 0.0, 1.0);
+    return {
+      loadRatio: clamp(memoryUsedMB / memoryTotalMB, 0.0, 1.0),
+      memoryUsedMB,
+      memoryTotalMB,
+    };
   }
 
   /**
@@ -195,7 +204,9 @@ export class DocWorkerLoadTracker {
   private async _updateLoad() {
     let load: number;
     try {
-      load = await this.getLoad();
+      const workerLoad = await this._readLoad();
+      load = workerLoad.loadRatio;
+      recordDocWorkerLoad(workerLoad);
     } catch (e) {
       // A worker that cannot measure itself is still running, so the claim is sent alone. Its
       // own failure is swallowed, the error being reported the one worth reporting.

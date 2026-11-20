@@ -1,6 +1,8 @@
+import { initMetrics } from "app/server/lib/metrics";
+
 import http from "http";
 
-import { collectDefaultMetrics, register } from "prom-client";
+import { register } from "prom-client";
 
 const reqListener = (req: http.IncomingMessage, res: http.ServerResponse) => {
   register.metrics().then((metrics) => {
@@ -13,7 +15,7 @@ const reqListener = (req: http.IncomingMessage, res: http.ServerResponse) => {
 };
 
 export function runPrometheusExporter(port: number) {
-  collectDefaultMetrics();
+  initMetrics();
 
   if (isNaN(port)) {
     throw new Error(`Invalid port: ${process.env.GRIST_PROMCLIENT_PORT}`);
