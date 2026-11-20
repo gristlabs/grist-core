@@ -2,6 +2,7 @@ import { checkMinIOExternalStorage } from "app/server/lib/configureMinIOExternal
 import { EnvironmentSnapshot } from "test/server/testUtils";
 
 import { assert } from "chai";
+import * as minio from "minio";
 
 describe("configureMinIOExternalStorage", function() {
   let oldEnv: EnvironmentSnapshot;
@@ -58,6 +59,38 @@ describe("configureMinIOExternalStorage", function() {
     process.env.GRIST_DOCS_S3_ACCESS_KEY = "ak";
     process.env.GRIST_DOCS_S3_SECRET_KEY = "sk";
     assert.equal(checkMinIOExternalStorage()?.bucket, "new");
+  });
+
+  describe("credentials", function() {
+    beforeEach(function() {
+      process.env.GRIST_DOCS_S3_BUCKET = "b";
+      process.env.GRIST_DOCS_S3_ENDPOINT = "s3.amazonaws.com";
+    });
+
+    it("requires access and secret keys by default", function() {
+      process.env.GRIST_DOCS_S3_ACCESS_KEY = "ak";
+      assert.throws(() => checkMinIOExternalStorage(), /missing environment variable: .*SECRET_KEY/);
+      delete process.env.GRIST_DOCS_S3_ACCESS_KEY;
+      process.env.GRIST_DOCS_S3_SECRET_KEY = "sk";
+      assert.throws(() => checkMinIOExternalStorage(), /missing environment variable: .*ACCESS_KEY/);
+    });
+
+    it("uses IamAwsProvider when GRIST_DOCS_S3_USE_AWS_CREDENTIAL_CHAIN is set", function() {
+      process.env.GRIST_DOCS_S3_USE_AWS_CREDENTIAL_CHAIN = "true";
+      const options = checkMinIOExternalStorage();
+      assert.instanceOf(options?.credentialsProvider, minio.IamAwsProvider);
+      assert.notProperty(options, "accessKey");
+      assert.notProperty(options, "secretKey");
+    });
+
+    it("rejects keys combined with GRIST_DOCS_S3_USE_AWS_CREDENTIAL_CHAIN", function() {
+      process.env.GRIST_DOCS_S3_USE_AWS_CREDENTIAL_CHAIN = "true";
+      process.env.GRIST_DOCS_MINIO_ACCESS_KEY = "ak";
+      assert.throws(() => checkMinIOExternalStorage(), /cannot be combined/);
+      delete process.env.GRIST_DOCS_MINIO_ACCESS_KEY;
+      process.env.GRIST_DOCS_S3_SECRET_KEY = "sk";
+      assert.throws(() => checkMinIOExternalStorage(), /cannot be combined/);
+    });
   });
 
   it("requires an endpoint once a bucket is set", function() {
