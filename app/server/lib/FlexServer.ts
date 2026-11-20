@@ -2547,9 +2547,6 @@ export class FlexServer implements GristServer {
 
   private async _removeSelfAsWorker(workers: IDocWorkerMap, docWorkerId: string) {
     this._healthy = false;
-    // Deregistering matters more than a last report, so a failed one must not stop it.
-    await this._docWorkerLoadTracker?.stopAndFinish().catch(
-      err => log.warn(`DocWorker ${docWorkerId} could not finish reporting itself: ${err}`));
     await workers.removeWorker(docWorkerId);
     if (process.env.GRIST_ROUTER_URL) {
       await axios.get(process.env.GRIST_ROUTER_URL,
@@ -2575,6 +2572,9 @@ export class FlexServer implements GristServer {
     if (!this._docWorkerMap) { return; }  // but this should never happen.
 
     const workers = this._docWorkerMap;
+
+    await this._docWorkerLoadTracker?.stopAndFinish().catch(
+      err => log.warn(`DocWorker ${this.worker.id} could not finish reporting itself: ${err}`));
 
     // Pick up the pace on saving documents.
     this._storageManager.prepareToCloseStorage();
