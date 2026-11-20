@@ -1,4 +1,6 @@
-import { interpolationMarkers, makeT, splitInterpolationMarkers, t } from "app/client/lib/localization";
+import {
+  fillPluralForms, interpolationMarkers, makeT, splitInterpolationMarkers, t,
+} from "app/client/lib/localization";
 
 import { assert } from "chai";
 import { Disposable, dom, DomContents, observable } from "grainjs";
@@ -36,6 +38,28 @@ describe("localization", function() {
 
   afterEach(function() {
     popGlobals();
+  });
+
+  it("uses the language's own plural when a plural form is missing", async function() {
+    const en = { "{{count}} rows_one": "one row", "{{count}} rows_other": "{{count}} rows" };
+    const ru = { "{{count}} rows_one": "{{count}} строка", "{{count}} rows_other": "{{count}} строк" };
+    const plurals = i18next.createInstance();
+    await plurals.init({ lng: "ru", fallbackLng: "en", resources: { en: { translation: en } } });
+
+    // Without the missing forms, counts that need them fall back to English.
+    plurals.addResourceBundle("ru", "translation", { ...ru });
+    assert.equal(t("{{count}} rows", { count: 3 }, plurals), "3 rows");
+
+    plurals.addResourceBundle("ru", "translation", fillPluralForms("ru", { ...ru }));
+    assert.equal(t("{{count}} rows", { count: 1 }, plurals), "1 строка");
+    assert.equal(t("{{count}} rows", { count: 3 }, plurals), "3 строк");
+    assert.equal(t("{{count}} rows", { count: 5 }, plurals), "5 строк");
+
+    // A form the translation does have is left alone, also in nested groups.
+    const nested: Record<string, any> = { Group: { a_few: "few", a_other: "other" } };
+    assert.deepEqual(fillPluralForms("ru", nested),
+      { Group: { a_few: "few", a_other: "other", a_one: "other", a_many: "other" } });
+    assert.deepEqual(fillPluralForms("en", { ...en }), en);
   });
 
   it("supports basic operation for strings", function() {
