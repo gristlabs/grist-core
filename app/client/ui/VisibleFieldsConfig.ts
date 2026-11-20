@@ -2,6 +2,8 @@ import DetailView from "app/client/components/DetailView";
 import { GristDoc } from "app/client/components/GristDoc";
 import { fixOutlineOverflow } from "app/client/components/KeyboardFocusHighlighter";
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
+import { normalizeText } from "app/client/lib/ACIndex";
+import { getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { focusFallbackOnDispose, kbFallbackGroup } from "app/client/lib/focusUtils";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
@@ -19,17 +21,32 @@ import { visuallyHiddenStyles } from "app/client/ui2018/visuallyHidden";
 import * as gutil from "app/common/gutil";
 import { IWidgetType } from "app/common/widgetTypes";
 
-import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe } from "grainjs";
+import {
+  Computed,
+  Disposable,
+  dom,
+  IDomArgs,
+  makeTestId,
+  Observable,
+  onKeyDown,
+  styled,
+  subscribe,
+  UseCB,
+} from "grainjs";
 import ko from "knockout";
 import difference from "lodash/difference";
 import isEqual from "lodash/isEqual";
 
 const testId = makeTestId("test-vfc-");
 const t = makeT("VisibleFieldsConfig");
+const G = getBrowserGlobals("document", "window", "$");
+
+/** Show a filter input once a list has more than this many columns. */
+const FILTER_INPUT_MIN_COUNT = 10;
 
 export type IField = ViewFieldRec | ColumnRec;
 
-interface DraggableFieldsOption {
+interface DraggableFieldsOption<T extends IField = IField> {
   // an object holding options for the draggable list, see koForm.js for more detail on the accepted
   // options.
   draggableOptions: any;
@@ -39,7 +56,10 @@ interface DraggableFieldsOption {
   skipFirst?: Observable<number>;
 
   // Allows to filter view fields.
-  filterFunc?: (field: ViewFieldRec, index: number) => boolean;
+  filterFunc?: (field: T, index: number) => boolean;
+
+  // Observable that triggers re-filtering when it changes (e.g. search text).
+  filterTrigger?: Observable<unknown>;
 
   // Allows to prevent updates of the list. This option is to be used when skipFirst option is used
   // and it is useful to prevent the list to update during changes that only affect the skipped
@@ -47,7 +67,7 @@ interface DraggableFieldsOption {
   freeze?: Observable<boolean>;
 
   // the itemCreateFunc callback passed to kf.draggableList for the visible fields.
-  itemCreateFunc(field: IField): Element | undefined;
+  itemCreateFunc(field: T): Element | undefined;
 }
 
 /**
@@ -74,6 +94,9 @@ export class VisibleFieldsConfig extends Disposable {
   });
 
   private _collapseHiddenFields = Observable.create(this, false);
+
+  private _visibleFilter = Observable.create(this, "");
+  private _hiddenFilter = Observable.create(this, "");
 
   /**
    * Set if and only if the corresponding selection is empty, ie: respectively
@@ -114,10 +137,10 @@ export class VisibleFieldsConfig extends Disposable {
   /**
    * Build the draggable list components to show the visible fields of a section.
    */
-  public buildVisibleFieldsConfigHelper(options: DraggableFieldsOption) {
+  public buildVisibleFieldsConfigHelper(options: DraggableFieldsOption<ViewFieldRec>) {
     let fields = this._section.viewFields.peek();
 
-    if (options.skipFirst || options.filterFunc) {
+    if (options.skipFirst || options.filterFunc || options.filterTrigger) {
       const skipFirst = options.skipFirst || Observable.create(this, -1);
       const filterFunc = options.filterFunc || (() => true);
 
@@ -139,6 +162,9 @@ export class VisibleFieldsConfig extends Disposable {
       this.autoDispose(subscribe(skipFirst, update));
       if (options.freeze) {
         this.autoDispose(subscribe(options.freeze, update));
+      }
+      if (options.filterTrigger) {
+        this.autoDispose(subscribe(options.filterTrigger, update));
       }
       fields = newArray;
     }
@@ -169,12 +195,13 @@ export class VisibleFieldsConfig extends Disposable {
    */
   public buildSectionFieldsConfigHelper(
     options: {
-      visibleFields: DraggableFieldsOption,
-      hiddenFields: DraggableFieldsOption,
+      visibleFields: DraggableFieldsOption<ViewFieldRec>,
+      hiddenFields: DraggableFieldsOption<ColumnRec>,
     }): [HTMLElement, HTMLElement] {
     const fieldsDraggable = this.buildVisibleFieldsConfigHelper(options.visibleFields);
+    const hiddenFields = this._buildFilteredHiddenFields(options.hiddenFields);
     const hiddenFieldsDraggable = kf.draggableList(
-      this._hiddenFields,
+      hiddenFields,
       options.hiddenFields.itemCreateFunc,
       {
         itemClass: cssDragRow.className,
@@ -189,6 +216,9 @@ export class VisibleFieldsConfig extends Disposable {
         ...options.hiddenFields.draggableOptions,
       },
     );
+    fieldsDraggable.classList.add(cssDraggableList.className);
+    hiddenFieldsDraggable.classList.add(cssDraggableList.className);
+
     kf.connectDraggableOneWay(hiddenFieldsDraggable, fieldsDraggable);
 
     this.autoDispose(this._disabled.subscribe(() => {
@@ -202,20 +232,43 @@ export class VisibleFieldsConfig extends Disposable {
   public buildDom() {
     const [fieldsDraggable, hiddenFieldsDraggable] = this.buildSectionFieldsConfigHelper({
       visibleFields: {
-        itemCreateFunc: field => this._buildVisibleFieldItem(field as ViewFieldRec),
+        itemCreateFunc: field => this._buildVisibleFieldItem(field),
+        filterFunc: field => fieldMatchesFilterOrSelection(
+          field,
+          this._visibleFilter.get(),
+          this._visibleFieldsSelection,
+        ),
+        filterTrigger: this._visibleFilter,
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
         },
       },
       hiddenFields: {
-        itemCreateFunc: field => this._buildHiddenFieldItem(field as ColumnRec),
+        itemCreateFunc: field => this._buildHiddenFieldItem(field),
+        filterFunc: field => fieldMatchesFilterOrSelection(
+          field,
+          this._hiddenFilter.get(),
+          this._hiddenFieldsSelection,
+        ),
+        filterTrigger: this._hiddenFilter,
         draggableOptions: {
           removeButton: false,
           drag_indicator: cssDragger,
         },
       },
     });
+
+    // Disable sorting while a filter is active so a partial list cannot be reordered.
+    this.autoDispose(subscribe(this._visibleFilter, (_use, filter) => {
+      // @ts-expect-error sortable is a jQuery UI method
+      G.$(fieldsDraggable).sortable("option", "disabled", Boolean(filter));
+    }));
+    this.autoDispose(subscribe(this._hiddenFilter, (_use, filter) => {
+      // @ts-expect-error sortable is a jQuery UI method
+      G.$(hiddenFieldsDraggable).sortable("option", "disabled", Boolean(filter));
+    }));
+
     return [
       dom("div", { "role": "group", "aria-labelledby": "visible-fields-label" },
         kbJumperAnchor,
@@ -239,6 +292,11 @@ export class VisibleFieldsConfig extends Disposable {
               )
             ),
           ),
+        ),
+        this._buildFilterInput(
+          this._visibleFilter,
+          use => use(use(this._section.viewFields).getObservable()).length,
+          "visible",
         ),
         cssFieldsDraggable(
           cssFieldsDraggable.cls("-disabled", this._disabled),
@@ -301,6 +359,11 @@ export class VisibleFieldsConfig extends Disposable {
           "div",
           dom.hide(this._collapseHiddenFields),
           { id: "hidden-fields-list" },
+          this._buildFilterInput(
+            this._hiddenFilter,
+            use => use(this._hiddenFields.getObservable()).length,
+            "hidden",
+          ),
           cssFieldsDraggable(
             cssFieldsDraggable.cls("-disabled", this._disabled),
             dom.update(
@@ -358,24 +421,28 @@ export class VisibleFieldsConfig extends Disposable {
 
   // Set all checkboxes for the visible fields.
   private _setVisibleCheckboxes(visibleFieldsDraggable: Element, checked: boolean) {
+    const fields = this._section.viewFields.peek().peek()
+      .filter(field => fieldMatchesFilterOrSelection(field, this._visibleFilter.get(), this._visibleFieldsSelection));
     this._setCheckboxesHelper(
       visibleFieldsDraggable,
-      this._section.viewFields.peek().peek(),
+      fields,
       this._visibleFieldsSelection,
       checked,
     );
-    this._showVisibleBatchButtons.set(checked);
+    this._showVisibleBatchButtons.set(checked && fields.length > 0);
   }
 
   // Set all checkboxes for the hidden fields.
   private _setHiddenCheckboxes(hiddenFieldsDraggable: Element, checked: boolean) {
+    const fields = this._hiddenFields.peek()
+      .filter(field => fieldMatchesFilterOrSelection(field, this._hiddenFilter.get(), this._hiddenFieldsSelection));
     this._setCheckboxesHelper(
       hiddenFieldsDraggable,
-      this._hiddenFields.peek(),
+      fields,
       this._hiddenFieldsSelection,
       checked,
     );
-    this._showHiddenBatchButtons.set(checked);
+    this._showHiddenBatchButtons.set(checked && fields.length > 0);
   }
 
   // A helper to set all checkboxes. Takes care of setting all checkboxes in the dom and updating
@@ -390,6 +457,76 @@ export class VisibleFieldsConfig extends Disposable {
       // add all ids to the selection
       fields.forEach(field => selection.add(field.id.peek()));
     }
+  }
+
+  private _buildFilteredHiddenFields(options: DraggableFieldsOption<ColumnRec>): KoArray<ColumnRec> {
+    if (!options.filterFunc && !options.filterTrigger) {
+      return this._hiddenFields;
+    }
+
+    const filterFunc = options.filterFunc || (() => true);
+    const newArray = new KoArray<ColumnRec>();
+
+    const update = () => {
+      const newValues = this._hiddenFields.peek().filter(filterFunc);
+      if (isEqual(newArray.all(), newValues)) { return; }
+      newArray.assign(newValues);
+    };
+    update();
+    this.autoDispose(this._hiddenFields.subscribe(update));
+    if (options.filterTrigger) {
+      this.autoDispose(subscribe(options.filterTrigger, update));
+    }
+    return newArray;
+  }
+
+  private _buildFilterInput(
+    filterObs: Observable<string>,
+    getCount: (use: UseCB) => number,
+    state: "visible" | "hidden",
+  ) {
+    // Show when the unfiltered list is long enough, or when a filter is already active so the
+    // user can clear it after the list shrinks.
+    return dom.maybe(
+      use => getCount(use) > FILTER_INPUT_MIN_COUNT || Boolean(use(filterObs)),
+      () => {
+        let filterInput: HTMLInputElement;
+        return cssFilterRow(
+          cssFilterIcon("Search"),
+          filterInput = cssFilterInput(
+            {
+              "type": "search",
+              "placeholder": t("Filter"),
+              "aria-label": state === "visible" ? t("Filter visible columns") : t("Filter hidden columns"),
+            },
+            dom.prop("value", filterObs),
+            dom.on("input", (_ev, elem) => filterObs.set(elem.value)),
+            onKeyDown({
+              // Let input[search] browser behavior happen thanks to "$", so that Esc key clears the input first.
+              Escape$: (_ev, elem) => {
+                if (!elem.value) {
+                  elem.blur();
+                }
+              },
+            }),
+            testId(`${state}-filter`),
+          ),
+          dom.maybe(filterObs, () => cssClearFilterButton(
+            icon("CrossSmall"),
+            {
+              "aria-label": state === "visible" ?
+                t("Clear visible columns filter") :
+                t("Clear hidden columns filter"),
+            },
+            testId(`${state}-filter-clear`),
+            dom.on("click", () => {
+              filterObs.set("");
+              filterInput.focus();
+            }),
+          )),
+        );
+      },
+    );
   }
 
   private _buildHiddenFieldItem(column: IField) {
@@ -472,6 +609,12 @@ export class VisibleFieldsConfig extends Disposable {
   }
 }
 
+function fieldMatchesFilterOrSelection(field: IField, filter: string, selection: Set<number>): boolean {
+  const query = normalizeText(filter);
+  if (!query) { return true; }
+  return normalizeText(field.label.peek()).includes(query) || selection.has(field.id.peek());
+}
+
 function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,
   nextField: ViewFieldRec | null): number | null {
   const index = getItemIndex(fields, nextField);
@@ -512,6 +655,15 @@ function unselectDeletedFields(selection: Set<number>, event: { deleted: IField[
     selection.delete(field.id.peek());
   }
 }
+
+// This is only used to apply the class manually on the draggable list elements.
+const cssDraggableList = styled("ul", `
+  &.ui-sortable-disabled .test-dragger {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    cursor: default !important;
+  }
+`);
 
 export const cssDragRow = styled("div", `
   display: flex;
@@ -595,4 +747,48 @@ const cssFieldsDraggable = styled("div", `
 const cssHeaderButton = styled(unstyledButton, `
   display: flex;
   align-items: center;
+`);
+
+const cssFilterRow = styled("div", `
+  display: flex;
+  align-items: center;
+  margin: 0 16px 8px 16px;
+  padding: 4px 8px;
+  border: 1px solid ${theme.inputBorder};
+  border-radius: 3px;
+  background-color: ${theme.inputBg};
+`);
+
+const cssFilterIcon = styled(icon, `
+  flex-shrink: 0;
+  margin-right: 6px;
+  --icon-color: ${theme.lightText};
+`);
+
+const cssFilterInput = styled("input", `
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: ${theme.inputFg};
+  font-size: ${vars.mediumFontSize};
+  padding: 0;
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+
+  /* Hide the native clear button; we render our own. */
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+`);
+
+const cssClearFilterButton = styled(unstyledButton, `
+  flex-shrink: 0;
+  margin-left: 4px;
+  line-height: 1;
+  --icon-color: ${theme.lightText};
+  cursor: pointer;
 `);

@@ -398,4 +398,167 @@ describe("VisibleFieldsConfig", function() {
       await gu.undo();
     });
   }
+
+  describe("column filter", function() {
+    async function setFilter(state: "visible" | "hidden", value: string) {
+      const input = await driver.find(`.test-vfc-${state}-filter`);
+      await input.click();
+      await gu.selectAll();
+      await driver.sendKeys(value || Key.DELETE);
+    }
+
+    before(async function() {
+      // After prior tests, columns may all be hidden; show them first.
+      if (await driver.find(".test-vfc-hidden-fields-select-all").isPresent()) {
+        await driver.find(".test-vfc-hidden-fields-select-all").click();
+        await driver.find(".test-vfc-hidden-batch-buttons").findContent("button", /Show/).click();
+        await gu.waitForServer();
+      }
+
+      // Add enough columns for the filter input to appear (> 10).
+      for (const name of ["D", "E", "F", "G", "H", "I", "J", "K"]) {
+        await gu.addColumn(name);
+      }
+    });
+
+    it("should show a filter input above visible columns when there are more than 10", async function() {
+      assert.isTrue(await driver.find(".test-vfc-visible-filter").isPresent());
+      assert.isFalse(await driver.find(".test-vfc-hidden-filter").isPresent());
+    });
+
+    it("should filter visible columns by name", async function() {
+      await setFilter("visible", "A");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["A"],
+      );
+
+      await setFilter("visible", "K");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["K"],
+      );
+
+      // Clear filter to restore full list.
+      await setFilter("visible", "");
+      assert.lengthOf(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable"),
+        11,
+      );
+    });
+
+    it("should keep checked columns visible until the filter changes again", async function() {
+      // Check "A", then filter to something that does not match it.
+      await findField("visible", /A/).find("input").click();
+      await setFilter("visible", "K");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["A", "K"],
+      );
+      assert.equal(await isSelected("visible", /A/), true);
+
+      // Uncheck "A: it should stay visible until the filter text changes, so that a missclick can be undone easily.
+      await findField("visible", /A/).find("input").click();
+      assert.equal(await isSelected("visible", /A/), false);
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["A", "K"],
+      );
+
+      // Typing another character re-applies the filter; "A" should now disappear.
+      await driver.find(".test-vfc-visible-filter").click();
+      await driver.sendKeys(Key.END, "x");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        [],
+      );
+
+      await setFilter("visible", "");
+    });
+
+    it("should only 'select all' and hide columns that match the filter", async function() {
+      await setFilter("visible", "A");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["A"],
+      );
+
+      await driver.find(".test-vfc-visible-fields-select-all").click();
+      assert.equal(await isSelected("visible", /A/), true);
+
+      await driver.find(".test-vfc-visible-batch-buttons").findContent("button", /Hide/).click();
+      await gu.waitForServer();
+
+      const visible = await driver.findAll(".g-column-label", e => e.getText());
+      assert.notInclude(visible, "A");
+      assert.include(visible, "B");
+      assert.include(visible, "K");
+      assert.lengthOf(visible, 10);
+
+      await setFilter("visible", "");
+      await gu.undo();
+    });
+
+    it("should disable drag-and-drop while the list is filtered", async function() {
+      const columnOrder = () => driver.findAll(".g-column-label", e => e.getText());
+
+      // Keep B visible under a filter that only matches K, so the list has two rows.
+      await findField("visible", /B/).find("input").click();
+      await setFilter("visible", "K");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["B", "K"],
+      );
+
+      const orderBefore = await columnOrder();
+
+      // Attempt to move B below K — should have no effect while filtered.
+      await driver.withActions(actions => (
+        actions
+          .move({ origin: findField("visible", /B/) })
+          .move({ origin: findField("visible", /B/).find(".test-dragger") })
+          .press()
+          .move({ origin: findField("visible", /K/), y: 1 })
+          .release()
+      ));
+      assert.deepEqual(await columnOrder(), orderBefore);
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["B", "K"],
+      );
+
+      // Clearing the filter should re-enable drag-and-drop.
+      await setFilter("visible", "");
+      await findField("visible", /B/).find("input").click();
+
+      await driver.withActions(actions => (
+        actions
+          .move({ origin: findField("visible", /J/) })
+          .move({ origin: findField("visible", /J/).find(".test-dragger") })
+          .press()
+          .move({ origin: findField("visible", /K/), y: 1 })
+          .release()
+      ));
+      await gu.waitForServer();
+
+      const orderAfter = await columnOrder();
+      assert.isAbove(orderAfter.indexOf("J"), orderAfter.indexOf("K"));
+
+      await gu.undo();
+    });
+
+    it("should show a filter input above hidden columns when there are more than 10", async function() {
+      await driver.find(".test-vfc-visible-fields-select-all").click();
+      await driver.find(".test-vfc-visible-batch-buttons").findContent("button", /Hide/).click();
+      await gu.waitForServer();
+
+      assert.isTrue(await driver.find(".test-vfc-hidden-filter").isPresent());
+
+      await setFilter("hidden", "B");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-hidden-fields .kf_draggable", e => e.getText()),
+        ["B"],
+      );
+    });
+  });
 });

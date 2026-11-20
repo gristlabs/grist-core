@@ -156,6 +156,7 @@ div:hover > .kf_tooltip {
   cursor: grabbing;
 }
 
+.ui-sortable-disabled .kf_draggable:not(:has(.ui-sortable-handle)),
 .kf_draggable.disabled {
   cursor: default;
 }
