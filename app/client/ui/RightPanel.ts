@@ -29,6 +29,7 @@ import { createSessionObs, isBoolean, SessionObs } from "app/client/lib/sessionO
 import { logTelemetryEvent } from "app/client/lib/telemetry";
 import { reportError } from "app/client/models/AppModel";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
+import { columnWidthConfig } from "app/client/ui/ColumnWidthConfig";
 import { CustomSectionConfig } from "app/client/ui/CustomSectionConfig";
 import { showCustomWidgetGallery } from "app/client/ui/CustomWidgetGallery";
 import { buildDescriptionConfig } from "app/client/ui/DescriptionConfig";
@@ -361,6 +362,10 @@ export class RightPanel extends Disposable {
               builder.buildSettingOptions(),
               dom.maybe(isMultiSelect, () => disabledSection()),
             ),
+          ]),
+          dom.maybe(use => use(this._pageWidgetType) === "record", () => [
+            cssSeparator(),
+            columnWidthConfig(docModel, selectedColumns),
           ]),
           cssSeparator(),
           cssSection(
