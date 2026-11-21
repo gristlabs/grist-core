@@ -461,7 +461,7 @@ const cssColorInput = styled("input", `
   opacity: 0;
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   height: 100%;
   padding: 0;
@@ -519,7 +519,7 @@ const cssContent = styled("div", `
 
 const cssHexBox = styled(textInput, `
   border: 1px solid ${theme.colorSelectInputBorder};
-  border-left: none;
+  border-inline-start: none;
   font-size: ${vars.smallFontSize};
   display: flex;
   align-items: center;
@@ -570,8 +570,8 @@ const cssNoneIcon = styled(icon, `
 `);
 
 const cssButtonIcon = styled(cssColorSquare, `
-  margin-right: 6px;
-  margin-left: 4px;
+  margin-inline-end: 6px;
+  margin-inline-start: 4px;
 `);
 
 const cssIconBtn = styled(cssColorSquare, `

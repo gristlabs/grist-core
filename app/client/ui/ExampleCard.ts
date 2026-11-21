@@ -93,11 +93,12 @@ function expandCard(card: HTMLElement, collapsedRect: DOMRect) {
 
 const cssCard = styled("div", `
   position: absolute;
-  left: 24px;
+  inset-inline-start: 24px;
   bottom: 24px;
-  margin-right: 24px;
+  margin-inline-end: 24px;
   max-width: 624px;
-  padding: 32px 56px 32px 32px;
+  padding-block: 32px;
+  padding-inline: 32px 56px;
   background-color: ${theme.popupBg};
   box-shadow: 0 2px 18px 0 ${theme.popupInnerShadow}, 0 0 1px 0 ${theme.popupOuterShadow};
   display: flex;
@@ -120,7 +121,8 @@ const cssImage = styled("img", `
   flex: none;
   width: 180px;
   height: 140px;
-  margin: 0 16px 0 -8px;
+  margin-block: 0;
+  margin-inline: -8px 16px;
   @media ${mediaXSmall} {
     & {
       margin: auto;
@@ -151,19 +153,19 @@ export const cssButtons = styled("div", `
 
 export const cssLinkBtn = styled(cssLink, `
   &:not(:last-child) {
-    margin-right: 32px;
+    margin-inline-end: 32px;
   }
 `);
 
 export const cssLinkIcon = styled(icon, `
-  margin-right: 8px;
+  margin-inline-end: 8px;
   margin-top: -2px;
 `);
 
 export const cssCloseButton = styled("div", `
   position: absolute;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;

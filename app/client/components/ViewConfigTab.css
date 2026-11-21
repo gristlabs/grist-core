@@ -15,7 +15,7 @@
   float: none;
   position: absolute;
   top: 0.3rem;
-  right: 0.2rem;
+  inset-inline-end: 0.2rem;
 
   background-color: white;
   padding: 0.2rem;

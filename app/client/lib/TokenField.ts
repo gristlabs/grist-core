@@ -717,13 +717,13 @@ const cssDragTarget = styled("div", `
   &::before {
     content: "";
     position: absolute;
-    left: -8px;
-    right: 50%;
+    inset-inline-start: -8px;
+    inset-inline-end: 50%;
     top: 0px;
     bottom: 0px;
   }
   &:hover {
-    transform: translateX(2px);
+    transform: translateX(calc(2px * var(--inline-sign)));
   }
   &:hover::after {
     content: "";
@@ -732,7 +732,7 @@ const cssDragTarget = styled("div", `
     width: 2px;
     top: 0px;
     bottom: 0px;
-    left: -4px;
+    inset-inline-start: -4px;
   }
 `);
 
@@ -744,8 +744,8 @@ const cssVerticalDragTarget = styled("div", `
     position: absolute;
     top: -8px;
     bottom: 0px;
-    left: 0px;
-    right: 0px;
+    inset-inline-start: 0px;
+    inset-inline-end: 0px;
   }
   &-next::before {
     /* 27.75px is the height of a token. */
@@ -762,20 +762,20 @@ const cssVerticalDragTarget = styled("div", `
     height: 2px;
     top: -5px;
     bottom: 0px;
-    left: 0px;
-    right: 0px;
+    inset-inline-start: 0px;
+    inset-inline-end: 0px;
   }
 `);
 
 const cssHiddenInput = styled("input", `
-  left: -10000px;
+  inset-inline-start: -10000px;
   width: 1px;
   position: absolute;
 `);
 
 const cssDeleteButton = styled("div", `
   display: inline;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   vertical-align: bottom;
   line-height: 1;
   cursor: pointer;

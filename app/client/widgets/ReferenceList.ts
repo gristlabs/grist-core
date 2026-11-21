@@ -4,6 +4,7 @@ import {
   FormOptionsLimitConfig,
   FormOptionsSortConfig,
 } from "app/client/components/Forms/FormConfig";
+import { alignmentToJustify } from "app/client/lib/direction";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { testId, theme } from "app/client/ui2018/cssVars";
@@ -30,7 +31,7 @@ export class ReferenceList extends Reference {
     return cssChoiceList(
       dom.cls("field_clip"),
       cssChoiceList.cls("-wrap", this.wrapping),
-      dom.style("justify-content", use => use(this.alignment) === "right" ? "flex-end" : use(this.alignment)),
+      dom.style("justify-content", use => alignmentToJustify(use(this.alignment))),
       dom.domComputed((use) => {
         if (use(row._isAddRow) || this.isDisposed() || use(this.field.displayColModel).isDisposed()) {
           // Work around JS errors during certain changes (noticed when visibleCol field gets removed
@@ -126,7 +127,7 @@ const cssRefIcon = styled(icon, `
   --icon-color: ${theme.lightText};
   flex-shrink: 0;
   position: absolute;
-  left: 4px;
+  inset-inline-start: 4px;
 
   &-view-as-card {
     cursor: pointer;
@@ -138,7 +139,7 @@ const cssRefIcon = styled(icon, `
 
 const cssRefIconAndLabel = styled("div", `
   position: relative;
-  padding-left: 20px;
+  padding-inline-start: 20px;
 `);
 
 const cssLabel = styled("div", `

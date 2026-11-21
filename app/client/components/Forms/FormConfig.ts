@@ -180,7 +180,7 @@ export class FormFieldRulesConfig extends Disposable {
 }
 
 const cssHintRow = styled("div", `
-  margin-left: 40px;
-  margin-right: 16px;
+  margin-inline-start: 40px;
+  margin-inline-end: 16px;
   color: ${theme.lightText};
 `);

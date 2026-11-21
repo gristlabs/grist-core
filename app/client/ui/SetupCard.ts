@@ -366,13 +366,13 @@ const cssItemRow = styled(cssCardSurface, `
   /* The stripe tints the left border to match, so it doesn't clash with the selected/hover
    * border color; !important because -clickable:hover outranks this selector's specificity. */
   &-border-active, &-border-configured, &-border-warning, &-border-error {
-    border-left-color: var(--indicator-color) !important;
+    border-inline-start-color: var(--indicator-color) !important;
   }
   &-border-active::before, &-border-configured::before, &-border-warning::before, &-border-error::before {
     content: "";
     position: absolute;
     top: 0;
-    left: 0;
+    inset-inline-start: 0;
     bottom: 0;
     width: 3px;
     background-color: var(--indicator-color);

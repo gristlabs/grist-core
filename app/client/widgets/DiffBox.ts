@@ -1,4 +1,5 @@
 import { CellDiffTool, DIFF_LOCAL } from "app/client/lib/CellDiffTool";
+import { alignmentToTextAlign } from "app/client/lib/direction";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { NewAbstractWidget } from "app/client/widgets/NewAbstractWidget";
 import { inlineStyle } from "app/common/gutil";
@@ -34,7 +35,7 @@ export class DiffBox extends NewAbstractWidget {
     return dom(
       "div.field_clip",
       dom.autoDispose(formattedValue),
-      dom.style("text-align", this.options.prop("alignment")),
+      dom.style("text-align", use => alignmentToTextAlign(use(this.options.prop("alignment")))),
       dom.cls("text_wrapping", use => Boolean(use(this.options.prop("wrap")))),
       inlineStyle("--grist-diff-color", "#000000"),
       inlineStyle("--grist-diff-background-color", "#00000000"),

@@ -137,7 +137,7 @@
     position: absolute;
     z-index: var(--grist-browser-check-z-index);
     bottom: 0;
-    left: 0;
+    inset-inline-start: 0;
     padding: 4px;
 
     /* Copy common styles that are normally set from JS-generated CSS */
@@ -194,15 +194,15 @@
   .dropdown-menu {
     position: absolute;
     top: 100%;
-    left: 0;
+    inset-inline-start: 0;
     z-index: 1000;
     display: none;
-    float: left;
+    float: inline-start;
     min-width: 160px;
     padding: 5px 0;
     margin: 2px 0 0;
     font-size: 14px;
-    text-align: left;
+    text-align: start;
     list-style: none;
     background-color: #fff;
     background-clip: padding-box;

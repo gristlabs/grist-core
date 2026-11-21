@@ -285,7 +285,8 @@ const cssIcon = styled(icon, `
 
 const cssLabel = styled("div", `
   text-transform: uppercase;
-  margin: 16px 16px 12px 0px;
+  margin-block: 16px 12px;
+  margin-inline: 0px 16px;
   color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
 `);
@@ -305,7 +306,7 @@ const cssRow = styled("div", `
 const cssRemoveButton = styled(cssIcon, `
   flex: none;
   margin: 6px;
-  margin-right: 0px;
+  margin-inline-end: 0px;
   transform: translateY(4px);
   cursor: pointer;
   --icon-color: ${theme.controlSecondaryFg};
@@ -337,7 +338,8 @@ const cssRuleError = styled(cssError, `
 
 const cssColumnsRow = styled(cssRow, `
   align-items: flex-start;
-  margin: 0px 16px 0px 0px;
+  margin-block: 0px;
+  margin-inline: 0px 16px;
 `);
 
 const cssLeftColumn = styled("div", `

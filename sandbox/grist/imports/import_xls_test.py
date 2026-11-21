@@ -253,5 +253,15 @@ class TestImportXLS(unittest.TestCase):
     }])
 
 
+  def test_right_to_left_sheet(self):
+    # The first sheet of the fixture is shown right-to-left in Excel, the second is not.
+    parsed_file = import_xls.parse_file(*_get_fixture('test_right_to_left.xlsx'))
+    tables = parsed_file[1]
+    self.assertEqual([t['table_name'] for t in tables], ['Patients', 'Notes'])
+    self.assertEqual(tables[0]['sheet_orientation'], 'rtl')
+    self.assertEqual(tables[0]['table_data'], [[u'\u0623\u062d\u0645\u062f', u'\u0644\u064a\u0644\u0649'], [34, 29]])
+    # A sheet without the mark is left undecided.
+    self.assertNotIn('sheet_orientation', tables[1])
+
 if __name__ == '__main__':
   unittest.main()

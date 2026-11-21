@@ -996,13 +996,13 @@ const cssLinkRow = styled(cssMenuItem, `
   padding-bottom: 16px;
 `);
 export const cssItemValue = styled(cssLabelText, `
-  margin-right: 12px;
+  margin-inline-end: 12px;
   white-space: pre;
 `);
 const cssItemCount = styled("div", `
   flex-grow: 1;
   align-self: normal;
-  text-align: right;
+  text-align: end;
   color: ${theme.lightText};
 `);
 const cssMenuFooter = styled("div", `
@@ -1018,10 +1018,10 @@ const cssFooterButtons = styled("div", `
   padding: 8px 16px;
 `);
 const cssPrimaryButton = styled(primaryButton, `
-  margin-right: 8px;
+  margin-inline-end: 8px;
 `);
 const cssAllFiltersButton = styled(textButton, `
-  margin-left: 8px;
+  margin-inline-start: 8px;
 `);
 const cssSearch = styled(input, `
   color: ${theme.inputFg};
@@ -1033,7 +1033,8 @@ const cssSearch = styled(input, `
 
   font-size: ${vars.mediumFontSize};
 
-  margin: 0px 16px 0px 8px;
+  margin-block: 0px;
+  margin-inline: 8px 16px;
   padding: 0px;
   border: none;
   outline: none;
@@ -1046,8 +1047,8 @@ const cssSearch = styled(input, `
 const cssSearchIcon = styled(icon, `
   --icon-color: ${theme.lightText};
   flex-shrink: 0;
-  margin-left: auto;
-  margin-right: 4px;
+  margin-inline-start: auto;
+  margin-inline-end: 4px;
 `);
 const cssCloseIcon = styled(unstyledButton, `
   --icon-color: ${theme.lightText};
@@ -1060,7 +1061,7 @@ const cssNoResults = styled(cssMenuItem, `
 `);
 const cssSortIconBase = `
   --icon-color: ${theme.controlSecondaryFg};
-  margin-left: auto;
+  margin-inline-start: auto;
   &-active {
     --icon-color: ${theme.controlFg}
   }
@@ -1073,8 +1074,8 @@ const cssLabel = styled(cssCheckboxLabel, `
   flex-grow: 1;
 `);
 const cssToken = styled("div", `
-  margin-left: 8px;
-  margin-right: 12px;
+  margin-inline-start: 8px;
+  margin-inline-end: 12px;
 `);
 const cssRangeContainer = styled(cssMenuItem, `
   display: flex;

@@ -300,7 +300,7 @@ const cssBigIcon = styled(icon, `
 const cssTitle = styled("div", `
   display: inline-block;
   padding: 8px 16px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   min-width: 0px;
   overflow: hidden;
 
@@ -318,8 +318,8 @@ const cssFlexExpand = styled("div", `
 `);
 
 const cssFileButtons = styled(cssButtonGroup, `
-  margin-left: auto;
-  margin-right: 16px;
+  margin-inline-start: auto;
+  margin-inline-end: 16px;
   height: 32px;
   flex: none;
 `);
@@ -330,7 +330,7 @@ const cssButton = styled(basicButton, `
   font-weight: normal;
   padding: 0 16px;
   border-top: none;
-  border-right: none;
+  border-inline-end: none;
   border-bottom: none;
   border-left: 1px solid ${theme.attachmentsEditorButtonBorder};
   display: flex;
@@ -348,7 +348,7 @@ const cssButton = styled(basicButton, `
 
 const cssButtonIcon = styled(icon, `
   --icon-color: ${theme.attachmentsEditorButtonIcon};
-  margin-right: 4px;
+  margin-inline-end: 4px;
 `);
 
 const cssDropping = styled("div", "");
@@ -358,8 +358,8 @@ const cssContent = styled("div", `
   height: calc(100% - 72px);
   width: calc(100% - 64px);
   max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline-start: auto;
+  margin-inline-end: auto;
   margin-top: 64px;
   margin-bottom: 8px;
   outline: none;

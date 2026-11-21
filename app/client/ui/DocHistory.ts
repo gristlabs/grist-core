@@ -144,7 +144,7 @@ const cssSnapshotDenied = styled("div", `
 `);
 
 const cssSnapshotTime = styled("div", `
-  text-align: right;
+  text-align: end;
   color: ${theme.lightText};
   font-size: ${vars.smallFontSize};
 `);
@@ -173,7 +173,8 @@ const cssDatePart = styled("span", `
 
 const cssMenuDots = styled("div", `
   flex: none;
-  margin: 0 4px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 4px;
   height: 24px;
   width: 24px;
   padding: 4px;

@@ -58,7 +58,7 @@ export function rowNumbersMenu(
 const cssTickSlot = styled("div", `
   flex: none;
   width: 16px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   --icon-color: ${theme.controlFg};
   .${weasel.cssMenuItem.className}-sel & {
     --icon-color: ${theme.menuItemSelectedFg};

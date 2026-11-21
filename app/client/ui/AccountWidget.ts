@@ -307,7 +307,7 @@ export class AccountWidget extends Disposable {
 
 const cssAccountWidget = styled("div", `
   display: flex;
-  margin-right: 16px;
+  margin-inline-end: 16px;
   white-space: nowrap;
 `);
 
@@ -320,14 +320,15 @@ export const cssUserIcon = styled(unstyledButton, `
 `);
 
 const cssUserInfo = styled("div", `
-  padding: 12px 24px 12px 16px;
+  padding-block: 12px;
+  padding-inline: 16px 24px;
   min-width: 200px;
   display: flex;
   align-items: center;
 `);
 
 const cssUserName = styled("div", `
-  margin-left: 8px;
+  margin-inline-start: 8px;
   font-size: ${vars.mediumFontSize};
   font-weight: ${vars.headerControlTextWeight};
   color: ${theme.text};
@@ -342,7 +343,8 @@ const cssEmail = styled("div", `
 
 const cssSmallIconWrap = styled("div", `
   flex: none;
-  margin: -4px 8px -4px 0px;
+  margin-block: -4px;
+  margin-inline: 0px 8px;
 `);
 
 const cssOtherEmail = styled("div", `
@@ -354,7 +356,7 @@ const cssOtherEmail = styled("div", `
 
 const cssCheckmark = styled(icon, `
   flex: none;
-  margin-left: 16px;
+  margin-inline-start: 16px;
   --icon-color: ${theme.accentIcon};
 `);
 

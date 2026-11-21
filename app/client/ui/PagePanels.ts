@@ -1,5 +1,6 @@
 import * as commands from "app/client/components/commands";
 import { RegionFocusSwitcher } from "app/client/components/RegionFocusSwitcher";
+import { interfaceRtl, isRtl } from "app/client/lib/direction";
 import { watchElementForBlur } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import { SessionObs } from "app/client/lib/sessionObs";
@@ -184,6 +185,8 @@ export function pagePanels(page: PageContents) {
   }, null, true);
   let contentWrapper: HTMLElement;
   return cssPageContainer(
+    // The frame is laid out either way, in the direction of the interface. What is put into it
+    // cannot be yet, and is held.
     dom.autoDispose(sub1),
     dom.autoDispose(sub2),
     dom.autoDispose(commandsGroup),
@@ -212,7 +215,9 @@ export function pagePanels(page: PageContents) {
       (left ? [
         leftPaneDom = cssLeftPane(
           testId("left-panel"),
-          regionFocusSwitcher?.panelAttrs("left", t("Main navigation and document settings (left panel)")),
+          regionFocusSwitcher?.panelAttrs("left", interfaceRtl().get() ?
+            t("Main navigation and document settings (right panel)") :
+            t("Main navigation and document settings (left panel)")),
           cssOverflowContainer(
             contentWrapper = cssLeftPanelContainer(
               cssLeftPaneHeader(
@@ -308,12 +313,12 @@ export function pagePanels(page: PageContents) {
             const pinExpansion = () => {
               pauseSavingLeft(false);
               prepareForTransition(mainPaneDom, () => {
-                mainPaneDom.style.marginLeft = `${leftCollapsedWidth.get() - left.panelWidth.get()}px`;
+                mainPaneDom.style.marginInlineStart = `${leftCollapsedWidth.get() - left.panelWidth.get()}px`;
                 leftPaneDom.style.zIndex = "2";
                 leftOverlap.set(false);
               });
-              mainPaneDom.style.transition = "margin-left 0.4s";
-              mainPaneDom.style.marginLeft = "";
+              mainPaneDom.style.transition = "margin-inline-start 0.4s";
+              mainPaneDom.style.marginInlineStart = "";
               const watcher = new TransitionWatcher(mainPaneDom);
               watcher.onDispose(() => {
                 mainPaneDom.style.transition = "";
@@ -363,7 +368,8 @@ export function pagePanels(page: PageContents) {
             // mouse events
             const onMouseEvt = (evt: MouseEvent) => {
               const rect = leftPaneDom.getBoundingClientRect();
-              isMouseInsideLeftPane = evt.clientX <= rect.right;
+              // The pane is at the start edge of the window: the mouse has left it once past its end edge.
+              isMouseInsideLeftPane = isRtl(leftPaneDom) ? evt.clientX >= rect.left : evt.clientX <= rect.right;
               isMouseDragging = evt.buttons !== 0;
               maybeStartCollapse();
             };
@@ -408,8 +414,10 @@ export function pagePanels(page: PageContents) {
           (!left || left.hideOpener ? null :
             unstyledButton(
               { "aria-label": left.panelOpen.get() ?
-                t("Close navigation panel (left panel)") :
-                t("Open navigation panel (left panel)") },
+                (interfaceRtl().get() ?
+                  t("Close navigation panel (right panel)") : t("Close navigation panel (left panel)")) :
+                (interfaceRtl().get() ?
+                  t("Open navigation panel (right panel)") : t("Open navigation panel (left panel)")) },
               dom.on("click", () => toggleObs(left.panelOpen)),
               cssPanelOpener(
                 "PanelRight",
@@ -464,12 +472,12 @@ export function pagePanels(page: PageContents) {
                   //  - When opening, a negative margin cancels the new width, leaving the pane hidden
                   //    under the main content.
                   //  - When closing, a positive margin keeps the space the pane took up.
-                  elem.style.marginRight = (open ? -1 : 1) * innerLeft.panelWidth.get() + "px";
+                  elem.style.marginInlineEnd = (open ? -1 : 1) * innerLeft.panelWidth.get() + "px";
                 },
-                // Called with transitions on. Animate margin-right to 0, so the main content slides
+                // Called with transitions on. Animate the end margin to 0, so the main content slides
                 // over to uncover the pane or to fill its space.
                 run(elem, open) {
-                  elem.style.marginRight = "";
+                  elem.style.marginInlineEnd = "";
                   onPanelTransitionStart(elem);
                 },
                 finish(elem, open) {
@@ -506,7 +514,8 @@ export function pagePanels(page: PageContents) {
 
         rightPaneDom = cssRightPane(
           testId("right-panel"),
-          regionFocusSwitcher?.panelAttrs("right", t("Creator panel (right panel)")),
+          regionFocusSwitcher?.panelAttrs("right", interfaceRtl().get() ?
+            t("Creator panel (left panel)") : t("Creator panel (right panel)")),
           cssRightPaneHeader(
             right.header,
             dom.style("margin-bottom", use => use(bannerHeight) + "px"),
@@ -521,10 +530,10 @@ export function pagePanels(page: PageContents) {
           dom.boolAttr(FULLY_COLLAPSED_PANEL_DATASET_KEY, use => !use(right.panelOpen)),
           transition(use => (use(isNarrowScreenObs()) ? false : use(right.panelOpen)), {
             prepare(elem, open) {
-              elem.style.marginLeft = (open ? -1 : 1) * right.panelWidth.get() + "px";
+              elem.style.marginInlineStart = (open ? -1 : 1) * right.panelWidth.get() + "px";
             },
             run(elem, open) {
-              elem.style.marginLeft = "";
+              elem.style.marginInlineStart = "";
               onPanelTransitionStart(elem);
             },
             finish(elem, open) {
@@ -636,7 +645,7 @@ export const cssLeftPane = styled(cssVBox, `
   position: relative;
   background-color: ${theme.leftPanelBg};
   width: 48px;
-  margin-right: 0px;
+  margin-inline-end: 0px;
   transition: width 0.4s;
   will-change: width;
   @media ${mediaSmall} {
@@ -646,14 +655,14 @@ export const cssLeftPane = styled(cssVBox, `
       z-index: 10;
       top: 0;
       bottom: ${bottomFooterHeightPx}px;
-      left: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
+      inset-inline-start: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
       visibility: hidden;
-      box-shadow: 10px 0 5px rgba(0, 0, 0, 0.2);
-      transition: left 0.4s, visibility 0.4s;
-      will-change: left;
+      box-shadow: calc(10px * var(--inline-sign)) 0 5px rgba(0, 0, 0, 0.2);
+      transition: inset-inline-start 0.4s, visibility 0.4s;
+      will-change: inset-inline-start;
     }
     &-open {
-      left: 0;
+      inset-inline-start: 0;
       visibility: visible;
     }
   }
@@ -673,7 +682,7 @@ export const cssLeftPane = styled(cssVBox, `
     z-index: 10;
     top: 0;
     bottom: 0;
-    left: 0;
+    inset-inline-start: 0;
     min-width: unset;
   }
   &-dragging {
@@ -693,7 +702,7 @@ const cssMainPane = styled(cssVBox, `
   background-color: ${theme.mainPanelBg};
   z-index: 1;
   &-left-overlap {
-    margin-left: 48px;
+    margin-inline-start: 48px;
   }
   @media ${mediaSmall} {
     & {
@@ -705,9 +714,9 @@ const cssRightPane = styled(cssVBox, `
   position: relative;
   background-color: ${theme.rightPanelBg};
   width: 0px;
-  margin-left: 0px;
+  margin-inline-start: 0px;
   overflow: hidden;
-  transition: margin-left 0.4s;
+  transition: margin-inline-start 0.4s;
   z-index: 0;
   @media ${mediaSmall} {
     & {
@@ -716,14 +725,14 @@ const cssRightPane = styled(cssVBox, `
       z-index: 10;
       top: 0;
       bottom: ${bottomFooterHeightPx}px;
-      right: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
-      box-shadow: -10px 0 5px rgba(0, 0, 0, 0.2);
+      inset-inline-end: -${240 + 15}px; /* adds an extra 15 pixels to also hide the box shadow */
+      box-shadow: calc(-10px * var(--inline-sign)) 0 5px rgba(0, 0, 0, 0.2);
       visibility: hidden;
-      transition: right 0.4s, visibility 0.4s;
-      will-change: right;
+      transition: inset-inline-end 0.4s, visibility 0.4s;
+      will-change: inset-inline-end;
     }
     &-open {
-      right: 0;
+      inset-inline-end: 0;
       visibility: visible;
     }
   }
@@ -773,9 +782,9 @@ const cssInnerLeftPane = styled(cssVBox, `
   position: relative;
   background-color: ${theme.mainPanelBg};
   width: 0px;
-  margin-right: 0px;
+  margin-inline-end: 0px;
   overflow: hidden;
-  transition: margin-right 0.4s;
+  transition: margin-inline-end 0.4s;
   z-index: -1;
 
   &[${FULLY_COLLAPSED_PANEL_DATASET_KEY}] {
@@ -793,14 +802,14 @@ const cssInnerLeftPane = styled(cssVBox, `
       z-index: 10;
       top: 0;
       bottom: ${bottomFooterHeightPx}px;
-      left: calc(-100vw - 15px);
+      inset-inline-start: calc(-100vw - 15px);
       visibility: hidden;
-      box-shadow: 10px 0 5px rgba(0, 0, 0, 0.2);
-      transition: left 0.4s, visibility 0.4s;
-      will-change: left;
+      box-shadow: calc(10px * var(--inline-sign)) 0 5px rgba(0, 0, 0, 0.2);
+      transition: inset-inline-start 0.4s, visibility 0.4s;
+      will-change: inset-inline-start;
     }
     &-open {
-      left: 0;
+      inset-inline-start: 0;
       visibility: visible;
       width: 100vw;
       min-width: 0;
@@ -862,7 +871,7 @@ const cssResizeDisabledBorder = styled("div", `
   position: absolute;
   top: 0;
   bottom: 0;
-  right: -1px;
+  inset-inline-end: -1px;
   z-index: 2;
 `);
 const cssPanelOpener = styled(icon, `
@@ -873,9 +882,11 @@ const cssPanelOpener = styled(icon, `
   cursor: pointer;
   -webkit-mask-size: 16px 16px;
   background-color: ${theme.controlFg};
+  /* The icon points the way its panel opens, which is the other way in a right-to-left frame. */
+  transform: scaleX(var(--inline-sign));
   transition: transform 0.4s;
   &:hover { background-color: ${theme.controlHoverFg}; }
-  &-open { transform: rotateY(180deg); }
+  &-open { transform: scaleX(calc(-1 * var(--inline-sign))); }
 `);
 const cssPanelOpenerNarrowScreenBtn = styled("div", `
   width: 32px;

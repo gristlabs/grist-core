@@ -20,6 +20,7 @@
  * At the moment, flexbox width resizing is the only need, but the same approach is intended to be
  * easily extended to non-flexbox situation, and to height-resizing.
  */
+import { inlineSign, isRtl } from "app/client/lib/direction";
 import { mouseDrag } from "app/client/ui/mouseDrag";
 
 import { DomElementArg, styled } from "grainjs";
@@ -28,7 +29,8 @@ export type ChangeFunc = (value: number) => void;
 export type Edge = "left" | "right";
 
 export interface IResizeFlexOptions {
-  // Whether to change the width of the flex item to the left or to the right of this handle.
+  // Whether to change the width of the flex item before this handle ("left") or after it
+  // ("right"); in a right-to-left layout those are on the opposite sides of the screen.
   target: "left" | "right";
   onDrag?(value: number): void;
   onSave?(value: number): void;
@@ -65,7 +67,10 @@ function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOpt
   const target = options.getTarget(handle) as HTMLElement | null;
   if (!target) { return null; }
 
-  const { sign, prop, onDrag, onSave } = options;
+  const { prop, onDrag, onSave } = options;
+  // "Left" and "right" siblings are the one before and the one after the handle, and those swap
+  // sides on screen in a right-to-left layout: there the same drag has the opposite effect.
+  const sign = prop === "width" ? options.sign * inlineSign(isRtl(handle)) : options.sign;
   const startSize = getComputedSize(target, prop);
 
   // Set the body cursor to that on the handle, so that it doesn't jump to different shapes as
@@ -124,7 +129,7 @@ const cssResizeFlexVHandle = styled("div", `
     position: absolute;
     height: 100%;
     width: 1px;
-    left: 3px;
+    inset-inline-start: 3px;
   }
   &::before {
     background-color: var(--resize-handle-color, lightgrey);

@@ -1,5 +1,6 @@
 import BaseView from "app/client/components/BaseView";
 import { GristDoc } from "app/client/components/GristDoc";
+import { followInterface } from "app/client/lib/direction";
 import { makeT } from "app/client/lib/localization";
 import { ViewRec, ViewSectionRec } from "app/client/models/DocModel";
 import { filterBar } from "app/client/ui/FilterBar";
@@ -13,6 +14,7 @@ import { isNarrowScreenObs, mediaSmall, testId, theme } from "app/client/ui2018/
 import { icon } from "app/client/ui2018/icons";
 import { menu } from "app/client/ui2018/menus";
 import { undef } from "app/common/gutil";
+import { languageDirection } from "app/common/languageDirection";
 
 import { Computed, dom, DomElementArg, Observable, styled } from "grainjs";
 import { defaultMenuOptions } from "popweasel";
@@ -94,6 +96,10 @@ export function buildViewSectionDom(options: {
 
   const regionFocusSwitcher = gristDoc.regionFocusSwitcher;
   return dom("div.view_leaf.viewsection_content.flexvbox.flexauto",
+    // The frame of a widget (its title bar, its menu, its filter bar) is part of the interface,
+    // whatever holds the arrangement of widgets around it; what the widget shows states its own
+    // direction below.
+    followInterface(),
     testId(`viewlayout-section-${sectionRowId}`),
     dom.autoDispose(selectedBySectionTitle),
     !options.isResizing ? dom.autoDispose(isResizing) : null,
@@ -129,6 +135,17 @@ export function buildViewSectionDom(options: {
     dom.maybe<BaseView | null>(vs.viewInstance, viewInstance => [
       dom("div.view_data_pane_container.flexvbox",
         cssResizing.cls("", isResizing),
+        // What a widget shows is the document's, not the interface's: it is in the document's
+        // language, and it is laid out in a direction that is stated here, so that it is the same
+        // for everyone and never taken from the page around it. That direction is the document
+        // language's, for the kinds of widget that can be laid out either way.
+        // A table that is not a document's (the timing results, the list of webhooks) has no
+        // language of its own to state: it is part of the interface, and is laid out with it.
+        gristDoc.docInfo?.documentSettingsJson ? [
+          dom.attr("lang", use => use(gristDoc.docInfo.documentSettingsJson).locale || null),
+          dom.attr("dir", use => !vs.isDisposed() && DIRECTION_NEUTRAL_WIDGETS.has(use(vs.parentKey)) ?
+            languageDirection(use(gristDoc.docInfo.documentSettingsJson).locale) : "ltr"),
+        ] : null,
         dom.maybe(viewInstance.disableEditing, () =>
           dom("div.disable_viewpane.flexvbox",
             dom.domComputed(selectedBySectionTitle, title => title ?
@@ -149,6 +166,10 @@ export function buildViewSectionDom(options: {
   );
 }
 
+// The kinds of widget that lay out correctly in either direction. The others are kept
+// left-to-right until they do.
+const DIRECTION_NEUTRAL_WIDGETS = new Set(["record", "single", "detail"]);
+
 // With new widgetPopup it is hard to click on viewSection without a activating it, hence we
 // add a little blank space to use in test.
 const cssTestClick = styled(`div`, `
@@ -156,7 +177,7 @@ const cssTestClick = styled(`div`, `
 `);
 
 const cssSigmaIcon = styled(icon, `
-  margin-right: 5px;
+  margin-inline-end: 5px;
   background-color: ${theme.lightText}
 `);
 
@@ -187,8 +208,8 @@ const cssViewLeafInactive = styled("div", `
       content: '';
       position: absolute;
       top: 0;
-      left: 0;
-      right: 0;
+      inset-inline-start: 0;
+      inset-inline-end: 0;
       bottom: 0;
     }
     &.layout_vbox {
@@ -232,12 +253,12 @@ const cssMiniSection = styled("div.mini_section_container", `
   --icon-color: ${theme.accentIcon};
   display: flex;
   align-items: center;
-  padding-right: 8px;
+  padding-inline-end: 8px;
 `);
 
 const cssDragHandle = styled("div.draggable-handle", `
   display: flex;
   padding: 8px;
   flex: 1;
-  padding-right: 16px;
+  padding-inline-end: 16px;
 `);

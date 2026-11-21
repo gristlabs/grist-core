@@ -38,7 +38,7 @@ export const cssButtonIconAndText = styled("div", `
 `);
 
 export const cssButtonText = styled("span", `
-  margin-left: 8px;
+  margin-inline-start: 8px;
 `);
 
 export const cssSpinnerBox = styled("div", `

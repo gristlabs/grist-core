@@ -136,7 +136,7 @@ ViewConfigTab.prototype._buildAdvancedSettingsDom = function() {
       kf.collapserLabel(isCollapsed, t("Advanced settings"), dom.testId("ViewConfig_advanced")),
       kf.helpRow(kd.hide(isCollapsed),
         t("Big tables may be marked as \"on-demand\" to avoid loading them into the data engine."),
-        kd.style("text-align", "left"),
+        kd.style("text-align", "start"),
         kd.style("margin-top", "1.5rem")
       ),
 

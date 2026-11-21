@@ -366,8 +366,8 @@ const cssButtons = styled("div", `
 `);
 
 const cssColumnHeaderLabel = styled("div", `
-  padding-left: 1px;
-  padding-right: 1px;
+  padding-inline-start: 1px;
+  padding-inline-end: 1px;
   z-index: 1;
   white-space: nowrap;
   overflow: hidden;

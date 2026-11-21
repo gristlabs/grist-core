@@ -45,7 +45,7 @@ export const cssAddNewButton = styled(unstyledButton, `
   border-radius: 4px;
 
   cursor: default;
-  text-align: left;
+  text-align: start;
   font-size: ${vars.bigControlFontSize};
   font-weight: bold;
   overflow: hidden;

@@ -265,7 +265,7 @@ const cssDismiss = styled("div", `
 `);
 
 const cssDismissed = styled("div", `
-  margin-left: auto;
+  margin-inline-start: auto;
   cursor: pointer;
   color: ${theme.lightText};
   font-size: 13px;

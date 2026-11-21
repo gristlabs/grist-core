@@ -8,6 +8,7 @@ export const GristTable = t.iface([], {
   "table_name": t.union("string", "null"),
   "column_metadata": t.array("GristColumn"),
   "table_data": t.array(t.array("any")),
+  "sheet_orientation": t.opt(t.union(t.lit("rtl"), t.lit("ltr"))),
 });
 
 export const GristTables = t.iface([], {

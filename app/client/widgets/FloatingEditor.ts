@@ -172,7 +172,7 @@ const cssSmallIcon = styled(icon, `
 
 const cssResizeIconWrapper = styled("div", `
   position: absolute;
-  right: -2px;
+  inset-inline-end: -2px;
   top: -20px;
   line-height: 0px;
   cursor: pointer;
@@ -186,8 +186,8 @@ const cssResizeIconWrapper = styled("div", `
   align-items: center;
   justify-content: center;
   line-height: 0px;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
+  border-start-start-radius: 4px;
+  border-start-end-radius: 4px;
   &:hover {
     background: var(--grist-theme-control-primary-hover-bg, var(--grist-primary-fg-hover))
   }

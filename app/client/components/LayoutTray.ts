@@ -3,6 +3,7 @@ import { buildCollapsedSectionDom, buildViewSectionDom } from "app/client/compon
 import * as commands from "app/client/components/commands";
 import { ContentBox } from "app/client/components/Layout";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { holdLtr } from "app/client/lib/direction";
 import { Signal } from "app/client/lib/Signal";
 import { urlState } from "app/client/models/gristUrlState";
 import { TransitionWatcher } from "app/client/ui/transitions";
@@ -778,6 +779,7 @@ class MiniFloater extends Disposable {
 
   public buildDom() {
     return cssMiniFloater(
+      holdLtr(),
       dom.show(use => Boolean(use(this.content))),
       // dom.cls('layout_editor_floater'),
       dom.domComputed(this.content, c => c),

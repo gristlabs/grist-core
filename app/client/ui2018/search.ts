@@ -52,7 +52,7 @@ const searchWrapper = styled("div", `
       padding: 0px;
     }
     &-expand {
-      margin-left: 12px;
+      margin-inline-start: 12px;
     }
   }
 `);
@@ -85,7 +85,7 @@ const searchInput = styled(input, `
   border: none;
   margin: 0;
   padding: 0;
-  padding-left: 4px;
+  padding-inline-start: 4px;
   box-sizing: border-box;
   align-self: stretch;
   width: 0;
@@ -124,7 +124,7 @@ const cssArrowBtn = styled(unstyledButton, `
 `);
 
 const cssCloseBtnContainer = styled(unstyledButton, `
-  margin-left: 4px;
+  margin-inline-start: 4px;
   flex-shrink: 0;
 `);
 
@@ -137,13 +137,13 @@ const cssLabel = styled("span", `
   font-size: ${vars.smallFontSize};
   color: ${theme.lightText};
   white-space: nowrap;
-  margin-right: 12px;
+  margin-inline-end: 12px;
 `);
 
 const cssOptions = styled("div", `
   background: ${theme.topHeaderBg};
   position: absolute;
-  right: 0;
+  inset-inline-end: 0;
   top: 48px;
   z-index: ${vars.menuZIndex};
   padding: 2px 4px;

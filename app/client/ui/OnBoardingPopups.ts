@@ -22,9 +22,11 @@
  *   the caller. Pass an `onFinishCB` to handle when a user dimiss the popups.
  */
 
+import { interfaceRtl } from "app/client/lib/direction";
 import { FocusLayer } from "app/client/lib/FocusLayer";
 import { makeT } from "app/client/lib/localization";
 import * as Mousetrap from "app/client/lib/Mousetrap";
+import { mirrorPlacement } from "app/client/lib/popupDirection";
 import { reportError } from "app/client/models/errors";
 import { urlState } from "app/client/models/gristUrlState";
 import { cssBigIcon, cssCloseButton } from "app/client/ui/ExampleCard";
@@ -196,7 +198,7 @@ class OnBoardingPopupsCtl extends Disposable {
     const content = this._buildPopupContent();
     const entry = this._messages[ctlIndex];
     const elem = document.querySelector<HTMLElement>(entry.selector);
-    const { placement } = entry;
+    const placement = entry.placement && mirrorPlacement(entry.placement, interfaceRtl().get());
 
     // The element the popup refers to is not present. To the user we show nothing and simply skip
     // it to the next. The previous popup is already closed, so if this skip runs out of steps, the

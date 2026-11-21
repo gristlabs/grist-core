@@ -158,8 +158,8 @@ const cssSectionWrapper = styled("div", `
   display: flex;
   flex-direction: column;
   border-radius: 5px;
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
+  border-end-start-radius: 0px;
+  border-end-end-radius: 0px;
   & .viewsection_content {
     margin: 0px;
     margin-top: 8px;
@@ -168,14 +168,14 @@ const cssSectionWrapper = styled("div", `
     padding: 0px 12px;
   }
   & .filter_bar {
-    margin-left: 6px;
+    margin-inline-start: 6px;
   }
 `);
 
 export const cssCloseButton = styled(icon, `
   position: absolute;
   top: 16px;
-  right: 16px;
+  inset-inline-end: 16px;
   height: 24px;
   width: 24px;
   cursor: pointer;
@@ -186,7 +186,7 @@ export const cssCloseButton = styled(icon, `
   @media ${mediaSmall} {
     & {
       top: 6px;
-      right: 6px;
+      inset-inline-end: 6px;
     }
   }
 `);

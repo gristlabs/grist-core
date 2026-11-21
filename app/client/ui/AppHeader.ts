@@ -345,7 +345,7 @@ const cssAppLogo = styled("a._cssAppLogo", `
     background-size: contain;
     background-origin: content-box;
     padding: 8px;
-    border-right: none !important;
+    border-inline-end: none !important;
     background-size: contain;
     border: 0px !important;
   }
@@ -358,8 +358,8 @@ const cssAppLogo = styled("a._cssAppLogo", `
     text-decoration: none;
   }
   .${cssLeftPane.className}-open & {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
   }
 `);
 
@@ -375,9 +375,9 @@ const cssOrg = styled(unstyledButton, `
 
   border: 1px solid ${theme.appHeaderBorder};
   border-radius: 4px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  border-left: 0px;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-inline-start: 0px;
 
   /* make sure keyboard highlight is visible
   (it wouldn't be without the offset because of the overflow: hidden) */
@@ -394,7 +394,7 @@ const cssOrg = styled(unstyledButton, `
 const cssDropdownIcon = styled(icon, `
   --icon-color: ${theme.text};
   flex-shrink: 0;
-  margin-right: 8px;
+  margin-inline-end: 8px;
 `);
 
 const cssSpacer = styled("div", `
@@ -417,9 +417,9 @@ const cssOrgLink = styled("a.cssOrgLink", `
 
   border: 1px solid ${theme.appHeaderBorder};
   border-radius: 4px;
-  border-left-width: 0;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  border-inline-start-width: 0;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
 
   &, &:hover, &:focus {
     text-decoration: none;
@@ -440,8 +440,11 @@ const cssOrgLink = styled("a.cssOrgLink", `
 `);
 
 const cssOrgName = styled("div", `
-  padding-left: 16px;
-  padding-right: 8px;
+  padding-inline-start: 16px;
+  padding-inline-end: 8px;
+  /* A name reads in its own direction ("@Guest", not "Guest@"), at the edge the header gives it. */
+  unicode-bidi: plaintext;
+  text-align: var(--inline-start-side);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -467,7 +470,7 @@ const cssProductPill = styled("div", `
   }
   &-large {
     padding: 4px 8px;
-    margin-left: 16px;
+    margin-inline-start: 16px;
     font-size: ${vars.mediumFontSize};
   }
 `);

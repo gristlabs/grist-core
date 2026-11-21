@@ -190,11 +190,11 @@ const cssActiveUserList = styled("ul", `
   flex-direction: row-reverse;
 
   & > * {
-    margin-left: -4px
+    margin-inline-start: -4px
   }
 
   & > :last-child {
-    margin-left: 0px;
+    margin-inline-start: 0px;
   }
 `);
 
@@ -216,7 +216,7 @@ const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...arg
   );
 
 const cssRemainingUsersImage = styled(cssUserImage, `
-  margin-left: -4px;
+  margin-inline-start: -4px;
   background-color: ${tokens.secondary};
   ${userImageBorderCss};
   --icon-color: ${tokens.white};
@@ -249,7 +249,7 @@ export const cssRemainingUsersMenuItem = styled("li", `
   text-transform: none;
 
   & > :first-child {
-    margin-right: 5px;
+    margin-inline-end: 5px;
   }
 `);
 

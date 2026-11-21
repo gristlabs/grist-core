@@ -1,3 +1,4 @@
+import { observeRtl } from "app/client/lib/direction";
 import { hoverTooltip } from "app/client/ui/tooltips";
 import { colors, testId, theme, vars } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
@@ -6,7 +7,7 @@ import { unstyledButton } from "app/client/ui2018/unstyled";
 import { isColorDark } from "app/common/gutil";
 import { components } from "app/common/ThemePrefs";
 
-import { dom, DomElementArg, Observable, styled } from "grainjs";
+import { Computed, dom, DomElementArg, Holder, MultiHolder, Observable, styled } from "grainjs";
 import debounce from "lodash/debounce";
 
 export interface ISelectorOptionFull<T> {
@@ -67,14 +68,34 @@ export function buttonToggleSelect<T>(
 
 /**
  * Pre-made text alignment selector.
+ *
+ * The stored alignment names an inline side: "left" is the side a sheet starts from and "right"
+ * the side it ends at (see alignmentSide() in app/client/lib/direction.ts). The buttons show
+ * physical sides, so in a right-to-left sheet they are the other way round: the button that
+ * aligns to the right is the one for "left". `getSheetElem` returns the element whose direction
+ * decides this; without one the buttons are those of a left-to-right sheet.
  */
-export function alignmentSelect(obs: Observable<string>, ...domArgs: DomElementArg[]) {
+export function alignmentSelect(
+  obs: Observable<string>,
+  getSheetElem: (() => Element | null | undefined) | null,
+  ...domArgs: DomElementArg[]
+) {
   const alignments: ISelectorOption<string>[] = [
     { value: "left",   icon: "LeftAlign" },
     { value: "center", icon: "CenterAlign" },
     { value: "right",  icon: "RightAlign" },
   ];
-  return buttonSelect(obs, alignments, {}, testId("alignment-select"), ...domArgs);
+  const holder = Holder.create(null);
+  const owner = MultiHolder.create(holder);
+  const rtl = observeRtl(owner, getSheetElem ?? (() => null));
+  // The value seen on the buttons: the physical side the stored alignment is drawn on.
+  const flip = (value: string, isRtl: boolean) =>
+    isRtl && value === "left" ? "right" : isRtl && value === "right" ? "left" : value;
+  const seen = Computed.create(owner, use => flip(use(obs), use(rtl)));
+  seen.onWrite(value => obs.set(flip(value, rtl.get())));
+  // The buttons stand for sides of the screen, so they keep their places in any interface.
+  return buttonSelect(seen, alignments, {}, { dir: "ltr" }, dom.autoDispose(holder),
+    testId("alignment-select"), ...domArgs);
 }
 
 /**
@@ -190,13 +211,13 @@ const cssSelectorBtn = styled(unstyledButton, `
   background-color: ${theme.buttonGroupBg};
   --icon-color: ${theme.buttonGroupIcon};
 
-  margin-left: -1px;
+  margin-inline-start: -1px;
 
   cursor: pointer;
   outline-offset: -2px;
 
   &:first-child {
-    margin-left: 0;
+    margin-inline-start: 0;
   }
 
   &:hover:not(&-selected) {
@@ -225,7 +246,7 @@ const cssSelectorBtn = styled(unstyledButton, `
   .${cssButtonSelect.className}-light > & {
     border: 1px solid transparent;
     border-radius: ${vars.controlBorderRadius};
-    margin-left: 0px;
+    margin-inline-start: 0px;
     padding: 5px;
     min-width: 28px;
     color: ${theme.buttonGroupLightFg};
@@ -271,7 +292,7 @@ const cssColorPicker = styled("input", `
   cursor: pointer;
   opacity: 0;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   height: 100%;
 `);

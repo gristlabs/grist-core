@@ -426,7 +426,8 @@ const cssSidebar = styled("div", `
 const cssGetStarted = styled("div", `
   width: 500px;
   height: 350px;
-  margin: auto -77px 0 37px;
+  margin-block: auto 0;
+  margin-inline: 37px -77px;
   overflow: hidden;
 `);
 
@@ -524,7 +525,7 @@ const cssQuestions = styled("div", `
 
 const cssQuestion = styled("div", `
   margin: 16px 0 8px 0;
-  text-align: left;
+  text-align: start;
 `);
 
 const cssFieldHeading = styled("div", `
@@ -557,7 +558,7 @@ const cssUseCase = styled("div", `
   border-radius: 3px;
   display: flex;
   align-items: center;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   color: ${theme.text};
   --icon-color: ${theme.accentIcon};
@@ -628,7 +629,7 @@ const cssActionOverlay = styled("div", `
   position: absolute;
   z-index: 1;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.20);

@@ -149,6 +149,7 @@ export const cssEmailInput = styled(input, `
 `);
 
 export const cssMailIcon = styled(icon, `
-  margin: 12px 8px 12px 13px;
+  margin-block: 12px;
+  margin-inline: 13px 8px;
   background-color: ${theme.lightText};
 `);

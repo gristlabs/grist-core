@@ -133,15 +133,16 @@ const cssNumericSpinner = styled("div", `
 const cssNumLabel = styled("div", `
   color: ${theme.lightText};
   flex-shrink: 0;
-  padding-left: 8px;
+  padding-inline-start: 8px;
   pointer-events: none;
 `);
 
 const cssNumInput = styled("input", `
   flex-grow: 1;
-  padding: 4px 32px 4px 8px;
+  padding-block: 4px;
+  padding-inline: 8px 32px;
   width: 100%;
-  text-align: right;
+  text-align: end;
   appearance: none;
   color: ${theme.inputFg};
   background-color: transparent;
@@ -158,7 +159,7 @@ const cssNumInput = styled("input", `
 
 const cssSpinner = styled("div", `
   position: absolute;
-  right: 8px;
+  inset-inline-end: 8px;
   width: 16px;
   height: 100%;
   display: flex;

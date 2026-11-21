@@ -87,7 +87,7 @@ const cssRowHeightTextBase = `
   flex: 1 0 auto;
   display: inline-flex;
   gap: 8px;
-  margin-right: 16px;
+  margin-inline-end: 16px;
 `;
 const cssRowHeightText = styled("span", cssRowHeightTextBase);
 

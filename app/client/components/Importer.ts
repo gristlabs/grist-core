@@ -1492,7 +1492,7 @@ const cssActionLink = styled("div", `
 
 const cssLinkIcon = styled(icon, `
   flex: none;
-  margin-right: 4px;
+  margin-inline-end: 4px;
 `);
 
 const cssStaticHeader = styled("div", `
@@ -1506,8 +1506,8 @@ const cssStaticHeader = styled("div", `
 `);
 
 const cssModalHeader = styled(cssStaticHeader, `
-  padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
-  padding-right: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-inline-start: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-inline-end: var(--css-modal-dialog-padding-horizontal, 0px);
   padding-top: var(--css-modal-dialog-padding-vertical, 0px);
 `);
 
@@ -1565,8 +1565,8 @@ const cssTableList = styled("div", `
 
 const cssTabItemContent = styled("div", `
   border: 1px solid transparent;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-inline-start: 20px;
+  padding-inline-end: 20px;
   display: flex;
   align-items: center;
   align-content: flex-end;
@@ -1591,7 +1591,7 @@ const cssTabItem = styled("div", `
   &-not-selected + &-not-selected::after{
     content: '';
     position: absolute;
-    left: 0px;
+    inset-inline-start: 0px;
     top: 20%;
     height: 60%;
     border-left: 1px solid ${theme.importerTableInfoBorder};
@@ -1606,7 +1606,7 @@ const cssTabItem = styled("div", `
     min-width: 0px;
   }
   &-not-selected:first-child .${cssTabItemContent.className} {
-    padding-left: 0px;
+    padding-inline-start: 0px;
   }
 `);
 
@@ -1631,11 +1631,11 @@ const cssConfigAndPreview = styled("div", `
   flex-grow: 1;
   height: 0px;
   background-color: ${theme.importerMainContentBg};
-  padding-right: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-inline-end: var(--css-modal-dialog-padding-horizontal, 0px);
 `);
 
 const cssConfigLeft = styled("div", `
-  padding-right: 8px;
+  padding-inline-end: 8px;
   padding-top: 16px;
   position: absolute;
   inset: 0;
@@ -1647,8 +1647,8 @@ const cssConfigLeft = styled("div", `
 `);
 
 const cssConfigRight = styled(cssConfigLeft, `
-  left: 100%;
-  padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
+  inset-inline-start: 100%;
+  padding-inline-start: var(--css-modal-dialog-padding-horizontal, 0px);
 `);
 
 const cssConfigPanel = styled("div", `
@@ -1731,7 +1731,7 @@ const cssFieldFormula = styled("div", `
   flex: auto;
   cursor: pointer;
   margin-top: 1px;
-  padding-left: 24px;
+  padding-inline-start: 24px;
   --icon-color: ${theme.accentIcon};
 `);
 
@@ -1739,7 +1739,7 @@ const cssDestinationFieldLabel = styled("div", `
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  padding-left: 4px;
+  padding-inline-start: 4px;
   cursor: unset;
   background-color: ${theme.pageBg};
   color: ${theme.text};
@@ -1777,7 +1777,7 @@ const cssUnmatchedFieldsList = styled("div", `
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  padding-right: 16px;
+  padding-inline-end: 16px;
   color: ${theme.text};
   border-radius: 8px;
   padding: 4px 8px;
@@ -1788,8 +1788,8 @@ const cssUnmatchedFieldsList = styled("div", `
 
 const cssImportButtons = styled("div", `
   padding-top: 40px;
-  padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
-  padding-right: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-inline-start: var(--css-modal-dialog-padding-horizontal, 0px);
+  padding-inline-end: var(--css-modal-dialog-padding-horizontal, 0px);
   padding-bottom: calc(var(--css-modal-dialog-padding-vertical, 0px) - 12px);
   background-color: ${theme.importerMainContentBg};
 `);
@@ -1808,15 +1808,15 @@ const cssTitle = styled("span._cssToFrom", `
   font-weight: 600;
   font-size: ${vars.smallFontSize};
   letter-spacing: 0.5px;
-  padding-left: var(--css-modal-dialog-padding-horizontal, 0px);
-  text-align: left;
+  padding-inline-start: var(--css-modal-dialog-padding-horizontal, 0px);
+  text-align: start;
   margin-bottom: 16px;
 `);
 
 const cssDestinationWrapper = styled("div", `
   margin-bottom: 1px;
   /* Reuse the modal padding but move 16px to left if possible */
-  margin-left: max(0px, calc(var(--css-modal-dialog-padding-horizontal, 0px) - 16px));
+  margin-inline-start: max(0px, calc(var(--css-modal-dialog-padding-horizontal, 0px) - 16px));
   display: flex;
   align-items: center;
 `);
@@ -1825,7 +1825,7 @@ const cssDestination = styled("div", `
   --icon-color: ${theme.lightText};
   align-items: center;
   border-radius: 0 3px 3px 0;
-  padding-left: 16px;
+  padding-inline-start: 16px;
   color: ${theme.text};
   cursor: pointer;
   display: flex;
@@ -1864,7 +1864,7 @@ const cssDetailsIcon = styled(icon, `
   flex: none;
   color: ${theme.controlFg};
   --icon-color: ${theme.controlFg};
-  margin-left: 4px;
+  margin-inline-start: 4px;
   margin-top: -4px;
   cursor: pointer;
   &:hover {
@@ -1874,7 +1874,7 @@ const cssDetailsIcon = styled(icon, `
 
 const cssError = styled(icon, `
   --icon-color: ${theme.iconError};
-  right: 2px;
+  inset-inline-end: 2px;
   position: absolute;
   z-index: 1;
   top: calc(50% - 8px);
@@ -1884,7 +1884,7 @@ const cssNavigationIcon = styled(icon, `
   flex: none;
   color: ${theme.controlFg};
   --icon-color: ${theme.controlFg};
-  margin-right: 4px;
+  margin-inline-end: 4px;
   margin-top: -3px;
   width: 12px;
 `);
@@ -1927,7 +1927,7 @@ const cssDestinationTableSecondary = styled(textButton, `
   text-transform: uppercase;
   font-size: ${vars.smallFontSize};
   letter-spacing: 0.5px;
-  text-align: left;
+  text-align: start;
   margin-bottom: 16px;
   color: ${theme.lightText};
 `);

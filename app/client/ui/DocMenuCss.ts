@@ -170,7 +170,7 @@ export const siteButton = styled(bigBasicButton, `
 `);
 
 export const docHeaderIcon = styled(icon, `
-  margin-right: 8px;
+  margin-inline-end: 8px;
   margin-top: -3px;
   --icon-color: ${theme.lightText};
 `);
@@ -179,7 +179,7 @@ export const workspaceHeaderIcon = styled(icon, `
   flex-shrink: 0;
   width: 32px;
   height: 32px;
-  margin-right: 16px;
+  margin-inline-end: 16px;
   --icon-color: ${theme.lightText};
 `);
 
@@ -189,7 +189,7 @@ export const pinnedDocsIcon = styled(docHeaderIcon, `
 
 export const featuredTemplatesIcon = styled(icon, `
   --icon-color: ${theme.text};
-  margin-right: 8px;
+  margin-inline-end: 8px;
   width: 20px;
   height: 20px;
 `);
@@ -207,7 +207,7 @@ const docBlockHeader = `
   height: 40px;
   line-height: 40px;
   margin-bottom: 8px;
-  margin-right: -16px;
+  margin-inline-end: -16px;
   color: ${theme.text};
   font-size: ${vars.mediumFontSize};
   font-weight: bold;
@@ -226,7 +226,7 @@ export const wsLeft = styled("div", `
   color: ${theme.text};
   flex: 1 0 50%;
   min-width: 0px;
-  margin-right: 24px;
+  margin-inline-end: 24px;
 `);
 
 export const docRowWrapper = styled("div", `
@@ -278,13 +278,13 @@ export const docName = styled("div", `
 
 export const docPinIcon = styled(icon, `
   flex: none;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   --icon-color: ${theme.accentIcon};
 `);
 
 export const docPublicIcon = styled(icon, `
   flex: none;
-  margin-left: auto;
+  margin-inline-start: auto;
   --icon-color: ${theme.accentIcon};
 `);
 
@@ -308,7 +308,8 @@ export const docRowUpdatedAt = styled("div", `
 
 export const docMenuTrigger = styled("div", `
   flex: none;
-  margin: 0 4px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 4px;
   height: 24px;
   width: 24px;
   padding: 4px;
@@ -360,7 +361,7 @@ export const moveDocListText = styled("div", `
 `);
 
 export const moveDocListHintText = styled(moveDocListText, `
-  text-align: right;
+  text-align: end;
 `);
 
 export const spinner = styled("div", `
@@ -372,13 +373,13 @@ export const spinner = styled("div", `
 `);
 
 export const prefSelectors = styled("div", `
-  float: right;
+  float: inline-end;
   display: flex;
   align-items: center;
 `);
 
 export const sortSelector = styled("div", `
-  margin-right: 24px;
+  margin-inline-end: 24px;
 
   /* negate the styles of a select that normally looks like a button */
   border: none;
@@ -398,23 +399,23 @@ export const sortSelector = styled("div", `
   }
   @media ${mediaSmall} {
     & {
-      margin-right: 0;
+      margin-inline-end: 0;
     }
   }
 `);
 
 export const upgradeButton = styled("div", `
-  margin-left: 32px;
+  margin-inline-start: 32px;
 
   @media ${mediaSmall} {
     & {
-      margin-left: 8px;
+      margin-inline-start: 8px;
     }
   }
 `);
 
 export const upgradeCard = styled("div", `
-  margin-left: 64px;
+  margin-inline-start: 64px;
 `);
 
 export const paragraph = styled(docBlock, `

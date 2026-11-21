@@ -195,7 +195,7 @@ const cardBase = `
   cursor: pointer;
   text-decoration: none;
   outline-offset: 1px;
-  text-align: left;
+  text-align: start;
   ${hoverTransition}
 `;
 

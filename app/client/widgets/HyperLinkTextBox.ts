@@ -1,3 +1,4 @@
+import { alignmentToTextAlign } from "app/client/lib/direction";
 import { sanitizeLinkUrl } from "app/client/lib/sanitizeUrl";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -28,7 +29,7 @@ export class HyperLinkTextBox extends NTextBox {
     );
     return cssFieldClip(
       dom.autoDispose(url),
-      dom.style("text-align", this.alignment),
+      dom.style("text-align", use => alignmentToTextAlign(use(this.alignment))),
       dom.cls("text_wrapping", this.wrapping),
       dom.maybe(use => Boolean(use(value)), () =>
         gristLink(url,

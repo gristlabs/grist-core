@@ -239,7 +239,7 @@ function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column:
 }
 
 const cssIndentedRow = styled(cssRow, `
-  margin-left: 40px;
+  margin-inline-start: 40px;
 `);
 
 const cssSelectSummary = styled("div", `

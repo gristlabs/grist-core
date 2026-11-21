@@ -83,13 +83,23 @@ const iconColorStyles = `
 
 const cssIconDiv = styled("div", iconStyles);
 
+// A component that turns such an icon itself (an arrow that points down once expanded) overrides this.
+const cssDirectionalIcon = styled("div", `
+  transform: scaleX(var(--inline-sign));
+`);
+
 const cssIconSpan = styled("span", iconStyles);
 
 const cssColorIcon = styled("div", iconColorStyles);
 
+// Icons that point along a line of text: they point the other way where lines run right-to-left.
+// (Not the ones that name a side of the screen, like the alignment icons, nor undo and redo.)
+const DIRECTIONAL_ICONS = new Set<IconName>(["Expand", "ArrowLeft", "ArrowRight", "ArrowRightOutlined"]);
+
 export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssIconDiv(
     dom.style("-webkit-mask-image", `var(--icon-${name})`),
+    DIRECTIONAL_ICONS.has(name) ? cssDirectionalIcon.cls("") : null,
     ...domArgs,
   );
 }
@@ -97,6 +107,7 @@ export function icon(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
 export function iconSpan(name: IconName, ...domArgs: DomElementArg[]): HTMLElement {
   return cssIconSpan(
     dom.style("-webkit-mask-image", `var(--icon-${name})`),
+    DIRECTIONAL_ICONS.has(name) ? cssDirectionalIcon.cls("") : null,
     ...domArgs,
   );
 }

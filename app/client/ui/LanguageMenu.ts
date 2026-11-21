@@ -80,7 +80,7 @@ export function translateLocale(locale: string) {
 }
 
 const cssWrapper = styled("div", `
-  margin-left: auto;
+  margin-inline-start: auto;
   display: inline-block;
 `);
 

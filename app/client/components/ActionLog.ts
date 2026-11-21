@@ -244,14 +244,17 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       }),
       dom("div.action_log_load",
         koDom.show(() => this._loading()),
-        "Loading..."),
+        t("Loading...")),
       koDom.foreach(this.displayStack, (ag: ActionGroupWithState) => {
         const timestamp = ag.time ? timeFormat("D T", new Date(ag.time)) : "";
         let desc: DomContents = ag.desc || "";
         if (ag.actionSummary) {
           desc = this.renderTabularDiffs(ag.actionSummary, desc, ag);
         }
+        // An entry is made of identifiers and of the names of tables and columns, as code is: it is
+        // left-to-right in any interface.
         return dom("div.action_log_item",
+          { dir: "ltr" },
           koDom.cssClass(ag.state),
           koDom.show(() => this.showAllTables() || this._hasSelectedTable(ag)),
           dom("div.action_info",
@@ -709,7 +712,7 @@ export async function computeContext(gristDoc: GristDoc, base: ActionSummary, in
 
 const cssBasicButton = styled(basicButton, `
   padding: 0;
-  margin-left: 5px;
+  margin-inline-start: 5px;
   border: none;
 `);
 

@@ -735,15 +735,15 @@ const cssSuggestionLabel = styled("span", `
   display: inline-block;
   padding-top: 5px;
   padding-bottom: 5px;
-  padding-right: 5px;
+  padding-inline-end: 5px;
 `);
 
 const cssSuggestionLink = styled("span", `
   display: inline-block;
-  margin-left: 10px;
+  margin-inline-start: 10px;
   padding: 5px;
-  border-top-left-radius: 20px;
-  border-bottom-right-radius: 20px;
+  border-start-start-radius: 20px;
+  border-end-end-radius: 20px;
   background-color: ${theme.accessRulesTableHeaderBg};
   color: ${theme.accessRulesTableHeaderFg};
   min-width: 30px;
@@ -753,8 +753,8 @@ const cssProposalHeader = styled("h3", `
   padding: 5px;
   padding-top: 20px;
   padding-bottom: 5px;
-  border-top-left-radius: 20px;
-  border-bottom-right-radius: 20px;
+  border-start-start-radius: 20px;
+  border-end-end-radius: 20px;
   background-color: ${theme.accessRulesTableHeaderBg};
   color: ${theme.accessRulesTableHeaderFg};
 `);

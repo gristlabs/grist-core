@@ -1298,7 +1298,7 @@ function kaplanMeierPlot(survivalValues: number[]): { x: number, y: number }[] {
 
 const cssRowLabel = styled("div", `
   flex: 1 0 0px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
 
   font-weight: initial;   /* negate bootstrap */
   color: ${theme.text};
@@ -1313,7 +1313,7 @@ const cssRowHelp = styled(cssRow, `
 `);
 
 const cssAddIcon = styled(icon, `
-  margin-right: 4px;
+  margin-inline-end: 4px;
 `);
 
 const cssAddYAxis = styled(unstyledButton, `
@@ -1335,7 +1335,7 @@ const cssRemoveIcon = styled(icon, `
   display: none;
   cursor: pointer;
   flex: none;
-  margin-left: 8px;
+  margin-inline-start: 8px;
   .${cssFieldEntry.className}:hover & {
     display: block;
   }
@@ -1349,7 +1349,7 @@ const cssHintRow = styled("div", `
 const cssRangeInput = styled("input", `
   input& {
     width: 82px;
-    margin-right: 4px;
+    margin-inline-end: 4px;
   }
 `);
 
@@ -1365,7 +1365,7 @@ const cssSpinners = styled("input", `
   width: 19px;
   position: absolute;
   top: 2px;
-  right: 1px;
+  inset-inline-end: 1px;
   border: none;
   outline: none;
   appearance: none;

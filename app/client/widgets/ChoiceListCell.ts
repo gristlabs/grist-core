@@ -4,6 +4,7 @@ import {
   FormOptionsLimitConfig,
   FormOptionsSortConfig,
 } from "app/client/components/Forms/FormConfig";
+import { alignmentToJustify } from "app/client/lib/direction";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { testId } from "app/client/ui2018/cssVars";
 import {
@@ -26,7 +27,7 @@ export class ChoiceListCell extends ChoiceTextBox {
     return cssChoiceList(
       dom.cls("field_clip"),
       cssChoiceList.cls("-wrap", this.wrapping),
-      dom.style("justify-content", use => use(this.alignment) === "right" ? "flex-end" : use(this.alignment)),
+      dom.style("justify-content", use => alignmentToJustify(use(this.alignment))),
       dom.domComputed((use) => {
         return use(row._isAddRow) ? null :
           [

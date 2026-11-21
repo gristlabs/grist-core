@@ -717,8 +717,8 @@ const cssExample = styled("div", `
   color: ${theme.menuItemIconFg};
   display: block;
   font-family: ${tokens.fontFamilyData};
-  margin-left: 16px;
-  margin-right: -12px;
+  margin-inline-start: 16px;
+  margin-inline-end: -12px;
   padding: 2px 4px;
 
   .${weasel.cssMenuItem.className}-sel > & {

@@ -106,7 +106,8 @@ const pinnedDocWrapper = styled("div", `
   flex: 0 0 auto;
   position: relative;
   width: 210px;
-  margin: 16px 24px 16px 0;
+  margin-block: 16px;
+  margin-inline: 0 24px;
   border: 1px solid ${theme.pinnedDocBorder};
   border-radius: 1px;
   vertical-align: top;
@@ -116,7 +117,7 @@ const pinnedDocWrapper = styled("div", `
 
   /* TODO: Specify a gap on flexbox parents of pinnedDocWrapper instead. */
   &:last-child {
-    margin-right: 0px;
+    margin-inline-end: 0px;
   }
 `);
 
@@ -162,7 +163,7 @@ const pinnedDocPreview = styled("div", `
 
 const pinnedDocThumbnail = styled("div", `
   position: absolute;
-  right: 20px;
+  inset-inline-end: 20px;
   bottom: 20px;
   height: 48px;
   width: 48px;
@@ -174,7 +175,7 @@ const pinnedDocThumbnail = styled("div", `
 
 const cssDocInitials = styled("div", `
   position: absolute;
-  left: 20px;
+  inset-inline-start: 20px;
   bottom: 20px;
   font-size: 32px;
   border: 1px solid ${colors.lightGreen};
@@ -189,7 +190,7 @@ const cssDocInitials = styled("div", `
 const pinnedDocOptions = styled("div", `
   position: absolute;
   top: 12px;
-  right: 12px;
+  inset-inline-end: 12px;
   height: 24px;
   width: 24px;
   padding: 4px;
@@ -248,6 +249,6 @@ const cssImage = styled("img", `
 const cssPublicIcon = styled(icon, `
   position: absolute;
   top: 16px;
-  left: 16px;
+  inset-inline-start: 16px;
   --icon-color: ${theme.accentIcon};
 `);

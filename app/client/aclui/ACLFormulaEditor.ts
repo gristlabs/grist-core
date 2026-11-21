@@ -20,7 +20,8 @@ export interface ACLFormulaOptions {
 
 export function aclFormulaEditor(options: ACLFormulaOptions) {
   // Create an element and an editor within it.
-  const editorElem = dom("div");
+  // Code is written left-to-right in any language.
+  const editorElem = dom("div", { dir: "ltr" });
   const editor: Ace.Editor = ace.edit(editorElem);
 
   // Set various editor options.

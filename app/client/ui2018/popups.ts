@@ -68,9 +68,9 @@ export function cardPopup(
 
 const cssPopupCard = styled("div", `
   position: absolute;
-  right: 16px;
+  inset-inline-end: 16px;
   bottom: 16px;
-  margin-left: 16px;
+  margin-inline-start: 16px;
   max-width: 428px;
   padding: 32px;
   background-color: ${theme.popupBg};
@@ -102,7 +102,8 @@ export const cssPopupButtons = styled("div", `
 
   & > button,
   & > .${cssButton.className} {
-    margin: 0 8px 0 0;
+    margin-block: 0;
+    margin-inline: 0 8px;
   }
 `);
 

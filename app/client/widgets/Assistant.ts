@@ -787,8 +787,8 @@ const cssHistory = styled("div", `
 
 const cssHContainer = styled("div", `
   margin-top: auto;
-  padding-left: 18px;
-  padding-right: 18px;
+  padding-inline-start: 18px;
+  padding-inline-end: 18px;
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
@@ -824,7 +824,7 @@ const cssButton = styled("div", `
   display: flex;
   align-self: flex-end;
   margin-bottom: 6px;
-  margin-right: 6px;
+  margin-inline-end: 6px;
 
   &-disabled {
     --icon-color: ${theme.controlSecondaryFg};
@@ -879,7 +879,8 @@ const cssMessage = styled("div", `
   display: grid;
   grid-template-columns: 1fr 60px;
   border-top: 1px solid ${theme.formulaAssistantBorder};
-  padding: 20px 0px 20px 20px;
+  padding-block: 20px;
+  padding-inline: 20px 0px;
 `);
 
 export const cssAiMessage = styled("div", `
@@ -887,7 +888,8 @@ export const cssAiMessage = styled("div", `
   display: grid;
   grid-template-columns: 60px 1fr;
   border-top: 1px solid ${theme.formulaAssistantBorder};
-  padding: 20px 20px 20px 0px;
+  padding-block: 20px;
+  padding-inline: 0px 20px;
   white-space: normal;
   word-break: break-word;
 
@@ -971,7 +973,7 @@ export const cssAiMessage = styled("div", `
     white-space: pre-wrap;
   }
   & ul, & ol {
-    padding-left: 2em;
+    padding-inline-start: 2em;
   }
   & li > ol, & li > ul {
     margin: 0;

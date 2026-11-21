@@ -1554,7 +1554,8 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
     return dom("div",
       cssRuleDescription(
         cssIconButton(icon("Expand"),
-          dom.style("transform", use => use(this._isExpanded) ? "rotate(90deg)" : ""),
+          // Collapsed, the arrow points the way a line runs; expanded, down.
+          dom.style("transform", use => use(this._isExpanded) ? "rotate(90deg)" : "scaleX(var(--inline-sign))"),
           dom.on("click", () => this._isExpanded.set(!this._isExpanded.get())),
           testId("rule-special-expand"),
           { style: "margin: -4px" },  // subtract padding to align better.
@@ -2391,11 +2392,13 @@ const cssAddTableRow = styled("div", `
 `);
 
 const cssDropdownIcon = styled(icon, `
-  margin: -2px -2px 0 4px;
+  margin-block: -2px 0;
+  margin-inline: 4px -2px;
 `);
 
 const cssRemoveIcon = styled(icon, `
-  margin: -2px -2px 0 4px;
+  margin-block: -2px 0;
+  margin-inline: 4px -2px;
 `);
 
 const cssSection = styled("div", `
@@ -2415,8 +2418,10 @@ const cssSectionHeadingMarkdown = styled(cssSectionHeading, `
 `);
 
 const cssSectionHeadingToggle = styled(cssIconButton, `
-  margin-left: -4px;
-  margin-right: 8px;
+  /* Collapsed, the arrow points the way a line runs. */
+  transform: scaleX(var(--inline-sign));
+  margin-inline-start: -4px;
+  margin-inline-end: 8px;
   width: unset;
   height: unset;
   padding: 0px;
@@ -2462,7 +2467,7 @@ const cssInput = styled(textInput, `
 
 const cssError = styled("div", `
   color: ${theme.errorText};
-  margin-left: 56px;
+  margin-inline-start: 56px;
   margin-bottom: 8px;
   margin-top: 4px;
 `);
@@ -2596,8 +2601,8 @@ const cssMemoColumnGroup = styled(cssColumnGroup, `
 
 const cssMemoIcon = styled(icon, `
   --icon-color: ${theme.accentIcon};
-  margin-left: 8px;
-  margin-right: 8px;
+  margin-inline-start: 8px;
+  margin-inline-end: 8px;
 `);
 
 const cssSeedRule = styled("div", `

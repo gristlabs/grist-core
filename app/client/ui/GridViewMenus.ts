@@ -2,6 +2,7 @@ import { allCommands } from "app/client/components/commands";
 import * as commands from "app/client/components/commands";
 import GridView from "app/client/components/GridView";
 import { GristDoc } from "app/client/components/GristDoc";
+import { InlineSide, toPhysicalSide } from "app/client/lib/direction";
 import { ariaDisabled } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { ColumnRec } from "app/client/models/entities/ColumnRec";
@@ -732,6 +733,8 @@ export interface IMultiColumnContextMenu {
   columnIndices: number[];
   totalColumnCount: number;
   disableFrozenMenu?: boolean;
+  // Whether the grid runs right-to-left, for the items that name a side of the screen.
+  rtl?: boolean;
 }
 
 interface IColumnContextMenu extends IMultiColumnContextMenu {
@@ -835,6 +838,8 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
   const nameDeleteColumns = t("Delete {{count}} columns", { count: num });
   const nameHideColumns = t("Hide {{count}} columns", { count: num });
   const frozenMenu = options.disableFrozenMenu ? null : freezeMenuItemCmd(options);
+  const insertColumnLabel = (side: InlineSide) => toPhysicalSide(side, Boolean(options.rtl)) === "left" ?
+    t("Insert column to the left") : t("Insert column to the right");
   return [
     frozenMenu ? [frozenMenu, menuDivider()] : null,
     // Offered only when selection includes formula columns, and converts only those.
@@ -851,8 +856,10 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
     menuItemCmd(allCommands.deleteFields, nameDeleteColumns, disableForReadonlyColumn),
 
     menuDivider(),
-    menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"), disableForReadonlyTable),
-    menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"), disableForReadonlyTable),
+    // The commands insert before or after in the order of the columns; a person is told the side
+    // of the screen that is.
+    menuItemCmd(allCommands.insertFieldBefore, insertColumnLabel("start"), disableForReadonlyTable),
+    menuItemCmd(allCommands.insertFieldAfter, insertColumnLabel("end"), disableForReadonlyTable),
   ];
 }
 
@@ -990,7 +997,7 @@ const cssRowMenuItem = styled((...args: DomElementArg[]) => dom("li", { tabindex
 `);
 
 const cssRowMenuLabel = styled("div", `
-  margin-right: 8px;
+  margin-inline-end: 8px;
   flex: 1 0 auto;
 `);
 
@@ -1003,11 +1010,11 @@ const cssCustomMenuItem = styled("div", `
     --icon-color: ${theme.menuItemFg};
   }
   &:last-of-type {
-    padding-right: 24px;
+    padding-inline-end: 24px;
     flex: 0 0 auto;
   }
   &:first-of-type {
-    padding-left: 24px;
+    padding-inline-start: 24px;
     flex: 1 0 auto;
   }
   &-selected, &-selected:not(:hover),
@@ -1044,7 +1051,7 @@ const cssListCol = styled("div", `
 
 const cssListFun = styled("div", `
   flex: 0 0 auto;
-  margin-left: 8px;
+  margin-inline-start: 8px;
   text-transform: lowercase;
   padding: 1px 4px;
   border-radius: 3px;
