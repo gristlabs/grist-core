@@ -1,9 +1,9 @@
-import { holdLtr } from "app/client/lib/direction";
 import BaseView from "app/client/components/BaseView";
 import { buildCollapsedSectionDom, buildViewSectionDom } from "app/client/components/buildViewSectionDom";
 import * as commands from "app/client/components/commands";
 import { ContentBox } from "app/client/components/Layout";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
+import { holdLtr } from "app/client/lib/direction";
 import { Signal } from "app/client/lib/Signal";
 import { urlState } from "app/client/models/gristUrlState";
 import { TransitionWatcher } from "app/client/ui/transitions";

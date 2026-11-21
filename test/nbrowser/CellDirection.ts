@@ -114,8 +114,9 @@ describe("CellDirection", function() {
 
       it("edits a cell on the side its text was on", async function() {
         await gu.getCell("A", 1).click();
+        await gu.waitAppFocus();
         await gu.sendKeys("Sam");
-        const editor = await driver.findWait(".celleditor_text_editor", 1000);
+        const editor = await driver.findWait(".celleditor_text_editor", 3000);
         assert.equal(await editor.getCssValue("text-align"), start);
         assert.equal(await editor.getCssValue("unicode-bidi"), "plaintext");
         await gu.sendKeys(Key.ESCAPE);
