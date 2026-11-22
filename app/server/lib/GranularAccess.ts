@@ -80,6 +80,11 @@ function isAclTable(tableId: string): boolean {
   return ["_grist_ACLRules", "_grist_ACLResources"].includes(tableId);
 }
 
+// Check if any of the actions, including nested ones, is aimed at an ACL table.
+function hasAclTableAction(actions: UserAction[]): boolean {
+  return scanActionsRecursively(actions, a => isAclTable(String(a[1])));
+}
+
 const ADD_OR_UPDATE_RECORD_ACTIONS = ["AddOrUpdateRecord", "BulkAddOrUpdateRecord"];
 
 // Actions whose update can be denied per-column, and whose written columns sit at index 3.
@@ -133,6 +138,28 @@ const SURPRISING_ACTIONS = new Set([
 
 // Actions we'll allow unconditionally for now.
 const OK_ACTIONS = new Set(["Calculate", "UpdateCurrentTime"]);
+
+// Actions other than plain data actions that a user without schema permission may run. Only add
+// an action here if it cannot bring a Python formula with it, and cannot cause other surprises.
+//
+// For some actions, requiring schema permission is the only check there is. ConvertFromColumn
+// and CopyFromColumn read data in ways that are hard to reason about, especially since they
+// appear in bundles with other actions, so we just make sure the user has schema permission.
+// Today, in Grist, that gives a lot of power. If this gets narrowed down in future, we'll have
+// to rethink this.
+const NO_SCHEMA_PERMISSION_ACTIONS = new Set([
+  ...OK_ACTIONS,
+  ...ADD_OR_UPDATE_RECORD_ACTIONS,
+  "RenameChoices",
+  // Note: ConvertFromColumn and CopyFromColumn intentionally excluded; see comment above.
+]);
+
+// Writes to metadata tables are denied early to users without schema permission, except for
+// these tables. Users without it may have reasons to write to these, and each has checks of its
+// own that decide. Only add a table here if a write to it cannot bring a Python formula with it.
+const NO_SCHEMA_PERMISSION_TABLES = new Set([
+  "_grist_ACLResources", "_grist_ACLRules", "_grist_Attachments", "_grist_Cells", "_grist_Triggers",
+]);
 
 // Other actions that are believed to be compatible with granular access.
 // Only add an action to OTHER_RECOGNIZED_ACTIONS if you know access control
@@ -329,8 +356,7 @@ export class GranularAccess implements GranularAccessForBundle {
       maybeHasShareChanges: false,
       options,
     };
-    this._activeBundle.hasDeliberateRuleChange =
-      scanActionsRecursively(userActions, a => isAclTable(String(a[1])));
+    this._activeBundle.hasDeliberateRuleChange = hasAclTableAction(userActions);
     this._activeBundle.hasAnyRuleChange =
       scanActionsRecursively(docActions, a => actionHasRuleChange(a));
   }
@@ -602,8 +628,8 @@ export class GranularAccess implements GranularAccessForBundle {
     const { docActions, docSession, isDirect } = this._activeBundle;
     const currentUser = await this.getUser(docSession);
     const userIsOwner = await this.isOwner(docSession);
-    if (this._activeBundle.hasDeliberateRuleChange && !userIsOwner) {
-      throw new ErrorWithCode("ACL_DENY", "Only owners can modify access rules");
+    if (this._activeBundle.hasDeliberateRuleChange) {
+      this._assertCanChangeRules(docSession, userIsOwner);
     }
     // Normally, viewer requests would never reach this point, but they can happen
     // using the "view as" functionality where user is an owner wanting to preview the
@@ -954,6 +980,9 @@ export class GranularAccess implements GranularAccessForBundle {
     }
 
     // Checks are in no particular order.
+    if (hasAclTableAction(actions)) {
+      this._assertCanChangeRules(docSession, await this.isOwner(docSession));
+    }
     await this._checkSimpleDataActions(docSession, actions);
     await this._checkForSpecialOrSurprisingActions(docSession, actions);
     await this._checkIfNeedsEarlySchemaPermission(docSession, actions);
@@ -1046,32 +1075,16 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
-   * For changes that could include Python formulas, check for schema access early.
+   * Schema access is checked early for anything that could reach the data engine with a Python
+   * formula, since the engine runs formulas before the resulting DocActions get checked. Every
+   * action is assumed to be like that unless it is whitelisted as not needing schema permission.
    */
   public needEarlySchemaPermission(a: UserAction | DocAction): boolean {
-    const name = a[0] as string;
-    // ConvertFromColumn and CopyFromColumn are hard to reason
-    // about, especially since they appear in bundles with other
-    // actions. We throw up our hands a bit here, and just make
-    // sure the user has schema permissions. Today, in Grist, that
-    // gives a lot of power. If this gets narrowed down in future,
-    // we'll have to rethink this.
-    const actionNames = [
-      "ModifyColumn",
-      "SetDisplayFormula",
-      "ConvertFromColumn",
-      "CopyFromColumn",
-      "AddReverseColumn",
-    ];
-    if (actionNames.includes(name)) {
-      return true;
-    } else if (isDataAction(a)) {
-      const tableId = getTableId(a);
-      if (tableId === "_grist_Tables_column" || tableId === "_grist_Validations") {
-        return true;
-      }
+    if (isDataAction(a)) {
+      const tableId = String(a[1]);
+      return isMetadataTable(tableId) && !NO_SCHEMA_PERMISSION_TABLES.has(tableId);
     }
-    return false;
+    return !NO_SCHEMA_PERMISSION_ACTIONS.has(String(a[0]));
   }
 
   /**
@@ -1523,7 +1536,7 @@ export class GranularAccess implements GranularAccessForBundle {
   //
   // Access rules and user attributes might change during the bundle.
   // We deny based on access rights at the beginning of the bundle,
-  // as for _checkPossiblePythonFormulaModification. This is on the
+  // as for _checkIfNeedsEarlySchemaPermission. This is on the
   // theory that someone who can change access rights can do anything.
   //
   // There might be uses for applying AddOrUpdateRecord in a nuanced
@@ -1621,6 +1634,19 @@ export class GranularAccess implements GranularAccessForBundle {
         accessChecks.fatal.create.throwIfDenied(tableAccess);
       }
     });
+  }
+
+  /**
+   * Asserts that the user may change access rules: an owner, using a credential that allows
+   * changing structure.
+   */
+  private _assertCanChangeRules(docSession: OptDocSession, userIsOwner: boolean) {
+    if (!userIsOwner) {
+      throw new ErrorWithCode("ACL_DENY", "Only owners can modify access rules");
+    }
+    if (docSession.credential?.permissionMask()?.schemaEdit === "deny") {
+      throw new ErrorWithCode("ACL_DENY", "Access rules cannot be changed with this credential");
+    }
   }
 
   /**
@@ -2792,9 +2818,7 @@ export class GranularAccess implements GranularAccessForBundle {
       // Another exception: ensure owners always have full access to ACL tables, so they
       // can change rules and don't get stuck.
       if (isAclTable(tableId) && await this.isOwner(docSession)) {
-        if (docSession.credential?.permissionMask()?.schemaEdit === "deny") {
-          throw new ErrorWithCode("ACL_DENY", "Access rules cannot be changed with this credential");
-        }
+        this._assertCanChangeRules(docSession, true);
         return dummyAccessCheck;
       }
       // Webhook management writes _grist_Triggers. The `webhook` option waives the schema-edit

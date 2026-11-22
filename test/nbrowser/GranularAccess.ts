@@ -1016,7 +1016,7 @@ describe("GranularAccess", function() {
     await gu.addNewSection(/Table/, /Table1/, { dismissTips: true });
     await gu.waitForServer();
     await driver.findContentWait(".test-notifier-toast-wrapper",
-      /Blocked by table structure access rules/, 2000);
+      /Blocked by full structure access rules/, 2000);
     await gu.wipeToasts();
     assert.deepEqual(await gu.getSectionTitles(), ["TABLE1", "TABLE2"]);
 
@@ -1025,7 +1025,7 @@ describe("GranularAccess", function() {
     await driver.findWait(".test-section-delete", 2000).click();
     await gu.waitForServer();
     await driver.findContentWait(".test-notifier-toast-wrapper",
-      /Blocked by table structure access rules/, 2000);
+      /Blocked by full structure access rules/, 2000);
     await gu.wipeToasts();
     assert.deepEqual(await gu.getSectionTitles(), ["TABLE1", "TABLE2"]);
 

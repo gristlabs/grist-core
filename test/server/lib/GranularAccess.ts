@@ -734,8 +734,7 @@ describe("GranularAccess", function() {
     ]));
   });
 
-  it("persist data when action is rejected with schema action", async () => {
-    // Reject schema actions
+  async function rejectSchemaActions() {
     await freshDoc();
     await owner.applyUserActions(docId, [
       ["AddTable", "Table1", [{ id: "A" }]],
@@ -752,15 +751,48 @@ describe("GranularAccess", function() {
 
     const aMemBefore = await memCell("Table1", "A", 1);
     const aDbBefore = await dbCell("Table1", "A", 1);
-    await assertDeniedFor(editor.applyUserActions(docId, [
-      ["RemoveColumn", "Table1", "A"],
-    ]), ["stop"]);
+    // A direct write to the metadata is rejected early too.
+    for (const action of [["RemoveColumn", "Table1", "A"], ["RemoveRecord", "_grist_Tables", 1]]) {
+      await assertDeniedFor(editor.applyUserActions(docId, [action]), ["stop"]);
+    }
     const aMemAfter = await memCell("Table1", "A", 1);
     const aDbAfter = await dbCell("Table1", "A", 1);
     assert.equal(aMemAfter, aDbAfter);
     assert.equal(aMemBefore, aDbBefore);
-    assert.notEqual(aDbBefore, aDbAfter);
-    assert.notEqual(aMemBefore, aMemAfter);
+    // Report whether the formula's value is unchanged. It changes if the engine applies and
+    // reverts an action, since that recalculates the formula.
+    return aMemAfter === aMemBefore;
+  }
+  it("rejects a schema action before it reaches the data engine", async () => {
+    assert.equal(await rejectSchemaActions(), true);   // Check that the value is unchanged.
+  });
+
+  it("rejects rule changes and metadata writes before the data engine", async () => {
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "Table1", [{ id: "A" }]],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "*", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access != OWNER", permissionsText: "-S",
+      }],
+    ]);
+    const activeDoc = (await docManager.getActiveDoc(docId))!;
+    const toEngine = sinon.spy((activeDoc as any)._sharing, "addUserAction");
+    try {
+      await assert.isRejected(editor.applyUserActions(docId, [
+        ["AddRecord", "_grist_ACLRules", null, { resource: 1, aclFormula: "", permissionsText: "+R" }],
+      ]), /Only owners can modify access rules/);
+      await assert.isRejected(editor.applyUserActions(docId, [
+        ["RemoveRecord", "_grist_Tables", 1],
+      ]), /Blocked by full structure access rules/);
+      assert.equal(toEngine.callCount, 0);
+
+      // An action that is allowed does get there.
+      await editor.applyUserActions(docId, [["AddRecord", "Table1", null, {}]]);
+      assert.equal(toEngine.callCount, 1);
+    } finally {
+      toEngine.restore();
+    }
   });
 
   it("fails when action cannot be rejected", async () => {
@@ -1241,7 +1273,7 @@ describe("GranularAccess", function() {
     });
   });
 
-  it("respects owner-only structure", async function() {
+  async function respectsOwnerOnlyStructure() {
     await freshDoc();
 
     // Make some tables, and lock structure.
@@ -1299,7 +1331,7 @@ describe("GranularAccess", function() {
     ]));
     await assert.isRejected(editor.applyUserActions(docId, [
       ["AddEmptyTable", null],
-    ]), /Blocked by table structure access rules/);
+    ]), /Blocked by (full|table) structure access rules/);
 
     // Owner can duplicate a table, editor can not.
     await assert.isFulfilled(owner.applyUserActions(docId, [
@@ -1307,7 +1339,7 @@ describe("GranularAccess", function() {
     ]));
     await assert.isRejected(editor.applyUserActions(docId, [
       ["DuplicateTable", "Public1", "Public1Copy", false],
-    ]), /Blocked by table structure access rules/);
+    ]), /Blocked by (full|table) structure access rules/);
 
     // Owner can modify metadata, editor can not.
     await assert.isFulfilled(owner.applyUserActions(docId, [
@@ -1329,7 +1361,8 @@ describe("GranularAccess", function() {
     await assert.isRejected(editor.applyUserActions(docId, [
       ["UpdateRecord", "_grist_Pages", 1, { indentation: 3 }],
     ]));
-  });
+  }
+  it("respects owner-only structure", respectsOwnerOnlyStructure);
 
   it("non-owners need extra permissions for downloadDoc and copyDoc", async function() {
     // It used to be that "canReadEverything" was enough to allow downloadDoc and copyDoc, but
@@ -1423,7 +1456,7 @@ describe("GranularAccess", function() {
     await assert.isFulfilled(editor.getDocAPI(docId).copyDoc(undefined));
   });
 
-  it("owner can edit rules without structure permission", async function() {
+  async function ownerCanEditRules() {
     await freshDoc();
 
     // Make some tables, and lock structure completely.
@@ -1445,7 +1478,7 @@ describe("GranularAccess", function() {
     // Cannot rename column.
     await assert.isRejected(owner.applyUserActions(docId, [
       ["RenameColumn", "Public1", "A", "Z"],
-    ]), /Blocked by table structure access rules/);
+    ]), /Blocked by (full|table) structure access rules/);
 
     // Can still change rules.
     await owner.applyUserActions(docId, [
@@ -1458,7 +1491,8 @@ describe("GranularAccess", function() {
     await assert.isFulfilled(owner.applyUserActions(docId, [
       ["RenameColumn", "Public1", "A", "Z"],
     ]));
-  });
+  }
+  it("owner can edit rules without structure permission", ownerCanEditRules);
 
   it("supports AddEmptyTable", async function() {
     await freshDoc();
@@ -1480,7 +1514,7 @@ describe("GranularAccess", function() {
     ]));
   });
 
-  it("blocks formulas early", async function() {
+  async function tryPoisonFormulas() {
     await freshDoc();
     // Make some tables, and lock structure.
     await owner.applyUserActions(docId, [
@@ -1493,33 +1527,64 @@ describe("GranularAccess", function() {
     ]);
 
     // Try a modification that would have a detectable side-effect even if reverted.
+    const formula = "datetime.MAXYEAR=1234\nreturn 1";
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["ModifyColumn", "Table1", "A", { isFormula: true, formula: "datetime.MAXYEAR=1234",
-        type: "Int" }],
-    ]), /Blocked by full structure access rules/);
+      ["ModifyColumn", "Table1", "A", { isFormula: true, formula, type: "Int" }],
+    ]), /Blocked by (full|table) structure access rules/);
 
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["UpdateRecord", "_grist_Tables_column", 1, { formula: "datetime.MAXYEAR=1234" }],
-    ]), /Blocked by full structure access rules/);
+      ["UpdateRecord", "_grist_Tables_column", 1, { formula }],
+    ]), /Blocked by (full|table) structure access rules/);
 
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddRecord", "_grist_Tables_column", null, { formula: "datetime.MAXYEAR=1234" }],
-    ]), /Blocked by full structure access rules/);
+      ["AddRecord", "_grist_Tables_column", null, { formula }],
+    ]), /Blocked by (full|table) structure access rules/);
 
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddRecord", "_grist_Validations", null, { formula: "datetime.MAXYEAR=1234" }],
-    ]), /Blocked by full structure access rules/);
+      ["AddRecord", "_grist_Validations", null, { formula, tableRef: 1 }],
+    ]), /Blocked by (full|table) structure access rules/);
 
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["SetDisplayFormula", "Table1", null, 1, "datetime.MAXYEAR=1234"],
-    ]), /Blocked by full structure access rules/);
+      ["SetDisplayFormula", "Table1", null, 1, formula],
+    ]), /Blocked by (full|table) structure access rules/);
 
-    // Make sure that the poison formula was never evaluated.
+    // Adding a column or a table can bring a formula along too.
+    const poison = { isFormula: true, formula, type: "Int" };
+    for (const actions of [
+      [["AddColumn", "Table1", "Z", poison]],
+      [["AddVisibleColumn", "Table1", "Z", poison]],
+      [["AddTable", "Table2", [{ id: "Z", ...poison }]], ["AddRecord", "Table2", null, {}]],
+      [["ApplyDocActions", [["AddColumn", "Table1", "Z", poison]]]],
+    ]) {
+      await assert.isRejected(editor.applyUserActions(docId, actions));
+    }
+
+    // Report whether the poison formula was evaluated.
     await owner.applyUserActions(docId, [
       ["ModifyColumn", "Table1", "A", { isFormula: true, formula: "datetime.MAXYEAR",
         type: "Int" }],
     ]);
-    assert.deepEqual((await owner.getDocAPI(docId).getRows("Table1")).A, [9999]);
+    return (await owner.getDocAPI(docId).getRows("Table1")).A[0];
+  }
+  it("blocks formulas early", async function() {
+    assert.equal(await tryPoisonFormulas(), 9999);   // Check that the formula never ran.
+  });
+
+  describe("late-checks", function() {
+    // The checks after the data engine are the backstop for access control, but the early checks
+    // keep tests from reaching them. These tests run with the early checks off.
+    const lateSandbox = sinon.createSandbox();
+    before(() => lateSandbox.stub(GranularAccess.prototype, "checkUserActions"));
+    after(() => lateSandbox.restore());
+
+    it("persist data when action is rejected with schema action", async () => {
+      assert.equal(await rejectSchemaActions(), false);   // Check that the value changed.
+    });
+    it("respects owner-only structure", respectsOwnerOnlyStructure);
+    it("owner can edit rules without structure permission", ownerCanEditRules);
+    it("rejects formulas, though they get evaluated", async function() {
+      assert.equal(await tryPoisonFormulas(), 1234);   // Check that the formula ran.
+    });
   });
 
   it("allows AddOrUpdateRecord only with full read access", async function() {
@@ -1691,7 +1756,7 @@ describe("GranularAccess", function() {
     for (const includeData of [false, true]) {
       await assert.isRejected(editor.applyUserActions(docId, [
         ["DuplicateTable", "Data4", "Data4Copy", includeData],
-      ]), /Blocked by table structure access rules/);
+      ]), /Blocked by full structure access rules/);
     }
 
     // Owner can still perform DuplicateTable, even with partial read access or

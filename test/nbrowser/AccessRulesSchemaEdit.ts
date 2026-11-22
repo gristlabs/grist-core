@@ -63,7 +63,7 @@ describe("AccessRulesSchemaEdit", function() {
 
     // Check that an editor CANNOT make structure changes (default behavior changed by enabling // rules).
     await assert.isRejected(editorApi.applyUserActions(docId, [["RenameTable", "Renamed1", "Table1"]]),
-      /Blocked by table structure access rules/);
+      /Blocked by full structure access rules/);
 
     // Check that after reload, the box is still unchecked and still no warning.
     await reloadAccessRulesPage();
@@ -228,7 +228,7 @@ describe("AccessRulesSchemaEdit", function() {
     // Check that the rule works.
     let error = await editorApi.applyUserActions(docId, [["RenameTable", "Table1", "Renamed3"]])
       .then(() => null).catch(err => err);
-    assert.match(error?.message, /Blocked by table structure access rules/);
+    assert.match(error?.message, /Blocked by full structure access rules/);
     assert.deepInclude(error?.details, { memos: [{ kind: "reason", text: "Memo MIXED" }] });
 
     // Change the memos on both copies of the rule.
@@ -247,7 +247,7 @@ describe("AccessRulesSchemaEdit", function() {
     // Check that the changed rule works.
     error = await editorApi.applyUserActions(docId, [["RenameTable", "Table1", "Renamed3"]])
       .then(() => null).catch(err => err);
-    assert.match(error?.message, /Blocked by table structure access rules/);
+    assert.match(error?.message, /Blocked by full structure access rules/);
     assert.deepInclude(error?.details, { memos: [{ kind: "reason", text: "Memo SSS" }] });
 
     // Check what the rules are on the default resource.
