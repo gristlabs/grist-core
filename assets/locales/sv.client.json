@@ -170,7 +170,11 @@
         "Memory Error": "Minnesfel",
         "Translators: please translate this only when your language is ready to be offered to users": "Översättare: var god översätt denna enbart när ditt språk är redo att erbjudas till användare",
         "Disabled screen reader improvements": "Stängde av förbättringar för skärmläsare",
-        "Enabled screen reader improvements": "Aktiverade förbättringar för skärmläsare"
+        "Enabled screen reader improvements": "Aktiverade förbättringar för skärmläsare",
+        "Exit without saving": "Lämna utan att spara",
+        "Stay on the page": "Stanna kvar på sidan",
+        "Unsaved changes": "Ej sparade ändringar",
+        "You have unsaved changes. If you leave now, your changes will be lost.": "Du har ej sparade ändringar. Om du lämnar nu, så kommer dina ändringar att gå förlorade."
     },
     "AppHeader": {
         "Home page": "Hemsida",
