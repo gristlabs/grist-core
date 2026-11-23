@@ -421,42 +421,30 @@ export class VisibleFieldsConfig extends Disposable {
 
   // Set all checkboxes for the visible fields.
   private _setVisibleCheckboxes(visibleFieldsDraggable: Element, checked: boolean) {
-    const fields = this._section.viewFields.peek().peek()
-      .filter(field => fieldMatchesFilterOrSelection(field, this._visibleFilter.get(), this._visibleFieldsSelection));
-    this._setCheckboxesHelper(
-      visibleFieldsDraggable,
-      fields,
-      this._visibleFieldsSelection,
-      checked,
-    );
-    this._showVisibleBatchButtons.set(checked && fields.length > 0);
+    const count = this._setCheckboxesHelper(visibleFieldsDraggable, this._visibleFieldsSelection, checked);
+    this._showVisibleBatchButtons.set(checked && count > 0);
   }
 
   // Set all checkboxes for the hidden fields.
   private _setHiddenCheckboxes(hiddenFieldsDraggable: Element, checked: boolean) {
-    const fields = this._hiddenFields.peek()
-      .filter(field => fieldMatchesFilterOrSelection(field, this._hiddenFilter.get(), this._hiddenFieldsSelection));
-    this._setCheckboxesHelper(
-      hiddenFieldsDraggable,
-      fields,
-      this._hiddenFieldsSelection,
-      checked,
-    );
-    this._showHiddenBatchButtons.set(checked && fields.length > 0);
+    const count = this._setCheckboxesHelper(hiddenFieldsDraggable, this._hiddenFieldsSelection, checked);
+    this._showHiddenBatchButtons.set(checked && count > 0);
   }
 
   // A helper to set all checkboxes. Takes care of setting all checkboxes in the dom and updating
   // the selection.
-  private _setCheckboxesHelper(draggable: Element, fields: IField[], selection: Set<number>,
-    checked: boolean) {
-    findCheckboxes(draggable).forEach(el => el.checked = checked);
-
+  // This reads the checkboxes from the dom and updates the internal selection based on it,
+  // to prevent syncing issues when filtering columns to show.
+  private _setCheckboxesHelper(draggable: Element, selection: Set<number>, checked: boolean): number {
+    const checkboxes = findCheckboxes(draggable);
     selection.clear();
-
-    if (checked) {
-      // add all ids to the selection
-      fields.forEach(field => selection.add(field.id.peek()));
-    }
+    checkboxes.forEach((el) => {
+      el.checked = checked;
+      if (checked) {
+        selection.add(Number(el.getAttribute("data-id")));
+      }
+    });
+    return checkboxes.length;
   }
 
   private _buildFilteredHiddenFields(options: DraggableFieldsOption<ColumnRec>): KoArray<ColumnRec> {
@@ -545,6 +533,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.attr("aria-label", use => t("Show {{label}}", { label: use(column.label) })),
       ),
       buildCheckbox(
+        { "data-id": String(id) },
         dom.prop("checked", selection.has(id)),
         dom.boolAttr("disabled", this._disabled),
         dom.attr("aria-label", use => t("Show {{label}} (batch mode)", { label: use(column.label) })),
@@ -576,6 +565,7 @@ export class VisibleFieldsConfig extends Disposable {
         dom.attr("aria-label", use => t("Hide {{label}}", { label: use(field.label) })),
       ),
       buildCheckbox(
+        { "data-id": String(id) },
         dom.prop("checked", selection.has(id)),
         dom.boolAttr("disabled", this._disabled),
         dom.attr("aria-label", use => t("Hide {{label}} (batch mode)", { label: use(field.label) })),

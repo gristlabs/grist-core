@@ -476,6 +476,34 @@ describe("VisibleFieldsConfig", function() {
       await setFilter("visible", "");
     });
 
+    it("should 'select all' every currently displayed column, even if one was just unchecked", async function() {
+      // Use case: tick A, filter to "K", untick A, click Select all, then Hide. Both A and K columns should be hidden.
+      await findField("visible", /A/).find("input").click();
+      await setFilter("visible", "K");
+      assert.deepEqual(
+        await driver.findAll(".test-vfc-visible-fields .kf_draggable", e => e.getText()),
+        ["A", "K"],
+      );
+
+      await findField("visible", /A/).find("input").click();
+      assert.equal(await isSelected("visible", /A/), false);
+
+      await driver.find(".test-vfc-visible-fields-select-all").click();
+      assert.equal(await isSelected("visible", /A/), true);
+      assert.equal(await isSelected("visible", /K/), true);
+
+      await driver.find(".test-vfc-visible-batch-buttons").findContent("button", /Hide/).click();
+      await gu.waitForServer();
+
+      const visible = await driver.findAll(".g-column-label", e => e.getText());
+      assert.notInclude(visible, "A");
+      assert.notInclude(visible, "K");
+      assert.include(visible, "B");
+
+      await setFilter("visible", "");
+      await gu.undo();
+    });
+
     it("should only 'select all' and hide columns that match the filter", async function() {
       await setFilter("visible", "A");
       assert.deepEqual(
