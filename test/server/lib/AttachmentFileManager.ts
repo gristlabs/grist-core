@@ -559,7 +559,7 @@ describe("AttachmentFileManager", function() {
     // This might be overkill, but it works.
     await store.removePool(docId);
 
-    await assert.isRejected(manager.getFileData(addFileResult.fileIdent), AttachmentRetrievalError);
+    await assert.isRejected(manager.getFileData(addFileResult.fileIdent), /missing from external storage/);
 
     await addFile();
 

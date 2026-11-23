@@ -165,6 +165,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpFormUrlValues: "https://support.getgrist.com/widget-form/#accept-value-from-url",
   helpAirtableIntegration: "https://support.getgrist.com/install/integrations/airtable",
   helpCloudStorage: "https://support.getgrist.com/install/cloud-storage",
+  helpRestoringAttachments: "https://support.getgrist.com/exports/#restoring-external-attachments",
   integrators: "https://support.getgrist.com/integrators/",
   editionComparison: "https://www.getgrist.com/grist-edition-comparison/",
   mcp: "https://support.getgrist.com/mcp/",

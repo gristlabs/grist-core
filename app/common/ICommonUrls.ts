@@ -40,6 +40,7 @@ export interface ICommonUrls {
   helpFormUrlValues: string;
   helpAirtableIntegration: string;
   helpCloudStorage: string;
+  helpRestoringAttachments: string;
   integrators: string;
   editionComparison: string;
   mcp: string; // Support doc for connecting an AI assistant via the MCP server.

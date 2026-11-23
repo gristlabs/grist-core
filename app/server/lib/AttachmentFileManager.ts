@@ -1,3 +1,4 @@
+import { ApiError } from "app/common/ApiError";
 import { AttachmentTransferStatus, DocAttachmentsLocation } from "app/common/UserAPI";
 import {
   AttachmentFile,
@@ -617,6 +618,12 @@ export class AttachmentFileManager extends EventEmitter {
     try {
       return await store.download(this._getDocPoolId(), fileIdent);
     } catch (e) {
+      // A file that isn't in the store is a different problem from a store that can't be reached.
+      // It happens when a document is copied or re-uploaded without its attachments.
+      if (!await store.exists(this._getDocPoolId(), fileIdent)) {
+        throw new ApiError(`Attachment file '${fileIdent}' is missing from external storage`, 404,
+          { code: "AttachmentFileMissing" });
+      }
       throw new AttachmentRetrievalError(store.id, fileIdent, e);
     }
   }

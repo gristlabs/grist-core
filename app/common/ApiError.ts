@@ -44,6 +44,7 @@ export type ApiErrorCode =
   "FormNotPublished" |
   "ContextLimitExceeded" |
   "RestartUnavailable" |
+  "AttachmentFileMissing" |
   "SyncNotOwned" |
   "SyncSourceDocNotFound" |
   "SyncOrphaned" |

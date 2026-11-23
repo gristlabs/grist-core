@@ -28,10 +28,12 @@ import {
   modal,
   saveModal,
 } from "app/client/ui2018/modals";
+import { commonUrls } from "app/common/gristUrls";
 import * as roles from "app/common/roles";
 import { components, tokens } from "app/common/ThemePrefs";
 import {
   CreatableArchiveFormats,
+  DocAPI,
   DocAttachmentsLocation,
   Document,
   isTemplatesOrg,
@@ -158,6 +160,8 @@ class SaveCopyModal extends Disposable {
   private _destOrg = Observable.create<Organization | null>(this, this._app.currentOrg);
   private _destWS = Observable.create<Workspace | null>(this, this._doc.workspace);
   private _asTemplate = Observable.create<boolean>(this, false);
+  private _docApi = this._app.api.getDocAPI(this._doc.id);
+  private _attachmentStatus = fetchAttachmentStatus(this, this._docApi);
   private _saveDisabled = Computed.create(this, this._destWS, this._destName, (use, ws, name) =>
     (!name.trim() || !ws || !roles.canEdit(ws.access)));
 
@@ -235,6 +239,24 @@ class SaveCopyModal extends Disposable {
         cssLabel(t("As template")),
         cssCheckbox(this._asTemplate, t("Include the structure without any of the data."),
           testId("save-as-template")),
+      ),
+      dom.maybe(use => !use(this._asTemplate) && areAttachmentsExternal(use(this._attachmentStatus)), () =>
+        cssAttachmentsWarning(
+          t(
+            "Attachments are external and not included in the copy. \
+You can {{downloadLink}} now, \
+and upload them in the document settings of the copy. {{learnMore}}.",
+            {
+              downloadLink: cssLink(t("download attachments"), {
+                href: this._docApi.getDownloadAttachmentsArchiveUrl({ format: "tar" }),
+                target: "_blank",
+                download: "",
+              }),
+              learnMore: restoringAttachmentsLink(),
+            },
+          ),
+          testId("copy-external-attachments-info"),
+        ),
       ),
       // Show the team picker only when saving to other teams is allowed and there are other teams
       // accessible.
@@ -330,29 +352,43 @@ class SaveCopyModal extends Disposable {
 
 type DownloadOption = "full" | "nohistory" | "template";
 
+function areAttachmentsExternal(status: DocAttachmentsLocation | undefined | "unknown") {
+  return status !== undefined && status !== "internal" && status !== "none";
+}
+
+function restoringAttachmentsLink() {
+  return cssLink(t("Learn more"), { href: commonUrls.helpRestoringAttachments, target: "_blank" });
+}
+
+// Fetches where the document's attachments are stored: undefined while loading, "unknown" on failure.
+function fetchAttachmentStatus(owner: Disposable, docApi: DocAPI) {
+  const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | "unknown">(owner, undefined);
+  docApi.getAttachmentTransferStatus()
+    .then((status) => {
+      if (owner.isDisposed()) {
+        return;
+      }
+      attachmentStatusObs.set(status.locationSummary);
+    })
+    .catch((err) => {
+      if (owner.isDisposed()) {
+        return;
+      }
+      reportError(err);
+      attachmentStatusObs.set("unknown");
+    });
+  return attachmentStatusObs;
+}
+
 export function downloadDocModal(doc: Document, appModel: AppModel) {
   return modal((ctl, owner) => {
     const docApi = appModel.api.getDocAPI(doc.id);
     const selected = Observable.create<DownloadOption>(owner, "full");
 
-    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | "unknown">(owner, undefined);
-    docApi.getAttachmentTransferStatus()
-      .then((status) => {
-        if (owner.isDisposed()) {
-          return;
-        }
-        attachmentStatusObs.set(status.locationSummary);
-      })
-      .catch((err) => {
-        if (owner.isDisposed()) {
-          return;
-        }
-        reportError(err);
-        attachmentStatusObs.set("unknown");
-      });
+    const attachmentStatusObs = fetchAttachmentStatus(owner, docApi);
 
     const hasExternalAttachments =
-      Computed.create(owner, attachmentStatusObs, (use, status) => status !== "internal" && status !== "none");
+      Computed.create(owner, attachmentStatusObs, (use, status) => areAttachmentsExternal(status));
 
     const options = dom.domComputed(attachmentStatusObs, (status) => {
       const isInternal = status === "internal" || status === "none";
@@ -374,14 +410,16 @@ export function downloadDocModal(doc: Document, appModel: AppModel) {
         dom.maybe(hasExternalAttachments, () => cssAttachmentsWarning(
           t(
             "Attachments are external and not included in this download. \
-If uploading the document to a separate Grist installation, \
-you will also need to {{downloadLink}} separately. ",
+If you plan to upload the document to Grist, \
+you can {{downloadLink}} now, \
+and upload them in the document settings of the new document. {{learnMore}}.",
             {
               downloadLink: cssLink(t("download attachments"), {
                 href: docApi.getDownloadAttachmentsArchiveUrl({ format: "tar" }),
                 target: "_blank",
                 download: "",
               }),
+              learnMore: restoringAttachmentsLink(),
             },
           ),
           testId("external-attachments-info"),
@@ -416,24 +454,10 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
   return modal((ctl, owner) => {
     const docApi = pageModel.appModel.api.getDocAPI(doc.id);
 
-    const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | "unknown">(owner, undefined);
-    docApi.getAttachmentTransferStatus()
-      .then((status) => {
-        if (owner.isDisposed()) {
-          return;
-        }
-        attachmentStatusObs.set(status.locationSummary);
-      })
-      .catch((err) => {
-        if (owner.isDisposed()) {
-          return;
-        }
-        reportError(err);
-        attachmentStatusObs.set("unknown");
-      });
+    const attachmentStatusObs = fetchAttachmentStatus(owner, docApi);
 
     const isExternal = Computed.create(owner, attachmentStatusObs,
-      (use, status) => status !== "none" && status !== "internal",
+      (use, status) => areAttachmentsExternal(status),
     );
 
     const formatObs = Observable.create<CreatableArchiveFormats>(owner, "tar");
@@ -453,15 +477,9 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
         cssEagerWrap(dom("p", t("Download an archive of all the attachments present in this document."))),
         dom.maybe(isExternal, () => cssEagerWrap(dom("p",
           t(
-            'If you\'re planning to upload this document to a Grist installation, \
-you will need the archive in the ".tar" format to restore attachments. ',
-            /* '{{learnMore}}.',
-            {
-              learnMore: cssLink(t("Learn more"), {
-                href: "https://TODO",
-              }),
-            },
-            */
+            'If you\'re planning to upload this document to Grist, or to restore attachments in a copy of it, \
+you will need the archive in the ".tar" format. {{learnMore}}.',
+            { learnMore: restoringAttachmentsLink() },
           ),
           testId("attachments-external-message"),
         ))),

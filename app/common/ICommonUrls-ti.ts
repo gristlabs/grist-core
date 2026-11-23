@@ -43,6 +43,7 @@ export const ICommonUrls = t.iface([], {
   "helpFormUrlValues": "string",
   "helpAirtableIntegration": "string",
   "helpCloudStorage": "string",
+  "helpRestoringAttachments": "string",
   "integrators": "string",
   "editionComparison": "string",
   "mcp": "string",

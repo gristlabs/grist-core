@@ -635,7 +635,7 @@ function addAttachmentsTests(getCtx: () => TestContext) {
         assert.equal(docUploadResp.status, 200);
 
         const resp = await axios.get(`${homeUrl}/api/docs/${docUploadResp.data}/attachments/archive`, chimpy);
-        checkError(500, /Unable to retrieve/, resp);
+        checkError(404, /missing from external storage/, resp);
       });
 
       it("POST /docs/{did}/attachments/archive errors if no .tar file is found", async function() {
@@ -678,7 +678,10 @@ function addAttachmentsTests(getCtx: () => TestContext) {
         }, chimpy);
         assert.equal(resp.status, 200);
         assert.isString(resp.data);
-        // There's no expectation that the external attachments are copied - just that the document is.
+        // The external attachments aren't copied, and the copy says so when asked for one.
+        const download = await axios.get(`${homeUrl}/api/docs/${resp.data}/attachments/1/download`, chimpy);
+        checkError(404, /missing from external storage/, download);
+        assert.equal(download.data.details?.code, "AttachmentFileMissing");
       });
 
       it(

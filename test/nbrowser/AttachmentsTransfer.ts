@@ -196,6 +196,25 @@ describe("AttachmentsTransfer", function() {
       }
     });
 
+    it("warns users duplicating the doc that attachments are external", async function() {
+      try {
+        await driver.find(".test-tb-share").click();
+        await driver.findWait(".test-save-copy", 5000).click();
+        const info = await driver.findWait(".test-copy-external-attachments-info", 1000);
+        assert.match(await info.getText(), /not included in the copy/);
+
+        const downloadUrl = new URL(await info.find("a").getAttribute("href"));
+        const idealUrl = new URL(api.getDownloadAttachmentsArchiveUrl({ format: "tar" }));
+        assert.equal(downloadUrl.pathname, idealUrl.pathname, "wrong download link called");
+
+        // A template has no data, so there are no attachments to miss.
+        await driver.find(".test-save-as-template").click();
+        assert.isFalse(await driver.find(".test-copy-external-attachments-info").isPresent());
+      } finally {
+        await driver.find(".test-modal-cancel").click();
+      }
+    });
+
     it("can download attachments", async function() {
       try {
         await driver.find(".test-tb-share").click();
