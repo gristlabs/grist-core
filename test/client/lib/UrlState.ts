@@ -49,8 +49,8 @@ describe("UrlState", function() {
   function needPageLoad(prevState: State, newState: State): boolean {
     return false;
   }
-  async function delayPushUrl(prevState: State, newState: State): Promise<void> {
-    // no-op
+  async function delayPushUrl(prevState: State, newState: State): Promise<boolean> {
+    return true;
   }
 
   it("should produce correct results with configProd", async function() {

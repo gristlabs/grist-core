@@ -15,6 +15,7 @@ var {Delay} = require("./Delay");
 var dispose = require("./dispose");
 var kd = require("./koDom");
 var dom = require("./dom");
+var { testPendingScrolls } = require("app/client/lib/testPendingOps");
 
 /**
  * Use the browser globals in a way that allows replacing them with mocks in tests.
@@ -196,6 +197,14 @@ function Scrolly(dataModel) {
   // The delayedUpdateSize helper is used by scheduleUpdateSize.
   this.delayedUpdateSize = this.autoDispose(Delay.create());
 
+  // A scheduled update is counted for tests until it runs. If the Scrolly is disposed first, the
+  // update is cancelled and never runs, so end the count here instead.
+  this.autoDisposeCallback(() => {
+    if (this.delayedUpdateSize.isPending()) {
+      testPendingScrolls.end();
+    }
+  });
+
   // Initialize with the current data.
   var array = this.data.all();
   this.onDataSplice({ array: array, start: 0, added: array.length, deleted: [] });
@@ -279,7 +288,15 @@ Scrolly.prototype.scheduleUpdateSize = function(overrideHeight, callback) {
     this.cb = callback;
   }
   if (!this.isDisposed() && !this.delayedUpdateSize.isPending()) {
-    this.delayedUpdateSize.schedule(0, this.updateSize.bind(this, overrideHeight), this);
+    // Rows are only re-rendered when this runs, so count it for tests reading the grid meanwhile.
+    testPendingScrolls.start();
+    this.delayedUpdateSize.schedule(0, () => {
+      try {
+        this.updateSize(overrideHeight);
+      } finally {
+        testPendingScrolls.end();
+      }
+    }, this);
   }
 };
 

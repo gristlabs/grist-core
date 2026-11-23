@@ -166,7 +166,11 @@
         "Memory Error": "Erreur mémoire",
         "Translators: please translate this only when your language is ready to be offered to users": "Traducteurs : merci de ne traduire ceci que lorsque votre langue sera prête à être proposée aux utilisateurs",
         "Disabled screen reader improvements": "Désactivé : améliorations pour lecteurs d'écran",
-        "Enabled screen reader improvements": "Activé : améliorations pour lecteurs d'écran"
+        "Enabled screen reader improvements": "Activé : améliorations pour lecteurs d'écran",
+        "Exit without saving": "Quitter sans enregistrer",
+        "Stay on the page": "Rester sur la page",
+        "Unsaved changes": "Modifications en cours",
+        "You have unsaved changes. If you leave now, your changes will be lost.": "Vous avez des modifications en cours. Si vous quittez maintenant, vos modifications seront perdues."
     },
     "AppHeader": {
         "Home page": "Page d’accueil",
@@ -283,7 +287,10 @@
         "Pin filter": "Épingler le filtre",
         "Sort alphabetically (current: sorted by number of occurrences)": "Trier par ordre alphabétique (actuellement : trié par nombre d'occurrences)",
         "Sort by number of occurrences (current: sorted alphabetically)": "Trier par nombre d'occurrences (actuellement : trié par ordre alphabétique)",
-        "Unpin filter": "Désépingler le filtre"
+        "Unpin filter": "Désépingler le filtre",
+        "All filters": "Tous les filtres",
+        "Cancel": "Annuler",
+        "Close": "Fermer"
     },
     "CustomSectionConfig": {
         "Add": "Ajouter",
@@ -846,7 +853,8 @@
     "PermissionsWidget": {
         "Allow all": "Tout autoriser",
         "Deny all": "Tout refuser",
-        "Read only": "Lecture seule"
+        "Read only": "Lecture seule",
+        "Checked": "Coché"
     },
     "PluginScreen": {
         "Import failed: ": "Échec de l'importation : "
@@ -2614,7 +2622,8 @@
         "Your suggestions": "Vos suggestions",
         "experiment": "expérimentation",
         "original document": "document original",
-        "Undo dismissal": "Annuler le rejet"
+        "Undo dismissal": "Annuler le rejet",
+        "Could not apply this suggestion: {{detail}}": "Impossible d'appliquer cette suggestion : {{detail}}"
     },
     "commandList": {
         "Show accessibility options": "Montrer les options d'accessibilité",

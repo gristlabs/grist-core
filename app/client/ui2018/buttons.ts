@@ -12,7 +12,7 @@
  * `primaryButton('Primary button', dom.prop('disabled', true))`
  */
 
-import { colors, theme, vars } from "app/client/ui2018/cssVars";
+import { theme, vars } from "app/client/ui2018/cssVars";
 import { tbind } from "app/common/tbind";
 import { components, tokens } from "app/common/ThemePrefs";
 
@@ -67,9 +67,9 @@ export const cssButton = styled("button", `
     border-color: ${theme.controlPrimaryHoverBg};
   }
   &-danger, &-danger:hover {
-    color:        ${colors.error};
-    --icon-color: ${colors.error};
-    border-color: ${colors.error};
+    color:        ${components.controlDangerFg};
+    --icon-color: ${components.controlDangerFg};
+    border-color: ${components.controlDangerFg};
   }
   &-danger:hover {
     filter: brightness(0.8);

@@ -15,6 +15,7 @@
 iframe.custom_view {
   border: none;
   flex: auto;
+  width: 100%;
 }
 
 .custom_view_notification {

@@ -1,4 +1,5 @@
 import { makeT } from "app/client/lib/localization";
+import { testPendingChecks } from "app/client/lib/testPendingOps";
 import { AdminChecks, isChecking } from "app/client/models/AdminChecks";
 import { getHomeUrl } from "app/client/models/AppModel";
 import { reportError } from "app/client/models/errors";
@@ -148,7 +149,7 @@ export class BackupsSection extends Disposable {
     );
     this.status = Computed.create(this, use => this._buildStatus(use));
 
-    this._installAPI.getInstallPrefs()
+    void testPendingChecks.track(() => this._installAPI.getInstallPrefs()
       .then((prefs) => {
         if (this.isDisposed()) { return; }
         this._adminConfirmed.set(Boolean(prefs.persistenceConfirmed));
@@ -158,7 +159,8 @@ export class BackupsSection extends Disposable {
         reportError(err as Error);
         if (this.isDisposed()) { return; }
         this._prefsLoaded.set(true);
-      });
+      }),
+    );
   }
 
   /** Nag shown on the QuickSetup continue button while persistence is unconfirmed. */

@@ -32,12 +32,16 @@ export class TestPendingOps {
   public end(): void { this._count--; }
 }
 
-/** Admin panel checks (boot probes); results land in observables as they arrive. */
+/**
+ * Admin panel checks (boot probes), and the install prefs the Backups row also waits on; results
+ * land in observables as they arrive.
+ */
 export const testPendingChecks = new TestPendingOps();
 
 /**
  * Views scrolling to the cursor. A view scrolls a tick after the cursor moves, and renders the
- * cursor's row only then.
+ * cursor's row only then. Also counts a scrolly's re-render after its data changes (e.g. a sort),
+ * which likewise happens a tick later.
  */
 export const testPendingScrolls = new TestPendingOps();
 

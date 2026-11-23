@@ -290,9 +290,11 @@ describe("WebhookPage", function() {
     await setField(1, "Name", "1234");
     await gu.waitForServer();
     await clipboard.lockAndPerform(async (cb) => {
+      await gu.waitAppFocus();
       await cb.copy();
       const cell = await gu.getDetailCell({ col: "Memo", rowNum: 1 }).doClick();
       await driver.wait(() => cell.find(".has_cursor"), 1000);
+      await gu.waitAppFocus();
       await cb.paste();
     });
     await gu.waitForPaste();

@@ -21,6 +21,7 @@ import { createAppUI } from "app/client/ui/AppUI";
 import { openAccessibilityModal } from "app/client/ui/OpenAccessibilityModal";
 import { addViewportTag } from "app/client/ui/viewport";
 import { attachCssRootVars } from "app/client/ui2018/cssVars";
+import { saveModal } from "app/client/ui2018/modals";
 import { attachTheme } from "app/client/ui2018/theme";
 import { BaseAPI } from "app/common/BaseAPI";
 import { CommDocError } from "app/common/CommTypes";
@@ -202,6 +203,18 @@ export class AppImpl extends DisposableWithEvents implements App {
       this._checkError(new Error(msg.data.message));
     });
 
+    unsavedChanges.setManualConfirmModal(() => new Promise((resolve) => {
+      saveModal(() => ({
+        title: t("Unsaved changes"),
+        body: t("You have unsaved changes. If you leave now, your changes will be lost."),
+        saveLabel: t("Exit without saving"),
+        saveFunc: async () => { resolve(true); },
+        cancelLabel: t("Stay on the page"),
+        defaultCancel: true,
+      }), {
+        onCancel: () => resolve(false),
+      });
+    }));
     // When the document is unloaded, dispose the app, allowing it to do any needed
     // cleanup (e.g. Document on disposal triggers closeDoc message to the server). It needs to be
     // in 'beforeunload' rather than 'unload', since websocket is closed by the time of 'unload'.

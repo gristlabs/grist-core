@@ -2,7 +2,15 @@
  * Test of the UI for Granular Access Control, part 3.
  */
 import { ITestingHooks } from "app/server/lib/ITestingHooks";
-import { assertChanged, assertSaved, startEditingAccessRules } from "test/nbrowser/aclTestUtils";
+import {
+  assertChanged,
+  assertSaved,
+  enterRulePart,
+  findDefaultRuleSetWait,
+  findTableWait,
+  getRules,
+  startEditingAccessRules,
+} from "test/nbrowser/aclTestUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
@@ -91,6 +99,98 @@ describe("AccessRules4", function() {
     assert.equal(await gu.getCell("Another", 1).getText(), "user2");
     assert.equal(await gu.getCell("User_Access", 1).getText(), gu.translateUser("user2").email);
     assert.isTrue(await gu.getCell("Toggle", 1).find(".widget_checkmark").isDisplayed());
+  });
+
+  it("should handle user leaving without saving", async function() {
+    const session = await gu.session().personalSite.user("user1").login();
+    await session.tempNewDoc(cleanup);
+
+    await startEditingAccessRules();
+    await driver.find(".test-rules-save").click();
+    await gu.waitForServer();
+    await assertSaved();
+
+    // Edit a rule then (try to) leave the page
+    const ruleSet = findDefaultRuleSetWait("*");
+    await ruleSet.find(".test-rule-part:nth-child(1) .test-rule-add").click();
+    await enterRulePart(ruleSet, 1, "True", "Deny all", "unsaved memo");
+    await assertChanged();
+
+    await driver.find(".test-tools-raw").click();
+    await driver.findWait(
+      ".test-modal-dialog",
+      500,
+      "A confirm modal should appear when trying to leave the ACL page without saving",
+    );
+    assert.match(await driver.find(".test-modal-title").getText(), /Unsaved changes/);
+    assert.equal(await driver.find(".test-modal-confirm").getText(), "Exit without saving");
+    assert.equal(await driver.find(".test-modal-cancel").getText(), "Stay on the page");
+
+    // Click cancel on the modal to stay on the page with unsaved changes
+    await driver.find(".test-modal-cancel").click();
+    assert.equal(await driver.find(".test-modal-dialog").isPresent(), false);
+    await assertChanged();
+
+    // Try to leave the page again, now confirming the modal to leave without saving
+    await driver.find(".test-tools-raw").click();
+    await driver.findWait(".test-modal-dialog", 500);
+    await driver.find(".test-modal-confirm").click();
+    await driver.findWait(".test-raw-data-list", 2000);
+    assert.match(await driver.find(".test-raw-data-list").getText(), /Raw Data Tables/, "Confirming the modal should allow page navigation");
+
+    // When going back to the ACL page, the unsaved changes should be gone
+    await driver.find(".test-tools-access-rules").click();
+    await driver.findWait(".test-rule-set", 5000);
+    await gu.waitForServer();
+    await assertSaved();
+    const rules = await getRules(findTableWait("*"));
+    assert.isFalse(
+      rules.some(r => r.formula === "True" && r.memo === "unsaved memo"),
+      "The ACL rules should be reverted",
+    );
+  });
+
+  it("should handle user using browser back button once without saving", async function() {
+    const session = await gu.session().personalSite.user("user1").login();
+    await session.tempNewDoc(cleanup);
+
+    await driver.find(".test-tools-raw").click();
+    await gu.waitForUrl(/data/, 2000);
+    await startEditingAccessRules();
+    await driver.navigate().back();
+    await driver.findWait(".test-modal-dialog", 500, "Unsaved changes modal should appear when pressing back button");
+    await driver.find(".test-modal-cancel").click();
+    assert.equal(await driver.find(".test-modal-dialog").isPresent(), false);
+    await assertChanged();
+    await driver.find(".test-rules-save").click();
+    await gu.waitForServer();
+    await assertSaved();
+    await driver.navigate().back();
+    // Make sure URL and actual content are synced
+    await driver.findWait(".test-raw-data-list", 2000);
+    await gu.waitForUrl(/data/, 2000);
+  });
+
+  it("should handle user using browser back button multiple times without saving", async function() {
+    const session = await gu.session().personalSite.user("user1").login();
+    await session.tempNewDoc(cleanup);
+
+    await driver.find(".test-tools-code").click();
+    await gu.waitForUrl(/code/, 2000);
+    await driver.find(".test-tools-raw").click();
+    await gu.waitForUrl(/data/, 2000);
+    await driver.find(".test-tools-settings").click();
+    await gu.waitForUrl(/settings/, 2000);
+    await startEditingAccessRules();
+    await driver.navigate().back();
+    await driver.findWait(".test-modal-dialog", 500, "Unsaved changes modal should appear when pressing back button");
+    // We press browser back button a couple times more while the unsaved changes warning modal is shown
+    await driver.navigate().back();
+    await driver.navigate().back();
+    // Confirming navigation (and loss of changes) should make us go back only once in the history stack
+    await driver.find(".test-modal-confirm").click();
+    await gu.waitForUrl(/settings/, 2000);
+    assert.isTrue(await driver.find(".test-admin-panel-item-locale").isPresent());
   });
 
   it("pretends that example user does not exist", async function() {
