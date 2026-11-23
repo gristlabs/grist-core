@@ -123,7 +123,8 @@ export class ActiveDocImport {
    * @returns {Promise<DocStateComparison>} Comparison data for the changes that will occur if
    * `hiddenTableId` is merged into the destination table from `transformRule`.
    */
-  public async generateImportDiff(hiddenTableId: string, { destCols, destTableId }: TransformRule,
+  public async generateImportDiff(docSession: OptDocSession, hiddenTableId: string,
+    { destCols, destTableId }: TransformRule,
     { mergeCols, mergeStrategy }: MergeOptions): Promise<DocStateComparison> {
     // Merge column ids from client have prefixes that need to be stripped.
     mergeCols = stripPrefixes(mergeCols);
@@ -131,7 +132,8 @@ export class ActiveDocImport {
     // Get column differences between `hiddenTableId` and `destTableId` for rows that exist in both tables.
     const srcAndDestColIds: [string, string[]][] = destCols.map(c => [c.colId!, stripPrefixes([c.colId!])]);
     const srcToDestColIds = new Map(srcAndDestColIds);
-    const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId!, srcToDestColIds, mergeCols);
+    const comparisonResult = await this._getTableComparison(docSession, hiddenTableId, destTableId!,
+      srcToDestColIds, mergeCols);
 
     // Initialize container for updated column values in the expected format (ColumnDelta).
     const updatedRecords: { [colId: string]: ColumnDelta } = {};
@@ -492,7 +494,8 @@ export class ActiveDocImport {
         srcToDestColIds.get(srcColId)!.push(destColId);
       }
     });
-    const comparisonResult = await this._getTableComparison(hiddenTableId, destTableId, srcToDestColIds, mergeCols);
+    const comparisonResult = await this._getTableComparison(docSession, hiddenTableId, destTableId,
+      srcToDestColIds, mergeCols);
 
     // Initialize containers for new and updated records in the expected formats.
     const newRecords: BulkColValues = {};
@@ -567,6 +570,9 @@ export class ActiveDocImport {
    * rows whose columns values for all columns in `mergeCols` to be the same record in both
    * tables.
    *
+   * The comparison reads both tables straight from storage, so it checks access and refuses
+   * unless both are user tables that the session may read in full.
+   *
    * @param {string} hiddenTableId Source table.
    * @param {string} destTableId Destination table.
    * @param {Map<string, string[]>} srcToDestColIds Map of source to one or more destination column ids
@@ -574,8 +580,15 @@ export class ActiveDocImport {
    * @param {string[]} mergeCols List of (destination) column ids to use for matching.
    * @returns {Promise<BulkColValues} Decoded column values from both tables that were matched, and had differences.
    */
-  private async _getTableComparison(hiddenTableId: string, destTableId: string, srcToDestColIds: Map<string, string[]>,
-    mergeCols: string[]): Promise<BulkColValues> {
+  private async _getTableComparison(docSession: OptDocSession, hiddenTableId: string, destTableId: string,
+    srcToDestColIds: Map<string, string[]>, mergeCols: string[]): Promise<BulkColValues> {
+    const tableIds = [hiddenTableId, destTableId];
+    const userTables = this._activeDoc.docData!.getMetaTable("_grist_Tables");
+    if (!tableIds.every(tableId => userTables.findRow("tableId", tableId)) ||
+      !await this._activeDoc.canReadEverythingInTables(docSession, tableIds)) {
+      throw new ApiError("Blocked by read access rules", 403);
+    }
+
     const mergeColIds = new Set(mergeCols);
     const destToSrcMergeColIds = new Map();
     srcToDestColIds.forEach((destColIds, srcColId) => {

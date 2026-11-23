@@ -2189,6 +2189,53 @@ describe("GranularAccess", function() {
       [1, 2, 3, 1, 1, 4, 5]);
   });
 
+  it("applies read rules to import merge previews", async function() {
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ["AddTable", "People", [{ id: "Name", type: "Text" }, { id: "Private", type: "Bool" }]],
+      ["BulkAddRecord", "People", [null, null], { Name: ["Ann", "Cyd"], Private: [false, true] }],
+      ["AddTable", "Secret", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Secret", null, { Name: "Zed" }],
+      ["AddTable", "Open", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "Open", null, { Name: "Bob" }],
+      ["AddTable", "Open2", [{ id: "Name", type: "Text" }]],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "Secret", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -1, aclFormula: "user.Access != OWNER", permissionsText: "none",
+      }],
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "People", colIds: "*" }],
+      ["AddRecord", "_grist_ACLRules", null, {
+        resource: -2, aclFormula: "user.Access != OWNER and rec.Private", permissionsText: "none",
+      }],
+    ]);
+    // A merge preview compares two tables, returning values from both.
+    const diff = (cli: GristClient, srcTableId: string, destTableId: string, colId = "Name") =>
+      cli.send("generateImportDiff", 0, srcTableId,
+        { destTableId, destCols: [{ colId, formula: "$" + colId }], sourceCols: [] },
+        { mergeCols: [colId], mergeStrategy: { type: "replace-with-nonblank-source" } });
+    const denied = /Blocked by read access rules/;
+
+    // The owner can compare any two tables.
+    assert.deepEqual((await diff(cliOwner, "Secret", "People")).data.details.rightChanges.tableDeltas.Secret
+      .columnDeltas, { Name: { 1: [[""], ["Zed"]] } });
+
+    // The editor can compare tables that are fully readable.
+    assert.equal((await diff(cliEditor, "Open", "Open2")).error, undefined);
+
+    // The editor cannot involve a table that is hidden, or that has hidden rows.
+    assert.match((await diff(cliEditor, "Secret", "People")).error!, denied);
+    assert.match((await diff(cliEditor, "Secret", "Open")).error!, denied);
+    assert.match((await diff(cliEditor, "Open", "Secret")).error!, denied);
+    assert.match((await diff(cliEditor, "Open", "People")).error!, denied);
+    assert.match((await diff(cliEditor, "People", "Open")).error!, denied);
+
+    // Nobody can involve a table that isn't a user table.
+    assert.match((await diff(cliEditor, "_gristsys_ActionHistory", "Open", "id")).error!, denied);
+    assert.match((await diff(cliOwner, "_gristsys_ActionHistory", "Open", "id")).error!, denied);
+    assert.match((await diff(cliEditor, "Open", "_grist_Tables", "id")).error!, denied);
+    assert.match((await diff(cliOwner, "Open", "_grist_Tables", "id")).error!, denied);
+  });
+
   it("handles fork ownership gracefully", async function() {
     // Make a document with some data only owners have access to.
     await freshDoc();

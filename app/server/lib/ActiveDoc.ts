@@ -1059,9 +1059,9 @@ export class ActiveDoc extends EventEmitter {
    * we treat added records as an updated record in `hiddenTableId` where all the column
    * values changed from blank to the original column values from `hiddenTableId`.
    */
-  public generateImportDiff(_docSession: DocSession, hiddenTableId: string, transformRule: TransformRule,
+  public generateImportDiff(docSession: DocSession, hiddenTableId: string, transformRule: TransformRule,
     mergeOptions: MergeOptions): Promise<DocStateComparison> {
-    return this._activeDocImport.generateImportDiff(hiddenTableId, transformRule, mergeOptions);
+    return this._activeDocImport.generateImportDiff(docSession, hiddenTableId, transformRule, mergeOptions);
   }
 
   /**
