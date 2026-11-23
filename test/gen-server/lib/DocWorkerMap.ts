@@ -849,6 +849,20 @@ describe("DocWorkerMap", function() {
       assert.isFalse((await workers.getRegisteredWorkers())[0].alive);
     });
 
+    it("cannot be made available again after being dropped, unless it is added back", async function() {
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+      await workers.removeWorker(workerA.id);
+
+      assert.isFalse(await workers.isWorkerRegistered(workerA));
+      await assert.isRejected(
+        workers.setWorkerAvailability(workerA.id, true), /no doc worker contact info/);
+
+      await workers.addWorker(workerA);
+      await workers.setWorkerAvailability(workerA.id, true);
+      assert.isTrue(await workers.isWorkerRegistered(workerA));
+    });
+
     it("reports a worker in the group its availability sits in", async function() {
       await workers.addWorker({ ...workerA, group: "chosen" });
       await workers.setWorkerAvailability(workerA.id, true);
