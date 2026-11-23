@@ -582,7 +582,8 @@ describe("CellColor", function() {
   it("should successfully save when using detach mode", async function() {
     await gu.openStyleRuleFormula(0);
     await driver.findWait(".test-floating-editor-detach-button", 1000).click();
-    await driver.findWait(".test-floating-editor-popup", 1000);
+    const popup = await driver.findWait(".test-floating-editor-popup", 1000);
+    await gu.waitForAceEditor(popup, { hasFocus: true });
 
     await gu.sendKeys("$E");
     await driver.find(".test-formula-editor-save-button").click();
