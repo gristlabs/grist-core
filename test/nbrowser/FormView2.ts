@@ -254,6 +254,32 @@ describe("FormView2", function() {
       await revert();
     });
 
+    it("keeps labels independent across duplicated forms", async function() {
+      const revert = await gu.begin();
+      await gu.selectSectionByTitle(originalWidgetTitle);
+      await duplicateForm(originalWidgetTitle, undefined, clonedWidgetTitle);
+      await gu.openColumnPanel();
+
+      await gu.selectSectionByTitle(originalWidgetTitle);
+      await question("A").click();
+      assert.equal(await driver.find(".test-field-title").value(), "");
+      await driver.find(".test-field-title").doClear().doSendKeys("First name", Key.ENTER);
+      await gu.waitForServer();
+      assert.deepEqual(await labels(), ["First name", "B", "C"]);
+
+      await gu.selectSectionByTitle(clonedWidgetTitle);
+      await question("A").click();
+      assert.equal(await driver.find(".test-field-title").value(), "");
+      await driver.find(".test-field-title").doClear().doSendKeys("Given name", Key.ENTER);
+      await gu.waitForServer();
+      assert.deepEqual(await labels(), ["Given name", "B", "C"]);
+
+      await gu.selectSectionByTitle(originalWidgetTitle);
+      assert.deepEqual(await labels(), ["First name", "B", "C"]);
+
+      await revert();
+    });
+
     it("clones default form without publishing", async function() {
       // Original form is not yet changed.
       // Publish it.
