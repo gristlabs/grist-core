@@ -70,7 +70,8 @@
         "Permission to access the document in full by unrestricted users": "Berechtigung für uneingeschränkte Benutzer auf das komplette Dokument zuzugreifen",
         "Special rules for templates": "Besondere Regeln für Vorlagen",
         "This options should be off if Editors' access is to be limited. ": "Diese Option sollte deaktiviert sein, wenn der Zugriff von Bearbeitern eingeschränkt werden soll. ",
-        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Zugriffsregeln \n\nSie haben keine Berechtigung, die Zugriffsregeln für dieses Dokument anzuzeigen oder zu bearbeiten."
+        "## Access Rules\n\nYou don't have permission to view or edit access rules for this document.": "## Zugriffsregeln \n\nSie haben keine Berechtigung, die Zugriffsregeln für dieses Dokument anzuzeigen oder zu bearbeiten.",
+        "After disabling Access Rules, Editors will be able to change the structure of the document and edit formulas. Editors and Viewers will be able to see all data in the document, as well as copy or download it.": "Wenn Sie Zugriffsregeln ausschalten, können Redakteure die Struktur des Dokuments ändern und Formeln bearbeiten. Redakteure und Betrachter werden alle Daten im Dokument sehen, kopieren und herunterladen können."
     },
     "AccountPage": {
         "API": "API",
