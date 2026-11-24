@@ -3253,7 +3253,7 @@
         "not set": "inte inställd",
         "https:": {
             "": {
-                "grist.example.com": "https://grist.example.com"
+                "grist.example.com": "https://grist.exempel.se"
             }
         },
         "checking": "kontrollerar",
@@ -3272,7 +3272,7 @@
         "This URL was auto-detected — confirm it is correct, then save.": "Denna URL hittades automatsikt — kontrollera att den är rätt och spara.",
         "URL is reachable": "URL är nåbar",
         "automatic": "automatisk",
-        "https://grist.example.com": "https://grist.example.com"
+        "https://grist.example.com": "https://grist.exempel.se"
     },
     "AdminPanelCss": {
         "Confirmed": "Bekräftaf",
