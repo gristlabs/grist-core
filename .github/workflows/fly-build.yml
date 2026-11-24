@@ -19,7 +19,7 @@ jobs:
       (github.event_name == 'pull_request' &&
       contains(github.event.pull_request.labels.*.name, 'preview'))
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build and export Docker image
         id: docker-build
         run: >
@@ -35,7 +35,7 @@ jobs:
         # For example, if the GitHub user "foo" forked grist-core as "grist-bar", and makes a PR from their branch named "baz",
         # it will be "foo/grist-bar-baz". deploy.js later replaces "/" with "-", making it "foo-grist-bar-baz".
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docker-image
           path: |

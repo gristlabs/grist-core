@@ -17,13 +17,13 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
         with:
           version: 0.2.72
       - name: Download artifacts
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -64,7 +64,7 @@ jobs:
           flyctl config -c ./fly.toml env | awk '/APP_HOME_URL/{print "DEPLOY_URL=" $2}' >> $GITHUB_OUTPUT
           flyctl config -c ./fly.toml env | awk '/FLY_DEPLOY_EXPIRATION/{print "EXPIRES=" $2}' >> $GITHUB_OUTPUT
       - name: Comment on PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             github.rest.issues.createComment({
