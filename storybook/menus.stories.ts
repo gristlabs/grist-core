@@ -1,6 +1,7 @@
+import { dropdownWithSearch } from "app/client/ui/searchDropdown";
 import {
   menu, menuDivider, menuIcon, menuItem, menuItemSubmenu, menuSubHeader, menuText,
-  searchableMenu, select,
+  select,
 } from "app/client/ui2018/menus";
 
 import { action } from "@storybook/addon-actions";
@@ -111,27 +112,29 @@ export const WithSubmenu = {
 };
 
 /**
- * Menu with a search input that filters items. Useful for long lists.
+ * Combobox dropdown with a search input that filters items. Useful for long lists.
  */
 export const Searchable = {
   render: () => {
-    const items = [
+    const names = [
       "Alice", "Bob", "Carol", "Dave", "Eve", "Frank",
       "Grace", "Heidi", "Ivan", "Judy",
-    ].map(name => ({
-      cleanText: name.toLowerCase(),
-      label: name,
-      action: () => action("menu")(name),
-    }));
-    return dom("button", "Search menu", menu(() => searchableMenu(items)));
+    ];
+    return dom("button", "Search menu",
+      dropdownWithSearch({
+        options: () => names.map(name => ({ label: name, value: name })),
+        action: (name) => action("menu")(name),
+        placeholder: "Search",
+      }),
+    );
   },
   parameters: { docs: { source: { type: "code",
-    transform: () => `const items = names.map(name => ({\n` +
-      `  cleanText: name.toLowerCase(),\n` +
-      `  label: name,\n` +
-      `  action: () => selectUser(name),\n` +
-      `}));\n` +
-      `dom("button", "Pick user", menu(() => searchableMenu(items)))` } } },
+    transform: () => `dom("button", "Pick user",\n` +
+      `  dropdownWithSearch({\n` +
+      `    options: () => names.map(name => ({ label: name, value: name })),\n` +
+      `    action: (name) => selectUser(name),\n` +
+      `  }),\n` +
+      `)` } } },
 };
 
 /**

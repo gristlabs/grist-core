@@ -543,7 +543,7 @@ describe("GridViewNewColumnMenu", function() {
       it("submenu should be searchable", async function() {
         await clickAddColumn();
         await driver.find(".test-new-columns-menu-hidden-columns-menu").click();
-        await driver.findWait(".test-searchable-menu-input", STANDARD_WAITING_TIME).click();
+        await driver.findWait(".test-sd-search input", STANDARD_WAITING_TIME).click();
         await gu.sendKeys("New");
         await checkResult(["New1", "New2", "New3", "New4"]);
 
@@ -1295,15 +1295,15 @@ describe("GridViewNewColumnMenu", function() {
         await driver.findWait(".test-new-columns-menu-shortcuts-duplicates", STANDARD_WAITING_TIME).mouseMove();
         await gu.waitToPass(async () => {
           assert.deepEqual(
-            await driver.findAll(".test-searchable-menu li", el => el.getText()),
+            await driver.findAll(".test-sd-searchable-list-item", el => el.getText()),
             ["A", "B", "C"],
           );
         }, 500);
-        await driver.find(".test-searchable-menu-input").click();
+        await driver.find(".test-sd-search input").click();
         await gu.sendKeys("A");
         await gu.waitToPass(async () => {
           assert.deepEqual(
-            await driver.findAll(".test-searchable-menu li", el => el.getText()),
+            await driver.findAll(".test-sd-searchable-list-item", el => el.getText()),
             ["A"],
           );
         }, STANDARD_WAITING_TIME);
@@ -1311,7 +1311,7 @@ describe("GridViewNewColumnMenu", function() {
         await gu.sendKeys("BC");
         await gu.waitToPass(async () => {
           assert.deepEqual(
-            await driver.findAll(".test-searchable-menu li", el => el.getText()),
+            await driver.findAll(".test-sd-searchable-list-item", el => el.getText()),
             [],
           );
         }, STANDARD_WAITING_TIME);
@@ -1319,7 +1319,7 @@ describe("GridViewNewColumnMenu", function() {
         await gu.clearInput();
         await gu.waitToPass(async () => {
           assert.deepEqual(
-            await driver.findAll(".test-searchable-menu li", el => el.getText()),
+            await driver.findAll(".test-sd-searchable-list-item", el => el.getText()),
             ["A", "B", "C"],
           );
         }, STANDARD_WAITING_TIME);
@@ -1328,7 +1328,7 @@ describe("GridViewNewColumnMenu", function() {
       it("should create new column that checks for duplicates in the specified column", async function() {
         await clickAddColumn();
         await driver.findWait(".test-new-columns-menu-shortcuts-duplicates", STANDARD_WAITING_TIME).mouseMove();
-        await driver.findContentWait(".test-searchable-menu li", "A", 500).click();
+        await driver.findContentWait(".test-sd-searchable-list-item", "A", 500).click();
         await gu.waitForServer();
         await gu.sendKeys(Key.ENTER);
 
@@ -1347,7 +1347,7 @@ describe("GridViewNewColumnMenu", function() {
           await gu.addColumn(label, type);
           await clickAddColumn();
           await driver.findWait(".test-new-columns-menu-shortcuts-duplicates", STANDARD_WAITING_TIME).mouseMove();
-          await driver.findContentWait(".test-searchable-menu li", label, 500).click();
+          await driver.findContentWait(".test-sd-searchable-list-item", label, 500).click();
           await gu.waitForServer();
           await gu.sendKeys(Key.ENTER);
           assert.equal(
