@@ -156,7 +156,7 @@
         "By generating an API key, you will be able to make API calls for your own account.": "En générant une clé API, vous pourrez faire des appels API pour votre propre compte.",
         "Click to show": "Cliquer pour afficher",
         "Create": "Créer",
-        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "Cette clé API peut être utilisée pour accéder à votre compte via l'API. Ne partagez pas votre clé API avec qui que ce soit.",
+        "This API key can be used to access your account via the API. Don’t share your API key with anyone.": "ATTENTION : Cette clé API peut être utilisée pour accéder à votre compte et à l'ensemble de vos documents via l'API. Soyez extrêmement prudents et NE PARTAGEZ PAS votre clé API à qui que ce soit. Ne la publiez pas non plus sur un dépôt de code public : cela reviendrait à donner accès à l'ensemble de vos documents.",
         "Remove": "Supprimer",
         "Remove API Key": "Supprimer la clé d'API"
     },
