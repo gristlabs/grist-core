@@ -42,6 +42,7 @@ const t = makeT("GridViewMenus");
 export function translateColumnTypeLabel(label: string): string {
   switch (label) {
     case "Any": return t("Any");
+    case "Button": return t("Button");
     case "Text": return t("Text");
     case "Numeric": return t("Numeric");
     case "Integer": return t("Integer");

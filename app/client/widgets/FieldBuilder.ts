@@ -159,6 +159,8 @@ export class FieldBuilder extends Disposable {
         if (key === "Any") {
           // User is unable to select the Any type in non-formula columns.
           o.disabled = !isFormula;
+        } else if (key === "Button") {
+          o.disabled = !isFormula;
         }
         types.push(o);
       });

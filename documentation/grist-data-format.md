@@ -41,6 +41,7 @@ The base types (the part before any colon) are:
 | `RefList`     | `["L", number, ...]`                   | `null`        | Full type is `RefList:<TableId>`. List of row IDs |
 | `Attachments` | `["L", number, ...]`                   | `null`        | List of attachment IDs (a RefList to `_grist_Attachments`) |
 | `Any`         | any CellValue                          | `null`        | No type constraint |
+| `Button`      | `["L", ["O", ...], ...]`               | `null`        | Formula-only; renders actions as buttons in each row |
 
 Internal types (used by Grist internally, not available to create via the UI):
 
@@ -74,6 +75,30 @@ JavaScript `Date.getTime()`.
 
 A ChoiceList cell contains `null` (no choices selected) or a list encoded as
 `["L", "option1", "option2", ...]`.
+
+### Button
+
+A Button column is a formula column whose formula returns a list of button
+dictionaries. Each dictionary has a `button` label and an `actions` list in the
+same format accepted by the Custom Widget API's `applyUserActions` method. For
+example:
+
+```python
+return [
+  {
+    "button": "Mark complete",
+    "actions": [["UpdateRecord", "Tasks", rec.id, {"Status": "Complete"}]],
+  },
+  {
+    "button": "Add follow-up",
+    "actions": [["AddRecord", "Tasks", None, {"Parent": rec.id}]],
+  },
+]
+```
+
+The formula is evaluated for each row, so it can use `rec.id` and other row
+values to build row-specific actions. Clicking a button submits its actions
+through Grist's normal user-action API and permissions.
 
 ## Typed Cell Values
 
