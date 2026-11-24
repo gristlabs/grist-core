@@ -302,7 +302,8 @@ export class SortConfig extends Disposable {
 const cssDragRow = styled("div", `
   display: flex;
   align-items: center;
-  margin: 0 16px 0px 0px;
+  margin-block: 0 0px;
+  margin-inline: 0px 16px;
   & > .kf_draggable_content {
     margin: 4px 0;
     flex: 1 1 0px;
@@ -337,7 +338,8 @@ const cssSortIconBtn = styled(unstyledButton, `
 
 const cssSortIcon = styled(cssIcon, `
   flex: none;
-  margin: 0px 6px 0px 0px;
+  margin-block: 0px;
+  margin-inline: 0px 6px;
   background-color: ${theme.controlSecondaryFg};
 
   &-accent {
@@ -361,7 +363,7 @@ const cssMenu = styled(unstyledButton, `
   cursor: pointer;
   border-radius: 3px;
   border: 1px solid transparent;
-  margin-left: 6px;
+  margin-inline-start: 6px;
   &:hover, &.weasel-popup-open {
     background-color: ${theme.hover};
   }

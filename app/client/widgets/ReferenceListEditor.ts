@@ -1,6 +1,7 @@
 import { createGroup } from "app/client/components/commands";
 import { ACItem, ACResults, HighlightFunc, normalizeText } from "app/client/lib/ACIndex";
 import { IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { alignmentToJustify } from "app/client/lib/direction";
 import { ReferenceUtils } from "app/client/lib/ReferenceUtils";
 import { IToken, TokenField, tokenFieldStyles } from "app/client/lib/TokenField";
 import { reportError } from "app/client/models/errors";
@@ -118,7 +119,7 @@ export class ReferenceListEditor extends NewBaseEditor {
 
     this._textInput = this._tokenField.getTextInput();
     dom.update(this._tokenField.getRootElem(),
-      dom.style("justify-content", this._alignment),
+      dom.style("justify-content", alignmentToJustify(this._alignment)),
     );
     dom.update(this._tokenField.getHiddenInput(),
       this.commandGroup.attach(),
@@ -336,7 +337,7 @@ const cssToken = styled(tokenFieldStyles.cssToken, `
 const cssDeleteButton = styled(tokenFieldStyles.cssDeleteButton, `
   position: absolute;
   top: -8px;
-  right: -6px;
+  inset-inline-end: -6px;
   border-radius: 16px;
   background-color: ${colors.dark};
   width: 14px;
@@ -364,7 +365,7 @@ const cssDeleteIcon = styled(tokenFieldStyles.cssDeleteIcon, `
 
 const cssContentSizer = styled("div", `
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: -100px;
   border: none;
   visibility: hidden;
@@ -383,6 +384,6 @@ const cssInputSizer = styled("div", `
 `);
 
 const cssReadonlyStyle = styled("div", `
-  padding-left: 16px;
+  padding-inline-start: 16px;
   background: white;
 `);

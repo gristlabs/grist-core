@@ -33,6 +33,7 @@ import {
   isLegacyCalendarCustomDef,
   IWidgetType,
   RowNumbersMode,
+  SheetOrientation,
   WidgetType,
 } from "app/common/widgetTypes";
 import { ColumnsToMap, WidgetColumnMap } from "app/plugin/CustomSectionAPI";
@@ -96,6 +97,10 @@ export interface ViewSectionOptions extends ChartOptions {
   zebraStripes?: boolean;
   rowNumbers?: RowNumbersMode;
   numFrozen?: number;
+  // Which way the sheet runs: columns from the right ("rtl") or from the left ("ltr"). Absent
+  // means no decision was made for this widget, and it follows the direction of what contains it.
+  // (Not `orientation`: charts already use that key in these same options.)
+  sheetOrientation?: SheetOrientation;
   rowHeight?: number;           // Optional limit on height of rows, in lines.
   rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
 

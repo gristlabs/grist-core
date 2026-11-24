@@ -375,7 +375,7 @@ const cssMenuText = styled("div", `
 `);
 
 const cssSaveButton = styled(primaryButton, `
-  margin-right: 8px;
+  margin-inline-end: 8px;
 `);
 
 const cssSaveTextButton = styled("div", `

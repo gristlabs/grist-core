@@ -505,7 +505,8 @@ export const cssLabel = styled("label", `
   font-weight: normal;
   font-size: ${tokens.mediumFontSize};
   color: ${components.text};
-  margin: 8px 16px 0 0;
+  margin-block: 8px 0;
+  margin-inline: 0 16px;
   white-space: nowrap;
   width: 80px;
   flex: none;

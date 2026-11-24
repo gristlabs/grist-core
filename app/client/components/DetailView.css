@@ -6,7 +6,7 @@
 .record-layout-editor {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
 
   background: var(--grist-theme-page-panels-main-panel-bg, white);
@@ -15,8 +15,8 @@
 }
 
 .layout_box_maximized .record-layout-editor {
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-inline-start: 16px;
+  padding-inline-end: 16px;
 }
 
 .g_record_detail_inner > .layout_root {
@@ -65,7 +65,7 @@
 }
 
 .g_record_detail_value.draft {
-  padding-right: 18px;
+  padding-inline-end: 18px;
 }
 
 .detail_row_num {
@@ -79,7 +79,7 @@
 }
 
 .detail_row_num .menu_toggle  {
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
 }
 
 .detail_row_num:hover .menu_toggle,
@@ -94,7 +94,7 @@
 
 .detail_row_num::before {
   content: "ROW ";
-  margin-right: 2px;
+  margin-inline-end: 2px;
 }
 
 .detail-buttons {
@@ -119,7 +119,7 @@
 }
 
 .detail-add-grp {
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
 }
 
 /*** card view (multiple records) ***/
@@ -130,21 +130,21 @@
   overflow-x: hidden;
 
   /* allow 3px to the left to be visible, for highlighting active record */
-  padding-left: 3px;
-  margin-left: -3px;
+  padding-inline-start: 3px;
+  margin-inline-start: -3px;
 }
 
 @media not print {
   .detailview_record_detail.active {
     /* highlight active record in Card List by overlaying the active-section highlight */
-    margin-left: -3px;
-    border-left: 3px solid var(--grist-theme-cursor, var(--grist-color-light-green));
+    margin-inline-start: -3px;
+    border-inline-start: 3px solid var(--grist-theme-cursor, var(--grist-color-light-green));
   }
 
   .detailview_record_detail.selected {
     /* highlight selected record in Card List by overlaying the inactive-cursor highlight */
-    margin-left: -3px;
-    border-left: 3px solid var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
+    margin-inline-start: -3px;
+    border-inline-start: 3px solid var(--grist-theme-cursor-inactive, var(--grist-color-inactive-cursor));
   }
 }
 
@@ -163,8 +163,8 @@
 
 .grist-single-record__menu__count {
   white-space: nowrap;
-  text-align: right;
-  padding-right: 1rem;
+  text-align: end;
+  padding-inline-end: 1rem;
 }
 
 .detailview_record_single > .detail_row_num {
@@ -190,8 +190,9 @@
 
 .detail_theme_record_under {
   border-top: 1px solid #ccc;
-  padding: 0 1rem 1rem 0;
-  border-left: 2px solid white;
+  padding-block: 0 1rem;
+  padding-inline: 0 1rem;
+  border-inline-start: 2px solid white;
 }
 
 .detail_theme_record_under:first-child {
@@ -220,7 +221,7 @@
 
 .detail_theme_record_compact > .g_record_detail_inner > .layout_root {
   border: 1px solid var(--grist-theme-card-compact-border, var(--grist-color-dark-grey));
-  border-right: none;
+  border-inline-end: none;
   border-bottom: none;
 }
 
@@ -234,10 +235,11 @@
 
 .detail_theme_field_compact {
   border-top: none;
-  border-left: none;
-  border-right: 1px solid var(--grist-theme-card-compact-border, var(--grist-color-dark-grey));
+  border-inline-start: none;
+  border-inline-end: 1px solid var(--grist-theme-card-compact-border, var(--grist-color-dark-grey));
   border-bottom: 1px solid var(--grist-theme-card-compact-border, var(--grist-color-dark-grey));
-  padding: 1px 1px 1px 5px;
+  padding-block: 1px;
+  padding-inline: 5px 1px;
   margin: 0;
   line-height: 1.2;
 }
@@ -250,8 +252,8 @@
 
   white-space: nowrap;
   overflow: hidden;
-  margin-left: 3px;     /* to align with the .field_clip content */
-  margin-right: -1px;   /* allow labels to overflow into the padding */
+  margin-inline-start: 3px;     /* to align with the .field_clip content */
+  margin-inline-end: -1px;   /* allow labels to overflow into the padding */
 }
 
 .detail_theme_record_compact .menu_toggle {
@@ -261,7 +263,8 @@
 /*** form theme ***/
 
 .detail_theme_field_form {
-  padding: 1px 1px 1px 5px;
+  padding-block: 1px;
+  padding-inline: 5px 1px;
 }
 
 .detail_theme_field_form .g_record_detail_label {
@@ -272,7 +275,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: -8px;
+  margin-inline-end: -8px;
 }
 
 .detail_theme_field_form .g_record_detail_label_container {
@@ -288,7 +291,8 @@
 }
 
 .detail_theme_record_form {
-  padding: 0px 12px 0px 8px;
+  padding-block: 0px;
+  padding-inline: 8px 12px;
 }
 
 .detail_theme_record_form.detailview_record_single {
@@ -303,7 +307,8 @@
 /*** blocks theme ***/
 
 .detail_theme_record_blocks {
-  padding: 0px 12px 0px 8px;
+  padding-block: 0px;
+  padding-inline: 8px 12px;
 }
 
 .detail_theme_record_blocks > .detail_row_num {
@@ -332,8 +337,8 @@
   font-weight: normal;
   white-space: nowrap;
   overflow: hidden;
-  margin-left: 3px;     /* to align with the .field_clip content */
-  margin-right: -6px;   /* allow labels to overflow into the padding */
+  margin-inline-start: 3px;     /* to align with the .field_clip content */
+  margin-inline-end: -6px;   /* allow labels to overflow into the padding */
   margin-bottom: 4px;
 }
 

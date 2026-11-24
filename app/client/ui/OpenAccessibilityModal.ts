@@ -204,7 +204,7 @@ const cssKey = styled("span", `
 `);
 
 const cssShortcutList = styled("ul", `
-  padding-left: 0;
+  padding-inline-start: 0;
 `);
 
 const cssShortcutRow = styled("li", `
@@ -214,7 +214,7 @@ const cssShortcutRow = styled("li", `
   margin-bottom: 0.25rem;
 
   & > span:first-child {
-    text-align: right;
+    text-align: end;
     min-width: 110px;
   }
 `);

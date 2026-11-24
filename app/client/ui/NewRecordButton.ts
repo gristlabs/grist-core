@@ -57,7 +57,7 @@ function newRecordButton(view: BaseView) {
 const cssNewRecordButton = styled(primaryButton, `
   position: absolute;
   bottom: -12px;
-  left: -12px;
+  inset-inline-start: -12px;
   z-index: ${zIndexes.newRecordButtonZIndex};
   display: flex;
   align-items: center;

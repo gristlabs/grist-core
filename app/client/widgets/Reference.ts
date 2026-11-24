@@ -5,6 +5,7 @@ import {
   FormSelectConfig,
 } from "app/client/components/Forms/FormConfig";
 import { GristDoc } from "app/client/components/GristDoc";
+import { alignmentToTextAlign } from "app/client/lib/direction";
 import { stopEvent } from "app/client/lib/domUtils";
 import { makeT } from "app/client/lib/localization";
 import { DataRowModel } from "app/client/models/DataRowModel";
@@ -143,7 +144,7 @@ export class Reference extends NTextBox {
       dom.autoDispose(formattedValue),
       dom.autoDispose(referenceId),
       cssRef.cls("-blank", use => use(formattedValue).hasBlankReference),
-      dom.style("text-align", this.alignment),
+      dom.style("text-align", use => alignmentToTextAlign(use(this.alignment))),
       dom.cls("text_wrapping", this.wrapping),
       cssRefIcon("FieldReference",
         cssRefIcon.cls("-view-as-card", use =>
@@ -180,9 +181,10 @@ export class Reference extends NTextBox {
 }
 
 const cssRefIcon = styled(icon, `
-  float: left;
+  float: inline-start;
   --icon-color: ${theme.lightText};
-  margin: -1px 2px 2px 0;
+  margin-block: -1px 2px;
+  margin-inline: 0 2px;
 
   &-view-as-card {
     cursor: pointer;

@@ -30,6 +30,7 @@ import { buildTZAutocomplete } from "app/client/widgets/TZAutocomplete";
 import { EngineCode } from "app/common/DocumentSettings";
 import { commonUrls, GristLoadConfig, PREFERRED_STORAGE_ANCHOR } from "app/common/gristUrls";
 import { not, propertyCompare } from "app/common/gutil";
+import { languageDirection } from "app/common/languageDirection";
 import { getCurrency, locales } from "app/common/Locales";
 import { isOwner, isOwnerOrEditor } from "app/common/roles";
 import {
@@ -93,7 +94,16 @@ export class DocSettingsPage extends Disposable {
         SectionItem({
           id: "locale",
           name: t("Locale"),
-          description: t("For number formats"),
+          description: [
+            t("For number formats"),
+            // The language of the locale is the document's language, and gives its sheets a direction.
+            dom("div",
+              dom.text(use => languageDirection(use(this._locale)) === "rtl" ?
+                t("Sheets are right-to-left unless set otherwise") :
+                t("Sheets are left-to-right unless set otherwise")),
+              testId("locale-direction"),
+            ),
+          ],
           value: dom.create(cssLocalePicker, this._locale),
         }),
         SectionItem({
@@ -207,6 +217,8 @@ document is first opened, or when a document responds to changes.",
           name: t("Document ID"),
           description: t("ID for API use"),
           value: cssHoverWrapper(
+            // An identifier and its copy button: code, left-to-right in any language.
+            { dir: "ltr" },
             cssInput(docPageModel.currentDocId.get(), { tabIndex: "-1" }, clickToSelect(), readonly()),
             cssCopyButton(
               cssIcon("Copy"),
@@ -795,7 +807,7 @@ const cssCopyButton = styled("div", `
   justify-content: center;
   height: 100%;
   width: 24px;
-  right: 0;
+  inset-inline-end: 0;
   top: 0;
   --icon-color: ${theme.lightText};
   &:hover {
@@ -814,7 +826,7 @@ const cssInput = styled("div", `
   min-width: 180px;
   height: 100%;
   padding: 5px;
-  padding-right: 20px;
+  padding-inline-end: 20px;
   overflow: hidden;
   text-overflow: ellipsis;
 `);
@@ -838,8 +850,8 @@ const cssHoverWrapper = styled("div", `
 
 const cssSmallButtonSettings = styled(cssSmallButton, `
   display: block;
-  margin-right: 0;
-  margin-left: auto;
+  margin-inline-end: 0;
+  margin-inline-start: auto;
   width: 100%;
 `);
 
@@ -944,7 +956,7 @@ const cssAutoComplete = `
   cursor: pointer;
   & input {
     text-overflow: ellipsis;
-    padding-right: 24px;
+    padding-inline-end: 24px;
   }
 `;
 

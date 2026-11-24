@@ -262,7 +262,7 @@ function setupTest() {
     dom("h4", "Button Select"),
     dom("div",
       dom.cls("alignment-select"),
-      inline(alignmentSelect(alignmentObs)),
+      inline(alignmentSelect(alignmentObs, null)),
       dom("span",
         dom.cls("alignment-value"),
         dom.text(alignmentObs),

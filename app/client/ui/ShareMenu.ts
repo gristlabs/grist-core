@@ -437,8 +437,8 @@ const cssShareButton = styled("div", `
 // Hide this on very small screens, since it takes up a lot of space and its action is also
 // available in the associated menu.
 const cssShareAction = styled(primaryButton, `
-  margin-right: -16px;
-  padding-right: 24px;
+  margin-inline-end: -16px;
+  padding-inline-end: 24px;
   background-color: var(--share-btn-bg);
   border-color:     var(--share-btn-bg);
 

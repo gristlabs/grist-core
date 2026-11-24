@@ -47,7 +47,7 @@ export const cssInput = styled((
     color: ${theme.inputPlaceholderFg};
   }
   .${cssInputWithIcon.className} > &:disabled {
-    padding-right: 28px;
+    padding-inline-end: 28px;
   }
 `);
 

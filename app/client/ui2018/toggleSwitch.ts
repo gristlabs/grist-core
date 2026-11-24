@@ -79,7 +79,7 @@ const cssInput = styled("input", `
   height: 1px;
   width: 1px;
   top: 1px;
-  left: 4px;
+  inset-inline-start: 4px;
   margin: 0;
   opacity: 0;
 
@@ -109,8 +109,8 @@ const cssSwitchSlider = styled("div", `
   position: absolute;
   cursor: pointer;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background-color: ${components.switchInactiveSlider};
   border-radius: 13px;
@@ -155,7 +155,7 @@ const cssSwitchCircle = styled("div", `
   content: "";
   height: 11px;
   width: 11px;
-  left: 3.5px;
+  inset-inline-start: 3.5px;
   top: 0;
   bottom: 0;
   margin-top: auto;
@@ -190,7 +190,7 @@ const cssSwitchCircle = styled("div", `
 
 const cssLabel = styled("span", `
   color: ${theme.text};
-  margin-left: 8px;
+  margin-inline-start: 8px;
   font-size: 13px;
   font-weight: 400;
   line-height: 16px;

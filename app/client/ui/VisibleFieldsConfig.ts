@@ -2,6 +2,7 @@ import DetailView from "app/client/components/DetailView";
 import { GristDoc } from "app/client/components/GristDoc";
 import { fixOutlineOverflow } from "app/client/components/KeyboardFocusHighlighter";
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
+import { COLLAPSED_ARROW } from "app/client/lib/direction";
 import { focusFallbackOnDispose, kbFallbackGroup } from "app/client/lib/focusUtils";
 import { KoArray, syncedKoArray } from "app/client/lib/koArray";
 import * as kf from "app/client/lib/koForm";
@@ -270,7 +271,7 @@ export class VisibleFieldsConfig extends Disposable {
           cssHeaderButton(
             icon(
               "Dropdown",
-              dom.style("transform", use => use(this._collapseHiddenFields) ? "rotate(-90deg)" : ""),
+              dom.style("transform", use => use(this._collapseHiddenFields) ? COLLAPSED_ARROW : ""),
             ),
             dom.boolAttr("disabled", this._disabled),
             dom.on("click", () => this._collapseHiddenFields.set(!this._collapseHiddenFields.get())),
@@ -516,7 +517,8 @@ function unselectDeletedFields(selection: Set<number>, event: { deleted: IField[
 export const cssDragRow = styled("div", `
   display: flex;
   align-items: center;
-  margin: 0 16px 0px 0px;
+  margin-block: 0 0px;
+  margin-inline: 0px 16px;
   & > .kf_draggable_content {
     margin: 2px 0;
     flex: 1 1 0px;
@@ -529,7 +531,8 @@ export const cssFieldEntry = styled("div", `
   background-color: ${theme.hover};
   width: 100%;
   border-radius: 2px;
-  margin: 0 8px 0 0;
+  margin-block: 0;
+  margin-inline: 0 8px;
   padding: 4px 8px;
   cursor: default;
   white-space: nowrap;
@@ -544,7 +547,7 @@ export const cssFieldEntry = styled("div", `
 // This is done like that instead of `display: none` to easily support kb nav.
 const cssHideIconButton = styled(unstyledButton, `
   flex: none;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   line-height: 1;
   --icon-color: ${theme.lightText};
   &:not(:focus, :focus-within, .kf_draggable:hover &) {

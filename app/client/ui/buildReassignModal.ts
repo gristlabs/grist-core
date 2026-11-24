@@ -373,7 +373,7 @@ const cssBulletLine = styled("div", `
   line-height: 22px;
   &::before {
     content: '•';
-    margin-right: 4px;
+    margin-inline-end: 4px;
     color: ${theme.lightText};
   }
 `);

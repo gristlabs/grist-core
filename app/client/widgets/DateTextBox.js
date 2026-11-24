@@ -8,6 +8,7 @@ var AbstractWidget = require("./AbstractWidget");
 
 const {FormFieldRulesConfig} = require("app/client/components/Forms/FormConfig");
 const {fromKoSave} = require("app/client/lib/fromKoSave");
+const {alignmentToTextAlign} = require("app/client/lib/direction");
 const {alignmentSelect, cssButtonSelect} = require("app/client/ui2018/buttonSelect");
 const {cssLabel, cssRow} = require("app/client/ui/RightPanelStyles");
 const {cssTextInput} = require("app/client/ui2018/editableLabel");
@@ -69,6 +70,7 @@ DateTextBox.prototype.buildConfigDom = function() {
     cssRow(
       alignmentSelect(
         fromKoSave(this.field.config.options.prop("alignment")),
+        () => this.field.viewSection.peek().viewInstance.peek()?.viewPane,
         cssButtonSelect.cls("-disabled", this.field.config.options.disabled("alignment")),
       ),
     )
@@ -88,7 +90,7 @@ DateTextBox.prototype.buildFormConfigDom = function() {
 DateTextBox.prototype.buildDom = function(row) {
   let value = row[this.field.colId()];
   return dom("div.field_clip",
-    kd.style("text-align", this.alignment),
+    kd.style("text-align", () => alignmentToTextAlign(this.alignment())),
     kd.text(() => row._isAddRow() || this.isDisposed() ? "" : this.valueFormatter().format(value()))
   );
 };

@@ -209,7 +209,7 @@ function topBarUndoBtn(iconName: IconName, ...domArgs: DomElementArg[]): Element
 const cssButtons = styled("div", `
   display: flex;
   gap: 8px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
 `);
 
 const cssTopBarUndoBtn = styled(cssTopBarBtn, `

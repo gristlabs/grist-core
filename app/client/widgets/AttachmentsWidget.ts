@@ -315,7 +315,7 @@ const cssAttachmentWidget = styled("div", `
 const cssAttachmentIcon = styled("div", `
   position: absolute;
   top: 2px;
-  left: 5px;
+  inset-inline-start: 5px;
   padding: 2px;
   background-color: ${theme.attachmentsCellIconBg};
   color: ${theme.attachmentsCellIconFg};
@@ -352,7 +352,8 @@ const cssAttachmentPreview = styled("div", `
   color: black;
   background-color: white;
   border: 1px solid #bbb;
-  margin: 0 2px 2px 0;
+  margin-block: 0 2px;
+  margin-inline: 0 2px;
   position: relative;
   display: flex;
   align-items: center;
@@ -365,7 +366,7 @@ const cssAttachmentPreview = styled("div", `
 
 const cssSizeLabel = styled("div", `
   color: ${theme.lightText};
-  margin-right: 9px;
+  margin-inline-end: 9px;
 `);
 
 const cssFileType = styled("div", `
@@ -391,10 +392,10 @@ const cssSpinner = styled(loadingSpinner, `
   width: 16px;
   height: 16px;
   border-width: 2px;
-  margin-left: 23px;
+  margin-inline-start: 23px;
 
   &-has-attachments {
-    margin-left: 2px;
+    margin-inline-start: 2px;
     margin-top: 2px;
     margin-bottom: 6px;
   }

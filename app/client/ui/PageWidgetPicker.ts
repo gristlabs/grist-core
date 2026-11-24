@@ -878,13 +878,15 @@ const cssPanel = styled("div", `
 
 const cssHeader = styled("div", `
   color: ${theme.text};
-  margin: 24px 0 24px 24px;
+  margin-block: 24px;
+  margin-inline: 24px 0;
   font-size: ${vars.mediumFontSize};
 `);
 
 const cssEntry = styled(unstyledButton, `
   color: ${theme.widgetPickerItemFg};
-  padding: 0 0 0 24px;
+  padding-block: 0;
+  padding-inline: 24px 0;
   height: 32px;
   display: flex;
   width: 100%;
@@ -907,7 +909,7 @@ const cssEntry = styled(unstyledButton, `
 `);
 
 const cssIcon = styled(icon, `
-  margin-right: 8px;
+  margin-inline-end: 8px;
   flex-shrink: 0;
   --icon-color: ${theme.widgetPickerIcon};
   .${cssEntry.className}-disabled > & {
@@ -919,7 +921,8 @@ const cssMoreDivider = styled("div", `
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 10px 18px 4px 24px;
+  margin-block: 10px 4px;
+  margin-inline: 24px 18px;
   font-size: ${vars.xsmallFontSize};
   line-height: 12px;
   text-transform: uppercase;
@@ -934,7 +937,8 @@ const cssMoreDivider = styled("div", `
 `);
 
 const cssNewBadge = styled("span", `
-  margin: 0 14px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 14px;
   padding: 0 6px;
   border-radius: 8px;
   font-size: ${vars.xsmallFontSize};
@@ -954,7 +958,7 @@ const cssLabel = styled("span", `
 `);
 
 const cssFieldLabel = styled(cssLabel, `
-  padding-right: 8px;
+  padding-inline-end: 8px;
 `);
 
 const cssEntryWrapper = styled("div", `
@@ -964,7 +968,7 @@ const cssEntryWrapper = styled("div", `
 
 const cssPivot = styled(cssEntry, `
   width: 48px;
-  padding-left: 8px;
+  padding-inline-start: 8px;
   flex: 0 0 auto;
 `);
 
@@ -997,7 +1001,7 @@ const cssFooterContent = styled("div", `
 const cssSmallLabel = styled("span", `
   color: ${theme.text};
   font-size: ${vars.xsmallFontSize};
-  margin-right: 8px;
+  margin-inline-end: 8px;
 `);
 
 const cssSelect = styled(select, `
@@ -1013,7 +1017,7 @@ const cssSelectBy = styled("div", `
 `);
 
 const cssSubmitButton = styled(bigPrimaryButton, `
-  margin-left: auto;
+  margin-inline-start: auto;
 `);
 
 const cssKeyboardInstructions = styled(cssWhenKeyboardUser, `
@@ -1025,7 +1029,8 @@ const cssKeyboardInstructions = styled(cssWhenKeyboardUser, `
 `);
 
 const cssHeaderKeyboardInstructions = styled(cssWhenKeyboardUser, `
-  margin: 5px 10px 0 0;
+  margin-block: 5px 0;
+  margin-inline: 0 10px;
   font-size: ${vars.smallFontSize};
   color: ${theme.lightText};
   font-weight: normal;

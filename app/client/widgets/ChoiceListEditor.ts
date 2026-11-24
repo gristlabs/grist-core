@@ -3,6 +3,7 @@ import { GristDoc } from "app/client/components/GristDoc";
 import { ACIndexImpl, ACItem, ACResults,
   buildHighlightedDom, HighlightFunc, normalizeText } from "app/client/lib/ACIndex";
 import { IAutocompleteOptions } from "app/client/lib/autocomplete";
+import { alignmentToJustify } from "app/client/lib/direction";
 import { makeT } from "app/client/lib/localization";
 import { IToken, TokenField, tokenFieldStyles } from "app/client/lib/TokenField";
 import { colors, testId, theme } from "app/client/ui2018/cssVars";
@@ -123,7 +124,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
     this._textInput = this._tokenField.getTextInput();
     dom.update(this._tokenField.getRootElem(),
-      dom.style("justify-content", this._alignment),
+      dom.style("justify-content", alignmentToJustify(this._alignment)),
     );
     dom.update(this._tokenField.getHiddenInput(),
       this.commandGroup.attach(),
@@ -362,7 +363,7 @@ export const cssToken = styled(tokenFieldStyles.cssToken, `
 export const cssDeleteButton = styled(tokenFieldStyles.cssDeleteButton, `
   position: absolute;
   top: -8px;
-  right: -6px;
+  inset-inline-end: -6px;
   border-radius: 16px;
   background-color: ${colors.dark};
   width: 14px;
@@ -390,7 +391,7 @@ export const cssDeleteIcon = styled(tokenFieldStyles.cssDeleteIcon, `
 
 const cssContentSizer = styled("div", `
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: -100px;
   border: none;
   visibility: hidden;
@@ -418,7 +419,7 @@ export const cssChoiceList = styled("div", `
 `);
 
 const cssReadonlyStyle = styled("div", `
-  padding-left: 16px;
+  padding-inline-start: 16px;
   background: ${theme.cellEditorBg};
 `);
 
@@ -431,7 +432,7 @@ export const cssPlusButton = styled("div", `
   width: 20px;
   height: 20px;
   border-radius: 20px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   align-items: center;
   justify-content: center;
   background-color: ${theme.autocompleteAddNewCircleBg};

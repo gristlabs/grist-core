@@ -487,8 +487,8 @@ const cssListBox = styled("div", `
   width: 100%;
   padding: 1px;
   line-height: 1.5;
-  padding-left: 4px;
-  padding-right: 4px;
+  padding-inline-start: 4px;
+  padding-inline-end: 4px;
   border: 1px solid ${theme.choiceEntryBorderHover};
   border-radius: 4px;
   background-color: ${theme.choiceEntryBg};
@@ -555,7 +555,7 @@ const cssTokenColorInactive = styled("div", `
 `);
 
 const cssTokenLabel = styled("span", `
-  margin-left: 6px;
+  margin-inline-start: 6px;
   display: inline-block;
   text-overflow: ellipsis;
   white-space: pre;
@@ -570,7 +570,7 @@ const cssEditableLabelInput = styled("input", `
 `);
 
 const cssEditableLabel = styled("div", `
-  margin-left: 6px;
+  margin-inline-start: 6px;
   text-overflow: ellipsis;
   white-space: pre;
   overflow: hidden;
@@ -619,8 +619,8 @@ const cssButtonRow = styled("div", `
 
 const cssDeleteButton = styled("div", `
   display: inline;
-  float: right;
-  margin-left: 4px;
+  float: inline-end;
+  margin-inline-start: 4px;
   cursor: pointer;
   .${cssTokenField.className}.token-dragactive & {
     cursor: unset;

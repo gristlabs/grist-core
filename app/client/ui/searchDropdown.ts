@@ -221,8 +221,8 @@ const cssMenuHeader = styled("div", `
 const cssSearchIcon = styled(icon, `
   --icon-color: ${theme.lightText};
   flex-shrink: 0;
-  margin-left: auto;
-  margin-right: 4px;
+  margin-inline-start: auto;
+  margin-inline-end: 4px;
 `);
 const cssSearch = styled("input", `
   color: ${theme.inputFg};
@@ -234,7 +234,8 @@ const cssSearch = styled("input", `
 
   font-size: ${vars.mediumFontSize};
 
-  margin: 0px 16px 0px 8px;
+  margin-block: 0px;
+  margin-inline: 8px 16px;
   padding: 0px;
   border: none;
   outline: none;

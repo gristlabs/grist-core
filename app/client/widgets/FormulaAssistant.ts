@@ -637,7 +637,7 @@ const cssAiMessageBullet = styled("div", `
 
 const cssTickIcon = styled(icon, `
   --icon-color: ${theme.accentIcon};
-  margin-right: 8px;
+  margin-inline-end: 8px;
   flex-shrink: 0;
 `);
 

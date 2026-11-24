@@ -57,7 +57,7 @@ export const cssSortFilterColumn = styled(unstyledButton, `
   cursor: pointer;
   display: flex;
   flex-grow: 1;
-  text-align: left;
+  text-align: start;
   align-items: center;
   color: ${theme.text};
   background-color: ${theme.hover};
@@ -73,10 +73,10 @@ export const cssBlockedCursor = styled("span", `
 `);
 
 export const cssButtonRow = styled(cssRowWrapped, `
-  margin-left: 0;
-  margin-right: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
   & > button {
-    margin-left: 16px;
+    margin-inline-start: 16px;
   }
 `);
 
@@ -113,7 +113,7 @@ export const cssNumericSpinner = styled(numericSpinner, `
 export const cssFieldFormula = styled("div", `
   flex: auto;
   cursor: pointer;
-  padding-left: 24px;
+  padding-inline-start: 24px;
   --icon-color: ${theme.accentIcon};
 
   &-disabled-icon.formula_field_sidepane::before {
@@ -145,7 +145,7 @@ export const cssConfigContainer = styled("div.test-config-container", `
 `);
 
 export const cssWarningBox = styled("div", `
-  text-align: left;
+  text-align: start;
   margin-top: 1.5rem;
   border: 1px solid #fbeed5;
   border-radius: 4px;

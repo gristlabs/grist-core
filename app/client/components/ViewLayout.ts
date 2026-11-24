@@ -15,6 +15,7 @@ import { LayoutTray } from "app/client/components/LayoutTray";
 import { printViewSection } from "app/client/components/Printing";
 import { WidgetCreatorView } from "app/client/components/WidgetCreatorView";
 import { Delay } from "app/client/lib/Delay";
+import { DIRECTION_HOLD } from "app/client/lib/direction";
 import { createObsArray } from "app/client/lib/koArrayWrap";
 import { makeT } from "app/client/lib/localization";
 import { logTelemetryEvent } from "app/client/lib/telemetry";
@@ -131,6 +132,10 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     this.layout = this.autoDispose(Layout.create(this.layoutSpec(),
       this._buildLeafContent.bind(this), true));
+    // The arrangement of widgets on a page is saved in the document and cannot yet follow a
+    // direction, so it is held; what each widget shows states its own (see buildViewSectionDom).
+    this.layout.rootElem.setAttribute("dir", "ltr");
+    this.layout.rootElem.setAttribute(DIRECTION_HOLD, "");
 
     // When the layoutSpec changes by some means other than the layout editor, rebuild.
     // This includes adding/removing sections and undo/redo.
@@ -531,8 +536,8 @@ const cssLayoutWrapper = styled("div", `
       height: 100%;
       width: 100%;
       border-radius: 5px;
-      border-bottom-left-radius: 0px;
-      border-bottom-right-radius: 0px;
+      border-end-start-radius: 0px;
+      border-end-end-radius: 0px;
       position: relative;
     }
     &-active .viewsection_content {
@@ -543,7 +548,7 @@ const cssLayoutWrapper = styled("div", `
       padding: 0px 12px;
     }
     &-active .filter_bar {
-      margin-left: 6px;
+      margin-inline-start: 6px;
     }
   }
 `);
@@ -574,7 +579,7 @@ const cssOverlay = styled("div", `
 const cssCloseButton = styled(icon, `
   position: absolute;
   top: 16px;
-  right: 16px;
+  inset-inline-end: 16px;
   height: 24px;
   width: 24px;
   cursor: pointer;
@@ -585,7 +590,7 @@ const cssCloseButton = styled(icon, `
   @media ${mediaSmall} {
     & {
       top: 6px;
-      right: 6px;
+      inset-inline-end: 6px;
     }
   }
 `);

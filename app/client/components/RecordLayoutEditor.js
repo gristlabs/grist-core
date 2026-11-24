@@ -150,7 +150,8 @@ const cssControls = styled("div", `
 `);
 
 const cssCollapseIcon = styled(icon, `
-  margin: -3px -2px -2px 2px;
+  margin-block: -3px -2px;
+  margin-inline: 2px -2px;
 `);
 
 const cssIconEyeClose = styled("div.g_record_delete_field", `

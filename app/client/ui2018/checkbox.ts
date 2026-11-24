@@ -78,7 +78,7 @@ export const cssCheckboxSquare = styled("input", `
 
     position: absolute;
     top: 0;
-    left: 0;
+    inset-inline-start: 0;
 
     height: 16px;
     width: 16px;
@@ -123,7 +123,7 @@ export const cssCheckboxCircle = styled(cssCheckboxSquare, `
 `);
 
 export const cssLabelText = styled("span", `
-  margin-left: 8px;
+  margin-inline-start: 8px;
   color: ${theme.text};
   font-weight: initial;   /* negate bootstrap */
   overflow: hidden;

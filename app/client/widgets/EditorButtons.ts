@@ -48,12 +48,12 @@ const cssFinishBtn = styled("div", `
 
 const cssCancelBtn = styled(cssFinishBtn, `
   --icon-background-color: ${colors.error};
-  left: -40px;
+  inset-inline-start: -40px;
 `);
 
 const cssSaveBtn = styled(cssFinishBtn, `
   --icon-background-color: ${theme.controlPrimaryBg};
-  right: -40px;
+  inset-inline-end: -40px;
 `);
 
 const cssIconWrap = styled("div", `

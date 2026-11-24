@@ -13,6 +13,9 @@ export interface GristTable {
   table_name: string | null;  // currently allow names to be null
   column_metadata: GristColumn[];
   table_data: any[][];
+  // Set when the source lays the table out right-to-left or left-to-right by an explicit choice
+  // (as an Excel sheet marked right-to-left); grids of a table created from it are given it.
+  sheet_orientation?: "rtl" | "ltr";
 }
 
 export interface GristTables {

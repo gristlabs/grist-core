@@ -120,13 +120,13 @@ export class ReverseReferenceConfig extends Disposable {
           cssContent(
             cssClipLine(
               cssClipItem(
-                cssCapitalize(t("Target table"), dom.style("margin-right", "8px")),
+                cssCapitalize(t("Target table"), dom.style("margin-inline-end", "8px")),
                 dom("span", dom.text(this._reverseTable)),
               ),
             ),
             cssFlexBetween(
               cssClipItem(
-                cssCapitalize(t("Column"), dom.style("margin-right", "8px")),
+                cssCapitalize(t("Column"), dom.style("margin-inline-end", "8px")),
                 dom("span", dom.text(this._reverseColumn)),
                 cssGrayText("(", dom.text(this._reverseType), ")"),
               ),
@@ -256,7 +256,7 @@ const cssNoClip = styled("div", `
 
 const cssGrayText = styled("span", `
   color: ${theme.lightText};
-  margin-left: 4px;
+  margin-inline-start: 4px;
 `);
 
 const cssIconAccent = styled(icon, `

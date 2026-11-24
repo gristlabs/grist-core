@@ -307,7 +307,7 @@ const cssButtonsRow = styled("div", `
 const cssCloseButton = styled("div", `
   position: absolute;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;

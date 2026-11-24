@@ -94,8 +94,8 @@ const cssColItem = styled("div", `
   align-items: center;
   justify-content: space-between;
   border-radius: 3px;
-  padding-left: 6px;
-  padding-right: 2px;
+  padding-inline-start: 6px;
+  padding-inline-end: 2px;
   color: ${theme.accessRulesColumnItemFg};
 
   .${cssColListWidget.className}-editing & {

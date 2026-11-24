@@ -351,7 +351,7 @@ export const cssSectionTag = styled("span", `
   font-size: 8px;
   vertical-align: super;
   margin-top: -4px;
-  margin-left: 4px;
+  margin-inline-start: 4px;
   font-weight: bold;
 `);
 
@@ -402,14 +402,14 @@ const cssItemName = styled("div", `
   font-weight: bold;
   display: flex;
   align-items: center;
-  margin-right: 14px;
+  margin-inline-end: 14px;
   font-size: ${vars.largeFontSize};
-  padding-left: 24px;
+  padding-inline-start: 24px;
   &-prefixed {
-    padding-left: 0;
+    padding-inline-start: 0;
   }
   &-full {
-    padding-left: 0;
+    padding-inline-start: 0;
     width: unset;
   }
   &-flash {
@@ -421,22 +421,22 @@ const cssItemName = styled("div", `
   }
   @container line (max-width: 500px) {
     & {
-      padding-left: 0;
+      padding-inline-start: 0;
     }
   }
   @media ${mediaSmall} {
     & {
-      padding-left: 0;
+      padding-inline-start: 0;
     }
     &:first-child {
-      margin-left: 0;
+      margin-inline-start: 0;
     }
   }
 `);
 
 const cssItemDescription = styled("div", `
   width: 250px;
-  margin-right: auto;
+  margin-inline-end: auto;
   margin-bottom: -1px; /* aligns with the value */
 `);
 
@@ -456,8 +456,8 @@ const cssItemValue = styled("div", `
 export const cssCollapseIcon = styled(icon, `
   width: 24px;
   height: 24px;
-  margin-right: 4px;
-  margin-left: -4px;
+  margin-inline-end: 4px;
+  margin-inline-start: -4px;
   --icon-color: ${theme.lightText};
 `);
 
@@ -468,7 +468,7 @@ const cssExpandedContentWrap = styled("div", `
 `);
 
 const cssExpandedContent = styled("div", `
-  margin-left: 24px;
+  margin-inline-start: 24px;
   padding: 18px 0;
   border-bottom: 1px solid ${theme.widgetBorder};
   .${cssItem.className}:last-child & {
@@ -477,7 +477,7 @@ const cssExpandedContent = styled("div", `
   }
   @container line (max-width: 500px) {
     & {
-      margin-left: 0px;
+      margin-inline-start: 0px;
     }
   }
 `);

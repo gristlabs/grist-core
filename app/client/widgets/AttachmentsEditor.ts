@@ -360,8 +360,8 @@ const cssFullScreenModal = styled("div", `
 const cssHeader = styled("div", `
   padding: 16px 24px;
   position: fixed;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   margin: 0 auto;
   width: 100%;
   display: flex;
@@ -392,7 +392,7 @@ const cssCloseButton = styled("div", `
 
   @media ${mediaSmall} {
     & {
-      margin-left: auto;
+      margin-inline-start: auto;
     }
   }
 `);
@@ -404,7 +404,7 @@ const cssBigIcon = styled(icon, `
 const cssTitle = styled("div", `
   display: inline-block;
   padding: 8px 16px;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   min-width: 0px;
   overflow: hidden;
 
@@ -443,7 +443,7 @@ const cssLoading = styled("div", `
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: 16px;
+  margin-inline-start: 16px;
   & .${loadingSpinner.className} {
     --loader-fg: currentColor;
   }
@@ -457,15 +457,15 @@ const cssLoading = styled("div", `
 `);
 
 const cssFileButtons = styled(cssButtonGroup, `
-  margin-left: auto;
-  margin-right: 16px;
+  margin-inline-start: auto;
+  margin-inline-end: 16px;
   height: 32px;
   flex: none;
 
   @media ${mediaSmall} {
     & {
-      margin-left: 0px;
-      margin-right: 0px;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
     }
   }
 `);
@@ -476,7 +476,7 @@ const cssButton = styled(basicButton, `
   font-weight: normal;
   padding: 0 16px;
   border-top: none;
-  border-right: none;
+  border-inline-end: none;
   border-bottom: none;
   border-left: 1px solid ${theme.attachmentsEditorButtonBorder};
   display: flex;
@@ -494,7 +494,7 @@ const cssButton = styled(basicButton, `
 
 const cssButtonIcon = styled(icon, `
   --icon-color: ${theme.attachmentsEditorButtonIcon};
-  margin-right: 4px;
+  margin-inline-end: 4px;
 `);
 
 const cssNextArrow = styled("div", `
@@ -516,10 +516,10 @@ const cssNextArrow = styled("div", `
   }
   &-left {
     transform: rotateY(180deg);
-    left: 0px;
+    inset-inline-start: 0px;
   }
   &-right {
-    right: 0px;
+    inset-inline-end: 0px;
   }
 `);
 
@@ -530,8 +530,8 @@ const cssContent = styled("div", `
   height: calc(100% - 72px);
   width: calc(100% - 64px);
   max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline-start: auto;
+  margin-inline-end: auto;
   margin-top: 64px;
   margin-bottom: 8px;
   outline: none;

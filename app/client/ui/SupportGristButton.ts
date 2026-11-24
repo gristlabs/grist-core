@@ -173,12 +173,12 @@ const cssCenteredFlex = styled("div", `
 const cssContributeButton = styled("div", ``);
 
 const cssContributeButtonCloseButton = styled(tokenFieldStyles.cssDeleteButton, `
-  margin-left: 4px;
+  margin-inline-start: 4px;
   vertical-align: bottom;
   line-height: 1;
   position: absolute;
   top: -4px;
-  right: -8px;
+  inset-inline-end: -8px;
   border-radius: 16px;
   background-color: ${colors.dark};
   width: 18px;
@@ -205,7 +205,7 @@ const cssHeader = styled("div", `
 `);
 
 const cssLeftAlignedHeader = styled(cssHeader, `
-  text-align: left;
+  text-align: start;
 `);
 
 const cssCenterAlignedHeader = styled(cssHeader, `
@@ -233,7 +233,7 @@ const cssFullWidthButton = styled(cssPrimaryButton, `
 const cssCloseButton = styled("div", `
   position: absolute;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;

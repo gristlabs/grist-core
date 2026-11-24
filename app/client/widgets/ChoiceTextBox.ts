@@ -5,6 +5,7 @@ import {
   FormSelectConfig,
 } from "app/client/components/Forms/FormConfig";
 import { GristDoc } from "app/client/components/GristDoc";
+import { alignmentToJustify } from "app/client/lib/direction";
 import { makeT } from "app/client/lib/localization";
 import { DataRowModel } from "app/client/models/DataRowModel";
 import { ViewFieldRec } from "app/client/models/entities/ViewFieldRec";
@@ -51,7 +52,7 @@ export class ChoiceTextBox extends NTextBox {
 
     return cssChoiceField(
       cssChoiceTextWrapper(
-        dom.style("justify-content", use => use(this.alignment) === "right" ? "flex-end" : use(this.alignment)),
+        dom.style("justify-content", use => alignmentToJustify(use(this.alignment))),
         maybeDropDownCssChoiceEditIcon,
         dom.domComputed((use) => {
           if (this.isDisposed() || use(row._isAddRow)) { return null; }

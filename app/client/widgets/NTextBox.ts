@@ -1,5 +1,6 @@
 import { FormFieldRulesConfig } from "app/client/components/Forms/FormConfig";
 import { GristDoc } from "app/client/components/GristDoc";
+import { alignmentToTextAlign } from "app/client/lib/direction";
 import { fromKoSave } from "app/client/lib/fromKoSave";
 import { makeT } from "app/client/lib/localization";
 import { DataRowModel } from "app/client/models/DataRowModel";
@@ -47,9 +48,10 @@ export class NTextBox extends NewAbstractWidget {
       cssRow(
         alignmentSelect(
           fromKoSave(this.field.config.alignment),
+          () => this.field.viewSection.peek().viewInstance.peek()?.viewPane,
           cssButtonSelect.cls("-disabled", alignmentDisabled),
         ),
-        dom("div", { style: "margin-left: 8px;" },
+        dom("div", { style: "margin-inline-start: 8px;" },
           makeButtonSelect(
             fromKo(this.field.config.wrap),
             [{ value: true, icon: "Wrap" }],
@@ -122,7 +124,7 @@ export class NTextBox extends NewAbstractWidget {
   public buildDom(row: DataRowModel) {
     const value = row.cells[this.field.colId.peek()];
     return dom("div.field_clip",
-      dom.style("text-align", this.alignment),
+      dom.style("text-align", use => alignmentToTextAlign(use(this.alignment))),
       dom.cls("text_wrapping", this.wrapping),
       dom.domComputed(use => use(row._isAddRow) || this.isDisposed() ?
         null :

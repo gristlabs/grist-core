@@ -683,7 +683,7 @@ class Comment extends Disposable {
                 cssIconButton(
                   icon("Dots"),
                   testId("comment-menu"),
-                  dom.style("margin-left", `3px`),
+                  dom.style("margin-inline-start", `3px`),
                   menu(() => this._menuItems(), {
                     placement: "bottom-start",
                     attach: `.${containerClass()}`,
@@ -744,7 +744,7 @@ class Comment extends Disposable {
                     access: this.props.access,
                     comment: commentReply,
                     parent: this.props.comment,
-                    args: [dom.style("padding-left", "0px"), dom.style("padding-right", "0px")],
+                    args: [dom.style("padding-inline-start", "0px"), dom.style("padding-inline-end", "0px")],
                   }),
                 );
               }),
@@ -763,7 +763,7 @@ class Comment extends Disposable {
             return cssReplyButton(icon("Message"), t("Reply"),
               testId("comment-reply-button"),
               dom.on("click", withStop(() => this.replying.set(true))),
-              dom.style("margin-left", use2 => use2(this._hasReplies) ? "16px" : "0px"),
+              dom.style("margin-inline-start", use2 => use2(this._hasReplies) ? "16px" : "0px"),
             );
           } else {
             return dom.create(CommentEntry, {
@@ -1460,7 +1460,7 @@ const cssComment = styled("div", `
 `);
 
 const cssReplyList = styled("div", `
-  margin-left: 8px;
+  margin-inline-start: 8px;
   & > div + div {
     margin-top: 20px;
   }
@@ -1487,7 +1487,8 @@ const cssCommentBodyText = styled("div", `
 
 const cssIconButton = styled("div", `
   flex: none;
-  margin: 0 4px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 4px;
   height: 24px;
   width: 24px;
   padding: 4px;
@@ -1502,7 +1503,8 @@ const cssIconButton = styled("div", `
 
 const cssIconButtonMenu = styled("div", `
   flex: none;
-  margin: 0 4px 0 auto;
+  margin-block: 0;
+  margin-inline: auto 4px;
   height: 24px;
   width: 24px;
   padding: 4px;
@@ -1556,7 +1558,7 @@ const cssResolvedBlock = styled("div", `
 const cssResolvedText = styled("span", `
   color: ${theme.text};
   font-size: ${vars.smallFontSize};
-  margin-left: 5px;
+  margin-inline-start: 5px;
 `);
 
 const cssTruncate = styled("div", `

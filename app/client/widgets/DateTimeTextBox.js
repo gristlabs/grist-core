@@ -85,6 +85,7 @@ DateTimeTextBox.prototype.buildConfigDom = function(_gristDoc, isTransformConfig
     isTransformConfig ? null : cssRow(
       alignmentSelect(
         alignment,
+        () => this.field.viewSection.peek().viewInstance.peek()?.viewPane,
         cssButtonSelect.cls("-disabled", this.field.config.options.disabled("alignment")),
       )
     )

@@ -22,6 +22,7 @@ import { EmptyFilterState } from "app/client/components/LinkingState";
 import { RefSelect } from "app/client/components/RefSelect";
 import { kbJumperAnchor } from "app/client/components/RegionFocusSwitcher";
 import ViewConfigTab from "app/client/components/ViewConfigTab";
+import { COLLAPSED_ARROW } from "app/client/lib/direction";
 import { domAsync } from "app/client/lib/domAsync";
 import * as imports from "app/client/lib/imports";
 import { makeT } from "app/client/lib/localization";
@@ -665,7 +666,7 @@ export class RightPanel extends Disposable {
         return cssLinkInfoBody(
           dom.style("width", "100%"), // width 100 keeps table from growing outside bounds of flex parent if overfull
           dom("table",
-            dom.style("margin-left", "8px"),
+            dom.style("margin-inline-start", "8px"),
             Object.keys(lfilter.filterLabels).map((colId) => {
               const vals = lfilter.filterLabels[colId];
               let operationSymbol = "=";
@@ -807,7 +808,7 @@ export class RightPanel extends Disposable {
       const collapsed: SessionObs<boolean> = this._advLinkInfoCollapsed;
       return hasLink ? [
         cssRow(
-          icon("Dropdown", dom.style("transform", use2 => use2(collapsed) ? "rotate(-90deg)" : "")),
+          icon("Dropdown", dom.style("transform", use2 => use2(collapsed) ? COLLAPSED_ARROW : "")),
           "Advanced Link info",
           dom.style("font-size", `${vars.smallFontSize}`),
           dom.style("text-transform", "uppercase"),
@@ -1197,8 +1198,8 @@ const cssOverlay = styled("div", `
   opacity: 0.8;
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   z-index: 100;
 `);
@@ -1232,10 +1233,10 @@ const cssHintRow = styled("div", `
 `);
 
 const cssButtonRow = styled(cssRow, `
-  margin-left: 0;
-  margin-right: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
   & > button {
-    margin-left: 16px;
+    margin-inline-start: 16px;
   }
 `);
 
@@ -1264,10 +1265,10 @@ const cssTopBarItem = styled(unstyledButton, `
   cursor: default;
   outline-offset: -6px;
   &:first-child {
-    border-left: 0;
+    border-inline-start: 0;
   }
   &:last-child {
-    border-right: 0;
+    border-inline-end: 0;
   }
   /* the -selected class is used when the topbar item is not a tab */
   &-selected, &[aria-selected="true"] {
@@ -1297,8 +1298,8 @@ const cssTopBarIcon = styled(icon, `
 `);
 
 const cssHoverCircle = styled("div", `
-  margin-left: auto;
-  margin-right: 8px;
+  margin-inline-start: auto;
+  margin-inline-end: 8px;
   width: 32px;
   height: 32px;
   background: none;
@@ -1381,7 +1382,7 @@ const cssDataLabel = styled("div", `
   flex: 0 0 81px;
   color: ${theme.lightText};
   font-size: ${vars.xsmallFontSize};
-  margin-left: 4px;
+  margin-inline-start: 4px;
   margin-top: 2px;
 `);
 
@@ -1454,7 +1455,7 @@ const cssLinkInfoPanel = styled("div", `
   display: flex;
   flex-flow: column;
   align-items: start;
-  text-align: left;
+  text-align: start;
 
   font-family: ${vars.fontFamily};
 
@@ -1494,7 +1495,7 @@ const cssLinkInfoValuesBox = styled("div", `
 // since icons are position:relative, bottom:1 should shift it without affecting layout
 const cssLinkInfoIcon = styled(icon, `
   bottom: 1px;
-  margin-right: 3px;
+  margin-inline-end: 3px;
   background-color: ${theme.controlSecondaryFg};
 `);
 

@@ -619,8 +619,8 @@ export const cssModalBottomPadding = styled("div", `
 `);
 
 export const cssModalHorizontalPadding = styled("div", `
-  padding-left: var(--css-modal-dialog-padding-horizontal);
-  padding-right: var(--css-modal-dialog-padding-horizontal);
+  padding-inline-start: var(--css-modal-dialog-padding-horizontal);
+  padding-inline-end: var(--css-modal-dialog-padding-horizontal);
 `);
 
 // For centering, we use 'margin: auto' on the flex item instead of 'justify-content: center' on
@@ -707,7 +707,8 @@ export const cssModalButtons = styled("div", `
 
   & > button,
   & > .${cssButton.className} {
-    margin: 0 8px 0 0;
+    margin-block: 0;
+    margin-inline: 0 8px;
   }
 `);
 
@@ -739,7 +740,7 @@ const cssModalBacker = styled("div", `
   width: 100%;
   height: 100%;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   padding: 16px;
   z-index: ${vars.modalZIndex};
   background-color: ${theme.modalBackdrop};

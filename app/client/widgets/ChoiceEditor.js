@@ -178,13 +178,13 @@ const cssChoiceEditIcon = styled(icon, `
   background-color: ${theme.lightText};
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   margin: 3px 3px 0 3px;
 `);
 
 const cssChoiceEditor = styled("div", `
   & > .celleditor_text_editor, & > .celleditor_content_measure {
-    padding-left: 18px;
+    padding-inline-start: 18px;
   }
 `);
 

@@ -316,7 +316,8 @@ OAuth apps are available with the [full version of Grist]({{fullGrist}}).`,
 }
 
 const cssWarnings = styled(css.warning, `
-  margin: -8px 0 0 110px;
+  margin-block: -8px 0;
+  margin-inline: 110px 0;
 `);
 
 // One line of the usage summary, with a tick and bold parts from markdown.
