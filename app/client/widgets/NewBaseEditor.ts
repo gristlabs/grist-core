@@ -22,6 +22,7 @@ export interface Options {
   rowId: number;
   formulaError?: Observable<CellValue | undefined>;
   editValue?: string;
+  event?: Event; // Click or keydown that opened the editor, when known.
   cursorPos: number;
   commands: IEditorCommandGroup;
   state?: any;
