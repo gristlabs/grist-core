@@ -93,13 +93,19 @@ export class KeyedOps {
    * Wait for all operations to complete.  This makes most sense to use during
    * shutdown - otherwise it might be a very long wait to reach a moment where
    * there are no operations.
+   *
+   * Triggers operations immediately if options.expedite is true
    */
-  public async wait(logRepeat?: (count: number) => void) {
+  public async wait(logRepeat?: (count: number) => void, options?: { expedite?: boolean }) {
     let repeats: number = 0;
+    const waitFunc = options?.expedite ?
+      (key: string) => this.expediteOperationAndWait(key) :
+      (key: string) => this.waitForOperation(key);
+
     while (this.hasPendingOperations()) {
       if (repeats && logRepeat) { logRepeat(repeats); }
-      await Promise.all([...this._operating.keys(), ...this._changed.keys()]
-        .map(key => this.expediteOperationAndWait(key)));
+      await Promise.allSettled([...this._operating.keys(), ...this._changed.keys()]
+        .map(waitFunc));
       repeats++;
     }
   }
@@ -109,17 +115,23 @@ export class KeyedOps {
    * when operations on the resource are complete.  Does not affect retries.
    */
   public async expediteOperationAndWait(key: string) {
+    if (!this.hasPendingOperation(key)) { return; }
+    const waitPromise = this.waitForOperation(key);
+    if (this._changed.has(key)) {
+      this._schedule(key, true);
+    }
+    return waitPromise;
+  }
+
+  public async waitForOperation(key: string) {
     const status = this._getOperationStatus(key);
     if (status.promise) {
-      await status.promise;
-      return;
+      return await status.promise;
     }
     if (!this._changed.has(key)) { return; }
-    const callback = new Promise((resolve) => {
+    return new Promise((resolve) => {
       status.callbacks.push(resolve);
     });
-    this._schedule(key, true);
-    await callback;
   }
 
   /**

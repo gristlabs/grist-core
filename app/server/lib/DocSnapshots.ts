@@ -47,7 +47,7 @@ export class DocSnapshotPruner {
 
   // Wait for all in-progress prunes to finish up in an orderly fashion.
   public async wait() {
-    await this._prunes.wait(() => "waiting for pruning to finish");
+    await this._prunes.wait(() => "waiting for pruning to finish", { expedite: true });
   }
 
   // Note that a document has changed, and should be pruned (or repruned).  Pruning operation

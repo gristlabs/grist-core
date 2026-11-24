@@ -10,6 +10,7 @@ import { CellDelta } from "app/common/TabularDiff";
 import { TimeCursor } from "app/common/TimeQuery";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { createDocTools } from "test/server/docTools";
+import { S, td } from "test/server/lib/ActionSummaryTestHelpers";
 import * as testUtils from "test/server/testUtils";
 import { assert } from "test/server/testUtils";
 
@@ -18,16 +19,6 @@ import { cloneDeep, keyBy } from "lodash";
 /** get a summary of the last LocalActionBundle applied to a given document */
 async function summarizeLastAction(doc: ActiveDoc, options?: ActionSummaryOptions) {
   return summarizeAction((await doc.getRecentActionsDirect(1))[0], options);
-}
-
-/** A TableDelta with the given fields overriding an empty one. */
-function td(o: Partial<TableDelta> = {}): TableDelta {
-  return { ...createEmptyTableDelta(), ...o };
-}
-
-/** An ActionSummary from its renames and (optional) per-table deltas. */
-function S(tableRenames: LabelDelta[], tableDeltas: ActionSummary["tableDeltas"] = {}): ActionSummary {
-  return { tableRenames, tableDeltas };
 }
 
 describe("ActionSummary", function() {

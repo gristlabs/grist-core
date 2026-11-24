@@ -288,10 +288,14 @@ export function rootTableName(id: string): string {
  * schema or data changes.  Tables are identified by their post-action name.
  * Deleted tables are identified by their pre-action name, with "-" prepended.
  */
-export function getAffectedTables(summary: ActionSummary): string[] {
+export function getAffectedTables(summary: ActionSummary, options?: { noDefunctPrefix?: boolean }): string[] {
+  const formatDefunctTableName: (name: string) => string = options?.noDefunctPrefix ?
+    name => name :
+    name => defunctTableName(name);
+
   return [
     // Tables added, renamed, or removed in this action.
-    ...summary.tableRenames.map(pair => pair[1] || defunctTableName(pair[0] || "")),
+    ...summary.tableRenames.map(pair => pair[1] || formatDefunctTableName(pair[0] || "")),
     // Tables modified in this action.
     ...Object.keys(summary.tableDeltas),
   ];

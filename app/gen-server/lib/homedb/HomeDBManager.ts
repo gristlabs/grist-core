@@ -3336,6 +3336,21 @@ export class HomeDBManager implements HomeDBAuth {
       .getOne();
   }
 
+  /**
+   * Lists all syncs that are downstream of a given source document - excludes downstream documents in the trash.
+   */
+  public async getSyncsBySourceDoc(sourceDocId: string): Promise<Sync[]> {
+    return this._connection.createQueryBuilder()
+      .select("syncs")
+      .from(Sync, "syncs")
+      .innerJoin("syncs.destDoc", "destDoc")
+      .innerJoin("destDoc.workspace", "workspace")
+      .where("syncs.source_doc_id = :sourceDocId", { sourceDocId })
+      .andWhere("destDoc.removedAt IS NULL")
+      .andWhere("workspace.removedAt IS NULL")
+      .getMany();
+  }
+
   public async deleteSync(destDocId: string, syncId: string) {
     await this._connection.createQueryBuilder()
       .delete()

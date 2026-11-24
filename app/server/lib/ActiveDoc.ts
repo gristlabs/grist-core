@@ -91,6 +91,7 @@ import { commonUrls, parseUrlId } from "app/common/gristUrls";
 import { byteString, countIf, retryOnce, safeJsonParse, timeoutReached } from "app/common/gutil";
 import { InactivityTimer } from "app/common/InactivityTimer";
 import { Interval } from "app/common/Interval";
+import { KeyedOps } from "app/common/KeyedOps";
 import { APPROACHING_LIMIT_RATIO, getUsageRatio, LimitExceededError } from "app/common/Limits";
 import { normalizedDateTimeString } from "app/common/normalizedDateTimeString";
 import {
@@ -101,6 +102,7 @@ import {
 import * as roles from "app/common/roles";
 import { schema, SCHEMA_VERSION } from "app/common/schema";
 import { MetaRowRecord, SingleCell } from "app/common/TableData";
+import { parseTableOptions } from "app/common/TableOptions";
 import { LimitStatus, TelemetryEvent, TelemetryMetadataByLevel } from "app/common/Telemetry";
 import { FetchUrlOptions, UploadResult } from "app/common/uploads";
 import {
@@ -112,12 +114,14 @@ import {
   Document as APIDocument,
   ExpandTableOption,
   NEW_DOCUMENT_CODE,
+  UserAPIImpl,
 } from "app/common/UserAPI";
 import { convertFromColumn } from "app/common/ValueConverter";
 import { guessColInfo } from "app/common/ValueGuesser";
 import { parseUserAction } from "app/common/ValueParser";
 import { Document } from "app/gen-server/entity/Document";
 import { Share } from "app/gen-server/entity/Share";
+import { Sync } from "app/gen-server/entity/Sync";
 import { Scope } from "app/gen-server/lib/homedb/HomeDBManager";
 import { ColumnMetadata, TableMetadata } from "app/plugin/DocApiTypes";
 import { ParseFileResult, ParseOptions } from "app/plugin/FileParserAPI";
@@ -257,6 +261,17 @@ export const Deps = {
   SHUTDOWN_ITEM_TIMEOUT_MS,
   KEEP_DOC_OPEN_TIMEOUT_MS,
   MAX_INTERNAL_ATTACHMENTS_BYTES,
+
+  // The delay between a change happening and syncs being triggered, after initial load or THROTTLE_MS has passed.
+  SYNC_TRIGGER_FIRST_DELAY_MS: appSettings.section("sync").flag("triggerFirstDelayMs")
+    .requireInt({ envVar: "GRIST_SYNC_TRIGGER_FIRST_DELAY_MS", defaultValue: 5_000 }),
+  // Delay between sync requests sent to downstream documents. Lower values increase responsiveness and workload.
+  SYNC_TRIGGER_THROTTLE_MS: appSettings.section("sync").flag("triggerThrottleMs")
+    .requireInt({ envVar: "GRIST_SYNC_TRIGGER_THROTTLE_MS", defaultValue: 30_000 }),
+  // Maximum time to wait for a downstream document to accept a sync trigger. Kept under
+  // SHUTDOWN_ITEM_TIMEOUT_MS so a trigger flushed at shutdown cannot outlast its budget.
+  SYNC_TRIGGER_TIMEOUT_MS: appSettings.section("sync").flag("triggerTimeoutMs")
+    .requireInt({ envVar: "GRIST_SYNC_TRIGGER_TIMEOUT_MS", defaultValue: 3_000 }),
 };
 
 interface ActiveDocOptions {
@@ -368,6 +383,9 @@ export class ActiveDoc extends EventEmitter {
     return this._onInactive();
   }, Deps.ACTIVEDOC_TIMEOUT * 1000);
 
+  // Debounces sync calls: they run after an initial delay, and no more than the throttle rate.
+  // Prevents frequent changes triggering near-continuous syncing on downstream docs.
+  private _syncOps: KeyedOps;
   private _recoveryMode: boolean = false;
   private _shuttingDown: boolean = false;
   private _afterShutdownCallback?: () => Promise<void>;
@@ -528,6 +546,21 @@ export class ActiveDoc extends EventEmitter {
     this._attachmentFileManager
       .on(AttachmentFileManager.events.TRANSFER_STARTED, notifier)
       .on(AttachmentFileManager.events.TRANSFER_COMPLETED, notifier);
+
+    this._syncOps = new KeyedOps(
+      async () => {
+        try {
+          await this._triggerSyncsFromSource();
+        } catch (err) {
+          this._log.warn(makeExceptionalDocSession("system"), "failed to trigger syncs from source", err);
+        }
+      }, {
+        // Ensures future changes don't keep delaying the initial request.
+        scheduleFromFirstAdd: true,
+        delayBeforeOperationMs: Deps.SYNC_TRIGGER_FIRST_DELAY_MS,
+        minDelayBetweenOperationsMs: Deps.SYNC_TRIGGER_THROTTLE_MS,
+      },
+    );
 
     // Our DataEngine is a separate sandboxed process (one sandbox per open document,
     // corresponding to many processes for gvisor).
@@ -2596,6 +2629,16 @@ export class ActiveDoc extends EventEmitter {
     return this._server.getDocNotificationManager()?.notifySubscribers(docSession, this._docName, accessControl);
   }
 
+  /**
+   * After a delay, triggers all downstream documents to sync.
+   * Subsequent calls when a sync is already scheduled are coalesced, making this only fire once.
+   */
+  public scheduleSyncsFromSource(): void {
+    // Avoid trying to trigger a sync from docs that don't support it, or on closed docs.
+    if (this.isFork || this._isSnapshot || this.muted) { return; }
+    this._syncOps.addOperation("sync");
+  }
+
   public recordMcpToolCall(userId?: number) {
     this._mcpToolCalls++;
     if (userId !== undefined) { this._mcpUsers.add(userId); }
@@ -2730,6 +2773,73 @@ export class ActiveDoc extends EventEmitter {
     }
   }
 
+  /**
+   * Triggers a sync on every downstream document that uses this one as a sync source.
+   * Logs and suppresses failed requests, as the next change will trigger another.
+   */
+  private async _triggerSyncsFromSource(): Promise<void> {
+    if (this.docData && !this._hasSyncableTables(this.docData)) {
+      return;
+    }
+    const docSession = makeExceptionalDocSession("system");
+    // No manager is an installation without a home db, where no sync can be recorded at all.
+    const allSyncs = await this.getHomeDbManager()
+      ?.getSyncsBySourceDoc(this.docName);
+    // Remove syncs with no owner or no authorized tables - they're broken, and not worth waking the doc for.
+    const validSyncs = allSyncs?.filter(sync => sync.ownerId && sync.options?.authorizedTableIds?.length);
+    if (!validSyncs?.length) {
+      this._log.debug(docSession, "no syncs to trigger");
+      return;
+    }
+    this._log.info(docSession, `triggering syncs for ${validSyncs.length} downstream documents due to changes`);
+    await Promise.all(validSyncs.map(async (sync) => {
+      try {
+        await this._triggerSync(docSession, sync);
+      } catch (err) {
+        const { syncId, destDocId } = sync;
+        // The destination queues the run independently of this request, so giving up on the wait
+        // does not give up on the run.
+        if (err.name === "TimeoutError") {
+          this._log.debug(docSession, `timeout waiting to queue run of sync ${syncId} of doc ${destDocId}`);
+          return;
+        }
+        if (err instanceof ApiError) {
+          this._log.warn(docSession,
+            `run of sync ${syncId} of doc ${destDocId} refused with ${err.status}: %s`, err.message);
+          return;
+        }
+        this._log.warn(docSession, `failed to trigger sync ${sync.syncId} of doc ${sync.destDocId}`, err);
+      }
+    }));
+    // Destinations will likely read from this doc after being notified,
+    // keep it open to reduce risk of this document closing and needing to be reopened.
+    this._inactivityTimer.ping();
+  }
+
+  private async _triggerSync(docSession: OptDocSession, sync: Sync): Promise<void> {
+    const { destDocId, syncId } = sync;
+
+    const permitStore = this._server.getPermitStore();
+    const permitKey = await permitStore.setPermit({ docId: destDocId });
+    try {
+      // Use the HomeURL so the request is routed automatically to the correct worker.
+      const api = new UserAPIImpl(this._server.getHomeInternalUrl(), {
+        headers: { Permit: permitKey },
+        // Avoid waiting long for downstream docs - this should be a fairly quick fire-and-forget request.
+        fetch: (input, init) => globalThis.fetch(
+          input, { ...init, signal: AbortSignal.timeout(Deps.SYNC_TRIGGER_TIMEOUT_MS) }),
+      });
+      await api.getDocAPI(destDocId).runSync(syncId);
+    } finally {
+      await permitStore.removePermit(permitKey);
+    }
+  }
+
+  private _hasSyncableTables(docData: DocData): boolean {
+    const tableRecords = docData.getMetaTable("_grist_Tables").getRecords();
+    return tableRecords.some(table => parseTableOptions(table.options)?.allowSyncing === true);
+  }
+
   private async _doShutdownImpl(
     options: { beforeShutdown?: () => Promise<void>, compact?: boolean },
   ): Promise<void> {
@@ -2762,6 +2872,15 @@ export class ActiveDoc extends EventEmitter {
       }
 
       this._webhookQueue.shutdown();
+
+      // Trigger any downstream documents waiting to be notified that they need to sync
+      // Theoretically could enter a close -> flush -> reopen -> update formulas -> close -> flush loop.
+      // Partly mitigated in normal operation by extending the idle timeout of this doc when we notify downstream
+      // documents, but still possible in specific cases where a downstream doc always takes a long time to respond.
+      await safeCallAndWait("flushing pending syncs", () => this._syncOps.wait(
+        () => this._log.info(docSession, "waiting for pending syncs"),
+        { expedite: true },
+      ));
 
       // attachmentFileManager needs to shut down before DocStorage, to allow transfers to finish.
       await safeCallAndWait("attachmentFileManager",

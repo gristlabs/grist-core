@@ -413,7 +413,10 @@ export class HostedStorageManager implements IDocStorageManager {
    * Close the storage manager.  Make sure any pending changes reach S3 first.
    */
   public async closeStorage(): Promise<void> {
-    await this._uploads.wait(() =>  this._log.info(null, "waiting for closeStorage to finish"));
+    await this._uploads.wait(
+      () =>  this._log.info(null, "waiting for closeStorage to finish"),
+      { expedite: true },
+    );
 
     // Close metadata manager.
     if (this._metadataManager) { await this._metadataManager.close(); }
@@ -464,7 +467,7 @@ export class HostedStorageManager implements IDocStorageManager {
   // for testing purposes.
   public async testStopOperations() {
     this._uploads.stopOperations();
-    await this._uploads.wait();
+    await this._uploads.wait(undefined, { expedite: true });
   }
 
   /**

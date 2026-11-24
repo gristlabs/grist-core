@@ -8,6 +8,7 @@ import {
   UserActionBundle,
 } from "app/common/ActionBundle";
 import { summarizeAction } from "app/common/ActionSummarizer";
+import { ActionSummary, getAffectedTables } from "app/common/ActionSummary";
 import { ApplyUAExtendedOptions, ApplyUAResult } from "app/common/ActiveDocAPI";
 import { DocAction, getNumRows, SYSTEM_ACTIONS, UserAction } from "app/common/DocActions";
 import { ActionHistory, asActionGroup, getActionUndoInfo } from "app/server/lib/ActionHistory";
@@ -196,6 +197,8 @@ export class Sharing {
         insightLog?.mark("syncShares");
       }
 
+      this._scheduleSyncsFromSourceIfChanged(docSession, actionSummary);
+
       insightLog?.addMeta({ docRowCount: sandboxActionBundle.rowCount.total });
       await this._activeDoc.updateRowCount(sandboxActionBundle.rowCount, docSession);
       insightLog?.mark("updateRowCount");
@@ -359,6 +362,15 @@ export class Sharing {
       rowCount: undoResult.rowCount,
     };
   }
+
+  private _scheduleSyncsFromSourceIfChanged(docSession: OptDocSession, actionSummary: ActionSummary) {
+    try {
+      if (!mayAffectSyncedData(actionSummary)) { return; }
+      this._activeDoc.scheduleSyncsFromSource();
+    } catch (e) {
+      this._log.warn(docSession, "failed to schedule syncs from source", e);
+    }
+  }
 }
 
 const allToken: string = "#ALL";
@@ -372,4 +384,19 @@ export function findOrAddAllEnvelope(envelopes: Envelope[]): number {
   if (i >= 0) { return i; }
   envelopes.push({ recipients: [allToken] });
   return envelopes.length - 1;
+}
+
+/**
+ * Checks if an action summary's changes affect any tables which may be mirrored elsewhere.
+ * This includes _grist_Tables and _grist_Tables_column for metadata changes.
+ */
+export function mayAffectSyncedData(summary: ActionSummary): boolean {
+  // A removed table's id arrives "-"-prefixed.
+  const affectedTables = getAffectedTables(summary, { noDefunctPrefix: true }).filter(Boolean);
+  return affectedTables.some(tableId =>
+    // Normal data table
+    !tableId.startsWith("_") ||
+    // Potential schema change, including "allowSyncing" being disabled
+    tableId === "_grist_Tables" || tableId === "_grist_Tables_column",
+  );
 }

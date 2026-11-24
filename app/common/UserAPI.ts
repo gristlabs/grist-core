@@ -681,6 +681,7 @@ export interface DocAPI {
   getStates(): Promise<DocStates>;
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
+  runSync(syncId: string): Promise<void>;
   copyDoc(workspaceId: number | undefined, options?: CopyDocOptions): Promise<string>;
   // Compare two documents, optionally including details of the changes.
   compareDoc(
@@ -1425,6 +1426,12 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async recover(recoveryMode: boolean): Promise<void> {
     await this.request(`${this._url}/recover`, {
       body: JSON.stringify({ recoveryMode }),
+      method: "POST",
+    });
+  }
+
+  public async runSync(syncId: string): Promise<void> {
+    await this.request(`${this._url}/sync/${encodeURIComponent(syncId)}/run`, {
       method: "POST",
     });
   }
