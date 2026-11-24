@@ -17,7 +17,7 @@ jobs:
     if: github.repository_owner == 'gristlabs'
     steps:
       - uses: actions/checkout@v3
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # master
         with:
           version: 0.2.72
       - run: node buildtools/fly-deploy.js clean
