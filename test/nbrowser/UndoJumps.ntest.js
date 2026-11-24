@@ -65,6 +65,7 @@ describe("UndoJumps.ntest", function() {
     let cell = gu.getDetailCell("Name", 20);
     await cell.click();
     assert.equal(await cell.text(), "Santafé de Bogotá");
+    await gu.waitAppFocus();
     await gu.sendKeys("det-update", $.ENTER);
     await gu.waitForServer();
 
