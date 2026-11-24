@@ -16,6 +16,7 @@ import { EditorPlacement, ISize } from "app/client/widgets/EditorPlacement";
 import { createDetachedIcon } from "app/client/widgets/FloatingEditor";
 import { FormulaAssistant } from "app/client/widgets/FormulaAssistant";
 import { NewBaseEditor, Options } from "app/client/widgets/NewBaseEditor";
+import { AssistantInstructions } from "app/common/Assistance";
 import { asyncOnce } from "app/common/AsyncCreate";
 import { CellValue } from "app/common/DocActions";
 import { isRaisedException } from "app/common/gristTypes";
@@ -38,6 +39,7 @@ export interface IFormulaEditorOptions extends Options {
   column: ColumnRec;
   field?: ViewFieldRec;
   canDetach?: boolean;
+  assistantInstructions?: AssistantInstructions;
 }
 
 /**
@@ -275,6 +277,7 @@ export class FormulaEditor extends NewBaseEditor {
           field: this.options.field,
           gristDoc: this.options.gristDoc,
           editor: this,
+          specificInstructions: this.options.assistantInstructions,
         });
       }),
     );
@@ -514,6 +517,7 @@ export function openFormulaEditor(options: {
   onSave?: (column: ColumnRec, formula: string) => Promise<void>,
   onCancel?: () => void,
   canDetach?: boolean,
+  assistantInstructions?: AssistantInstructions,
   // Called after editor is created to set up editor cleanup (e.g. saving on click-away).
   setupCleanup: (
     owner: Disposable,
@@ -527,8 +531,6 @@ export function openFormulaEditor(options: {
 
   if (options.field) {
     options.column = options.field.origCol();
-  } else if (options.canDetach) {
-    throw new Error("Field is required for detached editor");
   }
 
   // We can't rely on the field passed in, we need to create our own.
@@ -586,6 +588,7 @@ export function openFormulaEditor(options: {
     cssClass: "formula_editor_sidepane",
     readonly: false,
     canDetach: options.canDetach,
+    assistantInstructions: options.assistantInstructions,
   };
   const editor = FormulaEditor.create(null, editorOptions);
   editor.autoDispose(attachedHolder);
