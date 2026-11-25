@@ -28,6 +28,7 @@ export type BootProbeIds =
   "sandboxing" |
   "system-user" |
   "authentication" |
+  "anon-playground" |
   "websockets" |
   "session-secret" |
   "service-status" |

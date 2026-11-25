@@ -1,6 +1,12 @@
 import { MountInfo, OutgoingRequestsProbeDetails, PersistDataBootProbeDetails } from "app/common/BootProbe";
 import { appSettings } from "app/server/lib/AppSettings";
-import { _dataPersistsProbe, _outgoingRequestsProbe, _persistDataVerdict } from "app/server/lib/BootProbes";
+import {
+  _anonPlaygroundProbe,
+  _dataPersistsProbe,
+  _outgoingRequestsProbe,
+  _persistDataVerdict,
+} from "app/server/lib/BootProbes";
+import { getAnonPlaygroundEnabled } from "app/server/lib/gristSettings";
 import { OUTGOING_REQUEST_ENV_VARS } from "app/server/lib/outgoingRequests";
 import { mountFor } from "app/server/lib/storageDurability";
 import { configForUser } from "test/gen-server/testUtils";
@@ -280,5 +286,39 @@ describe("BootProbes persist-data", () => {
       assert.isTrue(d.usesPostgres);
       assert.isNull(d.homeDbMount);
     });
+  });
+});
+
+describe("BootProbes anon-playground", () => {
+  let env: EnvironmentSnapshot;
+
+  beforeEach(() => {
+    env = new EnvironmentSnapshot();
+    delete process.env.GRIST_ANON_PLAYGROUND;
+    getAnonPlaygroundEnabled.cache.clear();
+  });
+
+  afterEach(() => {
+    env.restore();
+    getAnonPlaygroundEnabled.cache.clear();
+  });
+
+  it("reports disabled when the playground is off", async () => {
+    process.env.GRIST_ANON_PLAYGROUND = "0";
+    getAnonPlaygroundEnabled.cache.clear();
+    const result = await _anonPlaygroundProbe.apply(undefined as any, undefined as any);
+    assert.equal(result.status, "none");
+    assert.isFalse(result.details?.enabled);
+    assert.isUndefined(result.verdict);
+  });
+
+  it("reports enabled with its source when the playground is on", async () => {
+    process.env.GRIST_ANON_PLAYGROUND = "1";
+    getAnonPlaygroundEnabled.cache.clear();
+    const result = await _anonPlaygroundProbe.apply(undefined as any, undefined as any);
+    assert.equal(result.status, "none");
+    assert.isTrue(result.details?.enabled);
+    assert.equal(result.details?.source, "env");
+    assert.match(result.verdict ?? "", /enabled/);
   });
 });
