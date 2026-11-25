@@ -7,6 +7,7 @@ import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { withCustomCssVars } from "app/client/lib/customCssParser";
 import { makeTestId } from "app/client/lib/domUtils";
 import { sanitizeHttpUrl } from "app/client/lib/sanitizeUrl";
+import { isSyntheticRowId } from "app/client/models/DataTableModelWithDiff";
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { reportError } from "app/client/models/errors";
 import { gristThemeObs } from "app/client/ui2018/theme";
@@ -14,6 +15,7 @@ import { AccessLevel, ICustomWidget, isSatisfied, matchWidget } from "app/common
 import { DisposableWithEvents } from "app/common/DisposableWithEvents";
 import { BulkColValues, CellValue, fromTableDataAction, RowRecord } from "app/common/DocActions";
 import { extractInfoFromColType, GristTypeInfo, reencodeAsTypedCellValue } from "app/common/gristTypes";
+import { TableData } from "app/common/TableData";
 import { convertThemeKeysToCssVars } from "app/common/ThemePrefs";
 import { getGristConfig } from "app/common/urlUtils";
 import { parseWidgetError } from "app/common/WidgetCreatorCode";
@@ -22,7 +24,7 @@ import {
   AccessTokenOptions, CursorPos, CustomSectionAPI, FetchSelectedOptions, GristDocAPI, GristView,
   InteractionOptionsRequest, WidgetAPI, WidgetColumnMap,
 } from "app/plugin/grist-plugin-api";
-import { CellFormatType } from "app/plugin/GristAPI";
+import { CellFormatType, UIRowId } from "app/plugin/GristAPI";
 import { GristObjCode } from "app/plugin/GristData";
 import { WidgetError } from "app/plugin/WidgetErrors";
 
@@ -487,7 +489,8 @@ export class GristViewImpl implements GristView {
     // Hidden/Visible columns will eventually reflect what is available, but this operation
     // is not instant - and widget can receive rows with fields that are not in the mapping.
     const columns: ColumnRec[] = this._visibleColumns(options);
-    const rowIds = this._baseView.sortedRows.getKoArray().peek().filter(id => id != "new");
+    const rowIds = this._baseView.sortedRows.getKoArray().peek()
+      .filter(id => id !== "new" && !isSyntheticRowId(id));
     const data: BulkColValues = {};
     const expandRefs = options.expandRefs ?? (options.cellFormat === "typed" ? false : true);
     const reencode = getReencode(options.cellFormat);
@@ -495,7 +498,7 @@ export class GristViewImpl implements GristView {
       // Use the colId of the displayCol when expanding references, so
       // we don't get the underlying refId instead.
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
-      const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId);
+      const getter = this._tableData.getRowPropFunc(colId);
       const typeInfo = extractInfoFromColType(column.type.peek());
       data[column.colId.peek()] = rowIds.map(r => reencode(getter(r)!, typeInfo));
     }
@@ -517,7 +520,7 @@ export class GristViewImpl implements GristView {
       const typeInfo = extractInfoFromColType(column.type.peek());
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
       data[column.colId.peek()] = reencode(
-        this._baseView.tableModel.tableData.getValue(rowId, colId)!,
+        this._tableData.getValue(rowId, colId)!,
         typeInfo,
       );
     }
@@ -543,6 +546,14 @@ export class GristViewImpl implements GristView {
   public setCursorPos(cursorPos: CursorPos): Promise<void> {
     this._baseView.setCursorPos(cursorPos);
     return Promise.resolve();
+  }
+
+  /**
+   * The table without the diff of a comparison. In suggestion mode the widget sees the
+   * document as it would be after the suggestion is applied.
+   */
+  private get _tableData(): TableData {
+    return this._baseView.gristDoc.getTableModel(this._baseView.viewSection.tableId.peek()).tableData;
   }
 
   private _visibleColumns(options: FetchSelectedOptions): ColumnRec[] {
@@ -691,7 +702,7 @@ export class RecordNotifier extends BaseEventSource {
     }
     const state = {
       tableId: this._baseView.viewSection.table().tableId(),
-      rowId: this._baseView.cursor.getCursorPos().rowId || undefined,
+      rowId: getCursorRowId(this._baseView),
       dataChange: false,
     };
     this._notify(state);
@@ -838,7 +849,7 @@ export class TableNotifier extends BaseEventSource {
     }
     const state = {
       tableId: this._baseView.viewSection.table().tableId(),
-      rowId: this._baseView.cursor.getCursorPos().rowId || undefined,
+      rowId: getCursorRowId(this._baseView),
       dataChange: true,
       mappingsChange: this._updateMapping,
     };
@@ -911,4 +922,15 @@ function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellValue {
     }
   }
   return value;
+}
+
+/**
+ * The row under the cursor, as a widget can see it: undefined when there is no row, and null
+ * for rows shown only by a comparison (e.g. removed rows in suggestion mode), which don't exist
+ * in the table. The plugin API calls onRecord for neither.
+ */
+function getCursorRowId(baseView: BaseView): UIRowId | null | undefined {
+  const rowId = baseView.cursor.getCursorPos().rowId;
+  if (isSyntheticRowId(rowId)) { return null; }
+  return rowId || undefined;
 }

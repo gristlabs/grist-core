@@ -82,7 +82,9 @@ describe("ProposedChangesPage", function() {
     // Check that expanding context works (at least, that it does something).
     await expand("TABLE1");
     await driver.findWait(".test-actionlog-tabular-diffs .field_clip", 2000);
-    assert.deepEqual(await getColumns("TABLE1"), ["id", "A", "B", "C", "D", "E"]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await getColumns("TABLE1"), ["id", "A", "B", "C", "D", "E"]);
+    });
     assert.deepEqual(await getRowValues("TABLE1", 0), ["1", "test1test2", "", "", "", "TEST1TEST2"]);
     assert.deepEqual(await getChangeType("TABLE1", 0), "→");
 
@@ -1942,6 +1944,55 @@ describe("ProposedChangesPage", function() {
     await returnToTrunk(url);
   });
 
+  it("gives a custom widget the rows of the suggestion, without diffs", async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await gu.addNewSection(/Create your own/, /Life/);
+    await gu.sendActions([
+      ["UpdateRecord", "_grist_Views_section", await gu.getSectionId(), {
+        options: JSON.stringify({
+          html: `<script src="grist-plugin-api.js"></script>
+<pre id="records">[]</pre>
+<pre id="record">{}</pre>
+<pre id="recordIds">[]</pre>
+<script>
+  const ids = [];
+  grist.ready({ requiredAccess: "read table" });
+  grist.onRecords(r => { records.textContent = JSON.stringify(r); });
+  grist.onRecord(r => {
+    record.textContent = JSON.stringify(r);
+    if (ids[ids.length - 1] !== r.id) { ids.push(r.id); }
+    recordIds.textContent = JSON.stringify(ids);
+  });
+</script>`,
+          customView: JSON.stringify({ access: "read table" }),
+        }),
+      }],
+    ]);
+    await gu.selectBy("LIFE");
+
+    await workOnCopy(url);
+    await assertWidgetOutput("records", [{ id: 1, A: 10, B: "Fish" }, { id: 2, A: 20, B: "Primate" }]);
+    await assertWidgetOutput("record", { id: 1, A: 10, B: "Fish" });
+
+    await gu.sendActions([
+      ["UpdateRecord", "Life", 1, { B: "Bird" }],
+      ["AddRecord", "Life", null, { A: 30, B: "Newt" }],
+      ["RemoveRecord", "Life", 2],
+    ]);
+    await assertWidgetOutput("records", [{ id: 1, A: 10, B: "Bird" }, { id: 3, A: 30, B: "Newt" }]);
+    await assertWidgetOutput("record", { id: 1, A: 10, B: "Bird" });
+
+    // The removed row is shown in the grid, but the widget is not told about it.
+    await gu.getCell({ section: "LIFE", rowNum: 2, col: "B" }).click();
+    await gu.getCell({ section: "LIFE", rowNum: 3, col: "B" }).click();
+    await assertWidgetOutput("record", { id: 3, A: 30, B: "Newt" });
+    await assertWidgetOutput("recordIds", [1, 3]);
+
+    await returnToTrunk(url);
+  });
+
   async function makeLifeDoc() {
     // Load a test document.
     const session = await gu.session().teamSite.login();
@@ -1985,6 +2036,17 @@ describe("ProposedChangesPage", function() {
     await driver.get(url);
     if (await gu.isAlertShown()) { await gu.acceptAlert(); }
     await gu.waitForDocToLoad();
+  }
+
+  // What the Widget Creator widget on the Life page got from onRecords or onRecord.
+  // "recordIds" lists the ids onRecord got, in order, without repeats.
+  async function assertWidgetOutput(elementId: "records" | "record" | "recordIds", expected: object) {
+    const iframe = await gu.getSection("LIFE Custom").findWait("iframe", 2000);
+    await gu.doInIframe(iframe, async () => {
+      await gu.waitToPass(async () => {
+        assert.deepEqual(JSON.parse(await driver.findWait(`#${elementId}`, 3000).getText()), expected);
+      }, 3000);
+    });
   }
 
   // Propose a change.
