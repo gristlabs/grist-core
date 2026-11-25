@@ -2,6 +2,7 @@ import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { IMemoryLoadEstimator } from "app/server/lib/DocManager";
 import { Deps, DocWorkerLoadTracker } from "app/server/lib/DocWorkerLoadTracker";
 import { DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
+import { gristDocWorkerLoadRatio, gristDocWorkerMemoryUsedBytes } from "app/server/lib/metrics";
 
 import fs from "node:fs/promises";
 
@@ -131,12 +132,13 @@ describe("DocWorkerLoadTracker", function() {
   });
 
   describe("interval runner", function() {
-    let getLoadStub: sinon.SinonStub;
+    let readLoadStub: sinon.SinonStub;
     let setWorkerLoadStub: sinon.SinonStub;
     let recordWorkerAliveStub: sinon.SinonStub;
     let logErrorStub: sinon.SinonStub;
     beforeEach(function() {
-      getLoadStub = sandbox.stub(docWorkerLoadTracker, "getLoad").resolves(0);
+      readLoadStub = sandbox.stub(docWorkerLoadTracker as any, "_readLoad")
+        .resolves({ loadRatio: 0, memoryUsedMB: 0, memoryTotalMB: Infinity });
       setWorkerLoadStub = sandbox.stub(docWorkerMap, "setWorkerLoad").resolves(undefined);
       recordWorkerAliveStub = sandbox.stub(docWorkerMap, "recordWorkerAlive").resolves(undefined);
       logErrorStub = sandbox.stub(docWorkerLoadTracker["_log"], "error").returns(undefined);
@@ -145,7 +147,7 @@ describe("DocWorkerLoadTracker", function() {
     const triggerTimer = () => docWorkerLoadTracker["_interval"]["_onTimeoutTriggered"]();
 
     it("should update the worker load when the timer is triggered", async function() {
-      getLoadStub.resolves(0.42);
+      readLoadStub.resolves({ loadRatio: 0.42, memoryUsedMB: 168, memoryTotalMB: 400 });
       await triggerTimer();
       assert.equal(setWorkerLoadStub.callCount, 1,
         "setWorkerLoad should have been called to update the load value");
@@ -154,11 +156,14 @@ describe("DocWorkerLoadTracker", function() {
       assert.deepEqual(setWorkerLoadStub.firstCall.args,
         [docWorkerInfoMap, 0.42]);
       assert.equal(recordWorkerAliveStub.callCount, 0);
+      assert.deepEqual((await gristDocWorkerLoadRatio.get()).values.map(v => v.value), [0.42]);
+      assert.deepEqual((await gristDocWorkerMemoryUsedBytes.get()).values.map(v => v.value),
+        [168 * 1024 ** 2]);
     });
 
     it("should log an error when the worker load cannot be computed", async function() {
       const error = new Error("an error");
-      getLoadStub.rejects(error);
+      readLoadStub.rejects(error);
       await triggerTimer();
       assert.equal(setWorkerLoadStub.callCount, 0, "setWorkerLoad should not have been called");
       assert.include(logErrorStub.firstCall.args, error, "the error should have been logged");
