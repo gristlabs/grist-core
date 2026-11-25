@@ -1271,7 +1271,12 @@
         "Hidden {{label}}": "Dold {{label}}",
         "Show {{label}}": "Visa {{label}}",
         "Hide {{label}} (batch mode)": "Dölj {{label}} (gruppvis)",
-        "Show {{label}} (batch mode)": "Visa {{label}} (gruppvis)"
+        "Show {{label}} (batch mode)": "Visa {{label}} (gruppvis)",
+        "Clear hidden columns filter": "Rensa filter för dolda kolumner",
+        "Clear visible columns filter": "Rensa filtter för synliga kolumner",
+        "Filter": "Filter",
+        "Filter hidden columns": "Filtrera dolda kolumner",
+        "Filter visible columns": "Filtrera synliga kolumner"
     },
     "breadcrumbs": {
         "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Du kan redigera, men det kommer att skapa en ny kopia och\nkommer inte påverka originaldokumentet.",
@@ -1430,7 +1435,9 @@
         "Rule must return True or False": "Villkoret måste returnera sant eller falskt",
         "Conditional Style": "Villkorsstyrd stil",
         "IF...": "OM...",
-        "Row Style": "Radstil"
+        "Row Style": "Radstil",
+        "{{tableId}} - Conditional Style": "{{tableId}} - Villkorsstyrd stil",
+        "{{tableId}}.{{actualColId}} - Conditional Style": "{{tableId}}.{{actualColId}} - Villkorsstyrd stil"
     },
     "CurrencyPicker": {
         "Invalid currency": "Ogiltig valuta"
@@ -3668,7 +3675,17 @@
         "No document can be opened until a server is registered to hold it. Check that at least one server runs as a doc worker, and that it can reach Redis.": "Inget dokument kan öppnas tills en server är registrerad för att lagra det. Kontrollera att minst en server kör som dokument handerare och att den kan nå Redis.",
         "Registered, and keeping the documents it holds, but taking no new ones. Normal while a server shuts down.": "Registrerad och behåller de dokument som är lagrade på den, men tar inte emot nya. Normalt när en server stängs av.",
         "Set options through the environment rather than on this page, so that every server is configured the same way.": "Ställ in inställningar genom miljövariabler i stället för denna sida, så att alla servrar ställs in på samma sätt.",
-        "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.": "Grist processen kan vara borta, eller kan inte nå Redis. Stäng av servern permanent innan arbete med att åtgärda detta påbörjas, annars kan en server som bara är upptagen med att hantera anrop komma igång igen och skriva till dokumentet som en annan server lagrar."
+        "The Grist process may be gone, or unable to reach Redis, or simply too busy to say anything. Stop the server for good before doing anything about it, or a server that is merely busy could come back and write to documents another server now holds.": "Grist processen kan vara borta, eller kan inte nå Redis. Stäng av servern permanent innan arbete med att åtgärda detta påbörjas, annars kan en server som bara är upptagen med att hantera anrop komma igång igen och skriva till dokumentet som en annan server lagrar.",
+        "Deregistered {{workerId}}, releasing {{count}} documents_one": "Avregistrerade {{workerId}}, frigör {{count}} dokument",
+        "Deregistered {{workerId}}, releasing {{count}} documents_other": "Avregistrerade {{workerId}}, frigör {{count}} dokument",
+        "Deregister": "Avregistrera",
+        "Deregister and release documents": "Avregistrera och frigör dokument",
+        "Deregister anyway": "Avregistrera ändå",
+        "Deregister anyway?": "Avregistrera ändå?",
+        "Deregister this server?": "Avregistrera denna server?",
+        "Options for {{workerId}}": "Alternativ för {{workerId}}",
+        "This frees the documents held by {{workerId}} so other servers can serve them. Do this only if you've confirmed that server is gone for good.": "Detta frigör dokumenten som hålls av {{workerId}} så att andra servrar kan tillhandahålla dom. Gör detta bara om du har försäkrat dig om att servern är borta för alltid.",
+        "{{workerId}} is still reporting that it is running. Deregister it only if you know it is gone.": "{{workerId}} rapporterar fortfarande att den är i drift. Avregistrera enbart om du vet att den är borta."
     },
     "GristImportEntryPoints": {
         "Copy data from another document": "Kopiera data från ett annat dokument"
