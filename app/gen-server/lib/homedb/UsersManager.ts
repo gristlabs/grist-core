@@ -434,126 +434,20 @@ export class UsersManager {
    * unset/outdated fields of an existing record.
    *
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = "login") {
-    const { manager: transaction, profile, userOptions } = options;
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = "login"): Promise<User> {
+    const { manager, profile, userOptions } = options;
     const normalizedEmail = normalizeEmail(email);
-    return await this._runInTransaction(transaction, async (manager) => {
-      let needUpdate = false;
-      const userQuery = manager.createQueryBuilder()
-        .select("user")
-        .from(User, "user")
-        .leftJoinAndSelect("user.logins", "logins")
-        .leftJoinAndSelect("user.personalOrg", "personalOrg")
-        .where("email = :email", { email: normalizedEmail });
-      let user = await userQuery.getOne();
-      let login: Login;
-      if (!user) {
-        user = new User();
-        // Special users do not have first time user set so that they don't get redirected to the
-        // welcome page.
-        user.isFirstTimeUser = !NON_LOGIN_EMAILS.includes(normalizedEmail);
-        user.type = type;
-        login = new Login();
-        login.email = normalizedEmail;
-        login.user = user;
-        needUpdate = true;
-      } else {
-        login = user.logins[0];
-      }
-
-      // Check that user and login records are up to date.
-      if (!user.name) {
-        // Set the user's name if our provider knows it. Otherwise use their username
-        // from email, for lack of something better. If we don't have a profile at this
-        // time, then leave the name blank in the hopes of learning it when the user logs in.
-        user.name = (profile && this._getNameOrDeduceFromEmail(profile.name, email)) || "";
-        needUpdate = true;
-      }
-      if (!user.picture && profile?.picture) {
-        // Set the user's profile picture if our provider knows it.
-        user.picture = profile.picture;
-        needUpdate = true;
-      }
-      if (profile?.email && profile.email !== login.displayEmail) {
-        // Use provider's version of email address for display.
-        login.displayEmail = profile.email;
-        needUpdate = true;
-      }
-
-      if (profile?.connectId && profile?.connectId !== user.connectId) {
-        user.connectId = profile.connectId;
-        needUpdate = true;
-      }
-
-      if (!login.displayEmail) {
-        // Save some kind of display email if we don't have anything at all for it yet.
-        // This could be coming from how someone wrote it in a UserManager dialog, for
-        // instance. It will get overwritten when the user logs in if the provider's
-        // version is different.
-        login.displayEmail = email;
-        needUpdate = true;
-      }
-      if (!user.options?.authSubject && userOptions?.authSubject) {
-        // Link subject from password-based authentication provider if not previously linked.
-        user.options = { ...(user.options ?? {}), authSubject: userOptions.authSubject };
-        needUpdate = true;
-      }
-      // We might want to store extra information returned by the identity provider
-      if (options.profile?.extra) {
-        // Update already existing user options
-        user.options = { ...user.options, ssoExtraInfo: options.profile.extra };
-        needUpdate = true;
-      }
-
-      // get date of now (remove milliseconds for compatibility with other
-      // timestamps in db set by typeorm, and since second level precision is fine)
-      const nowish = new Date();
-      nowish.setMilliseconds(0);
-      if (profile && !user.firstLoginAt) {
-        // set first login time to now
-        user.firstLoginAt = nowish;
-        needUpdate = true;
-      }
-      const getTimestampStartOfDay = (date: Date) => {
-        const timestamp = Math.floor(date.getTime() / 1000); // unix timestamp seconds from epoc
-        const startOfDay = timestamp - (timestamp % 86400 /* 24h */); // start of a day in seconds since epoc
-        return startOfDay;
-      };
-      if (!user.lastConnectionAt || getTimestampStartOfDay(user.lastConnectionAt) !== getTimestampStartOfDay(nowish)) {
-        user.lastConnectionAt = nowish;
-        needUpdate = true;
-      }
-      if (needUpdate) {
-        login.user = user;
-        await manager.save([user, login]);
-      }
-      if (getPersonalOrgsEnabled() && !user.personalOrg && !NON_LOGIN_EMAILS.includes(login.email)) {
-        // Add a personal organization for this user.
-        // We don't add a personal org for anonymous/everyone/previewer "users" as it could
-        // get a bit confusing.
-        const result = await this._homeDb.addOrg(user, { name: "Personal" }, {
-          setUserAsOwner: true,
-          useNewPlan: true,
-          product: PERSONAL_FREE_PLAN,
-        }, manager);
-        if (result.status !== 200) {
-          throw new Error(result.errMessage);
-        }
-        needUpdate = true;
-
-        // We just created a personal org; set userOrgPrefs that should apply for new users only.
-        const userOrgPrefs: UserOrgPrefs = { showGristTour: true };
-        const org = result.data;
-        if (org) {
-          await this._homeDb.updateOrg({ userId: user.id }, org.id, { userOrgPrefs }, manager);
-        }
-      }
-      if (needUpdate) {
-        // We changed the db - reload user in order to give consistent results.
-        // In principle this could be optimized, but this is simpler to maintain.
-        user = await userQuery.getOne();
-      }
-      return user!;
+    if (manager) {
+      const found = await this._getUserByLogin(manager, normalizedEmail, profile, userOptions, type, email);
+      return await this._saveUser(manager, normalizedEmail, found);
+    }
+    const found = await this._getUserByLogin(
+      this._connection.manager, normalizedEmail, profile, userOptions, type, email);
+    if (!found.needsSave && !found.needsPersonalOrg) { return found.user; }
+    return await this._connection.transaction(async (tr) => {
+      const current = await this._getUserByLogin(
+        tr, normalizedEmail, profile, userOptions, type, email);
+      return await this._saveUser(tr, normalizedEmail, current);
     });
   }
 
@@ -1047,6 +941,136 @@ export class UsersManager {
    * Get the id of a special user, creating that user if it is not already present.
    *
    */
+  private async _getUserByLogin(manager: EntityManager, normalizedEmail: string,
+    profile: UserProfile | undefined, userOptions: UserOptions | undefined,
+    type: UserType, displayEmail = normalizedEmail,
+  ): Promise<{ user: User, login: Login, needsSave: boolean, needsPersonalOrg: boolean }> {
+    let needUpdate = false;
+    const userQuery = manager.createQueryBuilder()
+      .select("user")
+      .from(User, "user")
+      .leftJoinAndSelect("user.logins", "logins")
+      .leftJoinAndSelect("user.personalOrg", "personalOrg")
+      .where("email = :email", { email: normalizedEmail });
+    let user = await userQuery.getOne();
+    let login: Login;
+    if (!user) {
+      user = new User();
+      // Special users do not have first time user set so that they don't get redirected to the
+      // welcome page.
+      user.isFirstTimeUser = !NON_LOGIN_EMAILS.includes(normalizedEmail);
+      user.type = type;
+      login = new Login();
+      login.email = normalizedEmail;
+      login.user = user;
+      needUpdate = true;
+    } else {
+      login = user.logins[0];
+    }
+
+    // Check that user and login records are up to date.
+    if (!user.name) {
+      // Set the user's name if our provider knows it. Otherwise use their username
+      // from email, for lack of something better. If we don't have a profile at this
+      // time, then leave the name blank in the hopes of learning it when the user logs in.
+      user.name = (profile && this._getNameOrDeduceFromEmail(profile.name, normalizedEmail)) || "";
+      needUpdate = true;
+    }
+    if (!user.picture && profile?.picture) {
+      // Set the user's profile picture if our provider knows it.
+      user.picture = profile.picture;
+      needUpdate = true;
+    }
+    if (profile?.email && profile.email !== login.displayEmail) {
+      // Use provider's version of email address for display.
+      login.displayEmail = profile.email;
+      needUpdate = true;
+    }
+
+    if (profile?.connectId && profile?.connectId !== user.connectId) {
+      user.connectId = profile.connectId;
+      needUpdate = true;
+    }
+
+    if (!login.displayEmail) {
+      // Save some kind of display email if we don't have anything at all for it yet.
+      // This could be coming from how someone wrote it in a UserManager dialog, for
+      // instance. It will get overwritten when the user logs in if the provider's
+      // version is different.
+      login.displayEmail = displayEmail;
+      needUpdate = true;
+    }
+    if (!user.options?.authSubject && userOptions?.authSubject) {
+      // Link subject from password-based authentication provider if not previously linked.
+      user.options = { ...(user.options ?? {}), authSubject: userOptions.authSubject };
+      needUpdate = true;
+    }
+    // We might want to store extra information returned by the identity provider
+    if (profile?.extra) {
+      // Update already existing user options
+      user.options = { ...user.options, ssoExtraInfo: profile.extra };
+      needUpdate = true;
+    }
+
+    // get date of now (remove milliseconds for compatibility with other
+    // timestamps in db set by typeorm, and since second level precision is fine)
+    const nowish = new Date();
+    nowish.setMilliseconds(0);
+    if (profile && !user.firstLoginAt) {
+      // set first login time to now
+      user.firstLoginAt = nowish;
+      needUpdate = true;
+    }
+    const getTimestampStartOfDay = (date: Date) => {
+      const timestamp = Math.floor(date.getTime() / 1000); // unix timestamp seconds from epoc
+      const startOfDay = timestamp - (timestamp % 86400 /* 24h */); // start of a day in seconds since epoc
+      return startOfDay;
+    };
+    if (!user.lastConnectionAt || getTimestampStartOfDay(user.lastConnectionAt) !== getTimestampStartOfDay(nowish)) {
+      user.lastConnectionAt = nowish;
+      needUpdate = true;
+    }
+    const needsPersonalOrg =
+      Boolean(getPersonalOrgsEnabled() && !user.personalOrg && !NON_LOGIN_EMAILS.includes(login.email));
+    return { user, login, needsSave: needUpdate, needsPersonalOrg };
+  }
+
+  private async _saveUser(manager: EntityManager, email: string,
+    found: { user: User, login: Login, needsSave: boolean, needsPersonalOrg: boolean },
+  ): Promise<User> {
+    const { user, login } = found;
+    if (found.needsSave) {
+      login.user = user;
+      await manager.save([user, login]);
+    }
+    if (found.needsPersonalOrg) {
+      const result = await this._homeDb.addOrg(user, { name: "Personal" }, {
+        setUserAsOwner: true,
+        useNewPlan: true,
+        product: PERSONAL_FREE_PLAN,
+      }, manager);
+      if (result.status !== 200) {
+        throw new Error(result.errMessage);
+      }
+      const userOrgPrefs: UserOrgPrefs = { showGristTour: true };
+      const org = result.data;
+      if (org) {
+        await this._homeDb.updateOrg({ userId: user.id }, org.id, { userOrgPrefs }, manager);
+      }
+    }
+    if (!found.needsSave) { return user; }
+    return (await this._userByEmailQuery(manager, email).getOne())!;
+  }
+
+  private _userByEmailQuery(manager: EntityManager, email: string) {
+    return manager.createQueryBuilder()
+      .select("user")
+      .from(User, "user")
+      .leftJoinAndSelect("user.logins", "logins")
+      .leftJoinAndSelect("user.personalOrg", "personalOrg")
+      .where("email = :email", { email });
+  }
+
   private async _maybeCreateSpecialUserId(profile: UserProfile) {
     let id = this._specialUserIds[profile.email];
     if (!id) {

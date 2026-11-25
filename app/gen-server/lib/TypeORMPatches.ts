@@ -318,6 +318,30 @@ export function testGetPreparedStatementCount() {
 }
 
 /**
+ * Number of statements sent to a database while counting is enabled, and whether it
+ * is enabled. Counts across all drivers and connections.
+ */
+let queryCount = 0;
+let queryCounting = false;
+
+/**
+ * Start counting statements, resetting any previous count. Returns a function that stops
+ * counting and reports what was counted.
+ */
+export function testStartQueryCounting(): () => { count: number } {
+  queryCount = 0;
+  queryCounting = true;
+  return () => {
+    queryCounting = false;
+    return { count: queryCount };
+  };
+}
+
+function countQuery() {
+  if (queryCounting) { queryCount++; }
+}
+
+/**
  * Reset bookwork for tracking prepared statements.
  */
 export function testResetPreparedStatements() {
@@ -368,3 +392,11 @@ export class PostgresDriverPatched extends PostgresDriver {
 }
 
 PostgresDriver.prototype.createQueryRunner = PostgresDriverPatched.prototype.createQueryRunner;
+
+for (const proto of [PostgresQueryRunner.prototype, SqliteQueryRunner.prototype]) {
+  const originalQuery: (...args: any[]) => Promise<any> = (proto as any).query;
+  (proto as any).query = function(this: any, ...args: any[]) {
+    countQuery();
+    return originalQuery.apply(this, args);
+  };
+}
