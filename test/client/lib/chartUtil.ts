@@ -1,4 +1,5 @@
-import { consolidateValues, sortByXValues, sortedCategories, splitValuesByIndex } from "app/client/lib/chartUtil";
+import { consolidateValues, groupSeries, MAX_SERIES_IN_CHART, sortByXValues, sortedCategories,
+  splitValuesByIndex } from "app/client/lib/chartUtil";
 
 import { assert } from "chai";
 import { Datum } from "plotly.js";
@@ -146,6 +147,51 @@ describe("chartUtil", function() {
   describe("sortedCategories", function() {
     it("should return distinct values across all lists, sorted", function() {
       assert.deepEqual(sortedCategories([["D1", "D3"], ["D1", "D2", "D3"]]), ["D1", "D2", "D3"]);
+    });
+  });
+
+  describe("groupSeries", function() {
+    const nums = (n: number) => Array.from({ length: n }, (_, i) => i);
+
+    it("should group series by the group column", function() {
+      const grouped = groupSeries(["b", "a", "b"], [
+        { label: "X", values: [1, 2, 3] },
+        { label: "Y", values: [4, 5, 6] },
+      ], true);
+      assert.isFalse(grouped.truncated);
+      assert.deepEqual([...grouped.series.keys()], ["a", "b"]);
+      assert.deepEqual(grouped.series.get("a"), [
+        { label: "X", group: "a", values: [2] },
+        { label: "Y", group: "a", values: [5] },
+      ]);
+      assert.deepEqual(grouped.series.get("b"), [
+        { label: "X", group: "b", values: [1, 3] },
+        { label: "Y", group: "b", values: [4, 6] },
+      ]);
+    });
+
+    it("should keep the order in which groups appear when not sorting", function() {
+      const grouped = groupSeries(["b", "a"], [{ label: "X", values: [1, 2] }], false);
+      assert.deepEqual([...grouped.series.keys()], ["b", "a"]);
+    });
+
+    it("should report truncation when there are too many groups", function() {
+      const count = Math.floor(MAX_SERIES_IN_CHART / 2) + 1;
+      const grouped = groupSeries(nums(count).map(i => `group${i}`), [
+        { label: "X", values: nums(count) },
+        { label: "Y", values: nums(count) },
+      ], true);
+      // Each group is made of two value series, leaving room for half as many groups.
+      assert.isTrue(grouped.truncated);
+      assert.lengthOf([...grouped.series.keys()], Math.floor(MAX_SERIES_IN_CHART / 2));
+      assert.deepEqual([...grouped.series.keys()][0], "group0");
+    });
+
+    it("should not report truncation when all groups fit", function() {
+      const grouped = groupSeries(nums(MAX_SERIES_IN_CHART).map(i => `group${i}`),
+        [{ label: "X", values: nums(MAX_SERIES_IN_CHART) }], true);
+      assert.isFalse(grouped.truncated);
+      assert.lengthOf([...grouped.series.keys()], MAX_SERIES_IN_CHART);
     });
   });
 });

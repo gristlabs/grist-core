@@ -1,7 +1,7 @@
 import BaseView from "app/client/components/BaseView";
 import { GristDoc } from "app/client/components/GristDoc";
-import { consolidateValues, formatPercent, sortByXValues, sortedCategories, splitValuesByIndex,
-  uniqXValues } from "app/client/lib/chartUtil";
+import { consolidateValues, formatPercent, groupSeries, sortByXValues, sortedCategories,
+  splitValuesByIndex, uniqXValues } from "app/client/lib/chartUtil";
 import { Delay } from "app/client/lib/Delay";
 import { fromKoSave } from "app/client/lib/fromKoSave";
 import { loadPlotly, PlotlyType } from "app/client/lib/imports";
@@ -44,8 +44,6 @@ import type { Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
 
 let Plotly: PlotlyType;
 
-// When charting multiple series based on user data, limit the number of series given to plotly.
-const MAX_SERIES_IN_CHART = 100;
 const DONUT_DEFAULT_HOLE_SIZE = 0.75;
 const DONUT_DEFAULT_TEXT_SIZE = 24;
 
@@ -168,6 +166,9 @@ export class ChartView extends BaseView {
 
   private _formatterComp: ko.Computed<BaseFormatter | undefined>;
 
+  // Whether the last render left out some series because there were too many of them.
+  private _seriesTruncated = false;
+
   // peek section's sort spec
   private get _sortSpec() { return this.viewSection.activeSortSpec.peek(); }
 
@@ -234,8 +235,18 @@ export class ChartView extends BaseView {
     this._update();
   }
 
+  protected isTruncatedByView() {
+    return this._seriesTruncated;
+  }
+
   protected buildDom() {
     return dom("div.chart_container", testId("container"));
+  }
+
+  private _setSeriesTruncated(truncated: boolean) {
+    if (truncated === this._seriesTruncated) { return; }
+    this._seriesTruncated = truncated;
+    this.updateIsTruncated();
   }
 
   private async _updateView() {
@@ -299,13 +310,16 @@ export class ChartView extends BaseView {
       dataOptions.totalFormatter = this._formatterComp.peek();
     }
 
+    let seriesTruncated = false;
     if (!options.multiseries && series.length) {
       plotData = chartFunc(series, options, dataOptions);
     } else if (series.length > 1) {
       // We need to group all series by the first column.
       // Sort series alphabetically only if user has not defined a sort on this chart.
       const shouldSort = !series[0].isInSortSpec;
-      const nseries = groupSeries(series[0].values, series.slice(1), shouldSort);
+      const grouped = groupSeries(series[0].values, series.slice(1), shouldSort);
+      const nseries = grouped.series;
+      seriesTruncated = grouped.truncated;
 
       // This will be in the order in which nseries Map was created; concat() flattens the arrays.
       const xvalues = Array.from(new Set(series[1].values));
@@ -335,6 +349,9 @@ export class ChartView extends BaseView {
         plotData.layout = defaultsDeep({ [`${axis}axis`]: { categoryorder: "array", categoryarray } }, plotData.layout);
       }
     }
+
+    // Tell the view (and the user) when the chart had to leave some series out.
+    this._setSeriesTruncated(seriesTruncated);
 
     Plotly = Plotly || await loadPlotly();
 
@@ -418,50 +435,6 @@ export class ChartView extends BaseView {
       },
     };
   }
-}
-
-/**
- * Group the given array of series by a column of group values. The groupColumn and each of the
- * series should be arrays of the same length.
- *
- * For example, if groupColumn has CompanyID, and valueSeries contains [Date, Employees, Revenues]
- * (each an array of values), then returns a map mapping each CompanyID to the array [Date,
- * Employees, Revenue], each value of which is itself an array of values for that CompanyID.
- */
-function groupSeries<T extends Datum>(groupColumn: T[], valueSeries: Series[], sort: boolean): Map<T, Series[]> {
-  const nseries = new Map<T, Series[]>();
-
-  // Limit the number if group values so as to limit the total number of series we pass into
-  // Plotly. Too many series are impossible to make sense of anyway, and can hang the browser.
-  // TODO: When not all data is shown, we should probably show some indicator, similar to when
-  // OnDemand data is truncated.
-  const maxGroups = Math.floor(MAX_SERIES_IN_CHART / valueSeries.length);
-  let groupValues: T[] = [...new Set(groupColumn)];
-  if (sort) {
-    groupValues.sort();
-  }
-  groupValues = groupValues.slice(0, maxGroups);
-
-  // Set up empty lists for each group.
-  for (const group of groupValues) {
-    nseries.set(group, valueSeries.map((s: Series) => ({
-      label: s.label,
-      group,
-      values: [],
-    })));
-  }
-
-  // Now fill up the lists.
-  for (let row = 0; row < groupColumn.length; row++) {
-    const group = groupColumn[row];
-    const series: Series[] | undefined = nseries.get(group);
-    if (series) {
-      for (let i = 0; i < valueSeries.length; i++) {
-        series[i].values.push(valueSeries[i].values[row]);
-      }
-    }
-  }
-  return nseries;
 }
 
 // If errorBars are requested, removes error bar series from the 'series' list, adding instead a

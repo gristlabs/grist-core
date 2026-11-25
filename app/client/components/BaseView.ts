@@ -853,8 +853,25 @@ export default class BaseView extends DisposableWithEvents {
       this._pendingCursorPos = null;
     }
     this._isLoading(false);
-    this.isTruncated(this._queryRowSource.isTruncated);
+    this.updateIsTruncated();
     this.cursor.setLive(true);
+  }
+
+  /**
+   * Recomputes `isTruncated` from the query and from any limit specific to this view (see
+   * `isTruncatedByView`). Derived views that hide part of their data by themselves should call
+   * this whenever that changes.
+   */
+  protected updateIsTruncated() {
+    this.isTruncated(this._queryRowSource.isTruncated || this.isTruncatedByView());
+  }
+
+  /**
+   * Whether this view leaves part of its data out for reasons other than a truncated query, e.g. a
+   * chart that limits how many series it draws. Derived views may override.
+   */
+  protected isTruncatedByView(): boolean {
+    return false;
   }
 
   /**
