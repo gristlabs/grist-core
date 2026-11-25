@@ -25,6 +25,9 @@ import {
 import { getProxyAgentConfiguration, isUntrustedRequestBehaviorSet } from "app/server/lib/ProxyAgent";
 import { mountFor, readMounts } from "app/server/lib/storageDurability";
 
+import * as fs from "fs";
+import * as path from "path";
+
 import * as express from "express";
 import fetch from "node-fetch";
 import WS from "ws";
@@ -91,6 +94,7 @@ export class BootProbes {
     this._probes.push(_backupsProbe);
     this._probes.push(_sandboxProvidersProbe);
     this._probes.push(_dataPersistsProbe);
+    this._probes.push(_writableDataProbe);
     this._probes.push(_outgoingRequestsProbe);
     this._probes.push(_multiServerProbe);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
@@ -516,5 +520,42 @@ export const _dataPersistsProbe: Probe = {
     if (verdict) { return { status: "fault", verdict, details }; }
     // Only claim success when nothing depends on local disk; otherwise stay neutral.
     return { status: externalStorageActive && usesPostgres ? "success" : "none", details };
+  },
+};
+
+export const _writableDataProbe: Probe = {
+  id: "writable-data",
+  name: "Is the data directory writable",
+  apply: async () => {
+    const dataDir = process.env.GRIST_DATA_DIR;
+    if (!dataDir) {
+      return {
+        status: "none",
+        verdict: "GRIST_DATA_DIR is not set; Grist is using its default directory",
+        details: { path: null },
+      };
+    }
+    const resolved = path.resolve(dataDir);
+    let probeDir: string | null = null;
+    try {
+      probeDir = await fs.promises.mkdtemp(path.join(resolved, ".grist-probe-"));
+      const probeFile = path.join(probeDir, "probe.txt");
+      await fs.promises.writeFile(probeFile, "probe", "utf8");
+      await fs.promises.unlink(probeFile);
+      return {
+        status: "success",
+        details: { path: resolved },
+      };
+    } catch (e) {
+      return {
+        status: "fault",
+        verdict: `GRIST_DATA_DIR (${resolved}) is not writable: ${String(e)}`,
+        details: { path: resolved, error: String(e) },
+      };
+    } finally {
+      if (probeDir) {
+        try { await fs.promises.rm(probeDir, { recursive: true, force: true }); } catch { /* best effort */ }
+      }
+    }
   },
 };

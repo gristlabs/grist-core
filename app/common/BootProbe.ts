@@ -34,6 +34,7 @@ export type BootProbeIds =
   "backups" |
   "sandbox-providers" |
   "persist-data" |
+  "writable-data" |
   "outgoing-requests" |
   "multi-server"
 ;
