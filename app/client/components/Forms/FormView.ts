@@ -430,6 +430,7 @@ export class FormView extends BaseView {
   public buildDom() {
     return style.cssFormView(
       testId("editor"),
+      style.cssFormView.cls("-readonly", this.gristDoc.docPageModel.isReadonly),
       style.cssFormEditBodyWrapper(
         this._formEditorBodyElement = style.cssFormEditBody(
           style.cssFormContainer(
