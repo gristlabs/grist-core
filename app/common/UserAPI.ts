@@ -603,7 +603,7 @@ export const DocAttachmentsLocation = StringUnion(
 );
 export type DocAttachmentsLocation = typeof DocAttachmentsLocation.type;
 
-export const ExpandTableOption = StringUnion("column");
+export const ExpandTableOption = StringUnion("column", "rowCount");
 export type ExpandTableOption = typeof ExpandTableOption.type;
 
 interface GetTablesParams {
@@ -653,6 +653,9 @@ export interface TriggerMonitorResponse {
   delivered: TriggerDeliveryRecord[];
   pending: TriggerPendingRecord[];
 }
+
+// How the last run of a sync ended. "stopped": the source refused it, or is gone.
+export type SyncRunStatus = "idle" | "success" | "stopped";
 
 export interface DocAPI {
   readonly options: IOptions;

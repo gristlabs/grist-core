@@ -7,6 +7,9 @@ import { setTestState } from "app/client/lib/testState";
 import { TableRec } from "app/client/models/DocModel";
 import { docListHeader, docMenuTrigger } from "app/client/ui/DocMenuCss";
 import { duplicateTable, DuplicateTableResponse } from "app/client/ui/DuplicateTable";
+import { isGristImportAvailable } from "app/client/ui/FeatureStatus";
+import { cssAllowed, cssAllowedIcon, cssSyncCell, cssSyncLabel, cssSyncText } from "app/client/ui/TableSyncCss";
+import { buildSyncTablesButton, buildSyncTargetBadge, buildSyncTargetMenuItems } from "app/client/ui/TableSyncDest";
 import { hoverTooltip, showTransientTooltip } from "app/client/ui/tooltips";
 import { buildLockedTableIcon, buildTableName } from "app/client/ui/WidgetTitle";
 import * as css from "app/client/ui2018/cssVars";
@@ -36,6 +39,13 @@ export class DataTables extends Disposable {
   // TODO: Update this whenever the rest of the UI is internationalized.
   private readonly _rowCountFormatter = new Intl.NumberFormat("en-US");
 
+  // The sync column is only shown when some table allows syncing or is synced.
+  private _hasSyncColumn = Computed.create(this, use =>
+    use(this._gristDoc.docModel.rawDataTables.getObservable()).some(table =>
+      Boolean(use(table.allowSyncing) || use(table.isSynced)),
+    ),
+  );
+
   constructor(private _gristDoc: GristDoc) {
     super();
     this._tables = Computed.create(this, (use) => {
@@ -51,7 +61,10 @@ export class DataTables extends Disposable {
       cssTableList(
         /** *************  List section **********/
         testId("list"),
-        cssHeader(t("Raw Data Tables")),
+        cssHeaderRow(
+          cssHeader(t("Raw Data Tables")),
+          buildSyncTablesButton(this._gristDoc),
+        ),
         cssList(
           dom.forEach(this._tables, (tableRec) => {
             const isEditingName = observable(false);
@@ -86,6 +99,7 @@ export class DataTables extends Disposable {
                   )),
                 ),
               ),
+              dom.maybe(this._hasSyncColumn, () => this._syncCell(tableRec)),
               this._tableRows(tableRec),
               cssTableButtons(
                 cssRecordCardButton(
@@ -125,6 +139,7 @@ export class DataTables extends Disposable {
                 this._gristDoc.viewModel.activeSectionId(sectionId);
               }),
               cssTable.cls("-readonly", this._gristDoc.isReadonly),
+              cssTable.cls("-sync", this._hasSyncColumn),
             );
           }),
         ),
@@ -214,6 +229,7 @@ export class DataTables extends Disposable {
           );
         }),
       ]),
+      ...this._syncMenuItems(table),
       dom.maybe(isReadonly, () => menuText(t("You do not have edit access to this document"))),
     ];
   }
@@ -234,6 +250,99 @@ export class DataTables extends Disposable {
       "Delete {{formattedTableName}} data, and remove it from all pages?",
       { formattedTableName: r.formattedTableName() },
     ), "Delete", doRemove);
+  }
+
+  private _syncCell(table: TableRec) {
+    return cssSyncCell(
+      buildSyncTargetBadge(this._gristDoc, table),
+      dom.maybe(use => Boolean(use(table.allowSyncing)) && !use(table.isSynced), () => [
+        cssSyncLabel(t("Syncing")),
+        cssAllowed(cssAllowedIcon("Share"), cssSyncText(t("Allowed")), testId("table-allowed")),
+      ]),
+      testId("table-sync"),
+    );
+  }
+
+  /**
+   * Sync items for the table's menu on the Raw data page:
+   * - a synced table (a copy): "Disconnect…", only for owners;
+   * - a table that allows syncing: "Disable syncing…", for anyone who can edit;
+   * - any other table: "Allow syncing…", for anyone with schema access.
+   * No items for summary or locked tables, or on plans without table syncing. No "Allow syncing…"
+   * in a document that has synced tables.
+   */
+  private _syncMenuItems(table: TableRec) {
+    // Synced tables are also locked. Check them before the `locked` check below, or they lose "Disconnect…".
+    if (table.isSynced.peek()) {
+      return buildSyncTargetMenuItems(this._gristDoc, table);
+    }
+    if (table.summarySourceTable.peek() !== 0 || table.locked.peek() ||
+      !isGristImportAvailable(this._gristDoc.appModel)) {
+      return [];
+    }
+    const { isReadonly, docModel } = this._gristDoc;
+    if (table.allowSyncing.peek()) {
+      return [
+        menuDivider(),
+        menuItem(
+          () => this._disableSyncing(table),
+          t("Disable syncing") + "…",
+          ariaDisabled(isReadonly),
+          testId("menu-disable-syncing"),
+        ),
+      ];
+    }
+    // A document either shares tables or syncs them in, never both.
+    if (docModel.rawDataTables.all().some(tbl => tbl.isSynced.peek())) {
+      return [];
+    }
+    return [
+      menuDivider(),
+      menuItem(
+        () => this._allowSyncing(table),
+        t("Allow syncing") + "…",
+        ariaDisabled(isReadonly),
+        testId("menu-allow-syncing"),
+      ),
+    ];
+  }
+
+  private _allowSyncing(table: TableRec) {
+    const docName = this._gristDoc.docPageModel.currentDocTitle.get();
+    const tableName = table.formattedTableName.peek();
+    confirmModal(
+      t("Allow syncing {{tableName}}?", { tableName }),
+      t("Allow syncing"),
+      () => table.allowSyncing.saveOnly(true),
+      {
+        explanation: dom("div",
+          dom("p", t("Anyone who can view {{docName}} will be able to sync {{tableName}} into their own documents, \
+as a read-only copy that stays up to date.",
+          { docName: dom("b", docName), tableName: dom("b", tableName) },
+          )),
+          dom("p", t("A table that others can sync:")),
+          dom("ul",
+            dom("li", t("Can't be renamed")),
+            dom("li", t("Can't hide data with access rules")),
+          ),
+        ),
+      },
+    );
+  }
+
+  private _disableSyncing(table: TableRec) {
+    const tableName = table.formattedTableName.peek();
+    confirmModal(
+      t("Disable {{tableName}} syncing?", { tableName }),
+      t("Disable syncing"),
+      () => table.allowSyncing.saveOnly(undefined),
+      {
+        explanation: dom("p", t(
+          "Documents that sync {{tableName}} will stop getting updates from it. They keep the rows they already have.",
+          { tableName: dom("b", tableName) },
+        )),
+      },
+    );
   }
 
   private _editRecordCard(r: TableRec) {
@@ -288,8 +397,16 @@ const container = styled("div", `
   position: relative;
 `);
 
+const cssHeaderRow = styled("div", `
+  display: flex;
+  align-items: center;
+  max-width: 750px;
+  margin-bottom: 24px;
+`);
+
 const cssHeader = styled(docListHeader, `
   display: inline-block;
+  margin-bottom: 0px;
 `);
 
 const cssList = styled("div", `
@@ -316,6 +433,12 @@ const cssTable = styled("div", `
   &-readonly {
     /* Row count column is hidden when document is read-only. */
     grid-template-columns: 16px auto 56px;
+  }
+  &-sync {
+    grid-template-columns: 16px minmax(80px, 1fr) minmax(16px, 260px) minmax(0, 100px) minmax(0, 56px);
+  }
+  &-sync&-readonly {
+    grid-template-columns: 16px minmax(80px, 1fr) minmax(16px, 260px) 56px;
   }
 `);
 

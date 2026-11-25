@@ -205,6 +205,7 @@ export class DocWorkerApi {
       docWorkerMap: this._docWorkerMap,
       canView,
       canEdit,
+      isOwnerRead,
       isOwnerWrite,
       withDoc,
     });

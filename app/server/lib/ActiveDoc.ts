@@ -1642,6 +1642,7 @@ export class ActiveDoc extends EventEmitter {
     const [, , tableRefs, tableData] = metaTables._grist_Tables;
 
     const includeColumns = expand.includes("column");
+    const rowCounts = expand.includes("rowCount") ? this.getDocUsageSummary().rowCount : undefined;
 
     // tableId is pulled out of fields and used as the root id
     const fieldNames = without(Object.keys(tableData), "tableId");
@@ -1661,6 +1662,16 @@ export class ActiveDoc extends EventEmitter {
       }
       tables.push(table);
     });
+    if (typeof rowCounts === "object") {
+      // A count covers the whole table, so it would leak rows hidden by access rules.
+      const readsEverything = await this._granularAccess.canReadEverything(docSession);
+      for (const table of tables) {
+        if (readsEverything ||
+          (await this._granularAccess.getTableAccess(docSession, table.id)).perms.read === "allow") {
+          table.rowCount = rowCounts[table.fields.tableRef] ?? 0;
+        }
+      }
+    }
     return tables;
   }
 

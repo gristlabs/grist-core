@@ -96,11 +96,6 @@ export interface GristImportOptions {
 export class GristImport extends Disposable {
   private _api = this._options.appModel.api;
   private _currentStep = Observable.create<GristImportStep>(this, "select-doc");
-  private _orgs = this._options.appModel.topAppModel.orgs;
-  private _selectedOrg = Observable.create<Organization | null>(this, null);
-  private _workspaces = Observable.create<Workspace[] | null>(this, null);
-  private _selectedWorkspace = Observable.create<Workspace | null>(this, null);
-  private _selectedDoc = Observable.create<Document | null>(this, null);
   // The chosen source document, and the site it lives on. Only read when acting on the
   // selection, never rendered reactively, so plain fields are enough.
   private _sourceDoc: Document | null = null;
@@ -110,41 +105,12 @@ export class GristImport extends Disposable {
   private _importing = Observable.create(this, false);
   private _error = Observable.create<string | null>(this, null);
   private _isAvailable = isGristImportAvailable(this._options.appModel);
-
-  private _selectableDocs = Computed.create(this, (use) => {
-    const workspace = use(this._selectedWorkspace);
-    if (!workspace) { return []; }
-
-    const destination = this._options.destination;
-    const destDocId = destination.type === "existing-doc" ? destination.docId : null;
-    return workspace.docs.filter(doc => doc.id !== destDocId && doc.urlId !== destDocId);
+  private _docPicker = GristDocPicker.create(this, {
+    appModel: this._options.appModel,
+    excludeDocId: this._options.destination.type === "existing-doc" ?
+      this._options.destination.docId : null,
+    headerText: t("Select the Grist document to copy data from."),
   });
-
-  private _orgOptions = Computed.create(this, (use): IOption<Organization | null>[] | null => {
-    // Every user belongs to at least their personal site, so an empty list means the sites
-    // haven't arrived yet; show the loading state rather than an empty select.
-    const orgs = use(this._orgs);
-    return orgs.length > 0 ?
-      orgs.map(value => ({ value, label: getOrgName(value) })) :
-      null;
-  });
-
-  private _workspaceOptions = Computed.create(this, (use): IOption<Workspace | null>[] | null => {
-    const workspaces = use(this._workspaces);
-    return workspaces?.map(value => ({ value, label: value.name })) ?? null;
-  });
-
-  private _docOptions = Computed.create(this, (use): IOption<Document | null>[] | null => {
-    if (use(this._workspaces) === null) { return null; }
-
-    return use(this._selectableDocs).map(value => ({ value, label: value.name }));
-  });
-
-  private _noDocsAvailable = Computed.create(this, use =>
-    use(this._workspaces) !== null && use(this._selectableDocs).length === 0);
-
-  private _noWorkspacesAvailable = Computed.create(this, use =>
-    use(this._workspaces)?.length === 0);
 
   private _destDocSchema = this._options.destination.type === "existing-doc" ?
     this._options.destination.docSchema : undefined;
@@ -208,15 +174,6 @@ export class GristImport extends Disposable {
 
   constructor(private _options: GristImportOptions) {
     super();
-    this.autoDispose(subscribe(this._selectedOrg, (use, org) => {
-      this._updateWorkspaces(org).catch((err) => {
-        if (!this.isDisposed()) { this._error.set(err.message); }
-      });
-    }));
-    this.autoDispose(subscribe(this._selectableDocs, (use, docs) => {
-      this._selectedDoc.set(docs[0] ?? null);
-    }));
-    this._selectDefaultOrg();
   }
 
   public buildDom() {
@@ -235,42 +192,12 @@ export class GristImport extends Disposable {
   private _buildDocPicker() {
     return [
       cssMainContent(
-        cssHeaderText(t("Select the Grist document to copy data from.")),
-        dom.maybe(this._error, err => cssError(err)),
-        cssField(
-          cssFieldLabel(t("Site")),
-          selectWithLoader(this._selectedOrg, this._orgOptions),
-          testId("import-grist-org"),
-        ),
-        cssField(
-          cssFieldLabel(t("Workspace")),
-          dom.update(
-            selectWithLoader(this._selectedWorkspace, this._workspaceOptions),
-            dom.hide(this._noWorkspacesAvailable),
-          ),
-          cssHelperText(
-            t("No workspaces available in this site."),
-            dom.show(this._noWorkspacesAvailable),
-          ),
-          testId("import-grist-workspace"),
-        ),
-        cssField(
-          cssFieldLabel(t("Document")),
-          dom.update(
-            selectWithLoader(this._selectedDoc, this._docOptions),
-            dom.hide(this._noDocsAvailable),
-          ),
-          cssHelperText(
-            t("No documents available in this workspace."),
-            dom.show(this._noDocsAvailable),
-          ),
-          testId("import-grist-doc"),
-        ),
+        this._docPicker.buildDom(),
       ),
       cssFooterButtons(
         bigPrimaryButton(
           t("Continue"),
-          dom.prop("disabled", use => !use(this._selectedDoc)),
+          dom.prop("disabled", use => !use(this._docPicker.selectedDoc)),
           dom.on("click", () => this._handleSelectDoc()),
           testId("import-grist-continue"),
         ),
@@ -499,38 +426,12 @@ export class GristImport extends Disposable {
     });
   }
 
-  /**
-   * Starts on the site the user is currently on, once the site list is available.
-   */
-  private _selectDefaultOrg() {
-    // TopAppModel fetches the sites eagerly on startup, but they may not have arrived yet.
-    this.autoDispose(subscribe(this._orgs, (use, orgs) => {
-      if (this._selectedOrg.get() || orgs.length === 0) { return; }
-
-      const currentOrgId = this._options.appModel.currentOrg?.id;
-      this._selectedOrg.set(orgs.find(org => org.id === currentOrgId) ?? orgs[0]);
-    }));
-  }
-
-  private async _updateWorkspaces(org: Organization | null) {
-    this._workspaces.set(null);
-    this._selectedWorkspace.set(null);
-    if (!org) { return; }
-
-    let workspaces = await this._api.getOrgWorkspaces(org.id);
-    if (this.isDisposed() || this._selectedOrg.get() !== org) { return; }
-
-    workspaces = sortBy(workspaces.filter(ws => !ws.isSupportWorkspace), ws => ws.name.toLowerCase());
-    this._workspaces.set(workspaces);
-    this._selectedWorkspace.set(workspaces[0] ?? null);
-  }
-
   private _handleSelectDoc() {
-    const doc = this._selectedDoc.get();
+    const doc = this._docPicker.selectedDoc.get();
     if (!doc) { return; }
 
     this._sourceDoc = doc;
-    this._sourceOrg = this._selectedOrg.get();
+    this._sourceOrg = this._docPicker.selectedOrg.get();
     this._currentStep.set("select-tables");
     this._fetchSourceSchema();
   }
@@ -629,6 +530,135 @@ export class GristImport extends Disposable {
         loading.set(false);
       }
     }
+  }
+}
+
+export interface GristDocPickerOptions {
+  appModel: AppModel;
+  excludeDocId: string | null;   // never offer this doc, e.g. the destination; null for a new doc
+  headerText: string;            // e.g. t("Select the Grist document to copy data from.")
+}
+
+/** Site, workspace and document selects for picking a Grist document on this installation */
+export class GristDocPicker extends Disposable {
+  /** The picked document; null while none can be picked */
+  public selectedDoc = Observable.create<Document | null>(this, null);
+  /** The site the picked document is on */
+  public selectedOrg = Observable.create<Organization | null>(this, null);
+
+  private _api = this._options.appModel.api;
+  private _orgs = this._options.appModel.topAppModel.orgs;
+  private _selectedWorkspace = Observable.create<Workspace | null>(this, null);
+  private _workspaces = Observable.create<Workspace[] | null>(this, null);
+  private _error = Observable.create<string | null>(this, null);
+
+  private _selectableDocs = Computed.create(this, (use) => {
+    const workspace = use(this._selectedWorkspace);
+    if (!workspace) { return []; }
+
+    const destDocId = this._options.excludeDocId;
+    return workspace.docs.filter(doc => doc.id !== destDocId && doc.urlId !== destDocId);
+  });
+
+  private _orgOptions = Computed.create(this, (use): IOption<Organization | null>[] | null => {
+    // Every user belongs to at least their personal site, so an empty list means the sites
+    // haven't arrived yet; show the loading state rather than an empty select.
+    const orgs = use(this._orgs);
+    return orgs.length > 0 ?
+      orgs.map(value => ({ value, label: getOrgName(value) })) :
+      null;
+  });
+
+  private _workspaceOptions = Computed.create(this, (use): IOption<Workspace | null>[] | null => {
+    const workspaces = use(this._workspaces);
+    return workspaces?.map(value => ({ value, label: value.name })) ?? null;
+  });
+
+  private _docOptions = Computed.create(this, (use): IOption<Document | null>[] | null => {
+    if (use(this._workspaces) === null) { return null; }
+
+    return use(this._selectableDocs).map(value => ({ value, label: value.name }));
+  });
+
+  private _noDocsAvailable = Computed.create(this, use =>
+    use(this._workspaces) !== null && use(this._selectableDocs).length === 0);
+
+  private _noWorkspacesAvailable = Computed.create(this, use =>
+    use(this._workspaces)?.length === 0);
+
+  constructor(private _options: GristDocPickerOptions) {
+    super();
+    this.autoDispose(subscribe(this.selectedOrg, (use, org) => {
+      this._updateWorkspaces(org).catch((err) => {
+        if (!this.isDisposed()) { this._error.set(err.message); }
+      });
+    }));
+    this.autoDispose(subscribe(this._selectableDocs, (use, docs) => {
+      this.selectedDoc.set(docs[0] ?? null);
+    }));
+    this._selectDefaultOrg();
+  }
+
+  public buildDom() {
+    return [
+      cssHeaderText(this._options.headerText),
+      dom.maybe(this._error, err => cssError(err)),
+      cssField(
+        cssFieldLabel(t("Site")),
+        selectWithLoader(this.selectedOrg, this._orgOptions),
+        testId("import-grist-org"),
+      ),
+      cssField(
+        cssFieldLabel(t("Workspace")),
+        dom.update(
+          selectWithLoader(this._selectedWorkspace, this._workspaceOptions),
+          dom.hide(this._noWorkspacesAvailable),
+        ),
+        cssHelperText(
+          t("No workspaces available in this site."),
+          dom.show(this._noWorkspacesAvailable),
+        ),
+        testId("import-grist-workspace"),
+      ),
+      cssField(
+        cssFieldLabel(t("Document")),
+        dom.update(
+          selectWithLoader(this.selectedDoc, this._docOptions),
+          dom.hide(this._noDocsAvailable),
+        ),
+        cssHelperText(
+          t("No documents available in this workspace."),
+          dom.show(this._noDocsAvailable),
+        ),
+        testId("import-grist-doc"),
+      ),
+    ];
+  }
+
+  /**
+   * Starts on the site the user is currently on, once the site list is available.
+   */
+  private _selectDefaultOrg() {
+    // TopAppModel fetches the sites eagerly on startup, but they may not have arrived yet.
+    this.autoDispose(subscribe(this._orgs, (use, orgs) => {
+      if (this.selectedOrg.get() || orgs.length === 0) { return; }
+
+      const currentOrgId = this._options.appModel.currentOrg?.id;
+      this.selectedOrg.set(orgs.find(org => org.id === currentOrgId) ?? orgs[0]);
+    }));
+  }
+
+  private async _updateWorkspaces(org: Organization | null) {
+    this._workspaces.set(null);
+    this._selectedWorkspace.set(null);
+    if (!org) { return; }
+
+    let workspaces = await this._api.getOrgWorkspaces(org.id);
+    if (this.isDisposed() || this.selectedOrg.get() !== org) { return; }
+
+    workspaces = sortBy(workspaces.filter(ws => !ws.isSupportWorkspace), ws => ws.name.toLowerCase());
+    this._workspaces.set(workspaces);
+    this._selectedWorkspace.set(workspaces[0] ?? null);
   }
 }
 

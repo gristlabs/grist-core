@@ -15,6 +15,7 @@
 import { TableMetadata } from "app/plugin/DocApiTypes";
 import { addAllScenarios, TestContext } from "test/server/lib/docapi/helpers";
 import * as testUtils from "test/server/testUtils";
+import { waitForIt } from "test/server/wait";
 
 import axios from "axios";
 import { assert } from "chai";
@@ -300,5 +301,39 @@ function addTablesTests(getCtx: () => TestContext) {
     resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/_grist_ACLResources/data/delete`,
       [2, 3], chimpy);
     assert.equal(resp.status, 200);
+  });
+
+  it("GET /docs/{did}/tables?expand=rowCount gives row counts of tables readable in full", async function() {
+    const { serverUrl, userApi, chimpy } = getCtx();
+    const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
+    const docId = await userApi.newDoc({ name: "RowCounts" }, wid);
+    const url = `${serverUrl}/api/docs/${docId}`;
+    let resp = await axios.post(`${url}/apply`, [
+      ["BulkAddRecord", "Table1", [null, null], { A: ["a", "b"] }],
+      ["AddTable", "RowRules", [{ id: "A", type: "Text", isFormula: false }]],
+      ["BulkAddRecord", "RowRules", [null, null, null], { A: ["a", "secret", "c"] }],
+      ["AddTable", "ColRules", [
+        { id: "A", type: "Text", isFormula: false },
+        { id: "B", type: "Text", isFormula: false },
+      ]],
+      ["BulkAddRecord", "ColRules", [null], { A: ["a"] }],
+      ["AddRecord", "_grist_ACLResources", -1, { tableId: "RowRules", colIds: "*" }],
+      ["AddRecord", "_grist_ACLResources", -2, { tableId: "ColRules", colIds: "B" }],
+      ["AddRecord", "_grist_ACLRules", null, { resource: -1, aclFormula: "rec.A == 'secret'", permissionsText: "-R" }],
+      ["AddRecord", "_grist_ACLRules", null, { resource: -2, aclFormula: "", permissionsText: "-R" }],
+    ], chimpy);
+    assert.equal(resp.status, 200);
+
+    // Row counts lag a little behind the actions. Tables with access rules get none.
+    await waitForIt(async () => {
+      resp = await axios.get(`${url}/tables?expand=rowCount`, chimpy);
+      assert.equal(resp.status, 200);
+      assert.deepEqual(Object.fromEntries(resp.data.tables.map((t: TableMetadata) => [t.id, t.rowCount])),
+        { Table1: 2, RowRules: undefined, ColRules: undefined });
+    }, 10000, 100);
+
+    resp = await axios.get(`${url}/tables`, chimpy);
+    assert.deepEqual(resp.data.tables.map((t: TableMetadata) => t.rowCount), [undefined, undefined, undefined]);
+    await userApi.deleteDoc(docId);
   });
 }

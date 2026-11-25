@@ -1,9 +1,10 @@
 import { KoArray } from "app/client/lib/koArray";
 import { DocModel, IRowModel, recordSet, refRecord, ViewSectionRec } from "app/client/models/DocModel";
-import { ColumnRec, ValidationRec, ViewRec } from "app/client/models/DocModel";
+import { ColumnRec, SyncRec, ValidationRec, ViewRec } from "app/client/models/DocModel";
 import * as modelUtil from "app/client/models/modelUtil";
 import { summaryGroupByDescription } from "app/common/ActiveDocAPI";
 import { MANUALSORT } from "app/common/gristTypes";
+import { TableOptions } from "app/common/TableOptions";
 
 import * as ko from "knockout";
 import randomcolor from "randomcolor";
@@ -18,6 +19,15 @@ export interface TableRec extends IRowModel<"_grist_Tables"> {
   rawViewSection: ko.Computed<ViewSectionRec>;
   recordCardViewSection: ko.Computed<ViewSectionRec>;
   summarySource: ko.Computed<TableRec>;
+
+  // The `options` column, read from JSON.
+  optionsObj: modelUtil.SaveableObjObservable<TableOptions>;
+  // True when other documents may sync this table. Kept in `options`.
+  allowSyncing: modelUtil.KoSaveableObservable<boolean | undefined>;
+  // True when this table is a copy of a table from another document.
+  isSynced: ko.Computed<boolean>;
+  // The sync this table belongs to. It is empty for users who can't see access rules.
+  sync: ko.Computed<SyncRec>;
 
   // A Set object of colRefs for all summarySourceCols of table.
   summarySourceColRefs: ko.Computed<Set<number>>;
@@ -63,6 +73,10 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.rawViewSection = refRecord(docModel.viewSections, this.rawViewSectionRef);
   this.recordCardViewSection = refRecord(docModel.viewSections, this.recordCardViewSectionRef);
   this.summarySource = refRecord(docModel.tables, this.summarySourceTable);
+  this.optionsObj = modelUtil.jsonObservable(this.options);
+  this.allowSyncing = this.optionsObj.prop("allowSyncing");
+  this.isSynced = ko.pureComputed(() => Boolean(this.syncRef()));
+  this.sync = refRecord(docModel.syncs, this.syncRef);
   this.isHidden = this.autoDispose(
     // This is repeated logic from isHiddenTable.
     ko.pureComputed(() => !this.tableId() || !!this.summarySourceTable() || this.tableId().startsWith("GristHidden_")),
@@ -99,7 +113,7 @@ export function createTableRec(this: TableRec, docModel: DocModel): void {
   this.disableAddRemoveColumns = ko.pureComputed(() => Boolean(this.locked()));
 
   this.disableRenameTable = ko.pureComputed(() =>
-    Boolean(this.summarySourceTable()) || Boolean(this.locked()));
+    Boolean(this.summarySourceTable()) || Boolean(this.locked()) || Boolean(this.allowSyncing()));
 
   this.disableRemoveTable = ko.pureComputed(() => Boolean(this.locked()));
 

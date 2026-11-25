@@ -16,6 +16,7 @@ import { ServerColumnGetters } from "app/server/lib/ServerColumnGetters";
 import { Application, Request, RequestHandler, Response } from "express";
 import { Checker } from "ts-interface-checker";
 
+import type { Document } from "app/gen-server/entity/Document";
 import type { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import type { IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 
@@ -37,6 +38,8 @@ export interface DocWorkerEndpointOptions {
   canView: RequestHandler;
   /** Rejects unless the document exists and the user may edit it. */
   canEdit: RequestHandler;
+  /** Rejects unless the document exists and the user owns it. */
+  isOwnerRead: RequestHandler;
   /** Rejects unless the document exists, is writable, and the user owns it. */
   isOwnerWrite: RequestHandler;
   /** Wraps a handler so it runs against the request's loaded ActiveDoc, with throttling. */
@@ -59,14 +62,21 @@ export interface DocWorkerEndpointOptions {
 export async function confirmDocIdForRead(
   dbManager: HomeDBManager, req: Request, urlId: string, options: { org?: string | null } = {},
 ): Promise<string> {
+  return (await confirmDocForRead(dbManager, req, urlId, options)).id;
+}
+
+/** Like {@link confirmDocIdForRead}, but answers the whole document, with its workspace and site. */
+export async function confirmDocForRead(
+  dbManager: HomeDBManager, req: Request, urlId: string, options: { org?: string | null } = {},
+): Promise<Document> {
   const scope = getScope(req);
   const org = options.org === null ? undefined : (options.org ?? scope.org);
   const docAuth = await makeDocAuthResult(
     dbManager.getDoc({ ...scope, org, urlId }));
   if (docAuth.error) { throw docAuth.error; }
   assertAccess("viewers", docAuth);
-  if (!docAuth.docId) { throw new ApiError("document not found", 404); }
-  return docAuth.docId;
+  if (!docAuth.cachedDoc) { throw new ApiError("document not found", 404); }
+  return docAuth.cachedDoc;
 }
 
 /**

@@ -111,6 +111,7 @@ export const TableMetadata = t.iface([], {
     [t.indexKey]: "CellValue",
   }),
   "columns": t.opt(t.array("ColumnMetadata")),
+  "rowCount": t.opt("number"),
 });
 
 export const TablesGet = t.iface([], {

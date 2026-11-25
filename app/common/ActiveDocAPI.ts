@@ -4,7 +4,7 @@ import { BulkAddRecord, CellValue, TableDataAction, UserAction } from "app/commo
 import { DocStateComparison } from "app/common/DocState";
 import { PredicateFormulaProperties } from "app/common/PredicateFormula";
 import { FetchUrlOptions, UploadResult } from "app/common/uploads";
-import { PermissionData, Proposal, UserAccessData } from "app/common/UserAPI";
+import { PermissionData, Proposal, SyncRunStatus, UserAccessData } from "app/common/UserAPI";
 import { ParseOptions } from "app/plugin/FileParserAPI";
 import { AccessTokenOptions, AccessTokenResult, UIRowId } from "app/plugin/GristAPI";
 
@@ -313,6 +313,8 @@ export interface SyncStatus {
   /** Source history HEAD as of the last successful sync; null before the first one. */
   lastSyncSourceHash: string | null;
   lastSyncedAtMs: number | null;
+  /** How the last run ended. Missing means the sync never ran. */
+  lastSyncStatus?: SyncRunStatus;
 }
 
 /**

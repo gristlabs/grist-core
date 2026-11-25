@@ -148,6 +148,7 @@ export interface TableMetadata {
     [colId: string]: CellValue;
   };
   columns?: ColumnMetadata[];
+  rowCount?: number;
 }
 
 export interface TablesGet {

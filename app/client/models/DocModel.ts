@@ -22,6 +22,7 @@ import { createDocInfoRec, DocInfoRec } from "app/client/models/entities/DocInfo
 import { createFilterRec, FilterRec } from "app/client/models/entities/FilterRec";
 import { createPageRec, PageRec } from "app/client/models/entities/PageRec";
 import { createShareRec, ShareRec } from "app/client/models/entities/ShareRec";
+import { createSyncRec, SyncRec } from "app/client/models/entities/SyncRec";
 import { createTabBarRec, TabBarRec } from "app/client/models/entities/TabBarRec";
 import { createTableRec, TableRec } from "app/client/models/entities/TableRec";
 import { createTriggerRec, TriggerRec } from "app/client/models/entities/TriggerRec";
@@ -50,7 +51,7 @@ import memoize from "lodash/memoize";
 
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
-export type { ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, ValidationRec,
+export type { ColumnRec, DocInfoRec, FilterRec, PageRec, SyncRec, TabBarRec, TableRec, ValidationRec,
   ViewFieldRec, ViewRec, ViewSectionRec, CellRec, TriggerRec };
 
 /**
@@ -127,6 +128,7 @@ export class DocModel extends Disposable {
   public validations: MTM<ValidationRec> = this._metaTableModel("_grist_Validations", createValidationRec);
   public pages: MTM<PageRec> = this._metaTableModel("_grist_Pages", createPageRec);
   public shares: MTM<ShareRec> = this._metaTableModel("_grist_Shares", createShareRec);
+  public syncs: MTM<SyncRec> = this._metaTableModel("_grist_Syncs", createSyncRec);
   public rules: MTM<ACLRuleRec> = this._metaTableModel("_grist_ACLRules", createACLRuleRec);
   public filters: MTM<FilterRec> = this._metaTableModel("_grist_Filters", createFilterRec);
   public cells: MTM<CellRec> = this._metaTableModel("_grist_Cells", createCellRec);
@@ -149,6 +151,8 @@ export class DocModel extends Disposable {
   public dataTablesByRef = new Map<number, DataTableModel>();
 
   public allTabs: KoArray<TabBarRec> = this.autoDispose(this.tabBar.createAllRowsModel("tabPos"));
+
+  public allSyncs: KoArray<SyncRec> = this.autoDispose(this.syncs.createAllRowsModel("id"));
 
   public allPages: ko.Computed<PageRec[]>;
   /** Pages that are shown in the menu. These can include censored pages if they have children. */
