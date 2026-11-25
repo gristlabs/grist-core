@@ -5537,21 +5537,29 @@ export class HomeDBManager implements HomeDBAuth {
       this.checkQueryResult(queryResult);
       const doc = getDocResult(queryResult);
 
-      // Retrieve the doc's ACL rules and groups/users so we can edit them.
-      // We do this as a separate query to avoid repeating the document
-      // row (which can be particulary costly since the main document
-      // query contains some non-trivial subqueries and postgres
-      // will re-execute them for each repeated document row).
       const aclQuery = this._docs(manager)
         .where({ id: doc.id })
         .leftJoinAndSelect("docs.aclRules", "acl_rules")
         .leftJoinAndSelect("acl_rules.group", "doc_groups")
         .leftJoinAndSelect("doc_groups.memberUsers", "doc_group_users")
         .leftJoinAndSelect("doc_groups.memberGroups", "doc_group_groups")
-        .leftJoinAndSelect("doc_group_users.logins", "doc_user_logins");
+        .leftJoinAndSelect("doc_group_users.logins", "doc_user_logins")
+        .leftJoinAndSelect("docs.workspace", "workspaces")
+        .leftJoinAndSelect("workspaces.aclRules", "workspace_acl_rules")
+        .leftJoinAndSelect("workspace_acl_rules.group", "workspace_groups")
+        .leftJoinAndSelect("workspace_groups.memberUsers", "workspace_group_users")
+        .leftJoinAndSelect("workspace_groups.memberGroups", "workspace_group_groups")
+        .leftJoinAndSelect("workspace_group_users.logins", "workspace_user_logins")
+        .leftJoinAndSelect("workspaces.org", "orgs")
+        .leftJoinAndSelect("orgs.aclRules", "org_acl_rules")
+        .leftJoinAndSelect("org_acl_rules.group", "org_groups")
+        .leftJoinAndSelect("org_groups.memberUsers", "org_group_users")
+        .leftJoinAndSelect("org_group_users.logins", "org_user_logins")
+        .leftJoinAndSelect("orgs.billingAccount", "billing_accounts")
+        .leftJoinAndSelect("billing_accounts.product", "products");
       const aclDoc: Document = (await aclQuery.getOne())!;
       doc.aclRules = aclDoc.aclRules;
-      doc.workspace = await this._loadWorkspaceAccess(scope, doc.workspace.id, { transaction: manager });
+      doc.workspace = aclDoc.workspace;
       return doc;
     });
   }
