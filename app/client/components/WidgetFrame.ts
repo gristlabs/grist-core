@@ -246,7 +246,7 @@ export class WidgetFrame extends DisposableWithEvents {
       // extra Permissions-Policy features a self-hoster opts into via
       // GRIST_WIDGET_IFRAME_ALLOW (comma-separated), e.g. local-network-access.
       { allow: ["clipboard-write", ...(getGristConfig().widgetIframeAllow || "")
-        .split(",").map(s => s.trim()).filter(Boolean)].join(", ") },
+        .split(",").map((s: string) => s.trim()).filter(Boolean)].join(", ") },
       hooks.iframeAttributes,
       testId("ready", use => use(this._readyCalled) && !use(this._isEmpty)),
       (elem) => { this._options.onElem(elem); },
