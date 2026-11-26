@@ -1311,6 +1311,24 @@ export class DocWorkerApi {
       await downloadXLSX(activeDoc, req, res, options);
     }));
 
+    // Download the document's data as JSON. Each table is exported in the same records format as
+    // GET /docs/{docId}/tables/{tableId}/records.
+    this._app.get("/api/docs/:docId/download/json", canView, withDoc(async (activeDoc, req, res) => {
+      const session = docSessionFromRequest(req);
+      const allTables = await handleSandboxError("", [], activeDoc.getTables(session));
+      const tables: { [tableId: string]: TableRecordValue[] } = {};
+      for (const table of allTables) {
+        // Summary tables contain a view of their source table's data, so skip them as other
+        // document exports do.
+        if (table.fields.summarySourceTable) { continue; }
+        const columnData = await readTable(req, activeDoc, table.id, {}, {});
+        tables[table.id] = asRecords(columnData, {});
+      }
+      const filename = await this._getDownloadFilename(req, undefined, activeDoc.doc);
+      res.set("Content-Disposition", contentDisposition(filename + ".json"));
+      res.json(tables);
+    }));
+
     this._app.get("/api/docs/:docId/send-to-drive", canView, decodeGoogleToken, withDoc(exportToDrive));
 
     /**
