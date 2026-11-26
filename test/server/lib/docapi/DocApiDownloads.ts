@@ -3,6 +3,7 @@
  * - GET /docs/{did}/download (document download)
  * - GET /docs/{did}/download/csv
  * - GET /docs/{did}/download/xlsx
+ * - GET /docs/{did}/download/json
  * - GET /docs/{did}/download/table-schema
  * - POST /docs/{did}/copy
  * - POST /workspaces/{wid}/import
@@ -107,6 +108,29 @@ function addDownloadsTests(getCtx: () => TestContext) {
     const resp2 = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/csv?tableId=Foo`, chimpy);
     assert.equal(resp2.status, 200);
     assert.equal(resp2.data, "A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n");
+  });
+
+  it("GET /docs/{did}/download/json serves the document as JSON", async function() {
+    const { serverUrl, docIds, chimpy } = getCtx();
+    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/json`, chimpy);
+    assert.equal(resp.status, 200);
+    assert.equal(resp.headers["content-type"], "application/json; charset=utf-8");
+    assert.match(resp.headers["content-disposition"], /filename="Timesheets\.json"/);
+    assert.deepEqual(resp.data, {
+      Table1: [
+        { id: 1, fields: { A: "hello", B: "", C: "", D: null, E: "HELLO" } },
+        { id: 2, fields: { A: "", B: "world", C: "", D: null, E: "" } },
+        { id: 3, fields: { A: "", B: "", C: "", D: null, E: "" } },
+        { id: 4, fields: { A: "", B: "", C: "", D: null, E: "" } },
+      ],
+    });
+  });
+
+  it("GET /docs/{did}/download/json respects permissions", async function() {
+    const { serverUrl, docIds, kiwi } = getCtx();
+    // kiwi has no access to Timesheets
+    const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/json`, kiwi);
+    assert.equal(resp.status, 403);
   });
 
   it("GET /docs/{did}/download/csv with header=colId shows columns id in the header instead of their name",
