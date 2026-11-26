@@ -119,6 +119,14 @@ export abstract class ActionHistory {
   public abstract getRecentActions(maxActions?: number): Promise<LocalActionBundle[]>;
 
   /**
+   * Get the modification time of the most recent retained action affecting `tableId`.
+   * If no such action remains (history may have been pruned), return the time of the
+   * oldest retained action as a conservative upper bound. Without a tableId, return
+   * the time of the most recent retained action.
+   */
+  public abstract getLatestActionTime(tableId?: string): Promise<number | undefined>;
+
+  /**
    * Same as getRecentActions, but converts each to an ActionGroup using asActionGroup with the
    * supplied options.
    */

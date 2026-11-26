@@ -45,9 +45,23 @@ export async function downloadDSV(
     }
     data = await makeDSVFromTable({ activeDoc, tableId, header, delimiter, req });
   }
+  const exportTableId = viewSectionId ? getViewSectionTableId(activeDoc, viewSectionId) : tableId;
+  if (exportTableId) {
+    const lastModified = await activeDoc.getTableLastModified(exportTableId);
+    res.setHeader("Last-Modified", new Date(lastModified).toUTCString());
+  }
   res.set("Content-Type", getDSVMimeType(delimiter));
   res.setHeader("Content-Disposition", contentDisposition(filename + extension));
   res.send(data);
+}
+
+/** Find the table whose data is exported by a view section. */
+function getViewSectionTableId(activeDoc: ActiveDoc, viewSectionId: number): string | undefined {
+  const docData = activeDoc.docData;
+  if (!docData) { return undefined; }
+  const section = docData.getMetaTable("_grist_Views_section").getRecord(viewSectionId);
+  if (!section?.tableRef) { return undefined; }
+  return docData.getMetaTable("_grist_Tables").getRecord(section.tableRef)?.tableId;
 }
 
 /**

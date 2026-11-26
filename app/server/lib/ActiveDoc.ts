@@ -342,6 +342,7 @@ export class ActiveDoc extends EventEmitter {
   private _fullyLoaded: boolean = false;
   private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
+  private _tableLastModifiedCache = new Map<string, { actionNum: number, time: number }>();
   private _assistanceTracker = new AssistanceTracker();
   private _docUsage: DocumentUsage | null = null;
   private _mcpToolCalls = 0;
@@ -645,6 +646,19 @@ export class ActiveDoc extends EventEmitter {
   // in ActionHistory about getRecentActions).
   public getRecentActionsDirect(maxActions?: number): Promise<LocalActionBundle[]> {
     return this._actionHistory.getRecentActions(maxActions);
+  }
+
+  /**
+   * Get a table's modification time for HTTP caching. The action history is pruned, so the
+   * result is a conservative upper bound when the table's own last change is no longer retained.
+   */
+  public async getTableLastModified(tableId: string): Promise<number> {
+    const actionNum = this._actionHistory.getNextLocalActionNum();
+    const cached = this._tableLastModifiedCache.get(tableId);
+    if (cached?.actionNum === actionNum) { return cached.time; }
+    const time = await this._actionHistory.getLatestActionTime(tableId) ?? 0;
+    this._tableLastModifiedCache.set(tableId, { actionNum, time });
+    return time;
   }
 
   public async getRecentStates(docSession: OptDocSession, maxStates?: number): Promise<DocState[]> {

@@ -109,6 +109,39 @@ function addDownloadsTests(getCtx: () => TestContext) {
     assert.equal(resp2.data, "A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n");
   });
 
+  it("GET /docs/{did}/download/csv sets Last-Modified from the table's latest change", async function() {
+    const { chimpy } = getCtx();
+    const { docUrl } = await generateDocAndUrl("csvLastModified");
+    const beforeChange = Date.now();
+    await axios.post(`${docUrl}/apply`, [
+      ["AddTable", "Foo", [{ id: "A" }]],
+      ["AddTable", "Bar", [{ id: "A" }]],
+      ["AddRecord", "Foo", null, { A: "one" }],
+    ], chimpy);
+
+    const getLastModified = async () => {
+      const resp = await axios.get(`${docUrl}/download/csv?tableId=Foo`, chimpy);
+      assert.equal(resp.status, 200);
+      assert.isString(resp.headers["last-modified"]);
+      return resp.headers["last-modified"];
+    };
+    const initial = await getLastModified();
+    const initialTime = Date.parse(initial);
+    assert.isAtLeast(initialTime, beforeChange - 1000);
+    assert.isAtMost(initialTime, Date.now());
+
+    // Last-Modified has one-second precision, so leave time for a visible change.
+    await new Promise(resolve => setTimeout(resolve, 1100));
+    await axios.post(`${docUrl}/apply`, [["AddRecord", "Bar", null, { A: "other" }]], chimpy);
+    assert.equal(await getLastModified(), initial, "editing another table should not invalidate this CSV");
+
+    await new Promise(resolve => setTimeout(resolve, 1100));
+    await axios.post(`${docUrl}/apply`, [["AddRecord", "Foo", null, { A: "two" }]], chimpy);
+    const updated = await getLastModified();
+    assert.isAbove(Date.parse(updated), initialTime);
+    assert.closeTo(Date.parse(updated), Date.now(), 2000);
+  });
+
   it("GET /docs/{did}/download/csv with header=colId shows columns id in the header instead of their name",
     async function() {
       const { chimpy } = getCtx();
