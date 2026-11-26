@@ -970,6 +970,10 @@ export interface GristLoadConfig {
   // the custom widget gallery.
   enableWidgetRepository?: boolean;
 
+  // Extra Permissions-Policy features to delegate to custom widget iframes
+  // (comma-separated), in addition to the built-in clipboard-write.
+  widgetIframeAllow?: string;
+
   // Whether there is somewhere for survey data to go.
   survey?: boolean;
 

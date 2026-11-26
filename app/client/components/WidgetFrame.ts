@@ -242,8 +242,11 @@ export class WidgetFrame extends DisposableWithEvents {
         { sandbox: "allow-scripts allow-modals allow-downloads allow-forms" },
         dom.attr("srcdoc", this._options.srcdoc),
       ] : dom.attr("src", this._url),
-      // Allow widgets to write to the clipboard via the Clipboard API.
-      { allow: "clipboard-write" },
+      // Allow widgets to write to the clipboard via the Clipboard API, plus any
+      // extra Permissions-Policy features a self-hoster opts into via
+      // GRIST_WIDGET_IFRAME_ALLOW (comma-separated), e.g. local-network-access.
+      { allow: ["clipboard-write", ...(getGristConfig().widgetIframeAllow || "")
+        .split(",").map((s: string) => s.trim()).filter(Boolean)].join(", ") },
       hooks.iframeAttributes,
       testId("ready", use => use(this._readyCalled) && !use(this._isEmpty)),
       (elem) => { this._options.onElem(elem); },

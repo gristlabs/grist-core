@@ -141,6 +141,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     timestampMs: Date.now(),
     enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL) ||
       ((server?.getBundledWidgets().length || 0) > 0),
+    widgetIframeAllow: process.env.GRIST_WIDGET_IFRAME_ALLOW,
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
     activation: options.activation,
