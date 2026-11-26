@@ -14,9 +14,16 @@ import { computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, s
 /**
  * Splits the text entered into the "Invite multiple" dialog into a list of emails. Emails are
  * normally entered one per line, but may also be separated by commas, semicolons, or spaces.
+ * Entries copied from an email client may include a display name, e.g. `"Jane Doe" <jane@x.com>`;
+ * only the address is kept.
  */
 export function parseEmailList(emailListRaw: string): string[] {
-  return emailListRaw
+  const withoutDisplayNames = emailListRaw
+    // Quoted display names may contain the separators themselves, e.g. `"Doe, John" <john@x.com>`.
+    .replace(/"[^"]*"\s*<([^<>]+)>/g, "$1")
+    // Unquoted display names, including an empty one as in `<jane@x.com>`.
+    .replace(/[^,;\r\n<>@]*<([^<>]+)>/g, "$1");
+  return withoutDisplayNames
     .split(/[\s,;]+/)
     .map(email => email.toLowerCase())
     .filter(email => email !== "");
