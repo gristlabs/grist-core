@@ -93,6 +93,10 @@ def run(sandbox):
     return actions.get_action_repr(eng.fetch_table(table_id, formulas=formulas, query=query))
 
   @export
+  def evaluate_formulas(table_id, row_ids, formulas):
+    return actions.get_action_repr(eng.evaluate_formulas(table_id, row_ids, formulas))
+
+  @export
   def fetch_table_schema():
     return eng.fetch_table_schema()
 

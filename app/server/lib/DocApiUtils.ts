@@ -126,6 +126,7 @@ export interface QueryParameters {
   // see more in Sort.SortSpec).
   limit?: number;   // Limit on number of rows to return.
   cellFormat?: CellFormatType;
+  formulas?: { [name: string]: string }; // Extra formula fields to compute for each returned row.
 }
 
 /**
@@ -160,6 +161,24 @@ export function getCellFormatParameter(req: Request): CellFormatType | undefined
   const allowedCellFormats: CellFormatType[] = ["normal", "typed"];
   return optStringParam(req.query.cellFormat, "cellFormat",
     { allowed: allowedCellFormats }) as CellFormatType | undefined;
+}
+
+/** Parse a formulas query parameter, which is a JSON object mapping output names to formula text. */
+export function getFormulasParameter(req: Request): { [name: string]: string } | undefined {
+  const raw = optStringParam(req.query.formulas, "formulas");
+  if (raw === undefined) { return undefined; }
+
+  let formulas: unknown;
+  try {
+    formulas = JSON.parse(raw);
+  } catch {
+    throw new ApiError("formulas parameter must be valid JSON", 400);
+  }
+  if (!formulas || typeof formulas !== "object" || Array.isArray(formulas) ||
+    !Object.values(formulas).every(value => typeof value === "string")) {
+    throw new ApiError("formulas parameter must be an object mapping names to formula strings", 400);
+  }
+  return formulas as { [name: string]: string };
 }
 
 /**

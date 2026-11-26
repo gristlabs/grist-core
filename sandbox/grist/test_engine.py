@@ -524,6 +524,70 @@ class TestEngine(EngineTestCase):
     self.assertNotIn('columns', data.columns)
     self.assertNotIn('viewSections', data.columns)
 
+  def test_evaluate_formulas(self):
+    self.load_sample(testutil.parse_test_sample(self.sample1))
+
+    data = self.engine.evaluate_formulas("Address", [21, 22], {
+      "double": "$amount * 2",
+      "upper": "$city.upper()",
+      "constant": "1 + 2",
+    })
+    self.assertEqualDocData({"Address": data}, {
+      "Address": testutil.table_data_from_rows("Address", ["id", "double", "upper", "constant"], [
+        [21, 2, "NEW YORK", 3],
+        [22, 4, "ALBANY", 3],
+      ]),
+    })
+
+  def test_evaluate_formulas_errors(self):
+    self.load_sample(testutil.parse_test_sample(self.sample1))
+
+    data = self.engine.evaluate_formulas("Address", [21], {
+      "missing": "$missing + 1",
+      "division": "$amount / 0",
+    })
+    self.assertIsInstance(data.columns["missing"][0], objtypes.RaisedException)
+    self.assertIsInstance(data.columns["division"][0], objtypes.RaisedException)
+
+  def test_evaluate_formulas_syntax_error(self):
+    self.load_sample(testutil.parse_test_sample(self.sample1))
+    data = self.engine.evaluate_formulas("Address", [21], {"bad": "1 +"})
+    self.assertIsInstance(data.columns["bad"][0], objtypes.RaisedException)
+
+  def test_evaluate_formulas_follows_references(self):
+    sample = {
+      "SCHEMA": [
+        [1, "People", [
+          [11, "Name", "Text", False, "", "", ""],
+        ]],
+        [2, "Books", [
+          [21, "Title", "Text", False, "", "", ""],
+          [22, "Author", "Ref:People", False, "", "", ""],
+        ]],
+      ],
+      "DATA": {
+        "People": [
+          ["id", "Name"],
+          [1, "Ada"],
+          [2, "Grace"],
+        ],
+        "Books": [
+          ["id", "Title", "Author"],
+          [1, "Notes", 1],
+          [2, "Compiler", 2],
+        ],
+      },
+    }
+    self.load_sample(testutil.parse_test_sample(sample))
+
+    data = self.engine.evaluate_formulas("Books", [1, 2], {"authorName": "$Author.Name"})
+    self.assertEqualDocData({"Books": data}, {
+      "Books": testutil.table_data_from_rows("Books", ["id", "authorName"], [
+        [1, "Ada"],
+        [2, "Grace"],
+      ]),
+    })
+
   def test_fetch_table_query(self):
     self.load_sample(testutil.parse_test_sample(self.sample1))
 

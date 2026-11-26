@@ -99,6 +99,7 @@ export interface RecordsListPost {
   hidden?: boolean;   // Include hidden columns (manualSort, gristHelper_*).
   immediate?: boolean; // Skip waiting for document initialization.
   cellFormat?: CellFormatType;
+  formulas?: { [name: string]: string }; // Extra formula fields to compute for each returned row.
 }
 
 export type RecordId = number;

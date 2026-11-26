@@ -291,6 +291,9 @@ function addRecordsTests(getCtx: () => TestContext) {
 
       const resp3 = await axios.post(url, { filter: "bad" }, chimpy);
       assert.equal(resp3.status, 400);
+
+      const resp4 = await axios.post(url, { formulas: { computed: 1 } }, chimpy);
+      assert.equal(resp4.status, 400);
     });
 
     it("respects document permissions", async function() {
@@ -298,6 +301,119 @@ function addRecordsTests(getCtx: () => TestContext) {
       const resp = await axios.post(
         `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records/list`, {}, kiwi);
       assert.equal(resp.status, 403);
+    });
+  });
+
+  describe("formula fields", function() {
+    it("computes the same formula fields for GET and POST records", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`;
+      const formulas = {
+        doubleA: "len($A) * 2",
+        upperB: "$B.upper()",
+        constant: "1 + 2",
+      };
+
+      const getResp = await axios.get(`${url}/records`, {
+        ...chimpy,
+        params: { formulas: JSON.stringify(formulas) },
+      });
+      const postResp = await axios.post(`${url}/records/list`, { formulas }, chimpy);
+      assert.equal(getResp.status, 200);
+      assert.equal(postResp.status, 200);
+      assert.deepEqual(postResp.data, getResp.data);
+      assert.deepEqual(getResp.data.records[0].fields, {
+        A: "hello",
+        B: "",
+        C: "",
+        D: null,
+        E: "HELLO",
+        doubleA: 10,
+        upperB: "",
+        constant: 3,
+      });
+
+      const typedGet = await axios.get(`${url}/records`, {
+        ...chimpy,
+        params: { formulas: JSON.stringify(formulas), cellFormat: "typed" },
+      });
+      const typedPost = await axios.post(`${url}/records/list`, { formulas, cellFormat: "typed" }, chimpy);
+      assert.equal(typedGet.status, 200);
+      assert.equal(typedPost.status, 200);
+      assert.deepEqual(typedPost.data, typedGet.data);
+    });
+
+    it("reports formula errors per record and rejects invalid names", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1`;
+
+      const errors = await axios.post(`${url}/records/list`, {
+        formulas: { missing: "$missing", division: "1 / 0", syntax: "1 +" },
+      }, chimpy);
+      assert.equal(errors.status, 200);
+      assert.deepEqual(errors.data.records[0].errors, {
+        missing: "AttributeError",
+        division: "ZeroDivisionError",
+        syntax: "SyntaxError",
+      });
+
+      // Send raw JSON: axios clones plain objects, which drops an own "__proto__" key before the
+      // request is serialized, so an object body could not exercise that name.
+      for (const name of ["id", "A", "manualSort", "", "1bad", "bad.name", "bad[0]",
+        "__proto__", "constructor", "prototype"]) {
+        const body = `{"formulas":{${JSON.stringify(name)}:"1"}}`;
+        const resp = await axios.post(`${url}/records/list`, body,
+          { ...chimpy, headers: { ...chimpy.headers, "Content-Type": "application/json" } });
+        assert.equal(resp.status, 400, `formula name ${JSON.stringify(name)} should be rejected`);
+      }
+    });
+
+    it("validates the formulas query parameter", async function() {
+      const { serverUrl, docIds, chimpy } = getCtx();
+      const url = `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/records`;
+
+      for (const formulas of ["not json", "[]", JSON.stringify({ computed: 1 })]) {
+        const resp = await axios.get(url, { ...chimpy, params: { formulas } });
+        assert.equal(resp.status, 400);
+      }
+    });
+
+    it("follows references and requires edit access for formulas", async function() {
+      const { serverUrl, userApi, chimpy, kiwi, flushAuth } = getCtx();
+      const wid = (await userApi.getOrgWorkspaces("current")).find(w => w.name === "Private")!.id;
+      const docId = await userApi.newDoc({ name: "FormulaFields" }, wid);
+      await userApi.applyUserActions(docId, [
+        ["AddTable", "People", [{ id: "Name", type: "Text" }]],
+        ["BulkAddRecord", "People", [1, 2], { Name: ["Ada", "Grace"] }],
+        ["AddTable", "Books", [
+          { id: "Title", type: "Text" },
+          { id: "Author", type: "Ref:People" },
+        ]],
+        ["BulkAddRecord", "Books", [1, 2], { Title: ["Notes", "Compiler"], Author: [1, 2] }],
+      ]);
+      const url = `${serverUrl}/api/docs/${docId}/tables/Books`;
+      const formulas = { authorName: "$Author.Name" };
+
+      const computed = await axios.get(`${url}/records`, {
+        ...chimpy,
+        params: { formulas: JSON.stringify(formulas) },
+      });
+      assert.equal(computed.status, 200);
+      assert.deepEqual(computed.data.records.map((r: any) => r.fields.authorName), ["Ada", "Grace"]);
+
+      // A viewer can read records normally, but formulas can read across the document and must
+      // not be available without edit access.
+      await userApi.updateDocPermissions(docId, { users: { "kiwi@getgrist.com": "viewers" } });
+      await flushAuth();
+      const readable = await axios.get(`${url}/records`, kiwi);
+      assert.equal(readable.status, 200);
+      const forbiddenGet = await axios.get(`${url}/records`, {
+        ...kiwi,
+        params: { formulas: JSON.stringify(formulas) },
+      });
+      assert.equal(forbiddenGet.status, 403);
+      const forbiddenPost = await axios.post(`${url}/records/list`, { formulas }, kiwi);
+      assert.equal(forbiddenPost.status, 403);
     });
   });
 
