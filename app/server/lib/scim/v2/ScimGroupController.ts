@@ -57,7 +57,7 @@ class ScimGroupController extends BaseController {
    */
   public async createGroup(data: GroupSchema, context: RequestContext): Promise<GroupSchema> {
     return this.runAndHandleErrors(context, async () => {
-      const groupDescriptor = toGroupDescriptor(data);
+      const groupDescriptor = await toGroupDescriptor(this.dbManager, data);
       const group = await this.dbManager.createGroup(groupDescriptor);
       return toSCIMMYGroup(group);
     });
@@ -75,7 +75,7 @@ class ScimGroupController extends BaseController {
   ): Promise<GroupSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
-      const groupDescriptor = toGroupDescriptor(data);
+      const groupDescriptor = await toGroupDescriptor(this.dbManager, data);
       const group = await this.dbManager.overwriteTeamGroup(id, groupDescriptor);
       return toSCIMMYGroup(group);
     });

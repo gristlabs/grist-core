@@ -60,7 +60,7 @@ class ScimRoleController extends BaseController {
   ): Promise<SCIMMYRoleSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
-      const groupDescriptor = toRoleDescriptor(data);
+      const groupDescriptor = await toRoleDescriptor(this.dbManager, data);
       const role = await this.dbManager.overwriteRoleGroup(id, groupDescriptor);
       return toSCIMMYRole(role);
     });
