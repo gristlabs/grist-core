@@ -1,16 +1,19 @@
 # pylint: disable=redefined-builtin, line-too-long, unused-argument
 import datetime
+import statistics
 
 from .math import _chain, _chain_numeric, _chain_numeric_a, _chain_numeric_or_date
 from .info import ISNUMBER, ISLOGICAL
 from .date import DATE, DTIME       # pylint: disable=unused-import
 from .unimplemented import unimplemented
 
-def _average(iterable):
+def _average(iterable, error_message):
   total, count = 0.0, 0
   for value in iterable:
     total += value
     count += 1
+  if count == 0:
+    raise statistics.StatisticsError(error_message)
   return total / count
 
 def _default_if_empty(iterable, default):
@@ -47,9 +50,10 @@ def AVERAGE(value, *more_values):
   >>> AVERAGE(False, True)
   Traceback (most recent call last):
     ...
-  ZeroDivisionError: float division by zero
+  statistics.StatisticsError: AVERAGE requires at least one numerical value
   """
-  return _average(_chain_numeric(value, *more_values))
+  return _average(_chain_numeric(value, *more_values),
+                  "AVERAGE requires at least one numerical value")
 
 
 def AVERAGEA(value, *more_values):
@@ -68,8 +72,13 @@ def AVERAGEA(value, *more_values):
   1.5
   >>> AVERAGEA(False, True)
   0.5
+  >>> AVERAGEA([])
+  Traceback (most recent call last):
+    ...
+  statistics.StatisticsError: AVERAGEA requires at least one value
   """
-  return _average(_chain_numeric_a(value, *more_values))
+  return _average(_chain_numeric_a(value, *more_values),
+                  "AVERAGEA requires at least one value")
 
 # Note that Google Sheets offers a similar function, called AVERAGE.WEIGHTED
 # (https://support.google.com/docs/answer/9084098?hl=en)
