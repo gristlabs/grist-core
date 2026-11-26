@@ -101,6 +101,8 @@ class ScimUserController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       await this._checkEmailCanBeUsed(data.userName);
       const userProfile = toUserProfile(data);
+      // Also make sure the primary email is not already used by another user.
+      await this._checkEmailCanBeUsed(userProfile.email);
       const newUser = await this.dbManager.getUserByLoginWithRetry(userProfile.email, {
         profile: userProfile,
       });
