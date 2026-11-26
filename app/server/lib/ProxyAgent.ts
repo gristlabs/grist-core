@@ -12,11 +12,87 @@ import { ProxyAgent, ProxyAgentOptions } from "proxy-agent";
  * We configure the getProxyForUrl to not let ProxyAgent magically read the env variables
  * itself (using `proxy-from-env` module), we already do that ourselves and need to keep the control for that.
  */
+const DEFAULT_PORTS: Record<string, number> = {
+  ftp: 21,
+  gopher: 70,
+  http: 80,
+  https: 443,
+  ws: 80,
+  wss: 443,
+};
+
+/**
+ * Determine whether a request to `requestUrl` should bypass the configured proxy
+ * because its host matches the standard `no_proxy` / `NO_PROXY` environment
+ * variable. Follows the usual semantics: comma/space separated list of host
+ * suffixes, `*` disables proxying entirely, optional `:port` component, and
+ * leading-dot / bare-domain suffix matching.
+ */
+export function shouldBypassProxy(requestUrl: string | URL): boolean {
+  const noProxyEnv = process.env.no_proxy || process.env.NO_PROXY || "";
+  if (!noProxyEnv) {
+    return false;
+  }
+  let parsed: URL;
+  try {
+    parsed = requestUrl instanceof URL ? requestUrl : new URL(requestUrl);
+  } catch {
+    return false;
+  }
+  const hostname = parsed.hostname.toLowerCase();
+  const protocol = parsed.protocol.replace(":", "").toLowerCase();
+  const port = parsed.port ? parseInt(parsed.port, 10) : (DEFAULT_PORTS[protocol] || 0);
+  if (!hostname) {
+    return false;
+  }
+
+  const entries = noProxyEnv.split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
+  if (entries.length === 0) {
+    return false;
+  }
+  // A lone "*" disables proxying entirely.
+  if (noProxyEnv.trim() === "*") {
+    return true;
+  }
+
+  return entries.some((entry) => {
+    if (entry === "*") {
+      return true;
+    }
+    let entryHost = entry;
+    let entryPort = 0;
+    const portMatch = entry.match(/^(.+):(\d+)$/);
+    if (portMatch) {
+      entryHost = portMatch[1];
+      entryPort = parseInt(portMatch[2], 10);
+    }
+    if (entryPort && entryPort !== port) {
+      return false;
+    }
+    entryHost = entryHost.toLowerCase();
+    if (entryHost.startsWith(".")) {
+      entryHost = entryHost.slice(1);
+    }
+    if (!entryHost) {
+      return false;
+    }
+    if (hostname === entryHost) {
+      return true;
+    }
+    return hostname.endsWith("." + entryHost);
+  });
+}
+
 export class GristProxyAgent extends ProxyAgent {
   constructor(public readonly proxyUrl: string, opts?: Omit<ProxyAgentOptions, "getProxyForUrl">) {
     super({
       ...opts,
-      getProxyForUrl: () => this.proxyUrl,
+      getProxyForUrl: (url: string) => {
+        if (shouldBypassProxy(url)) {
+          return "";
+        }
+        return this.proxyUrl;
+      },
     });
   }
 }
