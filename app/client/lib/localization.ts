@@ -50,7 +50,7 @@ export async function setupLocale() {
           return;
         }
       }
-      i18next.addResourceBundle(lang, n, await response.json());
+      i18next.addResourceBundle(lang, n, fillPluralForms(lang, await response.json()));
     }
     for (const lang of languages.filter(l => supportedLngs.includes(l))) {
       for (const n of ns) {
@@ -62,6 +62,30 @@ export async function setupLocale() {
   } catch (error: any) {
     reportError(error);
   }
+}
+
+/**
+ * Gives every plural string of `bundle` all the plural forms `lang` uses, taking the `_other`
+ * form for any that is missing. Translations only hold the two forms English has (`_one` and
+ * `_other`), and i18next does not fall back between forms: without this, a language with more
+ * forms shows English for every count that calls for one of them (in Russian: 2, 5, 22, 100...).
+ */
+export function fillPluralForms<T extends Record<string, any>>(lang: string, bundle: T): T {
+  const forms = new Intl.PluralRules(lang).resolvedOptions().pluralCategories;
+  const fill = (strings: Record<string, any>) => {
+    for (const [key, value] of Object.entries(strings)) {
+      if (typeof value === "object") {
+        fill(value);
+      } else if (key.endsWith("_other")) {
+        const base = key.slice(0, -"other".length);
+        for (const form of forms) {
+          strings[base + form] ??= value;
+        }
+      }
+    }
+  };
+  fill(bundle);
+  return bundle;
 }
 
 export function detectCurrentLang() {
