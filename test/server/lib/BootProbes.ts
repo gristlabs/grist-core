@@ -1,6 +1,11 @@
 import { MountInfo, OutgoingRequestsProbeDetails, PersistDataBootProbeDetails } from "app/common/BootProbe";
 import { appSettings } from "app/server/lib/AppSettings";
-import { _dataPersistsProbe, _outgoingRequestsProbe, _persistDataVerdict } from "app/server/lib/BootProbes";
+import {
+  _dataPersistsProbe,
+  _outgoingRequestsProbe,
+  _persistDataVerdict,
+  _writableDataProbe,
+} from "app/server/lib/BootProbes";
 import { OUTGOING_REQUEST_ENV_VARS } from "app/server/lib/outgoingRequests";
 import { mountFor } from "app/server/lib/storageDurability";
 import { configForUser } from "test/gen-server/testUtils";
@@ -8,6 +13,7 @@ import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
 import { TestServer } from "test/server/lib/helpers/TestServer";
 import { createTestDir, EnvironmentSnapshot, setTmpLogLevel } from "test/server/testUtils";
 
+import * as fs from "fs";
 import * as path from "path";
 
 import axios from "axios";
@@ -280,5 +286,39 @@ describe("BootProbes persist-data", () => {
       assert.isTrue(d.usesPostgres);
       assert.isNull(d.homeDbMount);
     });
+  });
+});
+
+describe("BootProbes writable-data", () => {
+  let env: EnvironmentSnapshot;
+
+  beforeEach(() => {
+    env = new EnvironmentSnapshot();
+    delete process.env.GRIST_DATA_DIR;
+  });
+
+  afterEach(() => {
+    env.restore();
+  });
+
+  it("reports none when GRIST_DATA_DIR is unset", async () => {
+    const result = await _writableDataProbe.apply(undefined as any, undefined as any);
+    assert.equal(result.status, "none");
+  });
+
+  it("reports success on a writable directory and leaves no probe files behind", async () => {
+    const dir = await createTestDir("WritableDataProbe");
+    process.env.GRIST_DATA_DIR = dir;
+    const result = await _writableDataProbe.apply(undefined as any, undefined as any);
+    assert.equal(result.status, "success");
+    const entries = await fs.promises.readdir(dir);
+    assert.deepEqual(entries.filter(e => e.startsWith(".grist-probe-")), []);
+  });
+
+  it("reports fault when the directory cannot be written", async () => {
+    const dir = await createTestDir("WritableDataProbeBad");
+    process.env.GRIST_DATA_DIR = path.join(dir, "missing", "nested");
+    const result = await _writableDataProbe.apply(undefined as any, undefined as any);
+    assert.equal(result.status, "fault");
   });
 });
