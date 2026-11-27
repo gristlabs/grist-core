@@ -22,6 +22,9 @@ export const cssFormView = styled("div.flexauto.flexvbox", `
   overflow: auto;
   min-height: 100%;
   width: 100%;
+  &-readonly {
+    overflow: hidden;
+  }
 `);
 
 export const cssFormContainer = styled("div", `
