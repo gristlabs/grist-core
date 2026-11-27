@@ -41,3 +41,13 @@ export function normalizeEmail(displayEmail: string): string {
   // We take the lower case, without use of locale.
   return displayEmail.toLowerCase();
 }
+
+/**
+ * Extract the email address from a string that may include a display name, as commonly copied
+ * from an email client, e.g. `"Jane Doe" <jane@example.com>` or `Jane Doe <jane@example.com>`.
+ * Returns the trimmed input when there is no angle-bracketed address.
+ */
+export function extractEmail(raw: string): string {
+  const match = raw.match(/<([^<>]+)>/);
+  return (match ? match[1] : raw).trim();
+}

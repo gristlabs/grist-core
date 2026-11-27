@@ -16,6 +16,8 @@ import {
 import { colors, testId, theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { menuCssClass } from "app/client/ui2018/menus";
+import { extractEmail } from "app/common/emails";
+import { isEmail } from "app/common/gutil";
 import { getGristConfig } from "app/common/urlUtils";
 
 import { Computed, computed, dom, DomElementArg, Holder, IDisposableOwner, Observable, styled } from "grainjs";
@@ -68,16 +70,15 @@ export function buildACMemberEmail(
 
   const commitIfValid = () => {
     const item = acHolder.get()?.getSelectedItem();
-    if (item) {
-      emailObs.set(item.value);
-    }
+    const selectedEmail = extractEmail(item?.value || emailObs.get());
     emailInput.setCustomValidity("");
-    isValid.set(emailInput.checkValidity());
-
-    const selectedEmail = item?.value || emailObs.get();
+    isValid.set(!selectedEmail || isEmail(selectedEmail));
+    if (selectedEmail && !isValid.get()) {
+      emailInput.setCustomValidity(t("Invalid email address"));
+    }
     try {
       if (selectedEmail && isValid.get()) {
-        save(emailObs.get());
+        save(selectedEmail);
         finish();
       }
     } catch (e) {
@@ -85,6 +86,13 @@ export function buildACMemberEmail(
     } finally {
       emailInput.reportValidity();
     }
+  };
+
+  // The input may hold a display name, e.g. `"Jane Doe" <jane@example.com>`, which the browser's
+  // own email validation rejects, so update validity from the extracted address instead.
+  const updateValidity = () => {
+    const email = extractEmail(emailObs.get());
+    isValid.set(!email || isEmail(email));
   };
 
   const maybeShowAddNew = async (results: ACResults<ACUserItem>, text: string): Promise<ACResults<ACUserItem>> => {
@@ -148,7 +156,7 @@ export function buildACMemberEmail(
     cssMailIcon("Mail"),
     (emailInput = cssEmailInput(
       emailObs,
-      { onInput: true, isValid },
+      { onInput: true },
       { type: "email", placeholder: t("Enter email address") },
       dom.on("input", acOpen),
       dom.on("focus", acOpen),
@@ -165,8 +173,11 @@ export function buildACMemberEmail(
     ...args,
   );
 
-  // Reset custom validity that we sometimes set.
-  owner.autoDispose(emailObs.addListener(() => emailInput.setCustomValidity("")));
+  // Reset custom validity that we sometimes set, and update validity from the extracted email.
+  owner.autoDispose(emailObs.addListener(() => {
+    emailInput.setCustomValidity("");
+    updateValidity();
+  }));
 
   if (prompt) { setTimeout(() => emailInput.focus(), 0); }
 
