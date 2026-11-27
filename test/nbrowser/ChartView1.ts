@@ -1,3 +1,4 @@
+import { MAX_SERIES_IN_CHART } from "app/client/lib/chartUtil";
 import { UserAPI } from "app/common/UserAPI";
 import { addYAxis, checkAxisConfig, checkAxisRange, findYAxis, getAxisTitle, getChartData,
   removeYAxis, selectChartType, selectXAxis,
@@ -925,5 +926,45 @@ describe("ChartView1", function() {
     const { data } = await getChartData();
     assert.deepEqual(data[0].x, ["2018-01-15T09:30:00.000-05:00", "2018-07-15T09:30:00.000-04:00"]);
     assert.deepEqual(data[0].y, [1, 2]);
+  });
+
+  it("should notify when not all series are shown", async function() {
+    const revert = await gu.begin();
+    // A chart with split series can show at most MAX_SERIES_IN_CHART / 2 groups, since each group
+    // uses one series for its x values and one for its y values. Create one group too many.
+    const groupCount = MAX_SERIES_IN_CHART / 2 + 1;
+    const rows = Array.from({ length: groupCount }, (_, i) => i + 1);
+    await gu.sendActions([
+      ["AddTable", "ManySeries", [
+        { id: "Group", type: "Text" },
+        { id: "X", type: "Int" },
+        { id: "Y", type: "Int" },
+      ]],
+      ["BulkAddRecord", "ManySeries", rows, {
+        Group: rows.map(i => `group${i}`),
+        X: rows,
+        Y: rows,
+      }],
+    ]);
+    await gu.openPage("ManySeries");
+    await gu.addNewSection("Chart", "ManySeries");
+    await gu.toggleSidePanel("right", "open");
+    await selectChartType("Line chart");
+    await selectXAxis("X");
+    await setSplitSeries("Group");
+    await setYAxis(["Y"]);
+    await gu.waitForChartRenders();
+
+    const { data: chartData } = await getChartData();
+    assert.lengthOf(chartData, MAX_SERIES_IN_CHART / 2);
+    assert.equal(await driver.find(".viewsection_truncated").isPresent(), true);
+
+    // The notice goes away once the chart can show all of its series again.
+    await setSplitSeries(false);
+    await gu.waitForChartRenders();
+    assert.equal(await driver.find(".viewsection_truncated").isPresent(), false);
+
+    await revert();
+    await gu.toggleSidePanel("right", "close");
   });
 });

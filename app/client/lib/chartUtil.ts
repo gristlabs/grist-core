@@ -96,3 +96,69 @@ export function consolidateValues(series: { values: Datum[] }[], xvalues: Datum[
 export function formatPercent(val: number) {
   return Math.floor(val * 100) + " %";
 }
+
+/**
+ * The most series a single chart may show. Too many series are impossible to make sense of
+ * anyway, and can hang the browser.
+ */
+export const MAX_SERIES_IN_CHART = 100;
+
+/** A series of chart data, as handled by the helpers in this module. */
+export interface ChartSeries {
+  label: string;      // Corresponds to the column name.
+  values: Datum[];
+  group?: Datum;      // The group value, when grouped.
+}
+
+export interface GroupedSeries<T extends Datum> {
+  /** Series grouped by group value, in the order in which the groups should be shown. */
+  series: Map<T, ChartSeries[]>;
+  /** Whether group values were left out of `series` to stay within MAX_SERIES_IN_CHART. */
+  truncated: boolean;
+}
+
+/**
+ * Group the given array of series by a column of group values. The groupColumn and each of the
+ * series should be arrays of the same length.
+ *
+ * For example, if groupColumn has CompanyID, and valueSeries contains [Date, Employees, Revenues]
+ * (each an array of values), then returns a map mapping each CompanyID to the array [Date,
+ * Employees, Revenue], each value of which is itself an array of values for that CompanyID.
+ *
+ * At most MAX_SERIES_IN_CHART series are included in the result, so that the chart can't hang the
+ * browser. When some groups are left out, `truncated` is set so that the view can tell the user.
+ */
+export function groupSeries<T extends Datum>(
+  groupColumn: T[], valueSeries: ChartSeries[], sort: boolean,
+): GroupedSeries<T> {
+  const nseries = new Map<T, ChartSeries[]>();
+
+  const maxGroups = Math.floor(MAX_SERIES_IN_CHART / valueSeries.length);
+  let groupValues: T[] = [...new Set(groupColumn)];
+  if (sort) {
+    groupValues.sort();
+  }
+  const truncated = groupValues.length > maxGroups;
+  groupValues = groupValues.slice(0, maxGroups);
+
+  // Set up empty lists for each group.
+  for (const group of groupValues) {
+    nseries.set(group, valueSeries.map((s: ChartSeries) => ({
+      label: s.label,
+      group,
+      values: [],
+    })));
+  }
+
+  // Now fill up the lists.
+  for (let row = 0; row < groupColumn.length; row++) {
+    const group = groupColumn[row];
+    const series: ChartSeries[] | undefined = nseries.get(group);
+    if (series) {
+      for (let i = 0; i < valueSeries.length; i++) {
+        series[i].values.push(valueSeries[i].values[row]);
+      }
+    }
+  }
+  return { series: nseries, truncated };
+}
