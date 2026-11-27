@@ -67,8 +67,17 @@ function changeTimezone(date: IRangeBoundType,
   timezone: string,
   mod: (m: Moment) => void = noop): number | undefined {
   if (date === undefined) { return undefined; }
-  const val = isRelativeBound(date) ? relativeDateToUnixTimestamp(date) : date;
-  const m = moment.tz(val * 1000, timezone);
+  const isRelative = isRelativeBound(date);
+  const val = isRelative ? relativeDateToUnixTimestamp(date) : date;
+  // Calendar-style bounds (picked in the calendar, relative dates, or any value that
+  // is exactly a UTC midnight) encode a calendar date, not an instant. Interpret them as
+  // that calendar date at the start of the day in the column's time zone, so that zones
+  // behind UTC do not land on the previous day. Typed bounds that carry an instant are
+  // left untouched.
+  const isCalendarDate = isRelative || (typeof val === "number" && val % 86400 === 0);
+  const m = isCalendarDate ?
+    moment.tz(moment.utc(val * 1000).format("YYYY-MM-DD"), timezone) :
+    moment.tz(val * 1000, timezone);
   mod(m);
   return Math.floor(m.valueOf() / 1000);
 }
