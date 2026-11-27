@@ -2,7 +2,7 @@
  * Minimal ActionHistory implementation
  */
 
-import { LocalActionBundle } from "app/common/ActionBundle";
+import { getEnvContent, LocalActionBundle } from "app/common/ActionBundle";
 import { ActionGroup, MinimalActionGroup } from "app/common/ActionGroup";
 import { DocState } from "app/common/DocState";
 import * as marshaller from "app/common/marshal";
@@ -397,6 +397,37 @@ export class ActionHistoryImpl implements ActionHistory {
   public async getRecentActions(maxActions?: number): Promise<LocalActionBundle[]> {
     const actions = await this._getRecentActionRows(maxActions);
     return reportTimeTaken("getRecentActions", () => actions.map(decodeActionFromRow));
+  }
+
+  public async getLatestActionTime(tableId?: string): Promise<number | undefined> {
+    const branches = await this._getBranches();
+    let end: ActionIdentifiers | null = branches.local_unsent;
+    let oldestTime: number | undefined;
+    // Decode a batch at a time rather than all retained actions at once: action bodies can be
+    // large, and this method is called on download requests.
+    const batchSize = 20;
+    while (end?.actionRef) {
+      const rows = await this._fetchParts(null, end,
+        "_gristsys_ActionHistory.id, parentRef, actionNum, actionHash, body", batchSize, true);
+      for (const row of rows) {
+        const action = decodeActionFromRow(row);
+        const time = action.info[1].time;
+        oldestTime = time;
+        if (!tableId) { return time; }
+        if (getEnvContent(action.stored).some(act =>
+          act[1] === tableId || (act[0] === "RenameTable" && act[2] === tableId))) {
+          return time;
+        }
+      }
+      const oldest = rows[rows.length - 1];
+      end = oldest?.parentRef ? {
+        actionRef: oldest.parentRef,
+        actionHash: null,
+        actionNum: null,
+        branchName: "",
+      } : null;
+    }
+    return oldestTime;
   }
 
   public async getRecentActionGroups(maxActions: number, options: ActionGroupOptions): Promise<ActionGroup[]> {

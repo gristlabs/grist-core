@@ -1,4 +1,4 @@
-import { LocalActionBundle } from "app/common/ActionBundle";
+import { getEnvContent, LocalActionBundle } from "app/common/ActionBundle";
 import { ActionGroup, MinimalActionGroup } from "app/common/ActionGroup";
 import { DocState } from "app/common/DocState";
 import { ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
@@ -124,6 +124,18 @@ class ToyActionHistory implements ActionHistory {
     const actions = [...this._storeShared, ...this._storeLocalSent, ...this._storeLocalUnsent];
     if (!maxActions) { return actions; }
     return actions.slice(-maxActions);
+  }
+
+  public async getLatestActionTime(tableId?: string): Promise<number | undefined> {
+    const actions = await this.getRecentActions();
+    for (let i = actions.length - 1; i >= 0; i--) {
+      const action = actions[i];
+      if (!tableId || getEnvContent(action.stored).some(act =>
+        act[1] === tableId || (act[0] === "RenameTable" && act[2] === tableId))) {
+        return action.info[1].time;
+      }
+    }
+    return actions[0]?.info[1].time;
   }
 
   public async getRecentActionGroups(maxActions: number, options: ActionGroupOptions): Promise<ActionGroup[]> {
@@ -388,6 +400,28 @@ for (const version of versions) {
       await history.markAsSent(await history.fetchAllLocalUnsent());
       assert.deepEqual(await getActions(), [1, 2, 3]);
       assert.deepEqual(await getActions(2), [2, 3]);
+    });
+
+    it("finds the latest action time for a table", async function() {
+      const first = makeBundle(1, "table change");
+      first.info[1].time = 1000;
+      first.stored = [[0, ["UpdateRecord", "Foo", 1, { A: 1 }]]];
+      await history.recordNextShared(first);
+      // Put the table change more than one batch behind the tip.
+      for (let i = 2; i <= 25; i++) {
+        const action = makeBundle(i, "other change");
+        action.info[1].time = i * 1000;
+        await history.recordNextShared(action);
+      }
+      assert.equal(await history.getLatestActionTime("Foo"), 1000);
+      assert.equal(await history.getLatestActionTime("Missing"), 1000, "uses the oldest retained action as a bound");
+      assert.equal(await history.getLatestActionTime(), 25000);
+
+      const rename = makeBundle(26, "rename");
+      rename.info[1].time = 26000;
+      rename.stored = [[0, ["RenameTable", "Bar", "Foo"]]];
+      await history.recordNextShared(rename);
+      assert.equal(await history.getLatestActionTime("Foo"), 26000, "recognizes the new name in a rename");
     });
 
     it("can force next actionNum value", async function() {
