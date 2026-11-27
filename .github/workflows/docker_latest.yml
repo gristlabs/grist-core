@@ -198,6 +198,17 @@ jobs:
           export TEST_DOCKER_OPTIONS='-e GRIST_SANDBOX_FLAVOR=gvisor -e PYTHON_VERSION_ON_CREATION=3'
           yarn run test:docker
 
+      - name: Run some tests with pyodide
+        if: ${{ matrix.run_tests }}
+        run: |
+          export TEST_IMAGE=${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image }}:${{ env.TAG }}
+          export VERBOSE=1
+          export DEBUG=1
+          export MOCHA_WEBDRIVER_HEADLESS=1
+          export GREP_TESTS='should support basic editing'
+          export TEST_DOCKER_OPTIONS='-e GRIST_SANDBOX_FLAVOR=pyodide'
+          yarn run test:docker
+
       - name: Re-enable the ext/ directory
         if: ${{ matrix.run_tests }}
         run: mv ext-disabled/ ext/
