@@ -13,7 +13,14 @@ import { appSettings } from "app/server/lib/AppSettings";
 import { getTypeORMSettings } from "app/server/lib/dbUtils";
 import { expressWrap, jsonErrorHandler } from "app/server/lib/expressWrap";
 import { GristServer } from "app/server/lib/GristServer";
-import { getBootKey, getInService, getSandboxFlavor, getSandboxFlavorSource } from "app/server/lib/gristSettings";
+import {
+  getAnonPlaygroundEnabled,
+  getAnonPlaygroundEnabledSource,
+  getBootKey,
+  getInService,
+  getSandboxFlavor,
+  getSandboxFlavorSource,
+} from "app/server/lib/gristSettings";
 import { DEFAULT_SESSION_SECRET } from "app/server/lib/ICreate";
 import { isFleetIncluded, reportServers } from "app/server/lib/multiServerStatus";
 import { getAvailableSandboxes, testSandboxFlavor } from "app/server/lib/NSandbox";
@@ -84,6 +91,7 @@ export class BootProbes {
     this._probes.push(_hostHeaderProbe);
     this._probes.push(_sandboxingProbe);
     this._probes.push(_authenticationProbe);
+    this._probes.push(_anonPlaygroundProbe);
     this._probes.push(_webSocketsProbe);
     this._probes.push(_sessionSecretProbe);
     this._probes.push(_admins);
@@ -301,6 +309,23 @@ const _authenticationProbe: Probe = {
       verdict: error ? String(error) : undefined,
       details: {
         provider,
+      },
+    };
+  },
+};
+
+export const _anonPlaygroundProbe: Probe = {
+  id: "anon-playground",
+  name: "Anonymous playground",
+  apply: async () => {
+    const enabled = getAnonPlaygroundEnabled();
+    const source = getAnonPlaygroundEnabledSource();
+    return {
+      status: "none",
+      verdict: enabled ? "The anonymous playground is enabled; visitors can create unsaved documents" : undefined,
+      details: {
+        enabled,
+        source: source ?? "default",
       },
     };
   },
