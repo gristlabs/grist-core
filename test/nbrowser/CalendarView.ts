@@ -25,9 +25,9 @@ describe("CalendarView", function() {
   // reproduces.
   const DOC_TZ = "Europe/Warsaw";
 
-  // Anchor every fixture event off "today" so events stay in the visible week regardless of when
-  // the test runs.
-  const today = moment.tz(DOC_TZ).format("YYYY-MM-DD");
+  // Anchor fixture events on the day the calendar opens on, so they are in the visible week.
+  // Today in DOC_TZ can be a different day.
+  let today: string;
 
   // Seconds-since-epoch for a wall-clock time in the doc timezone, as Grist stores DateTime.
   const sec = (day: string, hour: number) =>
@@ -58,6 +58,7 @@ describe("CalendarView", function() {
     await setMapping("endDate", /To/);
     await setMapping("title", /Label/);
     await setMapping("isAllDay", /IsFullDay/);
+    today = moment(new Date(await getCalendarDate())).format("YYYY-MM-DD");
   });
 
   afterEach(async function() {
@@ -129,7 +130,7 @@ describe("CalendarView", function() {
   it("draws one event after a date moves out of view and back", async function() {
     // Moving a row out of the visible range and back must not leave a copy behind at its old
     // position, however many times it happens.
-    const far = moment.tz(DOC_TZ).add(120, "days").format("YYYY-MM-DD");
+    const far = moment(today).add(120, "days").format("YYYY-MM-DD");
     await gu.sendActions([
       ["AddRecord", "Table1", -1, {
         From: sec(today, 13), To: sec(today, 14), Label: "Round Trip", IsFullDay: false,
