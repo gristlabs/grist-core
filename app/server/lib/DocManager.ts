@@ -27,6 +27,7 @@ import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
 import { makeForkIds, makeId } from "app/server/lib/idUtils";
 import { insightLogDecorate, insightLogEntry } from "app/server/lib/InsightLog";
 import log from "app/server/lib/log";
+import { observeDocOpen, secondsTimer, trackActiveDocs } from "app/server/lib/metrics";
 import { PluginManager } from "app/server/lib/PluginManager";
 import { getScope } from "app/server/lib/requestUtils";
 import { checkAllegedGristDoc } from "app/server/lib/serverUtils";
@@ -99,6 +100,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     public gristServer: GristServer,
   ) {
     super();
+    trackActiveDocs(this);
   }
 
   public setRecovery(docId: string, recovery: boolean) {
@@ -567,9 +569,11 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     }
     let activeDoc: ActiveDoc;
     if (!this._activeDocs.has(docName)) {
+      const recoveryMode = wantRecoveryMode ?? this._inRecovery.get(docName);
+      const elapsed = secondsTimer();
       activeDoc = await mapSetOrClear(
         this._activeDocs, docName,
-        this._createActiveDoc(docSession, docName, wantRecoveryMode ?? this._inRecovery.get(docName))
+        this._createActiveDoc(docSession, docName, recoveryMode)
           .then((newDoc) => {
             // Propagate backupMade events from newly opened activeDocs (consolidate all to DocMan)
             newDoc.on("backupMade", (bakPath: string) => {
@@ -577,6 +581,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
             });
             return newDoc.loadDoc(docSession);
           }));
+      observeDocOpen(recoveryMode ? "recovery" : "normal", elapsed());
     } else {
       activeDoc = await this._activeDocs.get(docName)!;
     }

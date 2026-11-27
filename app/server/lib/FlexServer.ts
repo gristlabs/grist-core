@@ -74,6 +74,7 @@ import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import { IOAuthValidator } from "app/server/lib/IOAuthValidator";
 import { IWebSocketProxy } from "app/server/lib/IWebSocketProxy";
 import log, { logAsJson, metaField } from "app/server/lib/log";
+import { observeHttpRequest, requestRoute, secondsTimer } from "app/server/lib/metrics";
 import { disableCache, noop } from "app/server/lib/middleware";
 import { testSandboxFlavor } from "app/server/lib/NSandbox";
 import { OAuth2Clients } from "app/server/lib/OAuth2Clients";
@@ -707,6 +708,18 @@ export class FlexServer implements GristServer {
         this._healthCheckCounter = 0;  // reset counter if we ever go internally unhealthy.
         res.status(500).send(`Grist ${this.name} is unhealthy${extra}.`);
       }
+    });
+  }
+
+  public addMetrics() {
+    if (this._check("metrics", "health")) { return; }
+    this.app.use((req, res, next) => {
+      const elapsed = secondsTimer();
+      res.on("finish", () => {
+        observeHttpRequest({ role: this.name, method: req.method, route: requestRoute(req) },
+          res.statusCode, elapsed());
+      });
+      next();
     });
   }
 
@@ -3185,6 +3198,7 @@ type Part =
   "extraDoc" |
   "extraHome" |
   "middleware" |
+  "metrics" |
   "notifier" |
   "org" |
   "pluginUntaggedAssets" |

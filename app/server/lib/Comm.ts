@@ -46,6 +46,7 @@ import { GristLoginMiddleware, GristServer } from "app/server/lib/GristServer";
 import { GristServerSocket } from "app/server/lib/GristServerSocket";
 import { GristSocketServer } from "app/server/lib/GristSocketServer";
 import log from "app/server/lib/log";
+import { instrumentRpcMethod } from "app/server/lib/metrics";
 import { IPermitStore } from "app/server/lib/Permit";
 import { trustOrigin } from "app/server/lib/requestUtils";
 import { localeFromRequest } from "app/server/lib/ServerLocale";
@@ -108,7 +109,7 @@ export class Comm extends EventEmitter {
   public registerMethods(serverMethods: { [name: string]: ClientMethod }): void {
     // Wrap methods to translate return values and exceptions to promises.
     for (const methodName in serverMethods) {
-      this._methods.set(methodName, serverMethods[methodName]);
+      this._methods.set(methodName, instrumentRpcMethod(methodName, serverMethods[methodName]));
     }
   }
 
