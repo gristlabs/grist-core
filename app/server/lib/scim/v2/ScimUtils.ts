@@ -3,6 +3,7 @@ import { UserProfile } from "app/common/LoginSessionAPI";
 import { AclRuleDoc, AclRuleOrg, AclRuleWs } from "app/gen-server/entity/AclRule";
 import { Group } from "app/gen-server/entity/Group";
 import { User } from "app/gen-server/entity/User";
+import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
 import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
 import log from "app/server/lib/log";
 import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/roles/SCIMMYRoleSchema";
@@ -113,33 +114,78 @@ function parseId(id: string, type: typeof SCIMMY_USER_TYPE | typeof SCIMMY_GROUP
   return parsedId;
 }
 
-function membersDescriptors(
+async function resolveMemberType(
+  dbManager: HomeDBManager,
+  member: NonNullable<SCIMMY.Schemas.Group["members"]>[number],
+): Promise<string | undefined> {
+  if (member.type) {
+    return member.type;
+  }
+  // `type` is optional per RFC 7643. Fall back to the `$ref` when present.
+  const ref = member.$ref;
+  if (ref) {
+    if (ref.includes("/Users/")) { return SCIMMY_USER_TYPE; }
+    if (ref.includes("/Groups/")) { return SCIMMY_GROUP_TYPE; }
+    if (ref.includes("/Roles/")) { return SCIMMY_ROLE_TYPE; }
+  }
+  const id = parseInt(member.value, 10);
+  if (Number.isNaN(id)) {
+    return undefined;
+  }
+  // Otherwise look the id up in the database.
+  try {
+    const user = await dbManager.getUser(id);
+    if (user?.type === "login") { return SCIMMY_USER_TYPE; }
+  } catch {
+    // ignore
+  }
+  try {
+    const group = await dbManager.getGroupWithMembersById(id);
+    if (group) {
+      return group.type === Group.ROLE_TYPE ? SCIMMY_ROLE_TYPE : SCIMMY_GROUP_TYPE;
+    }
+  } catch {
+    // ignore
+  }
+  return undefined;
+}
+
+async function membersDescriptors(
+  dbManager: HomeDBManager,
   members: NonNullable<SCIMMY.Schemas.Group["members"]>,
-): Pick<GroupWithMembersDescriptor, "memberUsers" | "memberGroups"> {
+): Promise<Pick<GroupWithMembersDescriptor, "memberUsers" | "memberGroups">> {
+  const resolved = await Promise.all(members.map(async member => ({
+    member,
+    type: await resolveMemberType(dbManager, member),
+  })));
   return {
-    memberUsers: members
-      .filter(member => member.type === SCIMMY_USER_TYPE)
-      .map(member => parseId(member.value, SCIMMY_USER_TYPE)),
-    memberGroups: members
-      .filter(member => member.type === SCIMMY_GROUP_TYPE)
-      .map(member => parseId(member.value, SCIMMY_GROUP_TYPE)),
+    memberUsers: resolved
+      .filter(r => r.type === SCIMMY_USER_TYPE)
+      .map(r => parseId(r.member.value, SCIMMY_USER_TYPE)),
+    memberGroups: resolved
+      .filter(r => r.type === SCIMMY_GROUP_TYPE || r.type === SCIMMY_ROLE_TYPE)
+      .map(r => parseId(r.member.value, SCIMMY_GROUP_TYPE)),
   };
 }
 
-export function toGroupDescriptor(scimGroup: SCIMMY.Schemas.Group): GroupWithMembersDescriptor {
+export async function toGroupDescriptor(
+  dbManager: HomeDBManager, scimGroup: SCIMMY.Schemas.Group,
+): Promise<GroupWithMembersDescriptor> {
   const members = scimGroup.members ?? [];
   return {
     name: scimGroup.displayName,
     type: Group.TEAM_TYPE,
-    ...membersDescriptors(members),
+    ...(await membersDescriptors(dbManager, members)),
   };
 }
 
-export function toRoleDescriptor(scimRole: SCIMMYRoleSchema): GroupWithMembersDescriptor {
+export async function toRoleDescriptor(
+  dbManager: HomeDBManager, scimRole: SCIMMYRoleSchema,
+): Promise<GroupWithMembersDescriptor> {
   const members = scimRole.members ?? [];
   return {
     name: scimRole.displayName,
     type: Group.ROLE_TYPE,
-    ...membersDescriptors(members),
+    ...(await membersDescriptors(dbManager, members)),
   };
 }
