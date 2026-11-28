@@ -36,6 +36,16 @@ class TestSideEffects(test_engine.EngineTestCase):
     }
   })
 
+  def test_evaluate_formulas_rolls_back_side_effects(self):
+    self.load_sample(self.sample)
+    before = self.getFullEngineData()
+
+    data = self.engine.evaluate_formulas("Address", [21], {
+      "school": 'Schools.lookupOrAddDerived(city="TESTCITY").name',
+    })
+    self.assertIsInstance(data.columns["school"][0], objtypes.RaisedException)
+    self.assertEqual(self.getFullEngineData(), before)
+
   def test_failure_after_side_effect(self):
     # Verify that when a formula fails after a side-effect, the effect is reverted.
     self.load_sample(self.sample)

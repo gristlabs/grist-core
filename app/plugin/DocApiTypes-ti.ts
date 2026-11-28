@@ -69,6 +69,9 @@ export const RecordsListPost = t.iface([], {
   "hidden": t.opt("boolean"),
   "immediate": t.opt("boolean"),
   "cellFormat": t.opt("CellFormatType"),
+  "formulas": t.opt(t.iface([], {
+    [t.indexKey]: "string",
+  })),
 });
 
 export const RecordId = t.name("number");

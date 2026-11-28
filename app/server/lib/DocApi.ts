@@ -66,6 +66,7 @@ import {
   confirmDocIdForRead,
   getCellFormatParameter,
   getErrorPlatform,
+  getFormulasParameter,
   getQueryParameters,
   handleSandboxError,
   QueryParameters,
@@ -177,6 +178,14 @@ export class DocWorkerApi {
 
     // check document exists (not soft deleted) and user can view it
     const canView = expressWrap(this._assertAccess.bind(this, "viewers", {}));
+    // Formula evaluation runs with the document's own capabilities rather than the caller's, so
+    // requests that ask for computed fields must come from an editor.
+    const canViewOrUseFormulas = expressWrap(async (req, res, next) => {
+      if (req.query.formulas !== undefined || req.body?.formulas !== undefined) {
+        return this._assertAccess("editors", { writes: false }, req, res, next);
+      }
+      return this._assertAccess("viewers", {}, req, res, next);
+    });
     // check document exists (not soft deleted) and user can edit it
     const canEdit = expressWrap(this._assertAccess.bind(this, "editors", {}));
     // as canEdit, for operations that leave the document unchanged, such as reloading it.
@@ -234,18 +243,34 @@ export class DocWorkerApi {
       const isMetaTable = tableId.startsWith("_grist");
       const columns = isMetaTable ? null :
         await handleSandboxError("", [], activeDoc.getTableCols(session, tableId, true));
-      // Apply sort/limit parameters, if set.  TODO: move sorting/limiting into data engine
-      // and sql.
-      return applyQueryParameters(fromTableDataAction(tableData), params, columns);
+      // Apply sort/limit before evaluating formulas, so that only returned rows are computed. Cell
+      // formatting is deferred until after formula columns have been merged; those columns have no
+      // schema metadata, so applyQueryParameters() formats them as Any.
+      const { cellFormat, ...queryParams } = params;
+      const columnData = applyQueryParameters(fromTableDataAction(tableData), queryParams, columns);
+      if (params.formulas && Object.keys(params.formulas).length > 0) {
+        for (const name of Object.keys(params.formulas)) {
+          if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || name === "id" || isHiddenCol(name) ||
+            ["__proto__", "constructor", "prototype"].includes(name) ||
+            Object.prototype.hasOwnProperty.call(columnData, name)) {
+            throw new ApiError(`Invalid formula name "${name}"`, 400);
+          }
+        }
+        const formulaData = await handleSandboxError(tableId, Object.keys(params.formulas),
+          activeDoc.evaluateFormulas(session, tableId, columnData.id, params.formulas));
+        Object.assign(columnData, formulaData);
+      }
+      return applyQueryParameters(columnData, { cellFormat }, columns);
     }
 
-    async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin, optTableId?: string) {
+    async function getTableData(activeDoc: ActiveDoc, req: RequestWithLogin, optTableId?: string,
+      formulas?: { [name: string]: string }) {
       const filters = req.query.filter ? JSON.parse(String(req.query.filter)) : {};
       // Option to skip waiting for document initialization.
       const immediate = isAffirmative(req.query.immediate);
       const tableId = await getRealTableId(optTableId || req.params.tableId, { activeDoc, req });
       const params = getQueryParameters(req);
-      return await readTable(req, activeDoc, tableId, filters, { ...params, immediate });
+      return await readTable(req, activeDoc, tableId, filters, { ...params, immediate, formulas });
     }
 
     function asRecords(
@@ -283,9 +308,10 @@ export class DocWorkerApi {
 
     async function getTableRecords(
       activeDoc: ActiveDoc, req: RequestWithLogin,
-      opts?: { optTableId?: string; includeHidden?: boolean, cellFormat?: CellFormatType },
+      opts?: { optTableId?: string; includeHidden?: boolean, cellFormat?: CellFormatType,
+        formulas?: { [name: string]: string } },
     ): Promise<TableRecordValue[]> {
-      const columnData = await getTableData(activeDoc, req, opts?.optTableId);
+      const columnData = await getTableData(activeDoc, req, opts?.optTableId, opts?.formulas);
       return asRecords(columnData, opts);
     }
 
@@ -297,18 +323,20 @@ export class DocWorkerApi {
     );
 
     // Get the specified table in record-oriented format
-    this._app.get("/api/docs/:docId/tables/:tableId/records", canView,
+    this._app.get("/api/docs/:docId/tables/:tableId/records", canViewOrUseFormulas,
       withDoc(async (activeDoc, req, res) => {
         const cellFormat = getCellFormatParameter(req);
+        const formulas = getFormulasParameter(req);
         const records = await getTableRecords(activeDoc, req,
-          { includeHidden: isAffirmative(req.query.hidden), cellFormat },
+          { includeHidden: isAffirmative(req.query.hidden), cellFormat, formulas },
         );
         res.json({ records });
       }),
     );
 
     // Get the specified table in record-oriented format, with parameters in the POST body.
-    this._app.post("/api/docs/:docId/tables/:tableId/records/list", canView, validate(RecordsListPost),
+    this._app.post("/api/docs/:docId/tables/:tableId/records/list", canViewOrUseFormulas,
+      validate(RecordsListPost),
       withDoc(async (activeDoc, req, res) => {
         const params = req.body as Types.RecordsListPost;
         const tableId = await getRealTableId(req.params.tableId, { activeDoc, req });

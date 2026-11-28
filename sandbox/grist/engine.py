@@ -21,6 +21,7 @@ import actions
 import action_obj
 from attribute_recorder import AttributeRecorder
 from autocomplete_context import AutocompleteContext, lookup_autocomplete_options, eval_suggestion
+import codebuilder
 from codebuilder import DOLLAR_REGEX
 import depend
 import docactions
@@ -105,6 +106,18 @@ skipped_completions = re.compile(r'\.(_|lookupOrAddDerived|getSummarySourceGroup
 # property, marking them as derived, which would affect certain UI decisions.
 
 
+class _AdHocFormulaColumn(object):
+  """The bits of a formula column needed by _recompute_one_cell for an API-supplied formula."""
+  def __init__(self, table_id, col_id, method):
+    self.table_id = table_id
+    self.col_id = col_id
+    self.node = depend.Node(table_id, col_id)
+    self.method = method
+
+  def is_formula(self):
+    return True
+
+
 class Engine(object):
   """
   The Engine is the core of the grist per-document logic. Some of its methods form the API exposed
@@ -131,6 +144,10 @@ class Engine(object):
       fetch_table(table_id, formulas)
         Returns a TableData object containing the full data for the table. Formula columns
         are included only if formulas is True.
+
+      evaluate_formulas(table_id, row_ids, formulas)
+        Returns a TableData object with ad-hoc formula columns computed for the given rows,
+        without modifying the document schema or retaining formula side effects.
 
       apply_user_actions(user_actions, user)
         Applies a list of UserActions, which are tuples consisting of the name of the action
@@ -749,6 +766,50 @@ class Engine(object):
       # processed (e.g. don't get applied to DocStorage), so it's important to reverse them.
       self._sync_request = False
       self._undo_to_checkpoint(checkpoint)
+
+  def evaluate_formulas(self, table_id, row_ids, formulas):
+    """Evaluate API-supplied formulas for a list of rows, returning a TableData object.
+
+    Formulas use the same syntax and environment as document formula columns, but are not added
+    to the schema. Any DocActions produced while evaluating them are rolled back, so this method
+    has no lasting side effects.
+    """
+    table = self.tables[table_id]
+    methods = self._compile_formula_methods(formulas)
+    column_values = {}
+
+    # Like get_formula_value(), make REQUEST synchronous and undo each cell's side effects.
+    self._sync_request = True
+    try:
+      for index, (name, method) in enumerate(zip(formulas, methods)):
+        col = _AdHocFormulaColumn(table_id, "#api_formula_%d" % index, method)
+        values = []
+        for row_id in row_ids:
+          checkpoint = self._get_undo_checkpoint()
+          try:
+            values.append(self._recompute_one_cell(table, col, row_id))
+          finally:
+            self._undo_to_checkpoint(checkpoint)
+        column_values[name] = values
+    finally:
+      self._sync_request = False
+
+    return actions.TableData(table_id, row_ids, column_values)
+
+  def _compile_formula_methods(self, formulas):
+    # Use the same imports as the generated usercode module, so that formulas can use the usual
+    # globals (grist functions, datetime/math/re, and the uppercase functions module).
+    parts = ["import grist\n"
+             "from functions import *\n"
+             "import datetime, math, re\n"]
+    names = []
+    for index, formula in enumerate(formulas.values()):
+      name = "__grist_api_formula_%d" % index
+      body = codebuilder.make_formula_body(formula, None, assoc_value=None, indent="  ")
+      parts.append("\ndef %s(rec, table):\n%s\n" % (name, body.get_text()))
+      names.append(name)
+    module = gencode.exec_module_text("".join(parts))
+    return [getattr(module, name) for name in names]
 
   def _recompute(self, node, row_ids=None):
     """

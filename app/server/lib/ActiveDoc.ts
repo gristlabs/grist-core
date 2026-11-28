@@ -56,8 +56,10 @@ import {
   BulkUpdateRecord,
   CellValue,
   DocAction,
+  fromTableDataAction,
   getTableId,
   isSchemaAction,
+  TableColValues,
   TableDataAction,
   toTableDataAction,
   UserAction,
@@ -84,7 +86,7 @@ import {
   RowCounts,
 } from "app/common/DocUsage";
 import { normalizeEmail } from "app/common/emails";
-import { readOnlyError } from "app/common/ErrorWithCode";
+import { ErrorWithCode, readOnlyError } from "app/common/ErrorWithCode";
 import { Features, Product } from "app/common/Features";
 import { isHiddenCol } from "app/common/gristTypes";
 import { commonUrls, parseUrlId } from "app/common/gristUrls";
@@ -1714,6 +1716,26 @@ export class ActiveDoc extends EventEmitter {
       return getFormulaErrorForExpandQuery(this.docData!, tableId, colId);
     }
     return this._pyCall("get_formula_error", tableId, colId, rowId);
+  }
+
+  /**
+   * Evaluates ad-hoc formulas for existing rows. Formulas can read across the document, so this
+   * is restricted to owners or editors without access-rule restrictions.
+   */
+  public async evaluateFormulas(
+    docSession: OptDocSession,
+    tableId: string,
+    rowIds: number[],
+    formulas: { [name: string]: string },
+  ): Promise<TableColValues> {
+    const access = await this._granularAccess.getNominalAccess(docSession);
+    if (!roles.canEdit(access) || await this._granularAccess.hasNuancedAccess(docSession)) {
+      throw new ErrorWithCode(
+        "ACL_DENY", "Only owners or editors with unrestricted access can evaluate formulas");
+    }
+    await this.waitForInitialization();
+    const tableData = await this._pyCall("evaluate_formulas", tableId, rowIds, formulas);
+    return fromTableDataAction(tableData);
   }
 
   /**
