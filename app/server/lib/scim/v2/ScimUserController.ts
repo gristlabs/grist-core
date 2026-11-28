@@ -99,8 +99,8 @@ class ScimUserController extends BaseController {
    */
   public async createUser(data: UserSchema, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
-      await this._checkEmailCanBeUsed(data.userName);
       const userProfile = toUserProfile(data);
+      await this._checkEmailCanBeUsed(userProfile.email);
       const newUser = await this.dbManager.getUserByLoginWithRetry(userProfile.email, {
         profile: userProfile,
       });
@@ -125,8 +125,9 @@ class ScimUserController extends BaseController {
       if (user?.type !== "login") {
         throw new SCIMMY.Types.Error(404, null!, "unable to find user to update");
       }
-      await this._checkEmailCanBeUsed(data.userName, id);
-      const updatedUser = await this.dbManager.overwriteUser(id, toUserProfile(data));
+      const userProfile = toUserProfile(data);
+      await this._checkEmailCanBeUsed(userProfile.email, id);
+      const updatedUser = await this.dbManager.overwriteUser(id, userProfile);
       return toSCIMMYUser(updatedUser);
     });
   }
