@@ -854,7 +854,10 @@
         "Learn more": "Learn more",
         "download attachments": "download attachments",
         "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ",
-        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. "
+        "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ": "If you're planning to upload this document to a Grist installation, you will need the archive in the \".tar\" format to restore attachments. ",
+        "Attachments are external and not included in the copy. You can {{downloadLink}} now, and upload them in the document settings of the copy. {{learnMore}}.": "Attachments are external and not included in the copy. You can {{downloadLink}} now, and upload them in the document settings of the copy. {{learnMore}}.",
+        "Attachments are external and not included in this download. If you plan to upload the document to Grist, you can {{downloadLink}} now, and upload them in the document settings of the new document. {{learnMore}}.": "Attachments are external and not included in this download. If you plan to upload the document to Grist, you can {{downloadLink}} now, and upload them in the document settings of the new document. {{learnMore}}.",
+        "If you're planning to upload this document to Grist, or to restore attachments in a copy of it, you will need the archive in the \".tar\" format. {{learnMore}}.": "If you're planning to upload this document to Grist, or to restore attachments in a copy of it, you will need the archive in the \".tar\" format. {{learnMore}}."
     },
     "NotifyUI": {
         "Ask for help": "Ask for help",
