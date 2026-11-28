@@ -135,6 +135,7 @@ export class CellStyle extends Disposable {
         t("Cell style"),
         this._field,
         this._gristDoc,
+        "column",
         fromKo(this._field.config.multiselect),
       ),
     ];

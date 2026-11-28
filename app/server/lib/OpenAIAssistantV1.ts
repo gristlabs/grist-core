@@ -2,10 +2,12 @@ import {
   AssistanceMessage,
   AssistanceRequestV1,
   AssistanceResponseV1,
+  AssistantInstructions,
 } from "app/common/Assistance";
 import { AssistantProvider } from "app/common/Assistant";
 import { delay } from "app/common/delay";
 import { DocAction } from "app/common/DocActions";
+import { sanitizeIdent } from "app/common/gutil";
 import {
   getProviderFromHostname,
   getUserHash,
@@ -328,6 +330,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         "You are a helpful assistant for a user of software called Grist. " +
         "Below are one or more fake Python classes representing the structure of the user's data. " +
         "The function at the end needs completing. " +
+        buildSpecificInstructions(request.context.specificInstructions) +
         "The user will probably give a description of what they want the function (a 'formula') to return. " +
         "If so, your response should include the function BODY as Python code in a markdown block. " +
         "Your response will be automatically concatenated to the code below, so you mustn't repeat any of it. " +
@@ -343,6 +346,51 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         "\n```",
     });
   }
+}
+
+/**
+ * Builds additional prompt instructions if necessary, for example for conditional style formulas.
+ * Kept server-side so the client cannot inject free-form instructions.
+ */
+function buildSpecificInstructions(instructions: AssistantInstructions | undefined): string {
+  if (instructions?.type !== "columnRule" && instructions?.type !== "rowRule") {
+    return "";
+  }
+  if (instructions.type === "columnRule" && !instructions.columnId) {
+    return "";
+  }
+  switch (instructions.type) {
+    case "columnRule": {
+      const parsedColId = formatColumnIdForPrompt(instructions.columnId);
+      const columnRef = parsedColId ? `the column with ID "${parsedColId}"` : "a column";
+      return (
+        "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
+        `whether to apply later user-specified formatting style on cells inside ${columnRef}. `
+      );
+    }
+    case "rowRule":
+      return (
+        "It's used as a formula that will be evaluated as an \"if\" condition to decide " +
+        "whether to apply later user-specified formatting style on entire rows. "
+      );
+    default:
+      return "";
+  }
+}
+
+/**
+ * Sanitizes a column id for inclusion in the system prompt.
+ */
+function formatColumnIdForPrompt(columnId: string): string | undefined {
+  // Ignore fake ids.
+  if (sanitizeIdent(columnId) !== columnId) {
+    return undefined;
+  }
+  // Prevent passing too much text to the prompt.
+  if (columnId.length > 100) {
+    return `${columnId.slice(0, 100)}… (truncated)`;
+  }
+  return columnId;
 }
 
 /**
