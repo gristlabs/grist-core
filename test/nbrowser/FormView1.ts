@@ -350,6 +350,14 @@ describe("FormView1", function() {
       await gu.openColumnPanel();
       await gu.waitForSidePanel("right", "expanded");
       const constraintInput = await driver.find(".test-tb-form-field-constraint input");
+      // The value must have room to be displayed in the default-width right panel, whatever the
+      // length of the (translated) label: the label used to be rendered inside the spinner and
+      // could squeeze the input to nothing (e.g. in French).
+      const contentWidth: number = await driver.executeScript((input: HTMLInputElement) => {
+        const style = getComputedStyle(input);
+        return input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      }, constraintInput);
+      assert.isAbove(contentWidth, 50);
       await constraintInput.sendKeys(5);
       await constraintInput.sendKeys(Key.ENTER);
       await gu.waitForServer();
