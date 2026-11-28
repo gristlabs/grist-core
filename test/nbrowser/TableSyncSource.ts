@@ -12,6 +12,9 @@ describe("TableSyncSource", function() {
   let session: gu.Session;
   let docId: string;
   let restoreFeatures: (() => Promise<void>) | undefined;
+  let hadSyncTablesButton: boolean;
+
+  gu.withEnvironmentSnapshot({ GRIST_TEST_SERVER_DEPLOYMENT_TYPE: "saas" });
 
   before(async function() {
     session = await gu.session().teamSite.login();
@@ -29,6 +32,8 @@ describe("TableSyncSource", function() {
 
   it("allows syncing a table", async function() {
     await rawData.open();
+    // Not every build has this button.
+    hadSyncTablesButton = await rawData.hasSyncTablesButton();
     await rawData.openMenu("Table1");
     await menu.click("Allow syncing…");
     assert.equal(await modal.title(), "Allow syncing Table1?");
@@ -51,7 +56,7 @@ describe("TableSyncSource", function() {
     await modal.confirm();
     await rawData.expectSyncColumn(false);
     assert.deepEqual(await tableOptions(session, docId, "Table1"), {});
-    await rawData.expectSyncTablesButton(true);
+    await rawData.expectSyncTablesButton(hadSyncTablesButton);
 
     await rawData.openMenu("Table1");
     assert.deepEqual(await menu.disabledItems(), []);
@@ -142,9 +147,13 @@ const rawData = {
     }, 5000);
   },
 
+  async hasSyncTablesButton() {
+    return driver.find(".test-raw-data-sync-tables").isPresent();
+  },
+
   async expectSyncTablesButton(shown: boolean) {
     await gu.waitToPass(async () => {
-      assert.equal(await driver.find(".test-raw-data-sync-tables").isPresent(), shown);
+      assert.equal(await rawData.hasSyncTablesButton(), shown);
     });
   },
 
