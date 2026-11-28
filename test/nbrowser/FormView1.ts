@@ -555,10 +555,9 @@ describe("FormView1", function() {
         await driver.findContentWait(".test-sd-searchable-list-item", "Bar", 2000).click();
         // Check keyboard shortcuts work.
         assert.equal(await driver.find(".test-form-search-select").getText(), "Bar");
-        await driver.sleep(50);
+        await gu.waitForFocus('select[name="D"]');
         await gu.sendKeys(Key.BACK_SPACE);
-        await gu.waitToPass(async () =>
-          assert.equal(await driver.find(".test-form-search-select").getText(), "Select..."), 500);
+        assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
         await gu.sendKeys(Key.ENTER);
         await driver.findContentWait(".test-sd-searchable-list-item", "Bar", 2000).click();
         await driver.find('button[type="submit"]').click();
@@ -868,11 +867,9 @@ describe("FormView1", function() {
         await driver.findContentWait(".test-sd-searchable-list-item", "Bar", 2000).click();
         // Check keyboard shortcuts work.
         assert.equal(await driver.find(".test-form-search-select").getText(), "Bar");
+        await gu.waitForFocus('select[name="D"]');
         await gu.sendKeys(Key.BACK_SPACE);
-        // Sometimes leads to flakiness, use waitToPass for this check:
-        await gu.waitToPass(async () => {
-          assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
-        });
+        assert.equal(await driver.find(".test-form-search-select").getText(), "Select...");
         await gu.sendKeys(Key.ENTER);
         await driver.findContentWait(".test-sd-searchable-list-item", "Bar", 2000).click();
         await driver.find('button[type="submit"]').click();
